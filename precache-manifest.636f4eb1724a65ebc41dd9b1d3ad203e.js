@@ -60,12 +60,12 @@ self.__precacheManifest = [
     "url": "/trimet-arrivals/static/js/StopContainer.7534ed11.chunk.js"
   },
   {
-    "revision": "50300b7e8f1fe1758c29",
+    "revision": "828cc95622abb9cde987",
     "url": "/trimet-arrivals/static/css/main.f559cabf.chunk.css"
   },
   {
-    "revision": "50300b7e8f1fe1758c29",
-    "url": "/trimet-arrivals/static/js/main.50300b7e.chunk.js"
+    "revision": "828cc95622abb9cde987",
+    "url": "/trimet-arrivals/static/js/main.828cc956.chunk.js"
   },
   {
     "revision": "442a0c1d41c3a15a089a",
@@ -872,12 +872,12 @@ self.__precacheManifest = [
     "url": "/trimet-arrivals/static/media/roboto-latin-100italic.6232f43d.woff2"
   },
   {
-    "revision": "a1471d1d6431c893582a5f6a250db3f9",
-    "url": "/trimet-arrivals/static/media/roboto-latin-300.a1471d1d.woff"
-  },
-  {
     "revision": "d69924b98acd849cdeba9fbff3f88ea6",
     "url": "/trimet-arrivals/static/media/roboto-latin-300italic.d69924b9.woff2"
+  },
+  {
+    "revision": "a1471d1d6431c893582a5f6a250db3f9",
+    "url": "/trimet-arrivals/static/media/roboto-latin-300.a1471d1d.woff"
   },
   {
     "revision": "210a7c781f5a354a0e4985656ab456d9",
@@ -900,6 +900,10 @@ self.__precacheManifest = [
     "url": "/trimet-arrivals/static/media/roboto-latin-400.bafb105b.woff"
   },
   {
+    "revision": "510dec37fa69fba39593e01a469ee018",
+    "url": "/trimet-arrivals/static/media/roboto-latin-500italic.510dec37.woff2"
+  },
+  {
     "revision": "d8bcbe724fd6f4ba44d0ee6a2675890f",
     "url": "/trimet-arrivals/static/media/roboto-latin-400italic.d8bcbe72.woff2"
   },
@@ -908,48 +912,44 @@ self.__precacheManifest = [
     "url": "/trimet-arrivals/static/media/roboto-latin-400italic.9680d5a0.woff"
   },
   {
-    "revision": "285467176f7fe6bb6a9c6873b3dad2cc",
-    "url": "/trimet-arrivals/static/media/roboto-latin-500.28546717.woff2"
-  },
-  {
     "revision": "de8b7431b74642e830af4d4f4b513ec9",
     "url": "/trimet-arrivals/static/media/roboto-latin-500.de8b7431.woff"
   },
   {
-    "revision": "510dec37fa69fba39593e01a469ee018",
-    "url": "/trimet-arrivals/static/media/roboto-latin-500italic.510dec37.woff2"
+    "revision": "285467176f7fe6bb6a9c6873b3dad2cc",
+    "url": "/trimet-arrivals/static/media/roboto-latin-500.28546717.woff2"
   },
   {
     "revision": "037d830416495def72b7881024c14b7b",
     "url": "/trimet-arrivals/static/media/roboto-latin-700.037d8304.woff2"
   },
   {
-    "revision": "cf6613d1adf490972c557a8e318e0868",
-    "url": "/trimet-arrivals/static/media/roboto-latin-700.cf6613d1.woff"
-  },
-  {
     "revision": "ffcc050b2d92d4b14a4fcb527ee0bcc8",
     "url": "/trimet-arrivals/static/media/roboto-latin-500italic.ffcc050b.woff"
+  },
+  {
+    "revision": "cf6613d1adf490972c557a8e318e0868",
+    "url": "/trimet-arrivals/static/media/roboto-latin-700.cf6613d1.woff"
   },
   {
     "revision": "010c1aeee3c6d1cbb1d5761d80353823",
     "url": "/trimet-arrivals/static/media/roboto-latin-700italic.010c1aee.woff2"
   },
   {
-    "revision": "19b7a0adfdd4f808b53af7e2ce2ad4e5",
-    "url": "/trimet-arrivals/static/media/roboto-latin-900.19b7a0ad.woff2"
+    "revision": "8c2ade503b34e31430d6c98aa29a52a3",
+    "url": "/trimet-arrivals/static/media/roboto-latin-900.8c2ade50.woff"
   },
   {
     "revision": "846d1890aee87fde5d8ced8eba360c3a",
     "url": "/trimet-arrivals/static/media/roboto-latin-700italic.846d1890.woff"
   },
   {
-    "revision": "8c2ade503b34e31430d6c98aa29a52a3",
-    "url": "/trimet-arrivals/static/media/roboto-latin-900.8c2ade50.woff"
-  },
-  {
     "revision": "7b770d6c53423deb1a8e49d3c9175184",
     "url": "/trimet-arrivals/static/media/roboto-latin-900italic.7b770d6c.woff2"
+  },
+  {
+    "revision": "19b7a0adfdd4f808b53af7e2ce2ad4e5",
+    "url": "/trimet-arrivals/static/media/roboto-latin-900.19b7a0ad.woff2"
   },
   {
     "revision": "bc833e725c137257c2c42a789845d82f",
@@ -964,12 +964,12 @@ self.__precacheManifest = [
     "url": "/trimet-arrivals/static/media/fontawesome-webfont.af7ae505.woff2"
   },
   {
-    "revision": "674f50d287a8c48dc19ba404d20fe713",
-    "url": "/trimet-arrivals/static/media/fontawesome-webfont.674f50d2.eot"
-  },
-  {
     "revision": "b06871f281fee6b241d60582ae9369b9",
     "url": "/trimet-arrivals/static/media/fontawesome-webfont.b06871f2.ttf"
+  },
+  {
+    "revision": "674f50d287a8c48dc19ba404d20fe713",
+    "url": "/trimet-arrivals/static/media/fontawesome-webfont.674f50d2.eot"
   },
   {
     "revision": "912ec66d7572ff821749319396470bde",
@@ -980,7 +980,7 @@ self.__precacheManifest = [
     "url": "/trimet-arrivals/static/media/location.4164f0b2.png"
   },
   {
-    "revision": "7741bf952e14057ace85816455354737",
+    "revision": "752d3800d1a206798f7cd41d42b9f40c",
     "url": "/trimet-arrivals/index.html"
   }
 ];
