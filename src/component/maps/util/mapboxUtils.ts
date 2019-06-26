@@ -1,5 +1,6 @@
 import { each, map } from "lodash";
 import mapboxgl from "mapbox-gl";
+import { getRouteColor } from "../../../api/trimet/constants";
 import { StopLocation } from "../../../api/trimet/types";
 import { StopLocationsDictionary } from "../../../store/reducers/stopsReducer";
 import {
@@ -103,15 +104,25 @@ export function setNearbyStopMarkers(
 
 function getRouteGeometry(routeId: string, directionId: string) {
   return import(
+    /* webpackChunkName: "trimetRouteGeoJSON" */
     `../../../data/${routeId}/${routeId}_${directionId}.json`
   ).catch(e => {
     return e;
   });
 }
 
-function addMapboxLayer(mapBoxMap, routeIdentifier: string, promise) {
+function addMapboxLayer(
+  mapBoxMap,
+  routeIdentifier: string,
+  routeColor: string,
+  promise
+) {
   mapBoxMap.addLayer({
     id: routeIdentifier,
+    paint: {
+      "line-color": routeColor,
+      "line-width": 4
+    },
     source: {
       data: {
         geometry: promise.geometry,
@@ -128,7 +139,8 @@ function addRouteLayers(mapBoxMap, returnedPromises: any[]) {
     if (!promise.code) {
       const { route_number, direction } = promise.properties;
       const routeIdentifier = `${route_number}_${direction}`;
-      addMapboxLayer(mapBoxMap, routeIdentifier, promise);
+      const routeColor = getRouteColor(route_number);
+      addMapboxLayer(mapBoxMap, routeIdentifier, routeColor, promise);
     }
   });
 }

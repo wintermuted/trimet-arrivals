@@ -1,14 +1,24 @@
+@import './styles/routes.scss';
+
 body {
   margin: 0;
   font-family: 'Roboto', Helvetica, Arial, sans-serif;
-  background: #00A676;
-  background-image: url('assets/images/umit-aslan-728189-unsplash.jpg');
+  background: grey;
+  //background-image: url('assets/images/umit-aslan-728189-unsplash.jpg');
   background-size: cover;
   background-attachment: fixed;
 }
 
+//button {
+//  //background: darkgrey !important;
+//  //color: white;
+//  font-size: 14px;
+//  padding: 2px !important;
+//  border-radius: 5px;
+//}
+
 .main-view {
-  padding: 10px;
+  padding: 0;
 }
 
 body button {
@@ -22,7 +32,7 @@ body button {
 }
 
 .group-menu-item.enabled {
-  background: rgb(0,0,0, 0.80)
+  background: rgba(0,0,0, 0.80)
 }
 
 .group-menu-item:first-child {
@@ -67,5 +77,5 @@ body button {
 }
 
 .mapboxgl-map {
-  margin-bottom: 10px;
+  margin-bottom: 0px;
 }
