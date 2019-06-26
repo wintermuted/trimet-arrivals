@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/trimet-arrivals/precache-manifest.636f4eb1724a65ebc41dd9b1d3ad203e.js"
+  "/trimet-arrivals/precache-manifest.90d9a6e176a75147b67523642ea00967.js"
 );
 
 workbox.clientsClaim();

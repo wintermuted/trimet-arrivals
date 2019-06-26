@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[137],{201:function(e){e.exports={type:"Feature",geometry:{type:"LineString",coordinates:[[-122.671009,45.499277],[-122.671127,45.49928],[-122.672422,45.49931],[-122.683918,45.499502]]},properties:{route_number:"208",direction:"1",route_description:"Portland Aerial Tram",public_route_number:"None",direction_description:"To Marquam Hill",frequent:"False",type:"AT"}}}}]);
+//# sourceMappingURL=trimetRouteGeoJSON44.f8884c43.chunk.js.map
