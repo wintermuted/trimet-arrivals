@@ -1,1 +1,0 @@
-{"version":3,"sources":["/Users/jnyeholt/code/trimet-arrivals/src/view/Home.scss"],"names":[],"mappings":"AAAA,UACE,YAAa,CAGf,qBACE,iBAAA,CACA,QAAA,CACA,UAAW","file":"Home.c36aa84f.chunk.css","sourcesContent":["#homepage {\n  padding: 10px;\n}\n\n.presentation-button {\n  position: absolute;\n  top: 60px;\n  right: 10px;\n}\n"]}
