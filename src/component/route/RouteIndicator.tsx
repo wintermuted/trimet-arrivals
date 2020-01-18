@@ -9,23 +9,35 @@ import {
   ROUTE_DISPLAY,
   STREETCAR_A_LOOP,
   STREETCAR_B_LOOP,
+  STREETCAR_CL_LINE_SHUTTLE,
   STREETCAR_S_LINE,
   YELLOW_LINE_NUMBER
 } from "../../api/trimet/constants";
 import { Route } from "../../api/trimet/types";
-import "./RouteIndicator.css";
+import "./RouteIndicator.scss";
 
 interface Props {
   routeId: number;
   route: Route;
   className?: string;
   onClick: (route: Route) => void;
+  verbose?: boolean;
 }
 
-function getRouteDisplay(route: number) {
+function getRouteDisplay(route: number, verboseRouteDisplay: boolean) {
   const routeFound = ROUTE_DISPLAY[route];
 
   if (!routeFound) {
+    if (route) {
+      return (
+        <span>
+          <FontAwesome name="bus" className="train-route-indicator" />
+          <span>
+            {route} {verboseRouteDisplay && "Bus"}
+          </span>
+        </span>
+      );
+    }
     return route || "-";
   } else {
     return (
@@ -40,7 +52,8 @@ function getRouteDisplay(route: number) {
 function getRouteIndicatorClassName(route: number, className: string) {
   const style = {
     "route-indicator-blue": route === BLUE_LINE_NUMBER,
-    "route-indicator-cyan": route === STREETCAR_A_LOOP,
+    "route-indicator-cyan":
+      route === STREETCAR_A_LOOP || route === STREETCAR_CL_LINE_SHUTTLE,
     "route-indicator-green": route === GREEN_LINE_NUMBER,
     "route-indicator-lightgreen": route === STREETCAR_S_LINE,
     "route-indicator-orange": route === ORANGE_LINE_NUMBER,
@@ -62,12 +75,12 @@ export default class RouteIndicator extends React.PureComponent<Props> {
   }
 
   public render() {
-    const { routeId, className } = this.props;
+    const { routeId, className, verbose } = this.props;
     const classNames = getRouteIndicatorClassName(routeId, className);
 
     return (
       <span className={classNames} onClick={this.onClick}>
-        {getRouteDisplay(routeId)}
+        {getRouteDisplay(routeId, verbose)}
       </span>
     );
   }

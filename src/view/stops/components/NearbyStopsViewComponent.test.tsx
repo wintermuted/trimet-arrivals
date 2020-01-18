@@ -11,7 +11,7 @@ describe("NearbyStopsViewComponent", () => {
             loadStopData={undefined}
             loading={undefined}
             stopLocations={undefined}
-            timeOfLastLoad={undefined}
+            currentLocation={undefined}
           />
         )
       ).not.toThrow();
@@ -28,7 +28,7 @@ describe("NearbyStopsViewComponent", () => {
             loadStopData={loadStopData}
             loading={undefined}
             stopLocations={undefined}
-            timeOfLastLoad={undefined}
+            currentLocation={undefined}
           />
         );
 
@@ -45,7 +45,7 @@ describe("NearbyStopsViewComponent", () => {
           loadStopData={undefined}
           loading={true}
           stopLocations={undefined}
-          timeOfLastLoad={undefined}
+          currentLocation={undefined}
         />
       );
 
@@ -63,7 +63,7 @@ describe("NearbyStopsViewComponent", () => {
           loadStopData={undefined}
           loading={false}
           stopLocations={stopLocations}
-          timeOfLastLoad={"12:01pm"}
+          currentLocation={undefined}
         />
       );
       const nearbyStops = subject.find(".nearby-stops");
@@ -74,7 +74,7 @@ describe("NearbyStopsViewComponent", () => {
 
       describe("the nearby stops list", () => {
         it("shows Stops", () => {
-          expect(nearbyStops.find("Stops")).toExist();
+          expect(nearbyStops.find(".nearby-stops")).toExist();
         });
       });
     });
@@ -86,7 +86,7 @@ describe("NearbyStopsViewComponent", () => {
         loadStopData={undefined}
         loading={false}
         stopLocations={undefined}
-        timeOfLastLoad={undefined}
+        currentLocation={undefined}
       />
     );
     const instance = subject.instance();

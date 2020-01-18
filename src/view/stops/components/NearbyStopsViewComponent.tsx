@@ -1,16 +1,29 @@
+import { size } from "lodash";
 import React from "react";
 import { Route } from "../../../api/trimet/types";
+import NearbyStopsMap from "../../../component/maps/NearbyStopsMap";
 import Modal from "../../../component/modal/Modal";
 import ModalContent from "../../../component/modal/ModalContent";
 import { LoadStopData } from "../../../store/action/stopActions";
+import {
+  SHOW_NEARBY_ROUTES,
+  SHOW_NEARBY_STOPS
+} from "../../../store/reducers/nearbyViewReducer";
 import { StopLocationsDictionary } from "../../../store/reducers/stopsReducer";
+import { RouteDirectionDict } from "../../../store/reducers/util/getRoutesFromStopLocations";
 import "../Stops.css";
+import NearbyRoutes from "./NearbyRoutes";
 import Stops from "./Stops";
+import SubNav from "./SubNav";
 
 interface Props {
   loadStopData: LoadStopData;
   loading: boolean;
   stopLocations: StopLocationsDictionary;
+  nearbyRoutes: RouteDirectionDict;
+  currentLocation: number[];
+  activeView: string;
+  changeView: (view: string) => void;
 }
 
 interface State {
@@ -43,7 +56,17 @@ export default class NearbyStopsViewComponent extends React.Component<
   }
 
   public render() {
-    const { loading, stopLocations } = this.props;
+    const {
+      loading,
+      stopLocations,
+      currentLocation,
+      nearbyRoutes,
+      activeView,
+      changeView
+    } = this.props;
+
+    const stopCount = size(stopLocations);
+    const routeCount = size(nearbyRoutes);
 
     return (
       <div id="nearby-stops-view-component">
@@ -53,23 +76,29 @@ export default class NearbyStopsViewComponent extends React.Component<
             <main>
               <div className="flex-container">
                 <section className="flex-stops">
-                  <Stops
+                  <NearbyStopsMap
+                    currentLocation={currentLocation}
                     stopLocations={stopLocations}
-                    showArrivals={false}
-                    onRouteIndicatorClick={this.openModal}
+                    nearbyRoutes={nearbyRoutes}
                   />
+                  <SubNav
+                    changeView={changeView}
+                    activeView={activeView}
+                    stopCount={stopCount}
+                    routeCount={routeCount}
+                  />
+                  {activeView === SHOW_NEARBY_ROUTES && (
+                    <NearbyRoutes nearbyRoutes={nearbyRoutes} />
+                  )}
+                  {activeView === SHOW_NEARBY_STOPS && (
+                    <Stops
+                      stopLocations={stopLocations}
+                      showArrivals={false}
+                      onRouteIndicatorClick={this.openModal}
+                    />
+                  )}
                 </section>
-                {this.state.modalOpen && (
-                  <div className="flex-info">
-                    <aside id="modal-root" className="modal-wrapper" />
-                    <Modal>
-                      <ModalContent
-                        route={this.state.routeInfo}
-                        closeModal={this.closeModal}
-                      />
-                    </Modal>
-                  </div>
-                )}
+                {this.state.modalOpen && this.showModal()}
               </div>
             </main>
           </div>
@@ -90,5 +119,19 @@ export default class NearbyStopsViewComponent extends React.Component<
       modalOpen: true,
       routeInfo: route
     });
+  }
+
+  private showModal() {
+    return (
+      <div className="flex-info">
+        <aside id="modal-root" className="modal-wrapper" />
+        <Modal>
+          <ModalContent
+            route={this.state.routeInfo}
+            closeModal={this.closeModal}
+          />
+        </Modal>
+      </div>
+    );
   }
 }

@@ -5,6 +5,8 @@ import thunk from "redux-thunk";
 import { ProviderMock } from "../../../test/util";
 import NearbyStopsViewContainer from "./NearbyStopsViewContainer";
 
+jest.mock("mapbox-gl");
+
 function mockStore() {
   const arrivalsInitialState = {
     arrivals: {},
@@ -38,6 +40,12 @@ function mockStore() {
     },
     bookmarksReducer: {
       bookmarks: {}
+    },
+    currentLocationReducer: {
+      coordinates: undefined
+    },
+    nearbyReducer: {
+      activeView: "SHOW_NEARBY_ROUTES"
     },
     stopsReducer: {
       loading: false,

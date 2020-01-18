@@ -1,14 +1,15 @@
 import cx from "classnames";
 import React from "react";
-import { Route, StopLocation } from "../../../api/trimet/types";
+import { Route } from "../../../api/trimet/types";
 import { LoadArrivalData } from "../../../store/action/stopActions";
+import { StopLocationWithDistance } from "../../../store/reducers/stopsReducer";
 import StopBookmarkControlContainer from "../containers/StopBookmarkControlContainer";
 import ReloadIntervalCoordinator from "./ReloadIntervalCoordinator";
 import StopInfo from "./StopInfo";
 import "./StopsTableHeader.css";
 
 interface Props {
-  stopLocation: StopLocation;
+  stopLocation: StopLocationWithDistance;
   loadArrivalData: LoadArrivalData;
   loading: boolean;
   showArrivals: boolean;
@@ -16,41 +17,39 @@ interface Props {
   locationId: number;
 }
 
-export default class StopsTableHeader extends React.Component<Props> {
-  public render() {
-    const {
-      stopLocation,
-      loading,
-      showArrivals,
-      loadArrivalData,
-      onRouteIndicatorClick,
-      locationId
-    } = this.props;
+export default function StopsTableHeader(props: Props) {
+  const {
+    stopLocation,
+    loading,
+    showArrivals,
+    loadArrivalData,
+    onRouteIndicatorClick,
+    locationId
+  } = props;
 
-    if (!stopLocation) {
-      return null;
-    }
-
-    const classNames = cx("stops-header", {
-      "arrivals-hidden": !showArrivals
-    });
-
-    return (
-      <div className={classNames}>
-        <StopInfo stopLocation={stopLocation} onClick={onRouteIndicatorClick} />
-        <div className="stop-control-section">
-          <StopBookmarkControlContainer
-            locationId={locationId}
-            stopLocation={stopLocation}
-          />
-          <ReloadIntervalCoordinator
-            stopLocation={stopLocation}
-            loadArrivalData={loadArrivalData}
-            loading={loading}
-            showArrivals={showArrivals}
-          />
-        </div>
-      </div>
-    );
+  if (!stopLocation) {
+    return null;
   }
+
+  const classNames = cx("stops-header", {
+    "arrivals-hidden": !showArrivals
+  });
+
+  return (
+    <div className={classNames}>
+      <StopInfo stopLocation={stopLocation} onClick={onRouteIndicatorClick} />
+      <div className="stop-control-section">
+        <StopBookmarkControlContainer
+          locationId={locationId}
+          stopLocation={stopLocation}
+        />
+        <ReloadIntervalCoordinator
+          stopLocation={stopLocation}
+          loadArrivalData={loadArrivalData}
+          loading={loading}
+          showArrivals={showArrivals}
+        />
+      </div>
+    </div>
+  );
 }
