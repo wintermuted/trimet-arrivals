@@ -1,5 +1,5 @@
 import circle from "@turf/circle";
-import { Map } from "mapbox-gl";
+import { GeoJSONSource, Map } from "mapbox-gl";
 import {
   CURRENT_LOCATION_CIRCLE,
   CURRENT_LOCATION_CIRCLE_LAYER,
@@ -19,22 +19,31 @@ export function drawCircle(
     units: "feet"
   });
 
-  map.addSource(CURRENT_LOCATION_RADIUS, {
-    data: radiusCircle,
-    type: "geojson"
-  });
+  const radiusSource = map.getSource(CURRENT_LOCATION_RADIUS) as
+    | GeoJSONSource
+    | undefined;
+  if (!radiusSource) {
+    map.addSource(CURRENT_LOCATION_RADIUS, {
+      type: "geojson",
+      data: radiusCircle
+    });
+  } else {
+    radiusSource.setData(radiusCircle);
+  }
 
-  const updatedMap = map.addLayer({
-    id: CURRENT_LOCATION_RADIUS_LAYER,
-    paint: {
-      "fill-color": "#888888",
-      "fill-opacity": 0.4
-    },
-    source: CURRENT_LOCATION_RADIUS,
-    type: "fill"
-  });
+  if (!map.getLayer(CURRENT_LOCATION_RADIUS_LAYER)) {
+    map.addLayer({
+      id: CURRENT_LOCATION_RADIUS_LAYER,
+      type: "fill",
+      source: CURRENT_LOCATION_RADIUS,
+      paint: {
+        "fill-color": "#888888",
+        "fill-opacity": 0.4
+      }
+    });
+  }
 
-  return updatedMap;
+  return map;
 }
 
 export function setCurrentLocationMarker(
@@ -43,23 +52,33 @@ export function setCurrentLocationMarker(
   lat: number,
   radiusSize: number
 ): Map {
-  map.addSource(CURRENT_LOCATION_CIRCLE, {
-    data: {
-      geometry: {
-        coordinates: [lng, lat],
-        type: "Point"
-      },
-      properties: {},
-      type: "Feature"
-    },
-    type: "geojson"
-  });
+  const data = {
+    type: "Feature" as const,
+    properties: {},
+    geometry: {
+      type: "Point" as const,
+      coordinates: [lng, lat]
+    }
+  };
+  const currentLocationSource = map.getSource(
+    CURRENT_LOCATION_CIRCLE
+  ) as GeoJSONSource | undefined;
+  if (!currentLocationSource) {
+    map.addSource(CURRENT_LOCATION_CIRCLE, {
+      type: "geojson",
+      data
+    });
+  } else {
+    currentLocationSource.setData(data);
+  }
 
-  map.addLayer({
-    id: CURRENT_LOCATION_CIRCLE_LAYER,
-    source: CURRENT_LOCATION_CIRCLE,
-    type: "circle"
-  });
+  if (!map.getLayer(CURRENT_LOCATION_CIRCLE_LAYER)) {
+    map.addLayer({
+      id: CURRENT_LOCATION_CIRCLE_LAYER,
+      type: "circle",
+      source: CURRENT_LOCATION_CIRCLE
+    });
+  }
 
   return drawCircle(map, lng, lat, radiusSize);
 }
