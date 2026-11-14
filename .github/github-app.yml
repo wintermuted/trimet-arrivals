@@ -1,0 +1,10 @@
+scripts:
+  - name: Setup
+    command: npm ci
+    triggers:
+      - session.create
+  - name: Run
+    command: npm run watch
+
+server_ready_pattern: 'Local:\s+(https?://\S+)'
+auto_open_in_browser: true

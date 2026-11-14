@@ -6,3 +6,16 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 - npm ci
 - npm run watch
+
+## GitHub Copilot app
+
+Review and accept `.github/github-app.yml` in the app to enable the repository
+scripts. Node.js 20.19.6 (see `.nvmrc`) and npm must be available on your PATH.
+
+- **Setup** runs `npm ci` automatically when a new session is created. Wait for
+  setup to finish before starting the dev server; it can also be rerun manually.
+- **Run** starts the Vite dev server with `npm run watch`. The app detects its
+  local URL and opens it in the integrated browser.
+
+Merge the configuration into the default branch to make it available to new
+sessions created from that branch.
