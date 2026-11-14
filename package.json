@@ -116,7 +116,7 @@
     "husky": "^4.0.6",
     "lint-staged": "^16.2.6",
     "nvm": "^0.0.4",
-    "prettier": "1.19.1",
+    "prettier": "3.10.0",
     "react-scripts": "^5.0.1",
     "ts-node": "^10.9.2",
     "vite": "^5.4.19"
