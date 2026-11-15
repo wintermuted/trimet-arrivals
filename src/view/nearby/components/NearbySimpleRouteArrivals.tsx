@@ -1,26 +1,12 @@
-import {
-  filter,
-  findIndex,
-  isEmpty,
-  last,
-  slice,
-  split,
-  toNumber
-} from "lodash";
+import { Button, FieldGroup, Select } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
-import {
-  Arrival,
-  ArrivalData,
-  ArrivalLocation
-} from "../../../api/trimet/interfaces/arrivals";
-import {
-  RouteDataResultSet,
-  RouteDirectionStop
-} from "../../../api/trimet/interfaces/routes";
+import { Arrival } from "../../../api/trimet/interfaces/arrivals";
+import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";
+import { DirectionsSelection } from "../util/mapbox/directionsSelection";
 import { DeparturesCard } from "./common/DeparturesCard";
 import { InfoCard } from "./common/InfoCard";
 import RouteStopInfo from "./common/RouteStopInfo";
@@ -28,89 +14,132 @@ import { StopsOnRoute } from "./common/StopsOnRoute";
 import { TopNavBar } from "./common/TopNavBar";
 import "./NearbyRoutes.scss";
 
+type RouteState =
+  | { status: "loading"; key: string }
+  | { status: "error"; key: string }
+  | { status: "ready"; key: string; directionName: string; stops: RouteDirectionStop[] };
+
+type ArrivalsState =
+  | { status: "loading"; key: string }
+  | { status: "error"; key: string }
+  | { status: "ready"; key: string; arrivals: Arrival[] };
+
 export default function NearbySimpleRouteArrivals({
-  handleRouteArrivalsOpened
+  onSelectionChanged
 }: {
-  handleRouteArrivalsOpened: (
-    id: string,
-    direction: string,
-    stop: string,
-    stopLocation: ArrivalLocation
-  ) => void;
+  onSelectionChanged: (selection: DirectionsSelection, onError: () => void) => void | (() => void);
 }) {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const stop = searchParams.get("stop");
   const direction = searchParams.get("direction");
-  const [arrivalData, setArrivalData] = useState<ArrivalData>(null);
-  const [filteredArrivalData, setFilteredArrivalData] = useState<Arrival[]>(
-    null
-  );
-  const [routeStopsData, setRouteStopsData] = useState<RouteDataResultSet>(
-    null
-  );
+  const validRoute = /^\d+$/.test(id || "") && Number(id) > 0 &&
+    (direction === "0" || direction === "1");
+  const routeKey = `${id}-${direction}`;
+  const arrivalsKey = `${routeKey}-${stop}`;
+  const [route, setRoute] = useState<RouteState>({ status: "loading", key: routeKey });
+  const [arrivals, setArrivals] = useState<ArrivalsState>({ status: "loading", key: arrivalsKey });
+  const [routeRetry, setRouteRetry] = useState(0);
+  const [arrivalsRetry, setArrivalsRetry] = useState(0);
+  const [mapRetry, setMapRetry] = useState(0);
+  const [mapError, setMapError] = useState(false);
 
   useEffect(() => {
-    async function fetchData() {
-      if (stop) {
-        console.log("Fetching data for stop: ", stop);
-        const arrivals = await getArrivals(stop, 1000);
-        setArrivalData(arrivals);
+    if (!validRoute) return;
+    let cancelled = false;
+    setRoute({ status: "loading", key: routeKey });
+    getRouteByIdAndDirection(Number(id), Number(direction)).then(data => {
+      const selectedRoute = data?.route?.find(item => item.route === Number(id));
+      const selectedDirection = selectedRoute?.dir?.find(item => item.dir === Number(direction));
+      if (!selectedDirection?.stop?.length) throw new Error("No stops for this route and direction");
+      if (!cancelled) setRoute({
+        status: "ready",
+        key: routeKey,
+        directionName: selectedDirection.desc,
+        stops: [...selectedDirection.stop].sort((a, b) => a.seq - b.seq)
+      });
+    }).catch(() => {
+      if (!cancelled) setRoute({ status: "error", key: routeKey });
+    });
+    return () => { cancelled = true; };
+  }, [id, direction, validRoute, routeKey, routeRetry]);
 
-        const filteredArrivals: Arrival[] = filter(
-          arrivals.arrival,
-          (arrival: Arrival) => {
-            return arrival.route === toNumber(id);
-          }
-        );
+  const readyRoute = route.key === routeKey && route.status === "ready" ? route : null;
+  const stopIndex = readyRoute?.stops.findIndex(item => String(item.locid) === stop) ?? -1;
+  const origin = readyRoute?.stops[stopIndex];
 
-        setFilteredArrivalData(filteredArrivals);
-
-        const routeStops = await getRouteByIdAndDirection(
-          toNumber(id),
-          toNumber(direction)
-        );
-        setRouteStopsData(routeStops);
-        const stopLocation: ArrivalLocation = arrivals.location[0];
-        handleRouteArrivalsOpened(id, direction, stop, stopLocation);
+  useEffect(() => {
+    if (!origin) return;
+    let cancelled = false;
+    setArrivals({ status: "loading", key: arrivalsKey });
+    getArrivals(String(origin.locid), 1000).then(data => {
+      if (!Array.isArray(data?.location) || (data.arrival != null && !Array.isArray(data.arrival))) {
+        throw new Error("Invalid arrivals response");
       }
+      if (!cancelled) setArrivals({
+        status: "ready",
+        key: arrivalsKey,
+        arrivals: (data.arrival ?? []).filter(item =>
+          item.route === Number(id) && item.dir === Number(direction) && item.locid === origin.locid
+        )
+      });
+    }).catch(() => {
+      if (!cancelled) setArrivals({ status: "error", key: arrivalsKey });
+    });
+    return () => { cancelled = true; };
+  }, [origin, id, direction, arrivalsKey, arrivalsRetry]);
+
+  useEffect(() => {
+    setMapError(false);
+    if (origin && validRoute) {
+      return onSelectionChanged(
+        { routeId: Number(id), direction: Number(direction), origin },
+        () => setMapError(true)
+      );
     }
+  }, [origin, id, direction, validRoute, onSelectionChanged, mapRetry]);
 
-    fetchData();
-  }, [stop]);
-
-  if (isEmpty(filteredArrivalData) || isEmpty(routeStopsData)) {
-    return null;
+  if (!validRoute) {
+    return <><TopNavBar id="Route" /><p role="alert">Choose a valid route and direction from Routes.</p></>;
+  }
+  if (route.key !== routeKey || route.status === "loading") {
+    return <><TopNavBar id={id} /><p role="status">Loading route stops...</p></>;
+  }
+  if (route.status === "error") {
+    return <><TopNavBar id={id} /><p role="alert">Could not load route stops.</p><Button onClick={() => setRouteRetry(value => value + 1)}>Try again</Button></>;
   }
 
-  const stopLocation: ArrivalLocation = arrivalData.location[0];
-  const shortSign = last(split(filteredArrivalData[0].shortSign, "To"));
-  const routeStopsInDirection = routeStopsData.route[0].dir[0].stop;
-  const stopIndex = findIndex(
-    routeStopsInDirection,
-    (routeDirectionStop: RouteDirectionStop, index) => {
-      return routeDirectionStop.locid === toNumber(stop);
-    }
-  );
+  function changeStop(value: string) {
+    const next = new URLSearchParams(searchParams);
+    next.set("stop", value);
+    setSearchParams(next);
+  }
 
-  const remainingStopsOnRoute = slice(routeStopsInDirection, stopIndex + 1);
-
+  const stopLocation = origin && { ...origin, id: origin.locid };
   return (
     <div className="scrollarea">
-      <TopNavBar id={id} shortSign={shortSign} />
+      <TopNavBar id={id} shortSign={route.directionName.replace(/^To\s+/i, "")} />
+      {mapError && <div><p role="alert">Could not load the route line.</p><Button onClick={() => setMapRetry(value => value + 1)}>Retry map</Button></div>}
       <br />
-      <RouteStopInfo
-        shortSign={shortSign}
-        stopLocation={stopLocation}
-        routeId={toNumber(id)}
-        direction={toNumber(direction)}
-      />
-      <br />
-      <DeparturesCard filteredArrivals={filteredArrivalData} />
-      <br />
-      <StopsOnRoute remainingStopsOnRoute={remainingStopsOnRoute} />
-      <br />
-      <InfoCard id={id} />
+      <FieldGroup label="From" htmlFor="route-origin">
+        <Select id="route-origin" value={origin ? String(origin.locid) : ""} onChange={event => changeStop(event.target.value)}>
+          <option value="" disabled>Choose a stop on this route</option>
+          {route.stops.map(item => <option key={`${item.locid}-${item.seq}`} value={item.locid}>{item.desc} ({item.locid})</option>)}
+        </Select>
+      </FieldGroup>
+      {!origin ? <p role="alert">Choose a stop on this route and direction.</p> : (
+        <>
+          <RouteStopInfo shortSign={route.directionName} stopLocation={stopLocation} routeId={Number(id)} direction={Number(direction)} showFromLabel={false} />
+          <br />
+          {arrivals.key !== arrivalsKey || arrivals.status === "loading" ? <p role="status">Loading departures...</p> :
+            arrivals.status === "error" ? <div><p role="alert">Could not load departures for this stop.</p><Button onClick={() => setArrivalsRetry(value => value + 1)}>Try again</Button></div> :
+              arrivals.arrivals.length ? <DeparturesCard filteredArrivals={arrivals.arrivals} /> : <p role="status">No upcoming departures for this route at this stop.</p>}
+          <br />
+          <StopsOnRoute remainingStopsOnRoute={route.stops.slice(stopIndex + 1)} />
+          <br />
+          <InfoCard id={id} />
+        </>
+      )}
     </div>
   );
 }

@@ -9,12 +9,14 @@ interface StopInfoParams {
   stopLocation: StopLocation;
   routeId: number;
   direction: number;
+  showFromLabel?: boolean;
 }
 
 export default function RouteStopInfo({
   stopLocation,
   routeId,
-  direction
+  direction,
+  showFromLabel = true
 }: StopInfoParams) {
   const navigate = useNavigate();
 
@@ -30,9 +32,9 @@ export default function RouteStopInfo({
   return (
     <div className="transit-stop-actions">
       <small>
-        <strong>From: </strong>
+        {showFromLabel && <strong>From: </strong>}
         <Link to={`/nearby/stops/${stopLocation.id}`}>
-          {stopLocation.desc} ({stopLocation.id})
+          {showFromLabel ? `${stopLocation.desc} (${stopLocation.id})` : "View stop details"}
         </Link>
       </small>
       <div
