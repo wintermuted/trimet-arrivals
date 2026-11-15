@@ -54,6 +54,13 @@ Departure rows support mouse and keyboard selection, with a highlight and caret
 identifying the selected departure. Selection persists across updates while that
 departure remains available; otherwise the first departure is selected.
 
+The Nearby route list groups stops by route, then direction. Each stop row shows
+its next reported arrival and distance; click the row's View arrivals action to
+open that route, direction, and boarding stop in the sidebar. All nearby stops
+are listed rather than hidden in a selector. The right-aligned filter and sort
+icons open their controls; sorting ranks whole routes by their earliest reported
+arrival, nearest stop, or route number without separating their directions.
+
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the
 app's resolved Light/Dark theme, including saved and system preferences. Changing
 themes updates the existing map configuration rather than replacing the style,
