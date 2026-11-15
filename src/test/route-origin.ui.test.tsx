@@ -66,7 +66,7 @@ describe("route origin selection", () => {
     expect(select.value).toBe("102");
     await choose("101");
     expect(container.querySelector("output").textContent).toContain("stop=101&direction=1&extra=keep");
-    expect(getArrivals).toHaveBeenLastCalledWith("101", 1000);
+    expect(getArrivals).toHaveBeenLastCalledWith("101", 60);
     expect(map).toHaveBeenLastCalledWith({ routeId: 54, direction: 1, origin: stops[0] }, expect.any(Function));
     expect(container.querySelector('[data-testid="remaining"]').textContent).toBe("102,103");
     expect(container.querySelector('a[href="/nearby/stops/101"]')).not.toBeNull();

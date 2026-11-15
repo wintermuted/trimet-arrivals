@@ -3,15 +3,8 @@ import React, { useEffect, useState } from "react";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
-import { getTripTimes, StopTime } from "../util/tripTimes";
+import { dayFormat, getTripTimes, StopTime, timeFormat } from "../util/tripTimes";
 import { TopNavBar } from "./common/TopNavBar";
-
-const timeFormat = new Intl.DateTimeFormat("en-US", {
-  timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit"
-});
-const dayFormat = new Intl.DateTimeFormat("en-US", {
-  timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric"
-});
 
 function TripStopTime({ time, today }: { time: StopTime; today: string }) {
   const day = dayFormat.format(time.at);

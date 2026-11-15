@@ -5,20 +5,18 @@ import {
 } from "@wintermuted/ui-theme/react";
 import { map } from "lodash";
 import moment from "moment";
-import React, { useState } from "react";
+import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
 import { getTimeUntilArrival } from "../../util/timeUtils";
 
 interface DeparturesCardParams {
   filteredArrivals: Arrival[];
+  selectedArrival: Arrival;
+  onSelect: (arrival: Arrival) => void;
 }
 
-export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
-  const [selectedId, setSelectedId] = useState<string>();
-  const selectedArrival = filteredArrivals.find(arrival => arrival.id === selectedId)
-    ?? filteredArrivals[0];
-
+export function DeparturesCard({ filteredArrivals, selectedArrival, onSelect }: DeparturesCardParams) {
   return (
     <Accordion
       open
@@ -52,7 +50,7 @@ export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
                 className="transit-departure-option"
                 aria-pressed={selected}
                 aria-label={`Depart at ${arrivalTime}, ${timeUntilArrival}`}
-                onClick={() => setSelectedId(arrival.id)}
+                onClick={() => onSelect(arrival)}
               >
                 <span>
                   {selected && <FontAwesome name="caret-right" aria-hidden="true" />}

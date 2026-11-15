@@ -22,7 +22,7 @@ type RouteState =
 type ArrivalsState =
   | { status: "loading"; key: string }
   | { status: "error"; key: string }
-  | { status: "ready"; key: string; arrivals: Arrival[] };
+  | { status: "ready"; key: string; arrivals: Arrival[]; refreshing: boolean; refreshError: boolean };
 
 export default function NearbySimpleRouteArrivals({
   onSelectionChanged
@@ -43,6 +43,7 @@ export default function NearbySimpleRouteArrivals({
   const [arrivalsRetry, setArrivalsRetry] = useState(0);
   const [mapRetry, setMapRetry] = useState(0);
   const [mapError, setMapError] = useState(false);
+  const [selection, setSelection] = useState<{ key: string; id: string }>();
 
   useEffect(() => {
     if (!validRoute) return;
@@ -71,23 +72,50 @@ export default function NearbySimpleRouteArrivals({
   useEffect(() => {
     if (!origin) return;
     let cancelled = false;
-    setArrivals({ status: "loading", key: arrivalsKey });
-    getArrivals(String(origin.locid), 1000).then(data => {
-      if (!Array.isArray(data?.location) || (data.arrival != null && !Array.isArray(data.arrival))) {
-        throw new Error("Invalid arrivals response");
+    let pending = false;
+    async function load() {
+      if (pending) return;
+      pending = true;
+      setArrivals(previous => previous.key === arrivalsKey && previous.status === "ready"
+        ? { ...previous, refreshing: true, refreshError: false }
+        : { status: "loading", key: arrivalsKey });
+      try {
+        const data = await getArrivals(String(origin.locid), 60);
+        if (!data || "errorMessage" in data || !Array.isArray(data.location) ||
+            (data.arrival != null && !Array.isArray(data.arrival))) {
+          throw new Error("Invalid arrivals response");
+        }
+        if (!cancelled) setArrivals({
+          status: "ready",
+          key: arrivalsKey,
+          arrivals: (data.arrival ?? []).filter(item =>
+            item.route === Number(id) && item.dir === Number(direction) && item.locid === origin.locid
+          ),
+          refreshing: false,
+          refreshError: false
+        });
+      } catch {
+        if (!cancelled) setArrivals(previous =>
+          previous.key === arrivalsKey && previous.status === "ready"
+            ? { ...previous, refreshing: false, refreshError: true }
+            : { status: "error", key: arrivalsKey });
+      } finally {
+        pending = false;
       }
-      if (!cancelled) setArrivals({
-        status: "ready",
-        key: arrivalsKey,
-        arrivals: (data.arrival ?? []).filter(item =>
-          item.route === Number(id) && item.dir === Number(direction) && item.locid === origin.locid
-        )
-      });
-    }).catch(() => {
-      if (!cancelled) setArrivals({ status: "error", key: arrivalsKey });
-    });
-    return () => { cancelled = true; };
+    }
+    load();
+    const timer = window.setInterval(load, 30000);
+    return () => { cancelled = true; window.clearInterval(timer); };
   }, [origin, id, direction, arrivalsKey, arrivalsRetry]);
+
+  const readyArrivals = arrivals.key === arrivalsKey && arrivals.status === "ready" ? arrivals.arrivals : [];
+  const selectedArrival = (selection?.key === arrivalsKey && readyArrivals.find(item => item.id === selection.id))
+    || readyArrivals[0];
+  useEffect(() => {
+    if (arrivals.key === arrivalsKey && arrivals.status === "ready") {
+      setSelection(selectedArrival ? { key: arrivalsKey, id: selectedArrival.id } : undefined);
+    }
+  }, [arrivalsKey, arrivals, selectedArrival?.id]);
 
   useEffect(() => {
     setMapError(false);
@@ -116,6 +144,9 @@ export default function NearbySimpleRouteArrivals({
   }
 
   const stopLocation = origin && { ...origin, id: origin.locid };
+  const stopCounts = new Map<number, number>();
+  route.stops.forEach(item => stopCounts.set(item.locid, (stopCounts.get(item.locid) ?? 0) + 1));
+  const repeatedStopIds = Array.from(stopCounts).filter(([, count]) => count > 1).map(([locid]) => locid);
   return (
     <div className="scrollarea">
       <TopNavBar id={id} shortSign={route.directionName.replace(/^To\s+/i, "")} />
@@ -131,11 +162,17 @@ export default function NearbySimpleRouteArrivals({
         <>
           <RouteStopInfo shortSign={route.directionName} stopLocation={stopLocation} routeId={Number(id)} direction={Number(direction)} showFromLabel={false} />
           <br />
-          {arrivals.key !== arrivalsKey || arrivals.status === "loading" ? <p role="status">Loading departures...</p> :
+          {arrivals.key !== arrivalsKey || arrivals.status === "loading" ? <div><p role="status">Loading departures...</p><Button onClick={() => setArrivalsRetry(value => value + 1)}>Retry departures</Button></div> :
             arrivals.status === "error" ? <div><p role="alert">Could not load departures for this stop.</p><Button onClick={() => setArrivalsRetry(value => value + 1)}>Try again</Button></div> :
-              arrivals.arrivals.length ? <DeparturesCard filteredArrivals={arrivals.arrivals} /> : <p role="status">No upcoming departures for this route at this stop.</p>}
+              <>
+                {arrivals.refreshError && <div><p role="alert">Could not refresh departures. Showing the last received departures.</p><Button onClick={() => setArrivalsRetry(value => value + 1)}>Try again</Button></div>}
+                {arrivals.refreshing && <div><p role="status">Refreshing departures...</p><Button onClick={() => setArrivalsRetry(value => value + 1)}>Retry departures</Button></div>}
+                {arrivals.arrivals.length
+                  ? <DeparturesCard filteredArrivals={arrivals.arrivals} selectedArrival={selectedArrival} onSelect={arrival => setSelection({ key: arrivalsKey, id: arrival.id })} />
+                  : <p role="status">No upcoming departures for this route at this stop.</p>}
+              </>}
           <br />
-          <StopsOnRoute remainingStopsOnRoute={route.stops.slice(stopIndex + 1)} />
+          <StopsOnRoute remainingStopsOnRoute={route.stops.slice(stopIndex + 1)} selectedArrival={selectedArrival} repeatedStopIds={repeatedStopIds} />
           <br />
           <InfoCard id={id} />
         </>

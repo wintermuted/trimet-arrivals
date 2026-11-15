@@ -1,11 +1,18 @@
-import React, { act } from "react";
+import React, { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { DeparturesCard } from "../view/nearby/components/common/DeparturesCard";
 import { StopsOnRoute } from "../view/nearby/components/common/StopsOnRoute";
 import { getNearbyStops } from "../api/trimet/stops";
 import { arrival1 } from "../api/trimet/fixture/arrival";
+import { Arrival } from "../api/trimet/interfaces/arrivals";
 
 jest.mock("../api/trimet/stops");
+
+function SelectableDepartures({ arrivals }: { arrivals: Arrival[] }) {
+  const [id, setId] = useState<string>();
+  const selected = arrivals.find(arrival => arrival.id === id) ?? arrivals[0];
+  return <DeparturesCard filteredArrivals={arrivals} selectedArrival={selected} onSelect={arrival => setId(arrival.id)} />;
+}
 
 it("selects departures and retains selection by arrival ID across updates", async () => {
   const container = document.createElement("div");
@@ -13,7 +20,7 @@ it("selects departures and retains selection by arrival ID across updates", asyn
   const root = createRoot(container);
   const later = { ...arrival1, id: "later", scheduled: arrival1.scheduled + 600000 };
   const render = (arrivals = [arrival1, later]) =>
-    act(() => root.render(<DeparturesCard filteredArrivals={arrivals} />));
+    act(() => root.render(<SelectableDepartures arrivals={arrivals} />));
   const buttons = () => Array.from(container.querySelectorAll("button"));
   try {
     render();
@@ -45,7 +52,7 @@ it("keeps the icon-labeled panels independent and preserves contents and collaps
   jest.mocked(getNearbyStops).mockImplementation(() => new Promise(() => {}));
   function panels(remaining = stops) {
     return <>
-      <DeparturesCard filteredArrivals={[arrival1]} />
+      <SelectableDepartures arrivals={[arrival1]} />
       <StopsOnRoute remainingStopsOnRoute={remaining} />
     </>;
   }

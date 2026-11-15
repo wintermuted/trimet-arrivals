@@ -87,6 +87,13 @@ activation without clearing their data when collapsed.
 The From selector lists every stop in route order for the selected direction;
 changing it updates the URL, departures, stop details, Go action, downstream
 stops and map. A stop with no departures remains selectable.
+The Stops panel shows reported estimated or scheduled arrival times for the
+selected departure's exact trip. Predictions and departures refresh every 30
+seconds; failed refreshes can be retried and retained times are labeled. TriMet
+limits requests to 128 stops and a 60-minute `minutes` setting; its arrival
+limits can omit later trips, so missing matches are shown as not reported rather
+than inferred. Stops repeated in the route are
+also unavailable because the arrivals response does not identify their sequence.
 
 Route geometry is generated from `scripts/tm_routes.json` using `npm run trimet`
 and served from `public/data/trimet/geoJSON`. The exporter groups every feature

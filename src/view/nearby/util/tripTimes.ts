@@ -12,7 +12,14 @@ export interface TripTime {
   durationMs?: number;
 }
 
-function reportedTime(arrival: Arrival): StopTime | undefined {
+export const timeFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit"
+});
+export const dayFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric"
+});
+
+export function reportedTime(arrival: Arrival): StopTime | undefined {
   if (arrival.status !== "estimated" && arrival.status !== "scheduled") {
     return undefined;
   }
@@ -24,6 +31,23 @@ function reportedTime(arrival: Arrival): StopTime | undefined {
     return { at: arrival.scheduled, kind: "Scheduled" };
   }
   return undefined;
+}
+
+export function getMatchingStopTime(
+  origin: Arrival,
+  arrivals: Arrival[],
+  stopId: number
+): StopTime | undefined {
+  const departure = reportedTime(origin);
+  if (!departure || !origin.tripID) return undefined;
+  return arrivals
+    .filter(candidate =>
+      candidate.locid === stopId && candidate.tripID === origin.tripID &&
+      candidate.route === origin.route && candidate.dir === origin.dir
+    )
+    .map(reportedTime)
+    .filter((time): time is StopTime => !!time && time.at >= departure.at)
+    .sort((a, b) => a.at - b.at)[0];
 }
 
 export function getTripTimes(
@@ -46,14 +70,7 @@ export function getTripTimes(
     if (!departure || departure.at < now) {
       return;
     }
-    // A shared vehicle/block can run different trips; only match the same trip.
-    const arrival = origin.tripID
-      ? routeArrivals
-        .filter(candidate => candidate.locid === to && candidate.tripID === origin.tripID)
-        .map(reportedTime)
-        .filter((time): time is StopTime => !!time && time.at >= departure.at)
-        .sort((a, b) => a.at - b.at)[0]
-      : undefined;
+    const arrival = getMatchingStopTime(origin, routeArrivals, to);
     trips.push({
       id: origin.id,
       departure,
