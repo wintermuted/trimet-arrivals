@@ -44,22 +44,22 @@ function getRouteGroups(routes: Dictionary<TrimetRoute[]>): RouteGroup[] {
           const key = `${route.route}-${direction.dir}`;
           if (!directions.has(key)) {
             directions.set(key, {
+              direction,
               key,
               routeId: route.route,
-              direction,
             });
           }
         })
       );
 
       return {
-        routeId,
         description: group[0].desc,
         directions: Array.from(directions.values()).sort(
           (a, b) =>
             a.direction.desc.localeCompare(b.direction.desc) ||
             a.direction.dir - b.direction.dir
         ),
+        routeId,
       };
     })
     .sort((a, b) => a.routeId - b.routeId);
@@ -140,6 +140,14 @@ export default function NearbyRoutes({
   );
   const filteredGroups = filterRouteGroups(routeGroups, activeValues);
 
+  function handleFilterChange(selected: readonly FilterOption[]) {
+    setSelectedValues(selected.map((option) => option.value));
+  }
+
+  function handleClearFilters() {
+    setSelectedValues([]);
+  }
+
   return (
     <div id="nearby-view-routes" className="scrollarea">
       <SearchRadiusSelection
@@ -163,9 +171,7 @@ export default function NearbyRoutes({
         value={filterOptions
           .flatMap((group) => group.options)
           .filter((option) => activeValues.includes(option.value))}
-        onChange={(selected) =>
-          setSelectedValues((selected || []).map((option) => option.value))
-        }
+        onChange={handleFilterChange}
         placeholder="All nearby routes"
         isDisabled={isLoading || routeGroups.length === 0}
       />
@@ -174,7 +180,7 @@ export default function NearbyRoutes({
           type="button"
           variant="link"
           className="transit-route-filter-clear"
-          onClick={() => setSelectedValues([])}
+          onClick={handleClearFilters}
         >
           Clear filters
         </Button>

@@ -245,12 +245,12 @@ export default function NearbyViewComponent() {
           return;
         }
         const routes = processRoutes(stopData);
-        const nearbyRouteIds = getNearbyRouteIds(routes);
-        const stopLocations = getStopLocations(stopData);
+        const updatedRouteIds = getNearbyRouteIds(routes);
+        const updatedStopLocations = getStopLocations(stopData);
 
         removeStopLocationLayers(mapRef.current);
         removeCurrentLocationMarkers(mapRef.current);
-        removeRoutes(mapRef.current, Object.keys(nearbyRouteIds));
+        removeRoutes(mapRef.current, Object.keys(updatedRouteIds));
 
         setNearbyStopData(stopData);
         setNearbyRoutesData(routes);
@@ -258,8 +258,8 @@ export default function NearbyViewComponent() {
         setIsNearbyDataLoading(false);
         setNearbyStops(
           mapRef.current,
-          stopLocations,
-          Object.keys(nearbyRouteIds),
+          updatedStopLocations,
+          Object.keys(updatedRouteIds),
           handleStopMarkerClick
         );
         setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
@@ -296,6 +296,12 @@ export default function NearbyViewComponent() {
   function handleRadiusSelectionChange(e) {
     console.log("handle radius selection change", e.target.value);
     setRadiusSize(e.target.value);
+  }
+
+  function handleNearbyDataRetry() {
+    if (userLocation) {
+      void fetchInitialData(userLocation);
+    }
   }
 
   function handleStopMarkerClick(data: any) {
@@ -361,9 +367,7 @@ export default function NearbyViewComponent() {
               <Button
                 type="button"
                 size="sm"
-                onClick={() =>
-                  userLocation && void fetchInitialData(userLocation)
-                }
+                onClick={handleNearbyDataRetry}
               >
                 Retry
               </Button>
