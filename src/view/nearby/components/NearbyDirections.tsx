@@ -5,6 +5,7 @@ import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import { TopNavBar } from "./common/TopNavBar";
 import { DirectionsSelection } from "../util/mapbox/directionsSelection";
+import NearbyTripTimes from "./NearbyTripTimes";
 import "./NearbyRoutes.scss";
 
 type RouteState =
@@ -27,8 +28,10 @@ function stopId(value: string | null): number | null {
 }
 
 export default function NearbyDirections({
-  onSelectionChanged
+  onSelectionChanged,
+  showTripTimes = false
 }: {
+  showTripTimes?: boolean;
   onSelectionChanged: (
     selection: DirectionsSelection,
     onError: () => void
@@ -129,6 +132,43 @@ export default function NearbyDirections({
   const backTo = origin
     ? `/nearby/simple-routes/${routeId}?stop=${from}&direction=${direction}`
     : "/nearby/simple-routes";
+  const selectionQuery = new URLSearchParams({
+    route: String(routeId), direction: String(direction), from: String(from), to: String(to)
+  }).toString();
+  const selectionUrl = `/nearby/directions?${selectionQuery}`;
+
+  if (showTripTimes) {
+    if (!origin || !destination) {
+      return (
+        <div className="transit-directions">
+          <TopNavBar id="Trip times" backTo={selectionUrl} />
+          <p role="alert">Choose a boarding stop and a downstream destination to view trip times.</p>
+          <Link className="wm-btn wm-btn-primary" to={selectionUrl}>Choose stops</Link>
+        </div>
+      );
+    }
+    return (
+      <>
+        {mapError && (
+          <div>
+            <p role="alert">Could not load the route line. Trip times are still available.</p>
+            <Button variant="secondary" onClick={() => setMapRetry(value => value + 1)}>
+              Retry map
+            </Button>
+          </div>
+        )}
+        <NearbyTripTimes
+          routeId={routeId}
+          direction={direction}
+          origin={origin}
+          destination={destination}
+          routeName={state.name}
+          directionName={state.directionName}
+          backTo={selectionUrl}
+        />
+      </>
+    );
+  }
 
   function changeStop(name: "from" | "to", value: string) {
     const next = new URLSearchParams(searchParams);
@@ -205,7 +245,7 @@ export default function NearbyDirections({
           </p>
           <Link
             className="wm-btn wm-btn-primary"
-            to={`/nearby/simple-routes/${routeId}?stop=${to}&direction=${direction}`}
+            to={`/nearby/directions/arrivals?${selectionQuery}`}
           >
             View destination arrivals
           </Link>

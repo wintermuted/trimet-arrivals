@@ -55,10 +55,10 @@ describe("route-aware destination selection", () => {
     container.remove();
   });
 
-  async function render(query = "route=54&direction=1&from=101") {
+  async function render(query = "route=54&direction=1&from=101", showTripTimes = false) {
     await act(async () => root.render(
       <MemoryRouter initialEntries={[`/nearby/directions?${query}`]}>
-        <NearbyDirections onSelectionChanged={onSelectionChanged} />
+        <NearbyDirections onSelectionChanged={onSelectionChanged} showTripTimes={showTripTimes} />
         <NavigationProbe />
       </MemoryRouter>
     ));
@@ -89,7 +89,7 @@ describe("route-aware destination selection", () => {
       expect.any(Function)
     );
     expect(container.querySelector(".wm-btn-primary").getAttribute("href")).toBe(
-      "/nearby/simple-routes/54?stop=103&direction=1"
+      "/nearby/directions/arrivals?route=54&direction=1&from=101&to=103"
     );
 
     choose("trip-origin", "102");
@@ -113,6 +113,13 @@ describe("route-aware destination selection", () => {
       { routeId: 54, direction: 1, origin: stops[0], destination: stops[1] },
       expect.any(Function)
     );
+  });
+
+  it("requires a valid downstream pair for a direct trip-times URL", async () => {
+    await render("route=54&direction=1&from=102&to=101", true);
+    expect(container.querySelector('[role="alert"]').textContent).toContain("downstream destination");
+    expect(container.querySelector(".wm-btn-primary").textContent).toBe("Choose stops");
+    expect(container.querySelector("table")).toBeNull();
   });
 
   it("cleans up the previous selected-stop marker when selection changes or the view closes", async () => {

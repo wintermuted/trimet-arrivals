@@ -150,13 +150,13 @@ export function NearbySimpleRouteArrivalsComp() {
   );
 }
 
-export function NearbyDirectionsComp() {
+export function NearbyDirectionsComp({ showTripTimes = false }: { showTripTimes?: boolean }) {
   const { handleDirectionsSelection } = useOutletContext<
     NearbyViewComponentOutletContextProps
   >();
 
   return (
-    <NearbyDirections onSelectionChanged={handleDirectionsSelection} />
+    <NearbyDirections onSelectionChanged={handleDirectionsSelection} showTripTimes={showTripTimes} />
   );
 }
 

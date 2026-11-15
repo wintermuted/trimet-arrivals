@@ -55,6 +55,7 @@ export default function RootAppRoutes() {
               element={<NearbySimpleRouteArrivalsComp />}
             />
             <Route path="directions" element={<NearbyDirectionsComp />} />
+            <Route path="directions/arrivals" element={<NearbyDirectionsComp showTripTimes />} />
             <Route path="stops" element={<NearbyStopsComponent />} />
             <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
             <Route path="routes" element={<NearbyRoutesComponent />} />
