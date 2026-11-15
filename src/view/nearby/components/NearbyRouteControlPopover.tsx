@@ -1,9 +1,12 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import FontAwesome from "react-fontawesome";
 
 interface Props {
   buttonLabel: string;
+  icon: string;
+  activeCount?: number;
   disabled?: boolean;
   label: string;
   children: React.ReactNode;
@@ -18,6 +21,8 @@ const viewportPadding = 8;
 
 export default function NearbyRouteControlPopover({
   buttonLabel,
+  icon,
+  activeCount,
   disabled,
   label,
   children,
@@ -53,7 +58,7 @@ export default function NearbyRouteControlPopover({
       const left = Math.max(
         viewportPadding,
         Math.min(
-          buttonBounds.left,
+          buttonBounds.right - panelBounds.width,
           window.innerWidth - panelBounds.width - viewportPadding
         )
       );
@@ -128,12 +133,20 @@ export default function NearbyRouteControlPopover({
         ref={buttonRef}
         type="button"
         variant="secondary"
+        className="transit-route-control-button"
+        aria-label={buttonLabel}
+        title={buttonLabel}
         aria-expanded={open}
         aria-controls={id}
         disabled={disabled}
         onClick={toggle}
       >
-        {buttonLabel}
+        <FontAwesome name={icon} aria-hidden="true" />
+        {activeCount > 0 && (
+          <span className="transit-route-control-count" aria-hidden="true">
+            {activeCount}
+          </span>
+        )}
       </Button>
       {createPortal(
         <div

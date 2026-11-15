@@ -160,6 +160,8 @@ export default function NearbyRoutes({
       <br />
       <div className="transit-route-controls">
         <NearbyRouteControlPopover
+          icon="filter"
+          activeCount={activeValues.length}
           buttonLabel={
             activeValues.length > 0
               ? `Filter (${activeValues.length})`
