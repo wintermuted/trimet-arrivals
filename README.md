@@ -11,7 +11,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 The app uses `@wintermuted/ui-theme` for its CSS, React components, and theme
 preferences. `src/index.tsx` imports `@wintermuted/ui-theme/index.css` and calls
-`initTheme` from `@wintermuted/ui-theme/theme` before rendering. `ThemeProvider`
+`initTheme` from `@wintermuted/ui-theme/theme` before rendering. Both HTML
+templates run the library's `getThemeScript()` bootstrap before styles to apply
+the saved or system theme on first paint. `ThemeProvider`
 wraps the app; the footer's sun/moon button switches between Light and Dark,
 with the preference saved under `wintermuted:theme`. Without an explicit saved
 choice, the app follows the system theme.
