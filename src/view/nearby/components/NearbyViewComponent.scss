@@ -57,8 +57,15 @@
 }
 
 .transit-nearby-results {
+  --transit-nearby-sidebar-gutter: 14px;
   overflow-y: auto;
-  padding-inline: 14px;
+  padding-inline: var(--transit-nearby-sidebar-gutter);
+
+  .transit-detail-header {
+    margin-inline: calc(-1 * var(--transit-nearby-sidebar-gutter));
+    padding-inline: var(--transit-nearby-sidebar-gutter);
+    border-radius: 0;
+  }
 
   &:focus-visible {
     outline: 2px solid var(--wm-color-accent);
