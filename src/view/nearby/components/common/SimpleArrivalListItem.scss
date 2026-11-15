@@ -16,11 +16,30 @@
 .transit-arrival-heading {
   display: flex;
   align-items: baseline;
-  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
+.transit-simple-arrival-content {
+  min-width: 0;
+
+  .transit-arrival-heading > span,
+  > small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .transit-arrival-heading > span {
+    min-width: 0;
+  }
+
+  > small {
+    display: block;
+  }
+}
+
 .transit-arrival-route {
+  flex-shrink: 0;
   font-size: 1.5rem;
 }
 

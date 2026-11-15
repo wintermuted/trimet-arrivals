@@ -84,6 +84,31 @@ describe("accessible transit detail links", () => {
     expect(links[1].textContent).toContain(stop.desc);
   });
 
+  it("keeps full simple-route descriptions available when visually truncated", () => {
+    const direction = "To Example Destination With A Very Long Route Direction";
+    const stopName = "Example Stop With A Very Long Descriptive Name";
+    render(
+      <SimpleArrivalListItem
+        id={stop.locid}
+        arrival={arrival}
+        route={{ ...route, dir: [{ dir: 1, desc: direction }] }}
+        stop={{ ...stop, desc: stopName }}
+      />
+    );
+    const link = container.querySelector("a");
+    const description = link.querySelector(".transit-arrival-heading span");
+    const stopDescription = link.querySelector("small");
+    expect(description.textContent).toBe(direction);
+    expect(description.getAttribute("title")).toBe(direction);
+    expect(stopDescription.textContent).toBe(`at ${stopName} (${stop.locid})`);
+    expect(stopDescription.getAttribute("title")).toBe(
+      `at ${stopName} (${stop.locid})`
+    );
+    expect(link.getAttribute("href")).toBe(
+      "/nearby/simple-routes/54?stop=368&direction=1"
+    );
+  });
+
   it("renders one valid route link rather than nested links in route cards", () => {
     render(<RouteListItem route={route} />);
     const links = container.querySelectorAll("a");
