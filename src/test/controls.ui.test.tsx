@@ -189,25 +189,41 @@ describe("Wintermuted control integration", () => {
         )
       );
     render();
-    expect(container.querySelector("header select")).toBeNull();
-    const select = container.querySelector("footer select");
-    expect(select.getAttribute("aria-label")).toBe("Theme");
-    expect(Array.from(select.options).map(option => option.value)).toEqual([
-      "system",
-      "light",
-      "dark"
-    ]);
+    expect(container.querySelector("select")).toBeNull();
+    const button = container.querySelector<HTMLButtonElement>(
+      'footer button[aria-label="Toggle dark mode"]'
+    );
+    expect(button.textContent).toBe("Dark");
+    expect(button.querySelector("svg").getAttribute("aria-hidden")).toBe("true");
 
-    act(() => {
-      select.value = "dark";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-    });
+    act(() => button.click());
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    expect(button.textContent).toBe("Light");
 
     act(() => root.unmount());
     root = createRoot(container);
     render();
-    expect(container.querySelector("select").value).toBe("dark");
+    expect(container.querySelector("footer button").textContent).toBe("Light");
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    act(() => container.querySelector<HTMLButtonElement>("footer button").click());
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    expect(container.querySelector("footer button").textContent).toBe("Dark");
+  });
+
+  it("toggles from the resolved system theme rather than the system preference", () => {
+    const matchMedia = window.matchMedia;
+    window.matchMedia = media => ({ ...matchMedia(media), matches: true });
+    act(() =>
+      root.render(
+        <ThemeProvider>
+          <AppFooter />
+        </ThemeProvider>
+      )
+    );
+    const button = container.querySelector<HTMLButtonElement>("footer button");
+    expect(button.textContent).toBe("Light");
+    act(() => button.click());
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    expect(button.textContent).toBe("Dark");
   });
 });

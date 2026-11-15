@@ -12,8 +12,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 The app uses `@wintermuted/ui-theme` for its CSS, React components, and theme
 preferences. `src/index.tsx` imports `@wintermuted/ui-theme/index.css` and calls
 `initTheme` from `@wintermuted/ui-theme/theme` before rendering. `ThemeProvider`
-wraps the app; the header's theme selector offers System, Light, and Dark, with
-the preference saved under `wintermuted:theme`.
+wraps the app; the footer's sun/moon button switches between Light and Dark,
+with the preference saved under `wintermuted:theme`. Without an explicit saved
+choice, the app follows the system theme.
 
 Import shared controls from `@wintermuted/ui-theme/react`. The bookmark section
 picker uses `MultiSelect` from `@wintermuted/ui-theme/react/select`, with
@@ -33,14 +34,16 @@ public npm registry; no local integration tarball is required.
 
 Primary navigation pairs icons with labels and highlights the full active
 section, including line detail pages. On narrow screens, the Menu button reveals
-the routes. The theme selector lives in an always-visible footer on every page.
+the routes. The theme toggle lives in an always-visible footer on every page.
 Page content scrolls independently between the header and footer, keeping theme
 controls accessible without covering the content.
 
 The app shell follows the Wintermuted docs-topbar pattern used by Game of Life
 and Inventory: compact branding, underline-active navigation, consistent page
 gutters, and a quiet footer with source/releases links and theme controls.
-System mode and the always-visible footer are retained for this app.
+The theme toggle matches Game of Life: its icon and label name the theme that
+clicking will activate. Existing System preferences remain respected until the
+user chooses Light or Dark. The footer remains always visible.
 
 Restart a running Vite development server after upgrading this package to clear
 cached package exports.
