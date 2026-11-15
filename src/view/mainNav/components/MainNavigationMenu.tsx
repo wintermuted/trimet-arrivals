@@ -1,5 +1,6 @@
-import { Button, Nav, ThemeSelect } from "@wintermuted/ui-theme/react";
+import { Button, Nav } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useId, useRef, useState } from "react";
+import FontAwesome from "react-fontawesome";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import "./MainNavigationMenu.scss";
 
@@ -63,6 +64,7 @@ export default function MainNavigationMenu(props: Props) {
             aria-current={homeActive ? "page" : undefined}
             onClick={closeMenu}
           >
+            <FontAwesome name="home" fixedWidth aria-hidden="true" />
             Home
           </Link>
           <Link
@@ -71,15 +73,14 @@ export default function MainNavigationMenu(props: Props) {
             aria-current={linesActive ? "page" : undefined}
             onClick={closeMenu}
           >
+            <FontAwesome name="train" fixedWidth aria-hidden="true" />
             Lines
           </Link>
           <NavLink to="/bookmarks" onClick={closeMenu}>
+            <FontAwesome name="bookmark" fixedWidth aria-hidden="true" />
             Bookmarks
           </NavLink>
         </Nav>
-        <div className="transit-header-actions">
-          <ThemeSelect label="Theme" />
-        </div>
       </div>
     </header>
   );
