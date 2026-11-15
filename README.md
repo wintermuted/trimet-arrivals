@@ -82,6 +82,9 @@ boarding times use TriMet stop predictions rather than guaranteed departures.
 The route stop detail's Departures and Stops panels use independent native
 disclosures with clock/stop icons. Both start expanded and support keyboard
 activation without clearing their data when collapsed.
+The From selector lists every stop in route order for the selected direction;
+changing it updates the URL, departures, stop details, Go action, downstream
+stops and map. A stop with no departures remains selectable.
 
 Route geometry is generated from `scripts/tm_routes.json` using `npm run trimet`
 and served from `public/data/trimet/geoJSON`. The exporter groups every feature
