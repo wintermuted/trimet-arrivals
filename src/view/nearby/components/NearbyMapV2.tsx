@@ -2,12 +2,6 @@ import React, { useEffect } from "react";
 
 export type LatLngCoords = number[];
 
-const style = {
-  height: `calc(100vh - 100px)`,
-  position: "relative",
-  width: "100%"
-};
-
 interface Props {
   zoom: number;
   mapRef: any;
@@ -20,7 +14,8 @@ function NearbyMapV2({
   zoom,
   currentLocation,
   initializeMap,
-  mapContainerRef
+  mapContainerRef,
+  mapRef
 }: Props) {
   const lng = currentLocation[0];
   const lat = currentLocation[1];
@@ -28,13 +23,17 @@ function NearbyMapV2({
   // Initialize Map
   useEffect(() => {
     initializeMap();
+    const observer = new ResizeObserver(() => mapRef.current?.resize());
+    observer.observe(mapContainerRef.current);
+    return () => observer.disconnect();
   }, []);
 
-  // @ts-ignore
-  const mapBoxMap = <div style={style} ref={mapContainerRef} />;
+  const mapBoxMap = (
+    <div className="transit-nearby-map-canvas" ref={mapContainerRef} />
+  );
 
   return (
-    <div>
+    <div className="transit-nearby-map">
       <div className="sidebar">
         Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
       </div>

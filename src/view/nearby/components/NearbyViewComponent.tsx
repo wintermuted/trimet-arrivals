@@ -329,12 +329,17 @@ export default function NearbyViewComponent() {
   };
 
   return (
-    <div className="transit-container">
-      <div className="transit-columns">
-        <div className="transit-column transit-column-3">
+    <div className="transit-container transit-nearby-view">
+      <div className="transit-columns transit-nearby-layout">
+        <div
+          className="transit-column transit-column-3 transit-nearby-results"
+          role="region"
+          aria-label="Nearby transit"
+          tabIndex={0}
+        >
           {isMapLoaded && <Outlet context={context} />}
         </div>
-        <div className="transit-column transit-column-9">
+        <div className="transit-column transit-column-9 transit-nearby-map-panel">
           {showMap && (
             <NearbyMapV2
               initializeMap={initializeMapboxMap}
