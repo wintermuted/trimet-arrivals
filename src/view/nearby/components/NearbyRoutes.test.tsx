@@ -100,7 +100,7 @@ describe("NearbyRoutes", () => {
 
     const filterButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button")
-    ).find((button) => button.textContent === "Filter");
+    ).find((button) => button.getAttribute("aria-label") === "Filter");
     const filterControl = document.getElementById("nearby-routes-filter");
     expect(filterButton?.getAttribute("aria-expanded")).toBe("false");
     expect(filterControl?.closest(".transit-route-control-popover")?.hidden).toBe(

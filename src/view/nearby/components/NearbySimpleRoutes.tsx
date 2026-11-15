@@ -369,6 +369,8 @@ export default function NearbySimpleRoutes({
         <>
           <div className="transit-route-controls">
             <NearbyRouteControlPopover
+              icon="filter"
+              activeCount={activeFilterValues.length}
               buttonLabel={
                 activeFilterValues.length > 0
                   ? `Filter (${activeFilterValues.length})`
@@ -409,6 +411,7 @@ export default function NearbySimpleRoutes({
               )}
             </NearbyRouteControlPopover>
             <NearbyRouteControlPopover
+              icon="sort-amount-asc"
               buttonLabel={`Sort: ${
                 sortBy === "arrival"
                   ? "Soonest arrival"

@@ -236,8 +236,31 @@
 .transit-route-controls {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--wm-space-2);
   margin-block: var(--wm-space-3);
+}
+
+.transit-route-control-button {
+  position: relative;
+  width: var(--wm-control-height);
+  min-width: var(--wm-control-height);
+  padding: 0;
+}
+
+.transit-route-control-count {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  min-width: 1.15rem;
+  padding: 0 0.2rem;
+  border: 1px solid var(--wm-color-accent-border);
+  border-radius: 999px;
+  background: var(--wm-color-accent-soft);
+  color: var(--wm-color-accent);
+  font-size: 0.7rem;
+  line-height: 1.15rem;
+  text-align: center;
 }
 
 .transit-route-control-popover {
