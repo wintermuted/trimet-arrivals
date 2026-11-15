@@ -49,9 +49,17 @@ changing the boarding stop clears the destination. The map shows the selected
 route line and labeled boarding/destination markers. With both stops selected it
 shows a solid line for the selected portion and fits both stops plus the intervening
 road geometry, with padding that adapts to the map panel's size; with only a
-boarding stop it focuses that stop. The destination summary links to its route-specific arrivals.
-Selections are retained in the URL. This is a stop-selection flow, not a journey
-planner: it does not estimate travel times or promise departure/arrival times.
+boarding stop it focuses that stop. View destination arrivals opens a trip-times
+view with the selected route, direction, boarding stop and destination retained
+in the URL. It requests both stops together and matches predictions by trip ID,
+showing boarding/departure time, corresponding destination time, and their
+approximate travel duration. Estimated and scheduled times are labeled separately
+and displayed in Portland's Pacific time, with dates for trips after midnight.
+Times refresh every 30 seconds and can be refreshed manually. Missing matching
+destination predictions remain explicitly unavailable; unrelated buses, canceled
+trips, uncertain predictions and drop-off-only boarding stops are never used to
+invent a journey. This is a same-route stop-time comparison, not a transfer planner;
+boarding times use TriMet stop predictions rather than guaranteed departures.
 
 Route geometry is generated from `scripts/tm_routes.json` using `npm run trimet`
 and served from `public/data/trimet/geoJSON`. The exporter groups every feature

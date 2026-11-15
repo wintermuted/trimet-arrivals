@@ -23,6 +23,55 @@
   }
 }
 
+.transit-trip-stops {
+  display: grid;
+  gap: var(--wm-space-3);
+  margin: 0;
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.transit-trip-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-2);
+}
+
+.transit-trip-times-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: var(--wm-space-3) var(--wm-space-1);
+    border-bottom: 1px solid var(--wm-color-border);
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+
+  time,
+  small {
+    display: block;
+  }
+}
+
+.transit-trip-note,
+.transit-trip-times-table small {
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+}
+
 .route-header {
   background: var(--wm-color-surface);
   padding: 0;
