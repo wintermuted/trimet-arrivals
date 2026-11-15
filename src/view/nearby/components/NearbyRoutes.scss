@@ -47,6 +47,27 @@
   }
 }
 
+.transit-stop-prediction-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-2);
+  padding: var(--wm-space-3) var(--wm-space-4);
+}
+
+.transit-stop-prediction-message {
+  margin: 0;
+  padding: var(--wm-space-2) var(--wm-space-4);
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+}
+
+.transit-stop-prediction {
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .transit-directions {
   display: flex;
   flex-direction: column;
