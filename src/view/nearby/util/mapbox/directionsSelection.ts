@@ -1,6 +1,7 @@
 import { LngLatBounds, Map, Marker, Popup } from "mapbox-gl";
 import { RouteDirectionStop } from "../../../../api/trimet/interfaces/routes";
 import { addMapboxLayer, getRouteGeometry, removeRoutes } from "./routeLines";
+import { getSelectedRouteSegment } from "./routeSegment";
 
 export interface DirectionsSelection {
   routeId: number;
@@ -29,7 +30,7 @@ export function showDirectionsSelection(
     return marker;
   });
 
-  if (destination) {
+  function fitSelection(bounds: LngLatBounds) {
     const container = map.getContainer();
     const horizontalPadding = Math.min(48, container.clientWidth / 5);
     const padding = {
@@ -38,9 +39,13 @@ export function showDirectionsSelection(
       left: horizontalPadding,
       right: horizontalPadding
     };
-    const bounds = new LngLatBounds([origin.lng, origin.lat], [origin.lng, origin.lat])
-      .extend([destination.lng, destination.lat]);
     map.fitBounds(bounds, { padding, maxZoom: 16, duration: 500 });
+  }
+
+  const bounds = new LngLatBounds([origin.lng, origin.lat], [origin.lng, origin.lat]);
+  if (destination) {
+    bounds.extend([destination.lng, destination.lat]);
+    fitSelection(bounds);
   } else {
     map.flyTo({ center: [origin.lng, origin.lat], zoom: 16 });
   }
@@ -48,7 +53,21 @@ export function showDirectionsSelection(
   getRouteGeometry(String(routeId), direction, request.signal)
     .then(feature => {
       if (!closed) {
-        addMapboxLayer(map, feature, DIRECTIONS_ROUTE);
+        const selected = destination
+          ? getSelectedRouteSegment(feature, origin, destination)
+          : feature;
+        addMapboxLayer(map, selected, DIRECTIONS_ROUTE, {
+          "line-color": "#0080ff",
+          "line-opacity": 1,
+          "line-width": 4
+        });
+        if (destination) {
+          const lines = selected.geometry.type === "LineString"
+            ? [selected.geometry.coordinates]
+            : selected.geometry.coordinates;
+          lines.forEach(line => line.forEach(point => bounds.extend([point[0], point[1]])));
+          fitSelection(bounds);
+        }
       }
     })
     .catch(() => {

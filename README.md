@@ -47,10 +47,17 @@ Go on a route's stop detail opens a stop picker with the current route, directio
 and boarding stop. Destinations are limited to subsequent stops in route order;
 changing the boarding stop clears the destination. The map shows the selected
 route line and labeled boarding/destination markers. With both stops selected it
-zooms to fit them, with padding that adapts to the map panel's size; with only a
+shows a solid line for the selected portion and fits both stops plus the intervening
+road geometry, with padding that adapts to the map panel's size; with only a
 boarding stop it focuses that stop. The destination summary links to its route-specific arrivals.
 Selections are retained in the URL. This is a stop-selection flow, not a journey
 planner: it does not estimate travel times or promise departure/arrival times.
+
+Route geometry is generated from `scripts/tm_routes.json` using `npm run trimet`
+and served from `public/data/trimet/geoJSON`. The exporter groups every feature
+for a route/direction, joins touching segments, and retains disconnected parts as
+MultiLineStrings rather than overwriting earlier segments or inventing connections.
+The map loader also accepts the existing line-based GeometryCollection assets.
 
 The app shell follows the Wintermuted docs-topbar pattern used by Game of Life
 and Inventory: compact branding, underline-active navigation, consistent page
