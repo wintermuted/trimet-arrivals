@@ -24,13 +24,24 @@ export default function RouteStopInfo({ stopLocation }: StopInfoParams) {
           {stopLocation.desc} ({stopLocation.id})
         </Link>
       </small>
-      <div className="transit-button-stack">
+      <div
+        className="transit-stop-action-buttons"
+        role="group"
+        aria-label="Stop actions"
+      >
         <Tooltip text="Go from this stop">
-          <Button onClick={handleGoClick}>GO</Button>
+          <Button
+            variant="primary"
+            onClick={handleGoClick}
+            aria-label="Go from this stop"
+          >
+            <FontAwesome name="location-arrow" aria-hidden="true" />
+            Go
+          </Button>
         </Tooltip>
         <Tooltip text="Bookmark this route">
           <Button variant="secondary" aria-label="Bookmark this route">
-            <FontAwesome name="bookmark" />
+            <FontAwesome name="bookmark" aria-hidden="true" />
           </Button>
         </Tooltip>
       </div>

@@ -1,11 +1,12 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { Arrival } from "../api/trimet/interfaces/arrivals";
 import { StopLocation, TrimetRoute } from "../api/trimet/interfaces/types";
 import RouteListItem from "../component/route/RouteListItem";
 import ArrivalListItem from "../view/nearby/components/common/ArrivalListItem";
 import SimpleArrivalListItem from "../view/nearby/components/common/SimpleArrivalListItem";
+import RouteStopInfo from "../view/nearby/components/common/RouteStopInfo";
 
 const route: TrimetRoute = {
   route: 54,
@@ -107,6 +108,36 @@ describe("accessible transit detail links", () => {
     expect(link.getAttribute("href")).toBe(
       "/nearby/simple-routes/54?stop=368&direction=1"
     );
+  });
+
+  it("groups stop actions while preserving the stop link and Go navigation", () => {
+    render(
+      <>
+        <RouteStopInfo
+          shortSign="To Beaverton"
+          stopLocation={{ ...stop, id: 368 }}
+        />
+        <Routes>
+          <Route path="/nearby/directions" element={<p>Directions opened</p>} />
+          <Route path="*" element={null} />
+        </Routes>
+      </>
+    );
+    expect(container.querySelector("a").getAttribute("href")).toBe(
+      "/nearby/stops/368"
+    );
+    const actions = container.querySelector(
+      '[role="group"][aria-label="Stop actions"]'
+    );
+    const buttons = actions.querySelectorAll("button");
+    expect(
+      Array.from(buttons).map(button => button.getAttribute("aria-label"))
+    ).toEqual(["Go from this stop", "Bookmark this route"]);
+    buttons.forEach(button => {
+      expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
+    });
+    act(() => buttons[0].click());
+    expect(container.textContent).toContain("Directions opened");
   });
 
   it("renders one valid route link rather than nested links in route cards", () => {

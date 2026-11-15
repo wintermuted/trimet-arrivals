@@ -25,8 +25,7 @@
   text-decoration: none;
 }
 
-.transit-detail-header,
-.transit-stop-actions {
+.transit-detail-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -58,10 +57,35 @@
   width: auto;
 }
 
-.transit-button-stack {
+.transit-stop-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--wm-space-2);
+}
+
+.transit-stop-actions > small {
+  overflow-wrap: anywhere;
+}
+
+.transit-stop-action-buttons {
+  display: flex;
+  align-items: stretch;
+  gap: var(--wm-space-2);
+}
+
+.transit-stop-action-buttons > .wm-tooltip-anchor:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.transit-stop-action-buttons button {
+  width: 100%;
+  min-height: var(--wm-control-height);
+}
+
+.transit-stop-action-buttons button[aria-label="Bookmark this route"] {
+  width: var(--wm-control-height);
+  padding-inline: 0;
 }
 
 .transit-alert-heading {
