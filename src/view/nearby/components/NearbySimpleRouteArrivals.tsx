@@ -99,7 +99,12 @@ export default function NearbySimpleRouteArrivals({
     <div className="scrollarea">
       <TopNavBar id={id} shortSign={shortSign} />
       <br />
-      <RouteStopInfo shortSign={shortSign} stopLocation={stopLocation} />
+      <RouteStopInfo
+        shortSign={shortSign}
+        stopLocation={stopLocation}
+        routeId={toNumber(id)}
+        direction={toNumber(direction)}
+      />
       <br />
       <DeparturesCard filteredArrivals={filteredArrivalData} />
       <br />

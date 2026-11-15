@@ -1,5 +1,28 @@
 @import "../../../styles/routes";
 
+.transit-directions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wm-space-3);
+
+  h4,
+  p {
+    margin: 0;
+  }
+
+  .wm-field,
+  .wm-select {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  > .wm-btn {
+    white-space: normal;
+    text-align: center;
+    text-decoration: none;
+  }
+}
+
 .route-header {
   background: var(--wm-color-surface);
   padding: 0;
