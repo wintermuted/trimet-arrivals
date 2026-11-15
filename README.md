@@ -38,6 +38,11 @@ the routes. The theme toggle lives in an always-visible footer on every page.
 Page content scrolls independently between the header and footer, keeping theme
 controls accessible without covering the content.
 
+Nearby fills that available space with independently scrolling results and a
+contained map. On narrow screens the results and map share the available height
+in stacked panels; map resizing follows panel size changes rather than a fixed
+viewport-height offset.
+
 The app shell follows the Wintermuted docs-topbar pattern used by Game of Life
 and Inventory: compact branding, underline-active navigation, consistent page
 gutters, and a quiet footer with source/releases links and theme controls.
