@@ -43,12 +43,12 @@ function SimpleArrivalListItem({
         className="transit-arrival-link"
         to={`/nearby/simple-routes/${routeId}?stop=${stop.locid}&direction=${routeDirection.dir}`}
       >
-        <div>
+        <div className="transit-simple-arrival-content">
           <div className="transit-arrival-heading">
             <strong className="transit-arrival-route">{routeId}</strong>
-            <span>{routeDirection.desc}</span>
+            <span title={routeDirection.desc}>{routeDirection.desc}</span>
           </div>
-          <small>
+          <small title={`at ${stopName} (${stop.locid})`}>
             at {stopName} ({stop.locid})
           </small>
         </div>
