@@ -33,6 +33,10 @@
   font-size: 16px;
 }
 
+.main-view:has(> .transit-nearby-view) {
+  padding: 0;
+}
+
 .transit-nearby-view {
   height: 100%;
   min-height: 0;
@@ -44,6 +48,7 @@
   height: 100%;
   min-height: 0;
   align-items: stretch;
+  gap: 0;
 }
 
 .transit-nearby-results,
@@ -53,6 +58,7 @@
 
 .transit-nearby-results {
   overflow-y: auto;
+  padding-inline: var(--transit-shell-gutter);
 
   &:focus-visible {
     outline: 2px solid var(--wm-color-accent);

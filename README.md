@@ -42,6 +42,9 @@ Nearby fills that available space with independently scrolling results and a
 contained map. On narrow screens the results and map share the available height
 in stacked panels; map resizing follows panel size changes rather than a fixed
 viewport-height offset.
+Nearby removes the main content's outer gutters so the map reaches the available
+edges; the results sidebar retains horizontal padding only, with no top/bottom
+gutter. Other pages keep the standard content spacing.
 
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the
 app's resolved Light/Dark theme, including saved and system preferences. Changing
