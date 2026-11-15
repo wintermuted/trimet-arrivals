@@ -119,8 +119,11 @@ describe("Wintermuted route navigation", () => {
 
     expect(links.map(link => link.getAttribute("href"))).toEqual([
       "/nearby/simple-routes",
-      "/nearby/stops",
-      "/nearby/routes"
+      "/nearby/stops"
+    ]);
+    expect(links.map(link => link.textContent.trim())).toEqual([
+      "Routes (2)",
+      "Stops (5)"
     ]);
     expect(links[0].getAttribute("aria-current")).toBe("page");
     expect(links[0].classList.contains("wm-tab-btn-active")).toBe(true);
