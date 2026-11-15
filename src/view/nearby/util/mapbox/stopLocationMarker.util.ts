@@ -82,6 +82,7 @@ export function setNearbyStops(
     id: STOP_LOCATION_LAYER,
     paint: {
       "circle-color": "#4264fb",
+      "circle-emissive-strength": 1,
       "circle-radius": 8,
       "circle-stroke-color": "#ffffff",
       "circle-stroke-width": 2
