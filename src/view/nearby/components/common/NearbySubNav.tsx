@@ -15,15 +15,11 @@ export default function NearbySubNav({ stopCount, routeCount }: Props) {
   return (
     <nav aria-label="Nearby views" className="wm-tab-bar nearby-routes-nav">
       <NavLink to="/nearby/simple-routes" className={linkClass}>
-        Simple Routes ({routeCount})
+        Routes ({routeCount})
       </NavLink>
       <NavLink to="/nearby/stops" className={linkClass}>
         <FontAwesome name="route" className="route" />
         Stops ({stopCount})
-      </NavLink>
-      <NavLink to="/nearby/routes" className={linkClass}>
-        <FontAwesome name="route" className="route" />
-        Routes ({routeCount})
       </NavLink>
     </nav>
   );
