@@ -1,6 +1,6 @@
-import { Map, Marker, Popup } from "mapbox-gl";
+import { Map } from "mapbox-gl";
 import { Dictionary, map, set, size } from "lodash";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
 import { useNavigate } from "react-router-dom";
@@ -39,7 +39,10 @@ import NearbySimpleRoutes from "./NearbySimpleRoutes";
 import NearbySimpleRouteArrivals from "./NearbySimpleRouteArrivals";
 import { NearbyStopsDetail } from "./NearbyStopsDetail";
 import { ArrivalLocation } from "../../../api/trimet/interfaces/arrivals";
-import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
+import {
+  DirectionsSelection,
+  showDirectionsSelection
+} from "../util/mapbox/directionsSelection";
 import NearbyStops from "./NearbyStops";
 import NearbyRoutes from "./NearbyRoutes";
 import NearbyDirections from "./NearbyDirections";
@@ -60,7 +63,10 @@ export interface NearbyViewComponentOutletContextProps {
     stopLocation: ArrivalLocation
   ) => void;
   handleStopOpened: (stopLocation: ArrivalLocation) => void;
-  handleDirectionsStopSelected: (stop: RouteDirectionStop) => () => void;
+  handleDirectionsSelection: (
+    selection: DirectionsSelection,
+    onError: () => void
+  ) => () => void;
   handleSimpleRoutesOpened: () => void;
 }
 
@@ -145,12 +151,12 @@ export function NearbySimpleRouteArrivalsComp() {
 }
 
 export function NearbyDirectionsComp() {
-  const { handleDirectionsStopSelected } = useOutletContext<
+  const { handleDirectionsSelection } = useOutletContext<
     NearbyViewComponentOutletContextProps
   >();
 
   return (
-    <NearbyDirections onStopSelected={handleDirectionsStopSelected} />
+    <NearbyDirections onSelectionChanged={handleDirectionsSelection} />
   );
 }
 
@@ -315,15 +321,10 @@ export default function NearbyViewComponent() {
     updateStopMarkerColor(mapRef.current, `${stopLocation.id}`, "#ff0000");
   }
 
-  function handleDirectionsStopSelected(stop: RouteDirectionStop) {
-    const marker = new Marker()
-      .setLngLat([stop.lng, stop.lat])
-      .setPopup(new Popup({ offset: 24 }).setText(`${stop.desc} (${stop.locid})`))
-      .addTo(mapRef.current);
-    marker.getElement().setAttribute("aria-label", `Selected stop: ${stop.desc}`);
-    flyToCenter(stop.lng, stop.lat);
-    return () => marker.remove();
-  }
+  const handleDirectionsSelection = useCallback((
+    selection: DirectionsSelection,
+    onError: () => void
+  ) => showDirectionsSelection(mapRef.current, selection, onError), []);
 
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
@@ -348,7 +349,7 @@ export default function NearbyViewComponent() {
     initializeMap: initializeMapboxMap,
     handleRouteArrivalsOpened,
     handleStopOpened,
-    handleDirectionsStopSelected,
+    handleDirectionsSelection,
     handleSimpleRoutesOpened
   };
 
