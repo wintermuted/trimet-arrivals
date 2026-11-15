@@ -19,39 +19,39 @@ jest.mock("../../../api/trimet/arrivals");
 const now = Date.parse("2026-11-15T10:00:00Z");
 const minute = 60 * 1000;
 const route: TrimetRoute = {
-  route: 54,
   desc: "Beaverton",
-  type: "bus",
   dir: [
-    { dir: 0, desc: "Northbound" },
-    { dir: 1, desc: "Southbound" },
+    { desc: "Northbound", dir: 0 },
+    { desc: "Southbound", dir: 1 },
   ],
+  route: 54,
+  type: "bus",
 };
 
 function stop(locid: number, distance: number): StopLocation {
   return {
-    locid,
     desc: `Stop ${locid}`,
     dir: "N",
     lat: 0,
     lng: distance,
+    locid,
     route: [route],
   };
 }
 
 const nearbyStops: StopData = {
-  queryTime: "",
   location: [stop(101, 0.01), stop(102, 0.02)],
+  queryTime: "",
 };
 
 function arrival(overrides: Partial<Arrival> = {}): Arrival {
   return {
     ...arrival1,
-    id: "arrival",
-    route: 54,
     dir: 0,
-    locid: 101,
     estimated: now + 10 * minute,
+    id: "arrival",
+    locid: 101,
+    route: 54,
     scheduled: now + 8 * minute,
     ...overrides,
   };
@@ -190,23 +190,23 @@ describe("NearbySimpleRoutes", () => {
 
   it("sorts by nearest stop when selected", async () => {
     const route12: TrimetRoute = {
-      route: 12,
       desc: "Sandy",
+      dir: [{ desc: "Eastbound", dir: 0 }],
+      route: 12,
       type: "bus",
-      dir: [{ dir: 0, desc: "Eastbound" }],
     };
     const stops: StopData = {
-      queryTime: "",
       location: [stop(101, 0.02), { ...stop(102, 0.01), route: [route12] }],
+      queryTime: "",
     };
     jest.mocked(getArrivals).mockResolvedValue(
       response([
-        arrival({ route: 54, locid: 101, estimated: now + 5 * minute }),
+        arrival({ estimated: now + 5 * minute, locid: 101, route: 54 }),
         arrival({
-          id: "route-12",
-          route: 12,
-          locid: 102,
           estimated: now + 15 * minute,
+          id: "route-12",
+          locid: 102,
+          route: 12,
         }),
       ])
     );

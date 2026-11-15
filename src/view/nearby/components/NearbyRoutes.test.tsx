@@ -5,13 +5,13 @@ import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import NearbyRoutes, { filterRouteGroups } from "./NearbyRoutes";
 
 const route: TrimetRoute = {
-  route: 54,
   desc: "Beaverton",
-  type: "bus",
   dir: [
-    { dir: 0, desc: "Northbound" },
-    { dir: 1, desc: "Southbound" },
+    { desc: "Northbound", dir: 0 },
+    { desc: "Southbound", dir: 1 },
   ],
+  route: 54,
+  type: "bus",
 };
 
 describe("NearbyRoutes", () => {
@@ -32,20 +32,20 @@ describe("NearbyRoutes", () => {
   it("filters by route or direction without dropping a route's other direction", () => {
     const groups = [
       {
-        routeId: 54,
         description: "Beaverton",
         directions: [
           {
+            direction: { desc: "Northbound", dir: 0 },
             key: "54-0",
             routeId: 54,
-            direction: { dir: 0, desc: "Northbound" },
           },
           {
+            direction: { desc: "Southbound", dir: 1 },
             key: "54-1",
             routeId: 54,
-            direction: { dir: 1, desc: "Southbound" },
           },
         ],
+        routeId: 54,
       },
     ];
 

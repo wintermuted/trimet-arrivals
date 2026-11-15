@@ -94,8 +94,8 @@ export function getRouteArrivals(
         let routeDirection = routeDirections.get(key);
         if (!routeDirection) {
           routeDirection = {
-            route,
             direction,
+            route,
             stops: new Map<number, RouteStop>(),
           };
           routeDirections.set(key, routeDirection);
@@ -113,21 +113,21 @@ export function getRouteArrivals(
           Number.isFinite(stop.lng) && Number.isFinite(stop.lat);
 
         routeDirection.stops.set(stop.locid, {
-          stop,
           arrivals: stopArrivals,
           distanceMiles:
             locationIsAvailable && stopHasCoordinates
               ? getDistance(currentLocation, [stop.lng, stop.lat])
               : undefined,
+          stop,
         });
       });
     });
   });
 
   return Array.from(routeDirections, ([key, routeDirection]) => ({
+    direction: routeDirection.direction,
     key,
     route: routeDirection.route,
-    direction: routeDirection.direction,
     stops: Array.from(routeDirection.stops.values()).sort((a, b) => {
       if (a.distanceMiles != null && b.distanceMiles != null) {
         return (
@@ -325,6 +325,34 @@ export default function NearbySimpleRoutes({
     });
   }
 
+  function handleFilterChange(selected: readonly FilterOption[]) {
+    setSelectedFilterValues(selected.map((option) => option.value));
+  }
+
+  function handleSortChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const value = event.currentTarget.value;
+    if (value === "arrival" || value === "distance" || value === "route") {
+      setSortBy(value);
+    }
+  }
+
+  function handleRetry() {
+    setRetryCount((count) => count + 1);
+  }
+
+  function handleClearFilters() {
+    setSelectedFilterValues([]);
+  }
+
+  function handleStopSelectionChange(
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) {
+    const routeKey = event.currentTarget.dataset.routeKey;
+    if (routeKey) {
+      changeSelectedStop(routeKey, event.currentTarget.value);
+    }
+  }
+
   return (
     <div id="nearby-view-routes" className="scrollarea">
       <SearchRadiusSelection
@@ -352,11 +380,7 @@ export default function NearbySimpleRoutes({
             value={filterOptions
               .flatMap((group) => group.options)
               .filter((option) => activeFilterValues.includes(option.value))}
-            onChange={(selected) =>
-              setSelectedFilterValues(
-                (selected || []).map((option) => option.value)
-              )
-            }
+            onChange={handleFilterChange}
             placeholder="All nearby routes"
             isDisabled={isLoading || routeStructures.length === 0}
           />
@@ -365,11 +389,7 @@ export default function NearbySimpleRoutes({
             <Select
               id="nearby-route-sort"
               value={sortBy}
-              onChange={(event) =>
-                setSortBy(
-                  event.target.value as "arrival" | "distance" | "route"
-                )
-              }
+              onChange={handleSortChange}
             >
               <option value="arrival">Soonest arrival</option>
               <option value="distance">Nearest stop</option>
@@ -384,7 +404,7 @@ export default function NearbySimpleRoutes({
               <Button
                 type="button"
                 variant="link"
-                onClick={() => setRetryCount((count) => count + 1)}
+                onClick={handleRetry}
               >
                 Retry
               </Button>
@@ -403,7 +423,7 @@ export default function NearbySimpleRoutes({
               <Button
                 type="button"
                 variant="link"
-                onClick={() => setSelectedFilterValues([])}
+                onClick={handleClearFilters}
               >
                 Clear filters
               </Button>
@@ -467,9 +487,8 @@ export default function NearbySimpleRoutes({
                           <Select
                             aria-label={`Stop for Route ${route.route.route}, ${route.direction.desc}`}
                             value={String(stop.locid)}
-                            onChange={(event) =>
-                              changeSelectedStop(route.key, event.target.value)
-                            }
+                            data-route-key={route.key}
+                            onChange={handleStopSelectionChange}
                           >
                             {route.stops.map((routeStop) => (
                               <option
