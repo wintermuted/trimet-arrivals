@@ -1,5 +1,23 @@
 @import "../../../styles/routes";
 
+.transit-stop-panel {
+  background: var(--wm-color-surface);
+
+  > summary {
+    min-height: var(--wm-control-height);
+
+    .fa {
+      width: 1.25em;
+      margin-inline-end: var(--wm-space-1);
+      text-align: center;
+    }
+  }
+
+  > .wm-accordion-body {
+    padding: 0;
+  }
+}
+
 .transit-directions {
   display: flex;
   flex-direction: column;

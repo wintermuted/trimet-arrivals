@@ -1,6 +1,5 @@
 import {
-  Card,
-  CardHeader,
+  Accordion,
   ListGroup,
   ListItem
 } from "@wintermuted/ui-theme/react";
@@ -17,8 +16,11 @@ interface DeparturesCardParams {
 
 export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
   return (
-    <Card>
-      <CardHeader>Departures</CardHeader>
+    <Accordion
+      open
+      className="transit-stop-panel"
+      title={<><FontAwesome name="clock-o" aria-hidden="true" /> Departures</>}
+    >
       <ListGroup>
         {map(filteredArrivals, (arrival: any, index: number) => {
           const estimatedArrivalTime = arrival.estimated;
@@ -58,6 +60,6 @@ export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
           );
         })}
       </ListGroup>
-    </Card>
+    </Accordion>
   );
 }
