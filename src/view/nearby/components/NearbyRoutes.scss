@@ -317,8 +317,14 @@
 
 .transit-simple-route-content {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--wm-space-2);
   width: 100%;
+  min-width: 0;
+}
+
+.transit-simple-route-content > * {
+  min-width: 0;
 }
 
 .transit-simple-route-heading {
@@ -333,6 +339,7 @@
   }
 
   > span {
+    min-width: 0;
     overflow: hidden;
     color: var(--wm-color-text-muted);
     text-overflow: ellipsis;
@@ -345,6 +352,7 @@
   justify-content: space-between;
   gap: var(--wm-space-2);
   min-height: var(--wm-control-height);
+  min-width: 0;
   align-items: center;
   color: var(--wm-color-text);
   text-decoration: none;
@@ -380,6 +388,13 @@
 .transit-stop-selection {
   display: grid;
   gap: var(--wm-space-1);
+  min-width: 0;
   font-size: 0.875rem;
   font-weight: 600;
+
+  .wm-select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
 }
