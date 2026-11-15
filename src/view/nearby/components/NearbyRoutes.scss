@@ -363,25 +363,34 @@
 
 .transit-simple-route-item {
   display: block;
+  padding: 0;
 }
 
-.transit-simple-route-content {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--wm-space-2);
-  width: 100%;
+.transit-simple-route-group {
   min-width: 0;
 }
 
-.transit-simple-route-content > * {
+.transit-simple-route-direction {
   min-width: 0;
+  margin-top: var(--wm-space-3);
+
+  > h5 {
+    margin: 0 0 var(--wm-space-2);
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
 }
 
 .transit-simple-route-heading {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--wm-space-2);
   min-width: 0;
+  margin: 0;
+  font-size: 1rem;
 
   > a {
     flex-shrink: 0;
@@ -390,44 +399,47 @@
 
   > span {
     min-width: 0;
-    overflow: hidden;
     color: var(--wm-color-text-muted);
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 0.875rem;
+    font-weight: 400;
+    overflow-wrap: anywhere;
   }
 }
 
-.transit-simple-route-arrivals {
-  display: flex;
-  justify-content: space-between;
+.transit-simple-route-stop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--wm-space-2);
   min-height: var(--wm-control-height);
   min-width: 0;
-  align-items: center;
+  padding: var(--wm-space-3) var(--wm-space-4);
   color: var(--wm-color-text);
   text-decoration: none;
 
   &:hover {
-    color: var(--wm-color-accent);
+    background: var(--wm-color-surface-muted);
   }
 
   &:focus-visible {
     outline: 2px solid var(--wm-color-accent);
-    outline-offset: 2px;
+    outline-offset: -2px;
   }
+}
 
-  > span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.transit-simple-route-stop-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
 
-  > strong {
-    flex-shrink: 0;
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-  }
+.transit-simple-route-arrivals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--wm-space-1) var(--wm-space-2);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .transit-simple-route-distance {
@@ -435,16 +447,7 @@
   font-size: 0.875rem;
 }
 
-.transit-stop-selection {
-  display: grid;
-  gap: var(--wm-space-1);
-  min-width: 0;
+.transit-simple-route-action {
+  color: var(--wm-color-accent);
   font-size: 0.875rem;
-  font-weight: 600;
-
-  .wm-select {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-  }
 }

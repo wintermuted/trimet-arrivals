@@ -1,6 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import {
@@ -66,6 +66,16 @@ function response(arrivals: Arrival[]): ArrivalData {
   };
 }
 
+function CurrentLocation() {
+  const location = useLocation();
+  return (
+    <output>
+      {location.pathname}
+      {location.search}
+    </output>
+  );
+}
+
 describe("NearbySimpleRoutes", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -105,25 +115,34 @@ describe("NearbySimpleRoutes", () => {
     expect(filterRouteStructures(routes, ["route:54"])).toEqual(routes);
   });
 
-  it("keeps route details, arrivals navigation, and stop selection in sync", async () => {
+  it("groups a route's stops beneath their corresponding directions and opens the clicked stop", async () => {
+    const directionalStops: StopData = {
+      location: [
+        { ...stop(101, 0.01), route: [{ ...route, dir: [route.dir[0]] }] },
+        { ...stop(102, 0.02), route: [{ ...route, dir: [route.dir[1]] }] },
+        { ...stop(103, 0.03), route: [{ ...route, dir: [route.dir[0]] }] },
+      ],
+      queryTime: "",
+    };
     jest.mocked(getArrivals).mockResolvedValue(response([]));
     await act(async () =>
       root.render(
         <MemoryRouter>
           <NearbySimpleRoutes
-            nearbyStops={nearbyStops}
+            nearbyStops={directionalStops}
             currentLocation={[0, 0]}
             radiusSize={1000}
             handleSimpleRoutesOpened={jest.fn()}
             handleRadiusSelectionChange={jest.fn()}
             routeCount={1}
-            stopCount={2}
+            stopCount={3}
           />
+          <CurrentLocation />
         </MemoryRouter>
       )
     );
 
-    expect(getArrivals).toHaveBeenCalledWith("101,102", 90);
+    expect(getArrivals).toHaveBeenCalledWith("101,102,103", 90);
     expect(container.textContent).toContain("Northbound");
     expect(container.textContent).toContain("Southbound");
     expect(container.textContent).toContain("No arrivals reported");
@@ -135,22 +154,35 @@ describe("NearbySimpleRoutes", () => {
     ).not.toBeNull();
     expect(container.textContent).toContain("feet away");
 
-    const stopSelect = container.querySelector<HTMLSelectElement>(
-      'select[aria-label="Stop for Route 54, Northbound"]'
-    );
-    expect(stopSelect).not.toBeNull();
-    if (!stopSelect) {
-      throw new Error("The Northbound stop selector was not rendered.");
-    }
-    await act(async () => {
-      stopSelect.value = "102";
-      stopSelect.dispatchEvent(new Event("change", { bubbles: true }));
-    });
     expect(
-      container.querySelector(
-        'a[href="/nearby/simple-routes/54?stop=102&direction=0"]'
-      )
-    ).not.toBeNull();
+      container.querySelectorAll(".transit-simple-route-group")
+    ).toHaveLength(1);
+    expect(container.querySelectorAll('a[href="/lines/54"]')).toHaveLength(1);
+    const north = container.querySelector(
+      '[aria-label="Route 54, Northbound stops"]'
+    );
+    const south = container.querySelector(
+      '[aria-label="Route 54, Southbound stops"]'
+    );
+    expect(north?.textContent).toContain("Stop 101");
+    expect(north?.textContent).toContain("Stop 103");
+    expect(north?.textContent).not.toContain("Stop 102");
+    expect(south?.textContent).toContain("Stop 102");
+    expect(south?.textContent).not.toContain("Stop 101");
+    expect(north?.querySelectorAll(".transit-simple-route-stop")).toHaveLength(
+      2
+    );
+    const stopLink = north?.querySelector<HTMLAnchorElement>(
+      'a[href="/nearby/simple-routes/54?stop=103&direction=0"]'
+    );
+    if (!stopLink) {
+      throw new Error("The second Northbound stop link was not rendered.");
+    }
+    expect(stopLink.textContent).toContain("View arrivals");
+    await act(async () => stopLink.click());
+    expect(container.querySelector("output")?.textContent).toBe(
+      "/nearby/simple-routes/54?stop=103&direction=0"
+    );
   });
 
   it("shows a recoverable error when arrivals fail", async () => {
@@ -196,12 +228,17 @@ describe("NearbySimpleRoutes", () => {
       type: "bus",
     };
     const stops: StopData = {
-      location: [stop(101, 0.02), { ...stop(102, 0.01), route: [route12] }],
+      location: [
+        stop(101, 0.02),
+        { ...stop(102, 0.01), route: [route12] },
+        stop(103, 0.03),
+      ],
       queryTime: "",
     };
     jest.mocked(getArrivals).mockResolvedValue(
       response([
-        arrival({ estimated: now + 5 * minute, locid: 101, route: 54 }),
+        arrival({ estimated: now + 30 * minute, locid: 101, route: 54 }),
+        arrival({ estimated: now + 5 * minute, locid: 103, route: 54 }),
         arrival({
           estimated: now + 15 * minute,
           id: "route-12",
@@ -221,17 +258,21 @@ describe("NearbySimpleRoutes", () => {
             handleSimpleRoutesOpened={jest.fn()}
             handleRadiusSelectionChange={jest.fn()}
             routeCount={2}
-            stopCount={2}
+            stopCount={3}
           />
         </MemoryRouter>
       )
     );
 
     const routeLinks = () =>
-      Array.from(container.querySelectorAll(".transit-simple-route-item")).map(
+      Array.from(container.querySelectorAll(".transit-simple-route-group")).map(
         (item) => item.querySelector('a[href^="/lines/"]')?.getAttribute("href")
       );
     expect(routeLinks()[0]).toBe("/lines/54");
+    expect(
+      container.querySelectorAll(".transit-simple-route-group")
+    ).toHaveLength(2);
+    expect(container.querySelectorAll('a[href="/lines/54"]')).toHaveLength(1);
 
     const filterButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button")

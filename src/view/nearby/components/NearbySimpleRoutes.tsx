@@ -188,9 +188,6 @@ export default function NearbySimpleRoutes({
   const [selectedFilterValues, setSelectedFilterValues] = useState<string[]>(
     []
   );
-  const [selectedStopIds, setSelectedStopIds] = useState<Map<string, number>>(
-    () => new Map()
-  );
   const [sortBy, setSortBy] = useState<"arrival" | "distance" | "route">(
     "arrival"
   );
@@ -285,46 +282,43 @@ export default function NearbySimpleRoutes({
     activeFilterValues
   );
 
-  const displayRoutes = filteredRoutes
-    .map((route) => {
-      const selectedStopId = selectedStopIds.get(route.key);
-      const selectedStop =
-        route.stops.find((stop) => stop.stop.locid === selectedStopId) ||
-        route.stops[0];
-      return { route, selectedStop };
-    })
+  const groupedRoutes = new Map<number, RouteStructure[]>();
+  filteredRoutes.forEach((route) => {
+    const directions = groupedRoutes.get(route.route.route) || [];
+    directions.push(route);
+    groupedRoutes.set(route.route.route, directions);
+  });
+  const displayRoutes = Array.from(groupedRoutes.values())
+    .map((directions) => ({
+      directions,
+      distance: Math.min(
+        ...directions.flatMap((direction) =>
+          direction.stops.map((stop) => stop.distanceMiles ?? Infinity)
+        )
+      ),
+      nextArrival: Math.min(
+        ...directions.flatMap((direction) =>
+          direction.stops.map(
+            (stop) => getArrivalTime(stop.arrivals[0]) ?? Infinity
+          )
+        )
+      ),
+      route: directions[0].route,
+    }))
     .sort((a, b) => {
       if (sortBy === "route") {
-        return (
-          a.route.route.route - b.route.route.route ||
-          a.route.direction.desc.localeCompare(b.route.direction.desc)
-        );
+        return a.route.route - b.route.route;
       }
       if (sortBy === "distance") {
-        return (
-          (a.selectedStop?.distanceMiles ?? Infinity) -
-            (b.selectedStop?.distanceMiles ?? Infinity) ||
-          a.route.route.route - b.route.route.route
-        );
+        return a.distance - b.distance || a.route.route - b.route.route;
       }
 
-      const aArrival = getArrivalTime(a.selectedStop?.arrivals[0]);
-      const bArrival = getArrivalTime(b.selectedStop?.arrivals[0]);
       return (
-        (aArrival ?? Infinity) - (bArrival ?? Infinity) ||
-        (a.selectedStop?.distanceMiles ?? Infinity) -
-          (b.selectedStop?.distanceMiles ?? Infinity) ||
-        a.route.route.route - b.route.route.route
+        a.nextArrival - b.nextArrival ||
+        a.distance - b.distance ||
+        a.route.route - b.route.route
       );
     });
-
-  function changeSelectedStop(routeKey: string, value: string) {
-    setSelectedStopIds((previous) => {
-      const next = new Map(previous);
-      next.set(routeKey, Number(value));
-      return next;
-    });
-  }
 
   function handleFilterChange(selected: readonly FilterOption[]) {
     setSelectedFilterValues(selected.map((option) => option.value));
@@ -343,15 +337,6 @@ export default function NearbySimpleRoutes({
 
   function handleClearFilters() {
     setSelectedFilterValues([]);
-  }
-
-  function handleStopSelectionChange(
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) {
-    const routeKey = event.currentTarget.dataset.routeKey;
-    if (routeKey) {
-      changeSelectedStop(routeKey, event.currentTarget.value);
-    }
   }
 
   return (
@@ -440,11 +425,7 @@ export default function NearbySimpleRoutes({
           ) : loadError ? (
             <div role="alert" className="transit-route-list-message">
               <p>Nearby arrivals could not be loaded.</p>
-              <Button
-                type="button"
-                variant="link"
-                onClick={handleRetry}
-              >
+              <Button type="button" variant="link" onClick={handleRetry}>
                 Retry
               </Button>
             </div>
@@ -459,92 +440,99 @@ export default function NearbySimpleRoutes({
           ) : filteredRoutes.length === 0 ? (
             <div className="transit-route-list-message">
               <p role="status">No nearby routes match these filters.</p>
-              <Button
-                type="button"
-                variant="link"
-                onClick={handleClearFilters}
-              >
+              <Button type="button" variant="link" onClick={handleClearFilters}>
                 Clear filters
               </Button>
             </div>
           ) : (
-            <ListGroup aria-label="Nearby route arrivals">
-              {displayRoutes.map(({ route, selectedStop }) => {
-                if (!selectedStop) {
-                  return null;
-                }
-
-                const stop = selectedStop.stop;
-                const arrival = selectedStop.arrivals[0];
-                const arrivalTime = getArrivalTime(arrival);
-                const arrivalLabel = !arrival
-                  ? "No arrivals reported"
-                  : arrivalTime == null
-                    ? "Time unavailable"
-                    : getTimeUntilArrival(arrival.estimated, arrival.scheduled);
-                const distanceLabel =
-                  selectedStop.distanceMiles == null
-                    ? "Distance unavailable"
-                    : getNormalizedDistanceString(currentLocation, [
-                        stop.lng,
-                        stop.lat,
-                      ]);
-                const arrivalLink =
-                  `/nearby/simple-routes/${route.route.route}` +
-                  `?stop=${stop.locid}&direction=${route.direction.dir}`;
-
-                return (
-                  <ListItem
-                    key={route.key}
-                    className="transit-simple-route-item"
+            <div
+              className="transit-route-groups"
+              role="group"
+              aria-label="Nearby route arrivals"
+            >
+              {displayRoutes.map(({ route, directions }) => (
+                <section
+                  key={route.route}
+                  className="transit-simple-route-group"
+                  aria-labelledby={`nearby-route-${route.route}`}
+                >
+                  <h4
+                    id={`nearby-route-${route.route}`}
+                    className="transit-simple-route-heading"
                   >
-                    <div className="transit-simple-route-content">
-                      <div className="transit-simple-route-heading">
-                        <Link
-                          to={`/lines/${route.route.route}`}
-                          aria-label={`View Route ${route.route.route} details`}
-                        >
-                          Route {route.route.route}
-                        </Link>
-                        <span>{route.direction.desc}</span>
-                      </div>
-                      <Link
-                        className="transit-simple-route-arrivals"
-                        to={arrivalLink}
+                    <Link
+                      to={`/lines/${route.route}`}
+                      aria-label={`View Route ${route.route} details`}
+                    >
+                      Route {route.route}
+                    </Link>
+                    <span>{route.desc}</span>
+                  </h4>
+                  {directions.map((direction) => (
+                    <section
+                      key={direction.key}
+                      className="transit-simple-route-direction"
+                      aria-labelledby={`nearby-direction-${direction.key}`}
+                    >
+                      <h5 id={`nearby-direction-${direction.key}`}>
+                        {direction.direction.desc}
+                      </h5>
+                      <ListGroup
+                        aria-label={`Route ${route.route}, ${direction.direction.desc} stops`}
                       >
-                        <span>
-                          {stop.desc} ({stop.locid})
-                        </span>
-                        <strong>{arrivalLabel}</strong>
-                      </Link>
-                      <span className="transit-simple-route-distance">
-                        {distanceLabel}
-                      </span>
-                      {route.stops.length > 1 && (
-                        <label className="transit-stop-selection">
-                          Choose a stop
-                          <Select
-                            aria-label={`Stop for Route ${route.route.route}, ${route.direction.desc}`}
-                            value={String(stop.locid)}
-                            data-route-key={route.key}
-                            onChange={handleStopSelectionChange}
-                          >
-                            {route.stops.map((routeStop) => (
-                              <option
-                                key={routeStop.stop.locid}
-                                value={String(routeStop.stop.locid)}
+                        {direction.stops.map(
+                          ({ stop, arrivals, distanceMiles }) => {
+                            const arrival = arrivals[0];
+                            const arrivalTime = getArrivalTime(arrival);
+                            const arrivalLabel = !arrival
+                              ? "No arrivals reported"
+                              : arrivalTime == null
+                                ? "Time unavailable"
+                                : getTimeUntilArrival(
+                                    arrival.estimated,
+                                    arrival.scheduled
+                                  );
+                            const distanceLabel =
+                              distanceMiles == null
+                                ? "Distance unavailable"
+                                : getNormalizedDistanceString(currentLocation, [
+                                    stop.lng,
+                                    stop.lat,
+                                  ]);
+
+                            return (
+                              <ListItem
+                                key={stop.locid}
+                                className="transit-simple-route-item"
                               >
-                                {routeStop.stop.desc} ({routeStop.stop.locid})
-                              </option>
-                            ))}
-                          </Select>
-                        </label>
-                      )}
-                    </div>
-                  </ListItem>
-                );
-              })}
-            </ListGroup>
+                                <Link
+                                  className="transit-simple-route-stop"
+                                  to={`/nearby/simple-routes/${route.route}?stop=${stop.locid}&direction=${direction.direction.dir}`}
+                                >
+                                  <span className="transit-simple-route-stop-name">
+                                    {stop.desc} ({stop.locid})
+                                  </span>
+                                  <span className="transit-simple-route-arrivals">
+                                    <strong>{arrivalLabel}</strong>
+                                    <span className="transit-simple-route-distance">
+                                      {distanceLabel}
+                                    </span>
+                                  </span>
+                                  <span className="transit-simple-route-action">
+                                    View arrivals{" "}
+                                    <span aria-hidden="true">›</span>
+                                  </span>
+                                </Link>
+                              </ListItem>
+                            );
+                          }
+                        )}
+                      </ListGroup>
+                    </section>
+                  ))}
+                </section>
+              ))}
+            </div>
           )}
         </>
       )}
