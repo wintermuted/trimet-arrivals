@@ -1,7 +1,6 @@
 import {
   Badge,
-  Card,
-  CardHeader,
+  Accordion,
   ListGroup,
   ListItem
 } from "@wintermuted/ui-theme/react";
@@ -72,16 +71,19 @@ function StopOnRoute({ routeDirectionStop }: StopOnRouteParams) {
 
 export function StopsOnRoute({ remainingStopsOnRoute }: StopsOnRouteParams) {
   return (
-    <Card>
-      <CardHeader>Stops</CardHeader>
+    <Accordion
+      open
+      className="transit-stop-panel"
+      title={<><FontAwesome name="map-marker" aria-hidden="true" /> Stops</>}
+    >
       <ListGroup>
         {map(
           remainingStopsOnRoute,
           (routeDirectionStop: RouteDirectionStop) => {
-            return StopOnRoute({ routeDirectionStop });
+            return <StopOnRoute key={routeDirectionStop.locid} routeDirectionStop={routeDirectionStop} />;
           }
         )}
       </ListGroup>
-    </Card>
+    </Accordion>
   );
 }

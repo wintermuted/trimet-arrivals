@@ -70,6 +70,9 @@ destination predictions remain explicitly unavailable; unrelated buses, canceled
 trips, uncertain predictions and drop-off-only boarding stops are never used to
 invent a journey. This is a same-route stop-time comparison, not a transfer planner;
 boarding times use TriMet stop predictions rather than guaranteed departures.
+The route stop detail's Departures and Stops panels use independent native
+disclosures with clock/stop icons. Both start expanded and support keyboard
+activation without clearing their data when collapsed.
 
 Route geometry is generated from `scripts/tm_routes.json` using `npm run trimet`
 and served from `public/data/trimet/geoJSON`. The exporter groups every feature
