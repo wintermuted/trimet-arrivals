@@ -1,3 +1,4 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import { Map } from "mapbox-gl";
 import { Dictionary, map, set, size } from "lodash";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -101,9 +102,9 @@ export function NearbyStopsComponent() {
 
 export function NearbySimpleRoutesComp() {
   const {
-    currentLocation,
     nearbyRoutes,
     nearbyStops,
+    currentLocation,
     radiusSize,
     handleRadiusSelectionChange,
     handleSimpleRoutesOpened
@@ -117,7 +118,7 @@ export function NearbySimpleRoutesComp() {
       <br />
       <NearbySimpleRoutes
         nearbyStops={nearbyStops}
-        nearbyRoutes={nearbyRoutes}
+        currentLocation={currentLocation}
         radiusSize={radiusSize}
         handleRadiusSelectionChange={handleRadiusSelectionChange}
         handleSimpleRoutesOpened={handleSimpleRoutesOpened}
@@ -185,6 +186,8 @@ export default function NearbyViewComponent() {
   >(undefined);
   const [userLocation, setUserLocation] = useState<Location>(undefined);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [nearbyDataError, setNearbyDataError] = useState(false);
+  const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
 
   const currentLocation = [
     userLocation?.coords?.longitude,
@@ -198,12 +201,19 @@ export default function NearbyViewComponent() {
   const stopLocations = nearbyStops && getStopLocations(nearbyStops);
   const showMap = currentLocation && nearbyRouteIds && stopLocations;
 
-  function fetchInitialData(location) {
-    return getNearbyStops(location, radiusSize).then((stopData: StopData) => {
+  async function fetchInitialData(location) {
+    setNearbyDataError(false);
+    setIsNearbyDataLoading(true);
+    try {
+      const stopData: StopData = await getNearbyStops(location, radiusSize);
       const routes = processRoutes(stopData);
       setNearbyStopData(stopData);
       setNearbyRoutesData(routes);
-    });
+    } catch {
+      setNearbyDataError(true);
+    } finally {
+      setIsNearbyDataLoading(false);
+    }
   }
 
   // Initial Load
@@ -225,26 +235,45 @@ export default function NearbyViewComponent() {
     }
     console.log("radius size change", radiusSize);
     setMapZoom(mapRef, radiusSize, setZoom);
+    setNearbyDataError(false);
+    setIsNearbyDataLoading(true);
 
-    getNearbyStops(userLocation, radiusSize).then((stopData: StopData) => {
-      const routes = processRoutes(stopData);
-      const nearbyRouteIds = getNearbyRouteIds(routes);
-      const stopLocations = getStopLocations(stopData);
+    let active = true;
+    getNearbyStops(userLocation, radiusSize)
+      .then((stopData: StopData) => {
+        if (!active) {
+          return;
+        }
+        const routes = processRoutes(stopData);
+        const nearbyRouteIds = getNearbyRouteIds(routes);
+        const stopLocations = getStopLocations(stopData);
 
-      removeStopLocationLayers(mapRef.current);
-      removeCurrentLocationMarkers(mapRef.current);
-      removeRoutes(mapRef.current, Object.keys(nearbyRouteIds));
+        removeStopLocationLayers(mapRef.current);
+        removeCurrentLocationMarkers(mapRef.current);
+        removeRoutes(mapRef.current, Object.keys(nearbyRouteIds));
 
-      setNearbyStopData(stopData);
-      setNearbyRoutesData(routes);
-      setNearbyStops(
-        mapRef.current,
-        stopLocations,
-        Object.keys(nearbyRouteIds),
-        handleStopMarkerClick
-      );
-      setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
-    });
+        setNearbyStopData(stopData);
+        setNearbyRoutesData(routes);
+        setNearbyDataError(false);
+        setIsNearbyDataLoading(false);
+        setNearbyStops(
+          mapRef.current,
+          stopLocations,
+          Object.keys(nearbyRouteIds),
+          handleStopMarkerClick
+        );
+        setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
+      })
+      .catch(() => {
+        if (active) {
+          setNearbyDataError(true);
+          setIsNearbyDataLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [radiusSize]);
 
   function initializeMapboxMap() {
@@ -326,7 +355,24 @@ export default function NearbyViewComponent() {
           aria-label="Nearby transit"
           tabIndex={0}
         >
-          {isMapLoaded && <Outlet context={context} />}
+          {nearbyDataError ? (
+            <div role="alert" className="transit-route-list-message">
+              <p>Nearby stops could not be loaded.</p>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() =>
+                  userLocation && void fetchInitialData(userLocation)
+                }
+              >
+                Retry
+              </Button>
+            </div>
+          ) : isNearbyDataLoading && !nearbyStops ? (
+            <p role="status">Loading nearby stops…</p>
+          ) : isMapLoaded ? (
+            <Outlet context={context} />
+          ) : null}
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
           {showMap && (
