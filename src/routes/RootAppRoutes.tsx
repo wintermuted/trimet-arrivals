@@ -44,7 +44,7 @@ export default function RootAppRoutes() {
   return (
     <Router basename={process.env.PUBLIC_URL}>
       <MainNavigationContainer />
-      <main className="main-view">
+      <main className="main-view" tabIndex={0}>
         <Routes>
           <Route path="/" element={<Navigate to="/nearby" replace />} />
           <Route path="nearby" element={<NearbyView />}>
