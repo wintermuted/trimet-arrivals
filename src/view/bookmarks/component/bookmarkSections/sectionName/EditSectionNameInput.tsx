@@ -1,6 +1,5 @@
+import { Input } from "@wintermuted/ui-theme/react";
 import React, { Component } from "react";
-import { Form } from "react-bootstrap";
-
 interface Props {
   sectionName: string;
   updateBookmarkSectionName: (bookmarkSectionName: string) => void;
@@ -34,11 +33,13 @@ export default class EditSectionNameInput extends Component<Props, State> {
 
   public render() {
     return (
-      <Form.Control
+      <Input
         type="text"
         value={this.state.sectionName}
         onChange={this.onChange}
-        className="mb-2 mb-md-0 edit-section-name-input"
+        aria-label="Bookmark section name"
+        className="transit-responsive-margin edit-section-name-input"
+        style={{ marginBottom: ".5rem" }}
       />
     );
   }

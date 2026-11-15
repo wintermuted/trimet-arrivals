@@ -1,8 +1,14 @@
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  ListGroup,
+  ListItem
+} from "@wintermuted/ui-theme/react";
 import { isEmpty, map } from "lodash";
 import React, { useEffect, useState } from "react";
-import { Card, ListGroup } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
-import { LinkContainer } from "react-router-bootstrap";
+import { Link } from "react-router-dom";
 import { StoredBookmarks } from "../../api/localstorage/bookmarks.localstorage";
 import {
   StopData,
@@ -45,18 +51,23 @@ function BookmarkItemRoutes({
 
 function BookmarkItem({ index, bookmark, stopData }: BookmarkItemProps) {
   return (
-    <ListGroup.Item key={index}>
-      <LinkContainer to={`/stop/${index}`}>
-        <div className="d-flex justify-content-between flex-wrap flex-md-nowrap">
-          <a>{bookmark.desc}</a>
-          {stopData && (
-            <div>
-              <BookmarkItemRoutes stopLocations={stopData.location} />
-            </div>
-          )}
-        </div>
-      </LinkContainer>
-    </ListGroup.Item>
+    <ListItem key={index}>
+      <div
+        className="transit-responsive-nowrap"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "wrap"
+        }}
+      >
+        <Link to={`/stop/${index}`}>{bookmark.desc}</Link>
+        {stopData && (
+          <div>
+            <BookmarkItemRoutes stopLocations={stopData.location} />
+          </div>
+        )}
+      </div>
+    </ListItem>
   );
 }
 
@@ -91,17 +102,15 @@ interface Props {
 function BookmarksCard({ bookmarks }: Props) {
   return (
     <Card>
-      <Card.Header as="h5">
+      <CardHeader as="h5">
         <FontAwesome name="bell" />
         Bookmarked Stops
-      </Card.Header>
-      <Card.Body>Your favourite stops.</Card.Body>
-      <ListGroup variant="flush">{getBookmarkedStops(bookmarks)}</ListGroup>
-      <Card.Body>
-        <LinkContainer to={`/bookmarks`}>
-          <Card.Link>Manage Bookmarks</Card.Link>
-        </LinkContainer>
-      </Card.Body>
+      </CardHeader>
+      <CardBody>Your favourite stops.</CardBody>
+      <ListGroup>{getBookmarkedStops(bookmarks)}</ListGroup>
+      <CardBody>
+        <Link to="/bookmarks">Manage Bookmarks</Link>
+      </CardBody>
     </Card>
   );
 }

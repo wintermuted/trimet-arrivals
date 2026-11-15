@@ -1,3 +1,4 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Direction, TrimetRoute } from "../../api/trimet/interfaces/types";
@@ -12,9 +13,9 @@ function getHeader(closeModal: () => void) {
     <header className="info-header">
       <h4>Route Info</h4>
       <div className="close-button-container">
-        <button onClick={closeModal} name="Close" title="Close">
+        <Button onClick={closeModal} name="Close" title="Close">
           <FontAwesome name="times" />
-        </button>
+        </Button>
       </div>
     </header>
   );

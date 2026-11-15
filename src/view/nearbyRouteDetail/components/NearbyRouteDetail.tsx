@@ -34,7 +34,7 @@ export default class NearbyRouteDetail extends React.Component<Props> {
       <div>
         <div
           className="route-header nearby-route"
-          style={{ backgroundColor: `#${route.routeColor}` }}
+          style={{ ...{ backgroundColor: `#${route.routeColor}` } }}
         >
           <RouteIndicator
             key={route.route}

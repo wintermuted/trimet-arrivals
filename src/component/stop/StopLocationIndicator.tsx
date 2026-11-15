@@ -1,7 +1,6 @@
+import { Badge } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Badge } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import "./StopLocationIndicator.css";
 
 interface Props {
   locationId: number;

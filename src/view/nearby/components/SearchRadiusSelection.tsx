@@ -1,5 +1,5 @@
+import { Button, FieldGroup, Select } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Button, Form, FormGroup, InputGroup } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 
 export interface SearchRadiusSelectionParams {
@@ -13,27 +13,25 @@ export function SearchRadiusSelection({
 }: SearchRadiusSelectionParams) {
   const options = [250, 500, 750, 1000, 1500, 2000, 2500, 5000];
   return (
-    <FormGroup>
-      <InputGroup className="mb-1">
-        <Form.Select
-          aria-label="Default select example"
+    <FieldGroup label="Search radius" htmlFor="nearby-search-radius">
+      <div className="transit-field-row">
+        <Select
+          id="nearby-search-radius"
           value={radiusSize}
           onChange={handleRadiusSelectionChange}
         >
           <option>Select</option>
-          {options.map(option => {
-            return (
-              <option key={option} value={option}>
-                {option} foot radius
-              </option>
-            );
-          })}
-        </Form.Select>
+          {options.map(option => (
+            <option key={option} value={option}>
+              {option} foot radius
+            </option>
+          ))}
+        </Select>
         <Button variant="primary" aria-label="Find transit near me">
           <FontAwesome name="location-arrow" />
           Find Near Me
         </Button>
-      </InputGroup>
-    </FormGroup>
+      </div>
+    </FieldGroup>
   );
 }

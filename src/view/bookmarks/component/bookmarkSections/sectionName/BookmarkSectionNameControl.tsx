@@ -1,13 +1,17 @@
+import { Button, CardHeader } from "@wintermuted/ui-theme/react";
 import cx from "classnames";
 import React from "react";
-import { Button, Card } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 import { RemoveBookmarkSectionButton } from "../../../../../component/buttons/RemoveBookmarkSectionButton";
 import EditSectionNameInput from "./EditSectionNameInput";
 
 function EditModeToggleButton({ onClick, editMode }) {
   return (
-    <Button onClick={onClick}>
+    <Button
+      onClick={onClick}
+      aria-label={editMode ? "Finish editing section" : "Edit bookmark section"}
+      aria-pressed={editMode}
+    >
       <FontAwesome name="edit" />
     </Button>
   );
@@ -29,20 +33,30 @@ export default function BookmarkSectionNameControl({
   updateBookmarkSectionName
 }: Props) {
   return (
-    <Card.Header className="d-flex justify-content-between flex-wrap flex-md-nowrap pt-3 pb-2 mb-3">
+    <CardHeader
+      className="transit-responsive-nowrap"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        paddingTop: "1rem",
+        paddingBottom: ".5rem",
+        marginBottom: "1rem"
+      }}
+    >
       {editMode && (
         <EditSectionNameInput
           sectionName={name}
           updateBookmarkSectionName={updateBookmarkSectionName}
         />
       )}
-      {!editMode && <h3 className="h6">{name}</h3>}
+      {!editMode && <h3 style={{ fontSize: "1rem" }}>{name}</h3>}
       {editMode && (
         <RemoveBookmarkSectionButton
           removeBookmarkSection={removeBookmarkSection}
         />
       )}
       <EditModeToggleButton editMode={editMode} onClick={toggleEditMode} />
-    </Card.Header>
+    </CardHeader>
   );
 }

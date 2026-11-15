@@ -1,14 +1,20 @@
-import _, { isEmpty } from "lodash";
+import {
+  Accordion,
+  Badge,
+  Card,
+  CardHeader,
+  Table
+} from "@wintermuted/ui-theme/react";
+import { isEmpty } from "lodash";
 import moment from "moment";
 import React from "react";
-import { Accordion, Badge, Card, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { Alert } from "../../api/trimet/interfaces/alertsData";
 import Loading from "../loading/Loading";
 
 function getStopClosureTable(locations) {
   return (
-    <Table>
+    <Table responsive={true}>
       <thead>
         <tr>
           <th>Stop ID</th>
@@ -35,7 +41,7 @@ function getStopClosureTable(locations) {
 
 function getRouteAlertTable(routes) {
   return (
-    <Table>
+    <Table responsive={true}>
       <thead>
         <tr>
           <th>Route ID</th>
@@ -61,7 +67,7 @@ function getRouteAlertTable(routes) {
 function getImpactedRoutes(routes) {
   return routes.map(route => {
     return (
-      <Badge bg="primary" key={route.id}>
+      <Badge tone="info" key={route.id}>
         {route.id}
       </Badge>
     );
@@ -89,34 +95,39 @@ function getAlertsAccordion(alertsData: Alert[]) {
   }
 
   return (
-    <Accordion defaultActiveKey="0">
+    <div>
       {alertsData &&
         alertsData.map(alert => {
           return (
-            <Accordion.Item eventKey={_.toString(alert.id)} key={alert.id}>
-              <Accordion.Header>
-                {alert.location && <Badge bg="warning">Stop Closure</Badge>}
-                {alert.route && getImpactedRoutes(alert.route)}
-                {alert.id} - {alert.header_text}
-                {getHeader(alert)}
-              </Accordion.Header>
-              <Accordion.Body>
-                {alert.desc}
-                <br />
-                {alert.location && getStopClosureTable(alert.location)}
-                {alert.route && getRouteAlertTable(alert.route)}
-              </Accordion.Body>
-            </Accordion.Item>
+            <Accordion
+              key={alert.id}
+              open={String(alert.id) === "0"}
+              title={
+                <span className="transit-alert-heading">
+                  {alert.location && <Badge tone="warning">Stop Closure</Badge>}
+                  {alert.route && getImpactedRoutes(alert.route)}
+                  <span>
+                    {alert.id} - {alert.header_text}
+                  </span>
+                  <small>{getHeader(alert)}</small>
+                </span>
+              }
+            >
+              {alert.desc}
+              <br />
+              {alert.location && getStopClosureTable(alert.location)}
+              {alert.route && getRouteAlertTable(alert.route)}
+            </Accordion>
           );
         })}
-    </Accordion>
+    </div>
   );
 }
 
 function AllAlertsCard({ alertsData }: Props) {
   return (
     <Card>
-      <Card.Header>Route & Stop Alerts</Card.Header>
+      <CardHeader>Route & Stop Alerts</CardHeader>
       {getAlertsAccordion(alertsData)}
     </Card>
   );

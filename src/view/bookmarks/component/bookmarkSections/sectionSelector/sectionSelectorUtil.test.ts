@@ -1,4 +1,4 @@
-import { customStyles, formatStopLocations } from "./sectionSelectorUtil";
+import { formatStopLocations } from "./sectionSelectorUtil";
 
 describe("sectionSelectorUtil", () => {
   // describe("formatStopLocations", () => {

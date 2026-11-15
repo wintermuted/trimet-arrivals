@@ -1,6 +1,6 @@
+import { ListGroup } from "@wintermuted/ui-theme/react";
 import { Dictionary, each, filter, groupBy, isEmpty, join, map } from "lodash";
 import React, { useEffect, useState } from "react";
-import { ListGroup } from "react-bootstrap";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import {

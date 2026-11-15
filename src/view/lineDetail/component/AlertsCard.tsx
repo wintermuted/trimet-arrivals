@@ -1,7 +1,15 @@
+import {
+  Badge,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  CardText,
+  CardTitle
+} from "@wintermuted/ui-theme/react";
 import { isEmpty } from "lodash";
 import moment from "moment";
 import React from "react";
-import { Badge, Card } from "react-bootstrap";
 import { Alert } from "../../../api/trimet/interfaces/alertsData";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import RouteIndicator from "../../../component/route/RouteIndicator";
@@ -12,9 +20,7 @@ function getLink(alert: Alert) {
     return null;
   }
 
-  return (
-    <Card.Link href={alert.info_link_url}>{alert.info_link_url}</Card.Link>
-  );
+  return <a href={alert.info_link_url}>{alert.info_link_url}</a>;
 }
 
 function getHeader(alert: Alert) {
@@ -58,38 +64,46 @@ function getAlertsContent(alertsData: Alert[]) {
 
   return alertsData.map((alert: Alert) => {
     return (
-      <Card bg="warning" className="mb-1" key={alert.id}>
-        <Card.Header>{getHeader(alert)}</Card.Header>
-        <Card.Body>
-          <Card.Text>{alert.desc}</Card.Text>
+      <Card
+        key={alert.id}
+        style={{
+          background: "var(--wm-color-warning-soft)",
+          marginBottom: ".25rem"
+        }}
+      >
+        <CardHeader>{getHeader(alert)}</CardHeader>
+        <CardBody>
+          <CardText>{alert.desc}</CardText>
           {getLink(alert)}
-        </Card.Body>
+        </CardBody>
         {alert.route && (
-          <Card.Body>
-            <Card.Title>Impacted Routes</Card.Title>
+          <CardBody>
+            <CardTitle>Impacted Routes</CardTitle>
             {alert.route &&
               alert.route.map((route: TrimetRoute) => {
                 return (
                   <RouteIndicator key={route.route} routeId={route.route} />
                 );
               })}
-          </Card.Body>
+          </CardBody>
         )}
         {alert.location && (
-          <Card.Body>
-            <Card.Title>Impacted Stops</Card.Title>
+          <CardBody>
+            <CardTitle>Impacted Stops</CardTitle>
             {alert.location &&
               alert.location.map(location => {
                 return (
                   <span key={location.id}>
-                    <Badge bg="primary">{location.id}</Badge>
+                    <Badge tone="info">{location.id}</Badge>
                     {location.desc} - {location.dir}
                   </span>
                 );
               })}
-          </Card.Body>
+          </CardBody>
         )}
-        <Card.Footer className="text-muted">{getDates(alert)}</Card.Footer>
+        <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
+          {getDates(alert)}
+        </CardFooter>
       </Card>
     );
   });

@@ -1,0 +1,94 @@
+import React, { act } from "react";
+import { createRoot, Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
+import { Arrival } from "../api/trimet/interfaces/arrivals";
+import { StopLocation, TrimetRoute } from "../api/trimet/interfaces/types";
+import RouteListItem from "../component/route/RouteListItem";
+import ArrivalListItem from "../view/nearby/components/common/ArrivalListItem";
+import SimpleArrivalListItem from "../view/nearby/components/common/SimpleArrivalListItem";
+
+const route: TrimetRoute = {
+  route: 54,
+  desc: "Beaverton-Hillsdale Highway",
+  type: "B",
+  dir: [{ dir: 1, desc: "To Beaverton" }]
+};
+const stop: StopLocation = {
+  locid: 368,
+  desc: "SW Broadway & Main",
+  dir: "Eastbound",
+  lat: 45.52,
+  lng: -122.68
+};
+const arrival: Arrival = {
+  id: "arrival-54",
+  locid: stop.locid,
+  dir: 1,
+  route: route.route,
+  scheduled: 1800000000000,
+  estimated: 1800000060000,
+  shortSign: "54 Beaverton",
+  feet: 500,
+  status: "estimated",
+  tripID: "trip-54",
+  vehicleID: "vehicle-54",
+  blockID: 54,
+  departed: false,
+  detoured: false,
+  fullSign: "54 To Beaverton",
+  newTrip: false,
+  piece: "",
+  dropOffOnly: false,
+  blockPosition: null,
+  inCongestion: false
+};
+
+describe("accessible transit detail links", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  function render(children: React.ReactNode) {
+    act(() => root.render(<MemoryRouter>{children}</MemoryRouter>));
+  }
+
+  it("preserves route, stop, and direction in both arrival views", () => {
+    render(
+      <ul>
+        <ArrivalListItem id={368} arrival={arrival} />
+        <SimpleArrivalListItem
+          id={368}
+          arrival={arrival}
+          route={route}
+          stop={stop}
+        />
+      </ul>
+    );
+    const links = Array.from(container.querySelectorAll("li > a"));
+    expect(links).toHaveLength(2);
+    expect(links.map(link => link.getAttribute("href"))).toEqual([
+      "/nearby/simple-routes/54?stop=368&direction=1",
+      "/nearby/simple-routes/54?stop=368&direction=1"
+    ]);
+    expect(links[0].textContent).toContain("54 Beaverton");
+    expect(links[1].textContent).toContain(stop.desc);
+  });
+
+  it("renders one valid route link rather than nested links in route cards", () => {
+    render(<RouteListItem route={route} />);
+    const links = container.querySelectorAll("a");
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toBe("/lines/54");
+    expect(container.querySelector("a a")).toBeNull();
+  });
+});

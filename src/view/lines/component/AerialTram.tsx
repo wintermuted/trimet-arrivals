@@ -9,7 +9,7 @@ export function AerialTram({ routes }: { routes: RouteDataDictionary }) {
   return (
     <div className="line-detail-view-wrapper">
       <h2>
-        <FontAwesome className="tram" name="tram" />
+        <FontAwesome name="tram" className="tram" />
         OHSU Aerial Tram
       </h2>
       {getRoutes(aerialTram)}

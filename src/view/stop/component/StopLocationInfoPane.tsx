@@ -1,5 +1,11 @@
+import {
+  Badge,
+  Card,
+  CardHeader,
+  ListGroup,
+  ListItem
+} from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Badge, Card, ListGroup } from "react-bootstrap";
 import { ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 
 interface LocationInfoPaneProps {
@@ -11,24 +17,24 @@ function LocationInfoPane({ arrivalData }: LocationInfoPaneProps) {
 
   return (
     <Card>
-      <Card.Header as="h5">Info</Card.Header>
-      <ListGroup variant="flush">
-        <ListGroup.Item>
+      <CardHeader as="h5">Info</CardHeader>
+      <ListGroup>
+        <ListItem>
           <strong>ID:</strong>
           <Badge>{location.id}</Badge>
-        </ListGroup.Item>
-        <ListGroup.Item>
+        </ListItem>
+        <ListItem>
           <strong>Direction:</strong> {location.dir}
-        </ListGroup.Item>
-        <ListGroup.Item>
+        </ListItem>
+        <ListItem>
           <strong>Queried:</strong> {arrivalData.queryTime}
-        </ListGroup.Item>
-        <ListGroup.Item>
+        </ListItem>
+        <ListItem>
           <strong>Lat / Lng:</strong> {location.lat} / {location.lng}
-        </ListGroup.Item>
-        <ListGroup.Item>
+        </ListItem>
+        <ListItem>
           <strong>Passenger Code:</strong> {location.passengerCode}
-        </ListGroup.Item>
+        </ListItem>
       </ListGroup>
     </Card>
   );

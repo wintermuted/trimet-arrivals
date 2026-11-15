@@ -1,6 +1,6 @@
 .collapsible-pane {
   header {
-    background-color: rgba(#fff8e4, 0.90);
+    background-color: var(--wm-color-surface-muted);
     margin-top: 20px;
     h2 {
       margin: 0;
@@ -10,12 +10,10 @@
   }
 
   article {
-    background-color: rgba(#E0D0C1, 0.90);
+    background-color: var(--wm-color-surface);
     > div {
       padding: 10px;
       width: 100%;
     }
   }
-
 }
-

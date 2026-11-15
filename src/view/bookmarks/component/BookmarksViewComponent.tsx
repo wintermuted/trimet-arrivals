@@ -1,5 +1,5 @@
 import React from "react";
-import { Col, Container, Row } from "react-bootstrap";
+
 import { StopLocation } from "../../../api/trimet/interfaces/types";
 import BookmarkSectionsContainer from "../container/BookmarkSectionsContainer";
 import BookmarkedStops from "./BookmarkedStops";
@@ -13,16 +13,16 @@ export default function BookmarksViewComponent(props: Props) {
   const { bookmarks } = props;
 
   return (
-    <Container id="bookmarks-view-container">
+    <div id="bookmarks-view-container" className="transit-container">
       <br />
-      <Row>
-        <Col>
+      <div className="transit-columns">
+        <div className="transit-column">
           <BookmarkedStops bookmarks={bookmarks} />
-        </Col>
-        <Col>
+        </div>
+        <div className="transit-column">
           <BookmarkSectionsContainer />
-        </Col>
-      </Row>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 }

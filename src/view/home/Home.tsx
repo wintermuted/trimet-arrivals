@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Col, Container, Row } from "react-bootstrap";
+
 import { fetchStoredBookmarks } from "../../api/localstorage/bookmarks.localstorage";
 import { getSytemAlerts } from "../../api/trimet/alerts";
 import { AlertsData } from "../../api/trimet/interfaces/alertsData";
@@ -45,22 +45,22 @@ function Home() {
   }, []);
 
   return (
-    <Container fluid={true}>
+    <div className="transit-container">
       <br />
-      <Row>
-        <Col md={5}>
+      <div className="transit-columns">
+        <div className="transit-column transit-column-5">
           <InfoCard />
           <br />
           <SystemAlertsCard systemAlertsData={systemAlertsData} />
-        </Col>
-        <Col md={4}>
+        </div>
+        <div className="transit-column transit-column-4">
           <AllAlertsCard alertsData={alertsData} />
-        </Col>
-        <Col md={3}>
+        </div>
+        <div className="transit-column transit-column-3">
           <BookmarksCard bookmarks={bookmarksData} />
-        </Col>
-      </Row>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 }
 

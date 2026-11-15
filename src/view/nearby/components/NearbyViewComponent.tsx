@@ -1,7 +1,7 @@
 import { Map } from "mapbox-gl";
 import { Dictionary, map, set, size } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
-import { Col, Container, Row } from "react-bootstrap";
+
 import { Outlet, useOutletContext } from "react-router";
 import { useNavigate } from "react-router-dom";
 import geoLocateCurrentPosition from "../../../api/geolocation/geoLocateCurrentPosition";
@@ -329,10 +329,12 @@ export default function NearbyViewComponent() {
   };
 
   return (
-    <Container fluid={true}>
-      <Row>
-        <Col md={3}>{isMapLoaded && <Outlet context={context} />}</Col>
-        <Col md={9}>
+    <div className="transit-container">
+      <div className="transit-columns">
+        <div className="transit-column transit-column-3">
+          {isMapLoaded && <Outlet context={context} />}
+        </div>
+        <div className="transit-column transit-column-9">
           {showMap && (
             <NearbyMapV2
               initializeMap={initializeMapboxMap}
@@ -342,8 +344,8 @@ export default function NearbyViewComponent() {
               currentLocation={currentLocation}
             />
           )}
-        </Col>
-      </Row>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 }

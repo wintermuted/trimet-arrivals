@@ -1,50 +1,47 @@
+import { Menu, Nav, ThemeSelect } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import "./MainNavigationMenu.scss";
-
-function bookmarkCount(numberOfBookmarks: number) {
-  return <>{numberOfBookmarks > 0 && <span>({numberOfBookmarks})</span>}</>;
-}
 
 interface Props {
   numberOfBookmarks: number;
   timeOfLastLoad: string;
 }
 
-export default function MainNavigationMenu({
-  numberOfBookmarks = 0,
-  timeOfLastLoad
-}: Props) {
+export default function MainNavigationMenu(props: Props) {
+  const { pathname } = useLocation();
+  const homeActive =
+    pathname === "/" ||
+    pathname === "/nearby" ||
+    pathname.startsWith("/nearby/");
   return (
-    <Navbar bg="dark" variant="dark" sticky="top">
-      <Container fluid={true}>
-        <Navbar.Brand href="#home">Go By Transit</Navbar.Brand>
-        <Nav className="me-auto">
-          <LinkContainer to="/">
-            <a className="nav-link">Home</a>
-          </LinkContainer>
-          <LinkContainer to="/lines/all">
-            <a className="nav-link">Lines</a>
-          </LinkContainer>
-          <LinkContainer to="/bookmarks">
-            <a className="nav-link">Bookmarks</a>
-          </LinkContainer>
-        </Nav>
-        <Nav>
-          <NavDropdown title="Dropdown" id="collasible-nav-dropdown">
-            <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-            <NavDropdown.Item href="#action/3.2">
-              Another action
-            </NavDropdown.Item>
-            <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-            <NavDropdown.Divider />
-            <NavDropdown.Item href="#action/3.4">
-              Separated link
-            </NavDropdown.Item>
-          </NavDropdown>
-        </Nav>
-      </Container>
-    </Navbar>
+    <header className="wm-app-header transit-app-header">
+      <Link to="/" className="transit-brand">
+        Go By Transit
+      </Link>
+      <Nav className="wm-app-nav" aria-label="Primary navigation">
+        <Link
+          to="/"
+          className={homeActive ? "active" : undefined}
+          aria-current={homeActive ? "page" : undefined}
+        >
+          Home
+        </Link>
+        <NavLink to="/lines/all">Lines</NavLink>
+        <NavLink to="/bookmarks">Bookmarks</NavLink>
+      </Nav>
+      <div className="transit-header-actions">
+        <ThemeSelect />
+        <Menu
+          label="Dropdown"
+          items={[
+            { id: "action", label: "Action", href: "#action/3.1" },
+            { id: "another", label: "Another action", href: "#action/3.2" },
+            { id: "something", label: "Something", href: "#action/3.3" },
+            { id: "separated", label: "Separated link", href: "#action/3.4" }
+          ]}
+        />
+      </div>
+    </header>
   );
 }

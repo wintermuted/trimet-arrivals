@@ -1,6 +1,6 @@
+import { Table } from "@wintermuted/ui-theme/react";
 import { filter, flatten, includes, isEmpty, map, mapKeys } from "lodash";
 import React from "react";
-import { Col, Row, Table } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 import { Link } from "react-router-dom";
 import { Alert } from "../../../api/trimet/interfaces/alertsData";
@@ -50,10 +50,10 @@ function getRouteDirections(
 ) {
   return map(routeDirections, routeDirection => {
     return (
-      <Col>
+      <div className="transit-column">
         <header>
-          <h3 className="h6">{routeDirection.desc}</h3>
-          <Table striped={true} bordered={true} hover={true} size="sm">
+          <h3 style={{ fontSize: "1rem" }}>{routeDirection.desc}</h3>
+          <Table responsive={true}>
             <thead>
               <tr>
                 <td>Stop ID</td>
@@ -67,7 +67,7 @@ function getRouteDirections(
             </tbody>
           </Table>
         </header>
-      </Col>
+      </div>
     );
   });
 }
@@ -90,5 +90,9 @@ export default function LineDetailViewStops(props: Props) {
     )
   );
 
-  return <Row>{getRouteDirections(route.dir, mappedAlerts)}</Row>;
+  return (
+    <div className="transit-columns">
+      {getRouteDirections(route.dir, mappedAlerts)}
+    </div>
+  );
 }

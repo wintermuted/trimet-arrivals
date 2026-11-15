@@ -1,7 +1,7 @@
+import { Nav } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Nav } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
-import { LinkContainer } from "react-router-bootstrap";
+import { NavLink } from "react-router-dom";
 import RouteIndicator from "../../../component/route/RouteIndicator";
 
 interface Props {
@@ -11,24 +11,20 @@ interface Props {
 
 function StopLocationArrivalsTableNav({ routes }: Props) {
   return (
-    <Nav fill={true} variant="tabs">
-      <Nav.Item>
-        <LinkContainer to="/">
-          <a className="nav-link">
-            <FontAwesome className="route" name="route" />
-            All
-          </a>
-        </LinkContainer>
-      </Nav.Item>
+    <Nav className="wm-tab-bar transit-service-nav" aria-label="Stop routes">
+      <span>
+        <NavLink to="/" className="wm-tab-btn">
+          <FontAwesome name="route" className="route" />
+          All
+        </NavLink>
+      </span>
       {routes.map(route => {
         return (
-          <Nav.Item key={route}>
-            <LinkContainer to={`/route/${route}`}>
-              <a className="nav-link">
-                <RouteIndicator routeId={route} />
-              </a>
-            </LinkContainer>
-          </Nav.Item>
+          <span key={route}>
+            <NavLink to={`/route/${route}`} className="wm-tab-btn">
+              <RouteIndicator routeId={route} linked={false} />
+            </NavLink>
+          </span>
         );
       })}
     </Nav>

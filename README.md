@@ -7,6 +7,38 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - npm ci
 - npm run watch
 
+## Design system
+
+The app uses `@wintermuted/ui-theme` for its CSS, React components, and theme
+preferences. `src/index.tsx` imports `@wintermuted/ui-theme/index.css` and calls
+`initTheme` from `@wintermuted/ui-theme/theme` before rendering. `ThemeProvider`
+wraps the app; the header's theme selector offers System, Light, and Dark, with
+the preference saved under `wintermuted:theme`.
+
+Import shared controls from `@wintermuted/ui-theme/react`. The bookmark section
+picker uses `MultiSelect` from `@wintermuted/ui-theme/react/select`, with
+`react-select` retained as its peer dependency. Keep router links as children of
+shared navigation/list components rather than wrapping controls in link bridges.
+Bootstrap styles, components, and router adapters are no longer used.
+
+Responsive page layouts use app-owned `.transit-container`, `.transit-columns`,
+and `.transit-grid` rules in `src/App.css`. Use `--wm-*` variables for application
+surfaces and status colors. Transit route colors remain in
+`src/styles/routes.scss`; map and transit data behavior remain separate from
+presentation changes.
+
+The app pins `@wintermuted/ui-theme@0.21.5`, the first published release with
+these React/theme/select entries. Both lockfiles resolve this package to the
+public npm registry; no local integration tarball is required.
+
+Restart a running Vite development server after upgrading this package to clear
+cached package exports.
+
+Run `npm run test:ui` for focused DOM integration tests covering navigation,
+bookmarks, dialogs, and theme preferences. Preview and production deployment
+workflows run these tests before the existing CRA production build. Local
+development continues to use Vite; build/type validation stays in CI.
+
 ## GitHub Copilot app
 
 Review and accept `.github/github-app.yml` in the app to enable the repository

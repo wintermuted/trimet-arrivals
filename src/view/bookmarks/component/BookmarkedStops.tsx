@@ -1,6 +1,6 @@
+import { Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
 import { isEmpty, map } from "lodash";
 import React from "react";
-import { Card } from "react-bootstrap";
 import { StopLocation } from "../../../api/trimet/interfaces/types";
 import StopContainer from "../../nearbyStops/containers/StopContainer";
 
@@ -15,7 +15,7 @@ function getBookmarks(bookmarks: StopLocation[]) {
       : stopLocation.id;
 
     return (
-      <div className="bookmark-stop-wrapper" key={locationId}>
+      <div key={locationId} className="bookmark-stop-wrapper">
         <StopContainer locationId={locationId} showArrivals={false} />
       </div>
     );
@@ -26,15 +26,15 @@ function BookmarkedStops({ bookmarks }: Props) {
   if (isEmpty(bookmarks)) {
     return (
       <Card>
-        <Card.Header>Uncategorized Bookmarks</Card.Header>
-        <Card.Body>Bookmark a stop and see it here.</Card.Body>
+        <CardHeader>Uncategorized Bookmarks</CardHeader>
+        <CardBody>Bookmark a stop and see it here.</CardBody>
       </Card>
     );
   }
 
   return (
     <div>
-      <h2 className="h4">Stops</h2>
+      <h2 style={{ fontSize: "1.5rem" }}>Stops</h2>
       {getBookmarks(bookmarks)}
     </div>
   );

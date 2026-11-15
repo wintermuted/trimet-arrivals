@@ -1,6 +1,12 @@
+import {
+  Badge,
+  Card,
+  CardHeader,
+  ListGroup,
+  ListItem
+} from "@wintermuted/ui-theme/react";
 import { map } from "lodash";
 import React, { useEffect, useState } from "react";
-import { Badge, Card, ListGroup, ListGroupItem } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 import { RouteDirectionStop } from "../../../../api/trimet/interfaces/routes";
 import { StopData, TrimetRoute } from "../../../../api/trimet/interfaces/types";
@@ -22,7 +28,7 @@ function RouteAtStop({ stopData }: { stopData: StopData }) {
       <FontAwesome name="bus" />
       {map(routes, (route: TrimetRoute) => {
         return (
-          <Badge key={route.route} bg="light" text="dark" pill={true}>
+          <Badge key={route.route} tone="neutral">
             {route.route}
           </Badge>
         );
@@ -53,19 +59,22 @@ function StopOnRoute({ routeDirectionStop }: StopOnRouteParams) {
   }, [routeDirectionStop]);
 
   return (
-    <ListGroupItem key={routeDirectionStop.locid}>
+    <ListItem key={routeDirectionStop.locid}>
       <span>{routeDirectionStop.desc}</span>
-      <small className="text-muted"> ({routeDirectionStop.locid})</small>
+      <small style={{ color: "var(--wm-color-text-muted)" }}>
+        {" "}
+        ({routeDirectionStop.locid})
+      </small>
       {stopData && <RouteAtStop stopData={stopData} />}
-    </ListGroupItem>
+    </ListItem>
   );
 }
 
 export function StopsOnRoute({ remainingStopsOnRoute }: StopsOnRouteParams) {
   return (
     <Card>
-      <Card.Header>Stops</Card.Header>
-      <ListGroup className="list-group-flush">
+      <CardHeader>Stops</CardHeader>
+      <ListGroup>
         {map(
           remainingStopsOnRoute,
           (routeDirectionStop: RouteDirectionStop) => {

@@ -1,5 +1,5 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Button } from "react-bootstrap";
 import { TrimetLocation } from "../../../store/reducers/data/arrivalsDataReducer";
 import { OnBookmarkClick } from "./StopLocationView";
 
@@ -21,10 +21,11 @@ function getButton(
   return (
     <Button
       type="button"
-      className="mb-2 mb-md-0"
-      variant="outline-secondary"
-      active={stopIsBookmarked}
+      variant="secondary"
+      aria-pressed={stopIsBookmarked}
       onClick={onClick}
+      className="transit-responsive-margin"
+      style={{ marginBottom: ".5rem" }}
     >
       {stopIsBookmarked ? "Remove Bookmark" : "Add Bookmark"}
     </Button>
@@ -38,8 +39,20 @@ function StopLocationHeader({
 }: StopLocationHeaderProps) {
   return (
     <>
-      <header className="d-flex justify-content-between flex-wrap flex-md-nowrap pt-3 pb-2 mb-3">
-        <h2 className="display-6">{location.desc}</h2>
+      <header
+        className="transit-responsive-nowrap"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          paddingTop: "1rem",
+          paddingBottom: ".5rem",
+          marginBottom: "1rem"
+        }}
+      >
+        <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}>
+          {location.desc}
+        </h2>
         {getButton(location, stopIsBookmarked, onBookmarkClick)}
       </header>
       <hr />

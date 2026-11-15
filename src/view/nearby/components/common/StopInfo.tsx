@@ -1,5 +1,10 @@
+import {
+  Card,
+  CardBody,
+  CardText,
+  CardTitle
+} from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Card } from "react-bootstrap";
 import { StopLocation } from "../../../../api/trimet/interfaces/types";
 
 interface StopInfoParams {
@@ -9,12 +14,14 @@ interface StopInfoParams {
 function StopInfo({ stopLocation }: StopInfoParams) {
   return (
     <Card>
-      <Card.Body>
-        <Card.Title>{stopLocation.desc}</Card.Title>
-        <Card.Text>
-          <small className="text-muted">StopID: {stopLocation.id}</small>
-        </Card.Text>
-      </Card.Body>
+      <CardBody>
+        <CardTitle>{stopLocation.desc}</CardTitle>
+        <CardText>
+          <small style={{ color: "var(--wm-color-text-muted)" }}>
+            StopID: {stopLocation.id}
+          </small>
+        </CardText>
+      </CardBody>
     </Card>
   );
 }

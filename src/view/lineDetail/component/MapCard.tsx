@@ -1,15 +1,19 @@
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardText
+} from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Card } from "react-bootstrap";
-
 export function MapCard() {
   return (
     <Card>
-      <Card.Header as="h5">Map</Card.Header>
-      <Card.Body>
-        <Card.Text>
+      <CardHeader as="h5">Map</CardHeader>
+      <CardBody>
+        <CardText>
           <p>Map goes here</p>
-        </Card.Text>
-      </Card.Body>
+        </CardText>
+      </CardBody>
     </Card>
   );
 }

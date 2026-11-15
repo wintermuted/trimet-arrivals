@@ -1,7 +1,12 @@
+import {
+  Card,
+  CardBody,
+  CardText,
+  CardTitle
+} from "@wintermuted/ui-theme/react";
 import cx from "classnames";
 import { get, isEmpty } from "lodash";
 import React from "react";
-import { Card, Col } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
 import {
   BLUE_LINE_NUMBER,
@@ -88,23 +93,24 @@ export default function RouteListItem({ route }: { route: TrimetRoute }) {
   };
 
   return (
-    <Col>
+    <div className="transit-column">
       <Card>
-        <Card.Body>
-          <Card.Title>
+        <CardBody>
+          <CardTitle>
             <NavLink to={`/lines/${routeId}`}>
               <RouteIndicator
                 routeId={routeId}
                 route={undefined}
                 verbose={true}
                 routeColor={""}
+                linked={false}
               />
             </NavLink>
             {route.route}
-          </Card.Title>
-          <Card.Text>{route.desc}</Card.Text>
-        </Card.Body>
+          </CardTitle>
+          <CardText>{route.desc}</CardText>
+        </CardBody>
       </Card>
-    </Col>
+    </div>
   );
 }

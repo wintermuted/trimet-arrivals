@@ -1,15 +1,15 @@
-import { find, isEmpty } from "lodash";
-import moment from "moment";
-import React, { useEffect, useState } from "react";
 import {
   Badge,
   Card,
-  Container,
+  CardBody,
+  CardHeader,
+  CardText,
   ListGroup,
-  Nav,
-  Navbar
-} from "react-bootstrap";
-import { LinkContainer } from "react-router-bootstrap";
+  ListItem
+} from "@wintermuted/ui-theme/react";
+import { find, isEmpty } from "lodash";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
@@ -18,6 +18,7 @@ import {
   getNormalizedTimeDifference
 } from "../util/timeUtils";
 import { getNormalizedDistanceFromFeet } from "../util/turfUtils";
+import { TopNavBar } from "./common/TopNavBar";
 
 interface BooleanBadgeParams {
   status: boolean;
@@ -25,17 +26,9 @@ interface BooleanBadgeParams {
 
 function BooleanBadge({ status }: BooleanBadgeParams) {
   if (status) {
-    return (
-      <Badge bg="primary" pill={true}>
-        Yes
-      </Badge>
-    );
+    return <Badge tone="info">Yes</Badge>;
   } else {
-    return (
-      <Badge bg="secondary" pill={true}>
-        No
-      </Badge>
-    );
+    return <Badge tone="neutral">No</Badge>;
   }
 }
 
@@ -68,52 +61,41 @@ export function StopArrivalDetail() {
 
   return (
     <div>
-      <Navbar bg="secondary" variant="dark">
-        <Container>
-          <Nav>{foundArrival.shortSign}</Nav>
-          <Nav>
-            <LinkContainer to={`/nearby/stops/${id}`}>
-              <a className="nav-link">Back</a>
-            </LinkContainer>
-          </Nav>
-        </Container>
-      </Navbar>
+      <TopNavBar id={foundArrival.shortSign} backTo={`/nearby/stops/${id}`} />
       <br />
       <Card>
-        <Card.Header>Trip Info</Card.Header>
-        <Card.Body>
-          <Card.Text>{foundArrival.status}</Card.Text>
-          <Card.Text>
-            <Badge bg="primary" pill={true}>
-              {timeDiff}
-            </Badge>
+        <CardHeader>Trip Info</CardHeader>
+        <CardBody>
+          <CardText>{foundArrival.status}</CardText>
+          <CardText>
+            <Badge tone="info">{timeDiff}</Badge>
             {estimatedTime} / {scheduledTime}
-          </Card.Text>
-        </Card.Body>
+          </CardText>
+        </CardBody>
       </Card>
       <br />
       <Card>
-        <Card.Header>Vehicle Info</Card.Header>
-        <ListGroup variant="flush">
-          <ListGroup.Item>
+        <CardHeader>Vehicle Info</CardHeader>
+        <ListGroup>
+          <ListItem>
             <strong>Vehicle ID:</strong> {foundArrival.vehicleID}
-          </ListGroup.Item>
-          <ListGroup.Item>
+          </ListItem>
+          <ListItem>
             <strong>Distance From Stop:</strong>{" "}
             {getNormalizedDistanceFromFeet(foundArrival.feet)}
-          </ListGroup.Item>
-          <ListGroup.Item>
+          </ListItem>
+          <ListItem>
             <strong>Detoured:</strong>{" "}
             <BooleanBadge status={foundArrival.detoured} />
-          </ListGroup.Item>
-          <ListGroup.Item>
+          </ListItem>
+          <ListItem>
             <strong>Drop off only:</strong>
             <BooleanBadge status={foundArrival.dropOffOnly} />
-          </ListGroup.Item>
-          <ListGroup.Item>
+          </ListItem>
+          <ListItem>
             <strong>In Congestion:</strong>
             <BooleanBadge status={foundArrival.inCongestion} />
-          </ListGroup.Item>
+          </ListItem>
         </ListGroup>
       </Card>
     </div>

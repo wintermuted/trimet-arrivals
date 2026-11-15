@@ -1,71 +1,92 @@
-/* body {
-  margin: 0;
-  font-family: 'Roboto', Helvetica, Arial, sans-serif;
-  background: #00A676;
-  background-image: url('assets/images/umit-aslan-728189-unsplash.jpg');
-  background-size: cover;
-  background-attachment: fixed;
+#root {
+  min-height: 100vh;
 }
 
 .main-view {
-  padding: 10px;
+  padding-block: 1rem;
 }
 
-body button {
+.transit-route-link {
+  display: inline-block;
+  margin-inline-end: 0.35rem;
+  text-decoration: none;
+}
+
+.transit-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-xs);
+  background: var(--wm-color-surface);
+  color: var(--wm-color-text);
+  text-decoration: none;
+}
+
+.transit-detail-header,
+.transit-stop-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.transit-detail-header {
+  padding: 0.75rem;
+  background: var(--wm-color-surface-muted);
+  border-radius: var(--wm-radius-base);
+}
+
+.transit-detail-header h3 {
+  flex: 1 1 10rem;
+}
+
+.transit-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.transit-field-row > input,
+.transit-field-row > select {
+  flex: 1 1 10rem;
+  min-width: 0;
+  width: auto;
+}
+
+.transit-button-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.transit-alert-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.transit-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   padding: 0;
-  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.group-menu-item {
-  padding-left: 7px;
-  padding-right: 7px;
-}
+@media (min-width: 768px) {
+  .transit-responsive-nowrap {
+    flex-wrap: nowrap !important;
+  }
 
-.group-menu-item.enabled {
-  background: rgb(0,0,0, 0.80)
+  .transit-responsive-margin {
+    margin-bottom: 0 !important;
+  }
 }
-
-.group-menu-item:first-child {
-  border-radius: 5px 0 0 5px;
-}
-
-.group-menu-item:last-child {
-  border-left: 1px solid black;
-  border-radius: 0 5px 5px 0;
-}
-
-.group-menu-item:only-child {
-  border-radius: 5px 5px 5px 5px;
-  border-left: none;
-}
-
-.marker {
-  background-image: url('mapbox-icon.png');
-  background-size: cover;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.marker-current {
-  background-image: url('location.png');
-  background-size: cover;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.mapboxgl-popup {
-  max-width: 200px;
-}
-
-.mapboxgl-popup-content {
-  text-align: center;
-  font-family: 'Open Sans', sans-serif;
-}
-
-.mapboxgl-map {
-  margin-bottom: 10px;
-} */
