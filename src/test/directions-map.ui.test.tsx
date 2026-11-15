@@ -121,6 +121,51 @@ describe("directions route line and endpoint framing", () => {
     }));
   });
 
+  it("draws a solid selected route and includes intervening road bends in the fitted bounds", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...geometry,
+        geometry: { type: "LineString", coordinates: [[0, 0], [0, -2], [2, -2], [2, 1]] }
+      })
+    });
+    await act(async () => showDirectionsSelection(map, selection, onError));
+    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    expect(bounds.extend).toHaveBeenCalledWith([0, -2]);
+    expect(bounds.extend).toHaveBeenCalledWith([2, -2]);
+    expect(map.fitBounds).toHaveBeenLastCalledWith(bounds, expect.anything());
+    const layer = map.addLayer.mock.calls[0][0];
+    expect(layer).toEqual(expect.objectContaining({
+      paint: { "line-color": "#0080ff", "line-opacity": 1, "line-width": 4 }
+    }));
+  });
+
+  it("loads existing line GeometryCollections without discarding their parts", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...geometry,
+        geometry: {
+          type: "GeometryCollection",
+          geometries: [
+            { type: "LineString", coordinates: [[0, 0], [1, 0]] },
+            { type: "LineString", coordinates: [[1, 0], [2, 1]] }
+          ]
+        }
+      })
+    });
+    await act(async () => showDirectionsSelection(map, selection, onError));
+    expect(onError).not.toHaveBeenCalled();
+    expect(map.addSource).toHaveBeenCalledWith("directions-route", expect.objectContaining({
+      data: expect.objectContaining({
+        geometry: {
+          type: "MultiLineString",
+          coordinates: [[[0, 0], [1, 0]], [[1, 0], [2, 1]]]
+        }
+      })
+    }));
+  });
+
   it("focuses the boarding stop while a destination is still unselected", async () => {
     await act(async () => showDirectionsSelection(map, { ...selection, destination: undefined }, onError));
     expect(map.flyTo).toHaveBeenCalledWith({ center: [0, 0], zoom: 16 });

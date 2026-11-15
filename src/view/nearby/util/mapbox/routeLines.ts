@@ -1,7 +1,20 @@
 import { each, forEach, isUndefined, uniq } from "lodash";
-import { Map } from "mapbox-gl";
-import { Feature, LineString, MultiLineString } from "geojson";
+import { LineLayerSpecification, Map } from "mapbox-gl";
+import { Feature, Geometry, LineString, MultiLineString, Position } from "geojson";
 import { NearbyRoutesDictionary } from "../../../../store/reducers/view/nearbyRoutesViewReducer";
+
+function lineParts(geometry: Geometry): Position[][] {
+  if (geometry.type === "LineString") {
+    return [geometry.coordinates];
+  }
+  if (geometry.type === "MultiLineString") {
+    return geometry.coordinates;
+  }
+  if (geometry.type === "GeometryCollection") {
+    return geometry.geometries.flatMap(lineParts);
+  }
+  throw new Error(`Unsupported route geometry: ${geometry.type}`);
+}
 
 export async function getRouteGeometry(
   routeId: string,
@@ -20,21 +33,35 @@ export async function getRouteGeometry(
       `Unable to load route geometry ${routePath}: ${response.status} ${response.statusText}`
     );
   }
-  const feature: Feature<LineString | MultiLineString> = await response.json();
+  const feature: Feature = await response.json();
+  const geometry = feature?.geometry;
+  if (geometry?.type === "GeometryCollection") {
+    const coordinates = lineParts(geometry);
+    if (!coordinates.length) {
+      throw new Error(`Empty route geometry ${routePath}`);
+    }
+    return { ...feature, geometry: { type: "MultiLineString", coordinates } };
+  }
   if (
-    (feature?.geometry?.type !== "LineString" &&
-      feature?.geometry?.type !== "MultiLineString") ||
-    !feature.geometry.coordinates.length
+    (geometry?.type !== "LineString" &&
+      geometry?.type !== "MultiLineString") ||
+    !geometry.coordinates.length
   ) {
     throw new Error(`Invalid route geometry ${routePath}`);
   }
-  return feature;
+  return { ...feature, geometry };
 }
 
 export function addMapboxLayer(
   map: Map,
   feature: Feature<LineString | MultiLineString>,
-  sourceId: string
+  sourceId: string,
+  paint: LineLayerSpecification["paint"] = {
+    "line-color": "#0080ff",
+    "line-dasharray": [2, 4],
+    "line-opacity": 0.8,
+    "line-width": 2
+  }
 ): Map {
   map.addSource(sourceId, {
     data: {
@@ -51,12 +78,7 @@ export function addMapboxLayer(
       "line-cap": "round",
       "line-join": "round"
     },
-    paint: {
-      "line-color": "#0080ff",
-      "line-dasharray": [2, 4],
-      "line-opacity": 0.8,
-      "line-width": 2
-    },
+    paint,
     source: sourceId,
     type: "line"
   });
