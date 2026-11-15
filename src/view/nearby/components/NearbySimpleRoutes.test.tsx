@@ -233,8 +233,23 @@ describe("NearbySimpleRoutes", () => {
       );
     expect(routeLinks()[0]).toBe("/lines/54");
 
+    const filterButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button")
+    ).find((button) => button.textContent === "Filter");
+    const sortButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button")
+    ).find((button) => button.textContent?.startsWith("Sort:"));
+    if (!filterButton || !sortButton) {
+      throw new Error("The route filter and sort buttons were not rendered.");
+    }
+    await act(async () => filterButton.click());
+    expect(filterButton.getAttribute("aria-expanded")).toBe("true");
+    await act(async () => sortButton.click());
+    expect(filterButton.getAttribute("aria-expanded")).toBe("false");
+    expect(sortButton.getAttribute("aria-expanded")).toBe("true");
+
     const sortSelect =
-      container.querySelector<HTMLSelectElement>("#nearby-route-sort");
+      document.querySelector<HTMLSelectElement>("#nearby-route-sort");
     if (!sortSelect) {
       throw new Error("The route sort selector was not rendered.");
     }
@@ -244,5 +259,6 @@ describe("NearbySimpleRoutes", () => {
     });
 
     expect(routeLinks()[0]).toBe("/lines/12");
+    expect(sortButton.textContent).toBe("Sort: Nearest stop");
   });
 });

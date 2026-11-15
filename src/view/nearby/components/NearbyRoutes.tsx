@@ -11,6 +11,7 @@ import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Direction, TrimetRoute } from "../../../api/trimet/interfaces/types";
 import RouteIndicator from "../../../component/route/RouteIndicator";
+import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
 import { SearchRadiusSelection } from "./SearchRadiusSelection";
@@ -157,34 +158,46 @@ export default function NearbyRoutes({
       <br />
       <NearbySubNav routeCount={routeCount} stopCount={stopCount} />
       <br />
-      <label
-        className="transit-route-filter-label"
-        htmlFor="nearby-routes-filter"
-      >
-        Filter by route or direction
-      </label>
-      <MultiSelect<FilterOption>
-        id="nearby-routes-filter"
-        aria-label="Filter by route or direction"
-        className="transit-route-filter"
-        options={filterOptions}
-        value={filterOptions
-          .flatMap((group) => group.options)
-          .filter((option) => activeValues.includes(option.value))}
-        onChange={handleFilterChange}
-        placeholder="All nearby routes"
-        isDisabled={isLoading || routeGroups.length === 0}
-      />
-      {activeValues.length > 0 && (
-        <Button
-          type="button"
-          variant="link"
-          className="transit-route-filter-clear"
-          onClick={handleClearFilters}
+      <div className="transit-route-controls">
+        <NearbyRouteControlPopover
+          buttonLabel={
+            activeValues.length > 0
+              ? `Filter (${activeValues.length})`
+              : "Filter"
+          }
+          disabled={isLoading || routeGroups.length === 0}
+          label="Route filters"
         >
-          Clear filters
-        </Button>
-      )}
+          <label
+            className="transit-route-filter-label"
+            htmlFor="nearby-routes-filter"
+          >
+            Filter by route or direction
+          </label>
+          <MultiSelect<FilterOption>
+            id="nearby-routes-filter"
+            aria-label="Filter by route or direction"
+            className="transit-route-filter"
+            options={filterOptions}
+            value={filterOptions
+              .flatMap((group) => group.options)
+              .filter((option) => activeValues.includes(option.value))}
+            onChange={handleFilterChange}
+            placeholder="All nearby routes"
+            isDisabled={isLoading || routeGroups.length === 0}
+          />
+          {activeValues.length > 0 && (
+            <Button
+              type="button"
+              variant="link"
+              className="transit-route-filter-clear"
+              onClick={handleClearFilters}
+            >
+              Clear filters
+            </Button>
+          )}
+        </NearbyRouteControlPopover>
+      </div>
       {isLoading ? (
         <p role="status">Loading nearby routes…</p>
       ) : routeGroups.length === 0 ? (

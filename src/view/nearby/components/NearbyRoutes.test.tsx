@@ -83,6 +83,51 @@ describe("NearbyRoutes", () => {
     ).not.toBeNull();
   });
 
+  it("opens the route filter controls from the filter button", async () => {
+    await act(async () =>
+      root.render(
+        <MemoryRouter>
+          <NearbyRoutes
+            nearbyRoutes={{ "54": [route] }}
+            radiusSize={1000}
+            handleRadiusSelectionChange={jest.fn()}
+            routeCount={1}
+            stopCount={2}
+          />
+        </MemoryRouter>
+      )
+    );
+
+    const filterButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button")
+    ).find((button) => button.textContent === "Filter");
+    const filterControl = document.getElementById("nearby-routes-filter");
+    expect(filterButton?.getAttribute("aria-expanded")).toBe("false");
+    expect(filterControl?.closest(".transit-route-control-popover")?.hidden).toBe(
+      true
+    );
+
+    if (!filterButton || !filterControl) {
+      throw new Error("The route filter controls were not rendered.");
+    }
+    await act(async () => filterButton.click());
+
+    expect(filterButton.getAttribute("aria-expanded")).toBe("true");
+    expect(filterControl.closest(".transit-route-control-popover")?.hidden).toBe(
+      false
+    );
+    expect(document.activeElement).toBe(filterControl);
+
+    await act(async () => {
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })
+      );
+    });
+
+    expect(filterButton.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(filterButton);
+  });
+
   it("explains an empty route list", async () => {
     await act(async () =>
       root.render(

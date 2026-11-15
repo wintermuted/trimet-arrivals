@@ -19,6 +19,7 @@ import {
 import Loading from "../../loading/Loading";
 import { getNormalizedDistanceString, getDistance } from "../util/turfUtils";
 import { getTimeUntilArrival } from "../util/timeUtils";
+import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
 import { SearchRadiusSelection } from "./SearchRadiusSelection";
@@ -366,35 +367,70 @@ export default function NearbySimpleRoutes({
         <Loading />
       ) : (
         <>
-          <label
-            className="transit-route-filter-label"
-            htmlFor="nearby-route-filter"
-          >
-            Filter by route or direction
-          </label>
-          <MultiSelect<FilterOption>
-            id="nearby-route-filter"
-            aria-label="Filter by route or direction"
-            className="transit-route-filter"
-            options={filterOptions}
-            value={filterOptions
-              .flatMap((group) => group.options)
-              .filter((option) => activeFilterValues.includes(option.value))}
-            onChange={handleFilterChange}
-            placeholder="All nearby routes"
-            isDisabled={isLoading || routeStructures.length === 0}
-          />
-          <div className="transit-route-sort">
-            <label htmlFor="nearby-route-sort">Sort by</label>
-            <Select
-              id="nearby-route-sort"
-              value={sortBy}
-              onChange={handleSortChange}
+          <div className="transit-route-controls">
+            <NearbyRouteControlPopover
+              buttonLabel={
+                activeFilterValues.length > 0
+                  ? `Filter (${activeFilterValues.length})`
+                  : "Filter"
+              }
+              disabled={isLoading || routeStructures.length === 0}
+              label="Route filters"
             >
-              <option value="arrival">Soonest arrival</option>
-              <option value="distance">Nearest stop</option>
-              <option value="route">Route number</option>
-            </Select>
+              <label
+                className="transit-route-filter-label"
+                htmlFor="nearby-route-filter"
+              >
+                Filter by route or direction
+              </label>
+              <MultiSelect<FilterOption>
+                id="nearby-route-filter"
+                aria-label="Filter by route or direction"
+                className="transit-route-filter"
+                options={filterOptions}
+                value={filterOptions
+                  .flatMap((group) => group.options)
+                  .filter((option) =>
+                    activeFilterValues.includes(option.value)
+                  )}
+                onChange={handleFilterChange}
+                placeholder="All nearby routes"
+                isDisabled={isLoading || routeStructures.length === 0}
+              />
+              {activeFilterValues.length > 0 && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="transit-route-filter-clear"
+                  onClick={handleClearFilters}
+                >
+                  Clear filters
+                </Button>
+              )}
+            </NearbyRouteControlPopover>
+            <NearbyRouteControlPopover
+              buttonLabel={`Sort: ${
+                sortBy === "arrival"
+                  ? "Soonest arrival"
+                  : sortBy === "distance"
+                    ? "Nearest stop"
+                    : "Route number"
+              }`}
+              label="Route sorting"
+            >
+              <div className="transit-route-sort">
+                <label htmlFor="nearby-route-sort">Sort by</label>
+                <Select
+                  id="nearby-route-sort"
+                  value={sortBy}
+                  onChange={handleSortChange}
+                >
+                  <option value="arrival">Soonest arrival</option>
+                  <option value="distance">Nearest stop</option>
+                  <option value="route">Route number</option>
+                </Select>
+              </div>
+            </NearbyRouteControlPopover>
           </div>
           {isLoading ? (
             <p role="status">Loading nearby route arrivals…</p>
