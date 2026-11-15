@@ -48,6 +48,10 @@ app's resolved Light/Dark theme, including saved and system preferences. Changin
 themes updates the existing map configuration rather than replacing the style,
 preserving route lines, stop markers, selected trips, and the camera position.
 Map removal also disconnects its theme subscription.
+Stop and current-location circles use full emissive strength so day/night
+basemap lighting does not dim their colors, including the selected-stop highlight.
+Map marker popups use the app's surface/text tokens for readable Light/Dark
+content, matching pointer arrows, and visible close-button focus states.
 
 Go on a route's stop detail opens a stop picker with the current route, direction,
 and boarding stop. Destinations are limited to subsequent stops in route order;

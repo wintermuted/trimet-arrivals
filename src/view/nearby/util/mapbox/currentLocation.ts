@@ -58,6 +58,9 @@ export function setCurrentLocationMarker(
   map.addLayer({
     id: CURRENT_LOCATION_CIRCLE_LAYER,
     source: CURRENT_LOCATION_CIRCLE,
+    paint: {
+      "circle-emissive-strength": 1
+    },
     type: "circle"
   });
 

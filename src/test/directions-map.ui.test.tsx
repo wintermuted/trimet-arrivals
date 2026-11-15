@@ -2,12 +2,19 @@ import { act } from "react";
 import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
 import { DirectionsSelection, showDirectionsSelection } from "../view/nearby/util/mapbox/directionsSelection";
 import { setRoutes } from "../view/nearby/util/mapbox/routeLines";
+import { setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
+import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLocation";
+
+jest.mock("!mapbox-gl", () => jest.requireMock("mapbox-gl"), { virtual: true });
 
 jest.mock("mapbox-gl", () => {
   const createMap = () => ({
     getContainer: jest.fn().mockReturnValue({ clientWidth: 800, clientHeight: 400 }),
     fitBounds: jest.fn(),
     flyTo: jest.fn(),
+    loaded: jest.fn().mockReturnValue(true),
+    on: jest.fn(),
+    setPaintProperty: jest.fn(),
     addSource: jest.fn(),
     addLayer: jest.fn(),
     getLayer: jest.fn().mockReturnValue({ id: "directions-route" }),
@@ -71,6 +78,38 @@ describe("directions route line and endpoint framing", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  it.each(["light", "dark"])("keeps stop and location colors independent of %s basemap lighting", theme => {
+    const previousTheme = document.documentElement.dataset.theme;
+    document.documentElement.dataset.theme = theme;
+    try {
+      setNearbyStops(map, {}, ["54"], jest.fn());
+      updateStopMarkerColor(map, "368", "#ff0000");
+      setCurrentLocationMarker(map, 0, 0, 1000);
+      expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
+        id: "stopLocationLayer",
+        paint: expect.objectContaining({
+          "circle-color": "#4264fb",
+          "circle-stroke-color": "#ffffff",
+          "circle-emissive-strength": 1
+        })
+      }));
+      expect(map.setPaintProperty).toHaveBeenCalledWith(
+        "stopLocationLayer", "circle-color",
+        ["case", ["==", ["get", "locid"], 368], "#ff0000", "#4264fb"]
+      );
+      expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
+        id: "currentLocationCircleLayer",
+        paint: { "circle-emissive-strength": 1 }
+      }));
+    } finally {
+      if (previousTheme === undefined) {
+        delete document.documentElement.dataset.theme;
+      } else {
+        document.documentElement.dataset.theme = previousTheme;
+      }
+    }
   });
 
   it("draws actual route geometry and fits both labeled endpoint markers", async () => {
