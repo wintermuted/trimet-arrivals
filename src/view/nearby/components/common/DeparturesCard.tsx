@@ -5,7 +5,7 @@ import {
 } from "@wintermuted/ui-theme/react";
 import { map } from "lodash";
 import moment from "moment";
-import React from "react";
+import React, { useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
 import { getTimeUntilArrival } from "../../util/timeUtils";
@@ -15,6 +15,10 @@ interface DeparturesCardParams {
 }
 
 export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
+  const [selectedId, setSelectedId] = useState<string>();
+  const selectedArrival = filteredArrivals.find(arrival => arrival.id === selectedId)
+    ?? filteredArrivals[0];
+
   return (
     <Accordion
       open
@@ -22,7 +26,7 @@ export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
       title={<><FontAwesome name="clock-o" aria-hidden="true" /> Departures</>}
     >
       <ListGroup>
-        {map(filteredArrivals, (arrival: any, index: number) => {
+        {map(filteredArrivals, (arrival: Arrival) => {
           const estimatedArrivalTime = arrival.estimated;
           const scheduledArrivalTime = arrival.scheduled;
           const timeUntilArrival = getTimeUntilArrival(
@@ -30,7 +34,7 @@ export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
             scheduledArrivalTime
           );
 
-          const variant = index === 0 ? "primary" : "light";
+          const selected = arrival === selectedArrival;
           const estimatedTime = moment(estimatedArrivalTime).format("h:mm a");
           const scheduledTime = moment(scheduledArrivalTime).format("h:mm a");
           const arrivalTime = estimatedArrivalTime
@@ -39,23 +43,23 @@ export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
 
           return (
             <ListItem
-              key={index}
+              key={arrival.id}
               as="li"
-              style={{
-                background:
-                  variant === "primary"
-                    ? "var(--wm-color-accent-soft)"
-                    : undefined,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start"
-              }}
+              style={{ padding: 0 }}
             >
-              <span>
-                {index === 0 && <FontAwesome name="caret-right" />}
-                {timeUntilArrival}
-              </span>
-              <small>{arrivalTime}</small>
+              <button
+                type="button"
+                className="transit-departure-option"
+                aria-pressed={selected}
+                aria-label={`Depart at ${arrivalTime}, ${timeUntilArrival}`}
+                onClick={() => setSelectedId(arrival.id)}
+              >
+                <span>
+                  {selected && <FontAwesome name="caret-right" aria-hidden="true" />}
+                  {timeUntilArrival}
+                </span>
+                <small>{arrivalTime}</small>
+              </button>
             </ListItem>
           );
         })}

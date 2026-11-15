@@ -7,6 +7,32 @@ import { arrival1 } from "../api/trimet/fixture/arrival";
 
 jest.mock("../api/trimet/stops");
 
+it("selects departures and retains selection by arrival ID across updates", async () => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const later = { ...arrival1, id: "later", scheduled: arrival1.scheduled + 600000 };
+  const render = (arrivals = [arrival1, later]) =>
+    act(() => root.render(<DeparturesCard filteredArrivals={arrivals} />));
+  const buttons = () => Array.from(container.querySelectorAll("button"));
+  try {
+    render();
+    expect(buttons().map(button => button.getAttribute("aria-pressed"))).toEqual(["true", "false"]);
+    act(() => buttons()[1].click());
+    expect(buttons().map(button => button.getAttribute("aria-pressed"))).toEqual(["false", "true"]);
+    expect(buttons()[1].querySelector(".fa-caret-right")).not.toBeNull();
+    render([{ ...later }, { ...arrival1 }]);
+    expect(buttons().map(button => button.getAttribute("aria-pressed"))).toEqual(["true", "false"]);
+    render([arrival1]);
+    expect(buttons()[0].getAttribute("aria-pressed")).toBe("true");
+    render([]);
+    expect(buttons()).toHaveLength(0);
+  } finally {
+    act(() => root.unmount());
+    container.remove();
+  }
+});
+
 it("keeps the icon-labeled panels independent and preserves contents and collapsed state on updates", async () => {
   const container = document.createElement("div");
   document.body.appendChild(container);

@@ -1,5 +1,34 @@
 @import "../../../styles/routes";
 
+.transit-departure-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--wm-space-2);
+  width: 100%;
+  min-height: var(--wm-control-height);
+  padding: var(--wm-space-3) var(--wm-space-4);
+  border: 0;
+  background: transparent;
+  color: var(--wm-color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--wm-color-surface-muted);
+  }
+
+  &[aria-pressed="true"] {
+    background: var(--wm-color-accent-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: -2px;
+  }
+}
+
 .transit-stop-panel {
   background: var(--wm-color-surface);
 

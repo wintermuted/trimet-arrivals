@@ -48,6 +48,9 @@ gutter. The sidebar detail header spans the full available sidebar width while i
 contents align with the padded content below. Other pages keep the standard content spacing.
 Detail headers use an accessible back-caret link before the title rather than an
 outlined Back button.
+Departure rows support mouse and keyboard selection, with a highlight and caret
+identifying the selected departure. Selection persists across updates while that
+departure remains available; otherwise the first departure is selected.
 
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the
 app's resolved Light/Dark theme, including saved and system preferences. Changing
