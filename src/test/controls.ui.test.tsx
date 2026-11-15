@@ -9,6 +9,7 @@ import AddBookmarkSectionControl from "../view/bookmarks/component/bookmarkSecti
 import BookmarksInSectionSelectionHandler from "../view/bookmarks/component/bookmarkSections/sectionSelector/BookmarksInSectionSelectionHandler";
 import MainNavigationMenu from "../view/mainNav/components/MainNavigationMenu";
 import AllAlertsCard from "../view/home/AllAlertsCard";
+import { SearchRadiusSelection } from "../view/nearby/components/SearchRadiusSelection";
 
 const stop: StopLocation = {
   locid: 368,
@@ -46,6 +47,41 @@ describe("Wintermuted control integration", () => {
     localStorage.clear();
     document.documentElement.removeAttribute("data-theme");
     window.matchMedia = originalMatchMedia;
+  });
+
+  it("offers labeled radius choices and forwards changes without an inert search action", () => {
+    const handleRadiusSelectionChange = jest.fn(
+      (event: React.ChangeEvent<HTMLSelectElement>) => event.target.value
+    );
+    act(() =>
+      root.render(
+        <SearchRadiusSelection
+          radiusSize={1000}
+          handleRadiusSelectionChange={handleRadiusSelectionChange}
+        />
+      )
+    );
+    const select = container.querySelector("select");
+    expect(container.querySelector("label").htmlFor).toBe(select.id);
+    expect(select.value).toBe("1000");
+    expect(Array.from(select.options).map(option => option.value)).toEqual([
+      "250",
+      "500",
+      "750",
+      "1000",
+      "1500",
+      "2000",
+      "2500",
+      "5000"
+    ]);
+    expect(select.selectedOptions[0].textContent).toBe("1,000 ft");
+    expect(container.querySelector("button")).toBeNull();
+    act(() => {
+      select.value = "2500";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(handleRadiusSelectionChange).toHaveBeenCalledTimes(1);
+    expect(handleRadiusSelectionChange).toHaveReturnedWith("2500");
   });
 
   it("preserves bookmark callbacks and exposes the saved state", () => {
