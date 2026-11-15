@@ -43,6 +43,13 @@ contained map. On narrow screens the results and map share the available height
 in stacked panels; map resizing follows panel size changes rather than a fixed
 viewport-height offset.
 
+Go on a route's stop detail opens a stop picker with the current route, direction,
+and boarding stop. Destinations are limited to subsequent stops in route order;
+changing the boarding stop clears the destination. Selecting a stop focuses it
+on the map, and the destination summary links to its route-specific arrivals.
+Selections are retained in the URL. This is a stop-selection flow, not a journey
+planner: it does not estimate travel times or promise departure/arrival times.
+
 The app shell follows the Wintermuted docs-topbar pattern used by Game of Life
 and Inventory: compact branding, underline-active navigation, consistent page
 gutters, and a quiet footer with source/releases links and theme controls.

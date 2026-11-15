@@ -1,6 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Arrival } from "../api/trimet/interfaces/arrivals";
 import { StopLocation, TrimetRoute } from "../api/trimet/interfaces/types";
 import RouteListItem from "../component/route/RouteListItem";
@@ -43,6 +43,10 @@ const arrival: Arrival = {
   blockPosition: null,
   inCongestion: false
 };
+
+function DirectionsLocation() {
+  return <p>{useLocation().search}</p>;
+}
 
 describe("accessible transit detail links", () => {
   let container: HTMLDivElement;
@@ -116,9 +120,11 @@ describe("accessible transit detail links", () => {
         <RouteStopInfo
           shortSign="To Beaverton"
           stopLocation={{ ...stop, id: 368 }}
+          routeId={12}
+          direction={0}
         />
         <Routes>
-          <Route path="/nearby/directions" element={<p>Directions opened</p>} />
+          <Route path="/nearby/directions" element={<DirectionsLocation />} />
           <Route path="*" element={null} />
         </Routes>
       </>
@@ -137,7 +143,7 @@ describe("accessible transit detail links", () => {
       expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
     });
     act(() => buttons[0].click());
-    expect(container.textContent).toContain("Directions opened");
+    expect(container.textContent).toContain("?route=12&direction=0&from=368");
   });
 
   it("renders one valid route link rather than nested links in route cards", () => {

@@ -1,4 +1,4 @@
-import { Map } from "mapbox-gl";
+import { Map, Marker, Popup } from "mapbox-gl";
 import { Dictionary, map, set, size } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -39,8 +39,10 @@ import NearbySimpleRoutes from "./NearbySimpleRoutes";
 import NearbySimpleRouteArrivals from "./NearbySimpleRouteArrivals";
 import { NearbyStopsDetail } from "./NearbyStopsDetail";
 import { ArrivalLocation } from "../../../api/trimet/interfaces/arrivals";
+import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import NearbyStops from "./NearbyStops";
 import NearbyRoutes from "./NearbyRoutes";
+import NearbyDirections from "./NearbyDirections";
 
 const DEFAULT_RADIUS = 1000;
 
@@ -58,6 +60,7 @@ export interface NearbyViewComponentOutletContextProps {
     stopLocation: ArrivalLocation
   ) => void;
   handleStopOpened: (stopLocation: ArrivalLocation) => void;
+  handleDirectionsStopSelected: (stop: RouteDirectionStop) => () => void;
   handleSimpleRoutesOpened: () => void;
 }
 
@@ -138,6 +141,16 @@ export function NearbySimpleRouteArrivalsComp() {
     <NearbySimpleRouteArrivals
       handleRouteArrivalsOpened={handleRouteArrivalsOpened}
     />
+  );
+}
+
+export function NearbyDirectionsComp() {
+  const { handleDirectionsStopSelected } = useOutletContext<
+    NearbyViewComponentOutletContextProps
+  >();
+
+  return (
+    <NearbyDirections onStopSelected={handleDirectionsStopSelected} />
   );
 }
 
@@ -302,6 +315,16 @@ export default function NearbyViewComponent() {
     updateStopMarkerColor(mapRef.current, `${stopLocation.id}`, "#ff0000");
   }
 
+  function handleDirectionsStopSelected(stop: RouteDirectionStop) {
+    const marker = new Marker()
+      .setLngLat([stop.lng, stop.lat])
+      .setPopup(new Popup({ offset: 24 }).setText(`${stop.desc} (${stop.locid})`))
+      .addTo(mapRef.current);
+    marker.getElement().setAttribute("aria-label", `Selected stop: ${stop.desc}`);
+    flyToCenter(stop.lng, stop.lat);
+    return () => marker.remove();
+  }
+
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
     mapRef.current = removeStopLocationLayers(mapRef.current);
@@ -325,6 +348,7 @@ export default function NearbyViewComponent() {
     initializeMap: initializeMapboxMap,
     handleRouteArrivalsOpened,
     handleStopOpened,
+    handleDirectionsStopSelected,
     handleSimpleRoutesOpened
   };
 

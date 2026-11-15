@@ -7,13 +7,24 @@ import { StopLocation } from "../../../../api/trimet/interfaces/types";
 interface StopInfoParams {
   shortSign: string;
   stopLocation: StopLocation;
+  routeId: number;
+  direction: number;
 }
 
-export default function RouteStopInfo({ stopLocation }: StopInfoParams) {
+export default function RouteStopInfo({
+  stopLocation,
+  routeId,
+  direction
+}: StopInfoParams) {
   const navigate = useNavigate();
 
   function handleGoClick() {
-    navigate("/nearby/directions?route=54&direction=1&from=1&to=2");
+    const params = new URLSearchParams({
+      route: String(routeId),
+      direction: String(direction),
+      from: String(stopLocation.id)
+    });
+    navigate(`/nearby/directions?${params}`);
   }
 
   return (
