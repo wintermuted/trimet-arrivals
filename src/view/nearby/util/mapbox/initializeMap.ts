@@ -1,6 +1,7 @@
 // @ts-ignore
 // tslint:disable-next-line:no-implicit-dependencies
 import mapboxgl, { Map } from "!mapbox-gl";
+import { createThemedMap } from "./themedMap";
 
 export function initializeMap(
   lng: number,
@@ -11,10 +12,9 @@ export function initializeMap(
   mapboxgl.accessToken =
     "pk.eyJ1IjoiamFtZXNvbm55ZWhvbHQiLCJhIjoiY2p3NWoyamV0MTk1dDQ0cGNmdGZkenViMiJ9.TqDD3r62vlPzVgPnYjocsg";
 
-  return new mapboxgl.Map({
+  return createThemedMap({
     center: [lng, lat],
     container: mapContainer.current,
-    style: "mapbox://styles/mapbox/streets-v11",
     zoom
   });
 }

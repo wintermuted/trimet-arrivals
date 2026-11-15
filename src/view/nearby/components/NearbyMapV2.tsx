@@ -23,9 +23,13 @@ function NearbyMapV2({
   // Initialize Map
   useEffect(() => {
     initializeMap();
-    const observer = new ResizeObserver(() => mapRef.current?.resize());
+    const map = mapRef.current;
+    const observer = new ResizeObserver(() => map.resize());
     observer.observe(mapContainerRef.current);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      map.remove();
+    };
   }, []);
 
   const mapBoxMap = (

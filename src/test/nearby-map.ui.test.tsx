@@ -2,7 +2,7 @@ import React, { act, createRef } from "react";
 import { createRoot } from "react-dom/client";
 import NearbyMapV2 from "../view/nearby/components/NearbyMapV2";
 
-it("resizes the map when its available panel changes and disconnects on unmount", () => {
+it("resizes the map when its available panel changes and disposes it on unmount", () => {
   const originalResizeObserver = window.ResizeObserver;
   const observe = jest.fn();
   const disconnect = jest.fn();
@@ -16,6 +16,7 @@ it("resizes the map when its available panel changes and disconnects on unmount"
   const root = createRoot(container);
   const mapContainerRef = createRef<HTMLDivElement>();
   const resize = jest.fn();
+  const remove = jest.fn();
   const initializeMap = jest.fn(() => {
     expect(mapContainerRef.current).not.toBeNull();
   });
@@ -26,7 +27,7 @@ it("resizes the map when its available panel changes and disconnects on unmount"
         <NearbyMapV2
           zoom={12}
           currentLocation={[0, 0]}
-          mapRef={{ current: { resize } }}
+          mapRef={{ current: { resize, remove } }}
           mapContainerRef={mapContainerRef}
           initializeMap={initializeMap}
         />
@@ -41,6 +42,7 @@ it("resizes the map when its available panel changes and disconnects on unmount"
     expect(resize).toHaveBeenCalledTimes(1);
     act(() => root.render(null));
     expect(disconnect).toHaveBeenCalledTimes(1);
+    expect(remove).toHaveBeenCalledTimes(1);
   } finally {
     act(() => root.unmount());
     container.remove();
