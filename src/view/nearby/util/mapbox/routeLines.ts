@@ -1,33 +1,44 @@
 import { each, forEach, isUndefined, uniq } from "lodash";
 import { Map } from "mapbox-gl";
+import { Feature, LineString, MultiLineString } from "geojson";
 import { NearbyRoutesDictionary } from "../../../../store/reducers/view/nearbyRoutesViewReducer";
 
-async function getRouteGeometry(routeId: string, directionId: number) {
+export async function getRouteGeometry(
+  routeId: string,
+  directionId: number,
+  signal?: AbortSignal
+): Promise<Feature<LineString | MultiLineString>> {
   const routePath = `${routeId}/${routeId}_${directionId}.json`;
 
-  try {
-    const response = await fetch(
-      `${process.env.PUBLIC_URL}/data/trimet/geoJSON/${routePath}`
+  const response = await fetch(
+    `${process.env.PUBLIC_URL}/data/trimet/geoJSON/${routePath}`,
+    { signal }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Unable to load route geometry ${routePath}: ${response.status} ${response.statusText}`
     );
-
-    if (!response.ok) {
-      throw new Error(
-        `Unable to load route geometry ${routePath}: ${response.status} ${response.statusText}`
-      );
-    }
-
-    return await response.json();
-  } catch (error) {
-    // tslint:disable-next-line:no-console
-    console.error(error);
-    return undefined;
   }
+  const feature: Feature<LineString | MultiLineString> = await response.json();
+  if (
+    (feature?.geometry?.type !== "LineString" &&
+      feature?.geometry?.type !== "MultiLineString") ||
+    !feature.geometry.coordinates.length
+  ) {
+    throw new Error(`Invalid route geometry ${routePath}`);
+  }
+  return feature;
 }
 
-function addMapboxLayer(map: Map, promise, sourceId: string): Map {
+export function addMapboxLayer(
+  map: Map,
+  feature: Feature<LineString | MultiLineString>,
+  sourceId: string
+): Map {
   map.addSource(sourceId, {
     data: {
-      geometry: promise.geometry,
+      geometry: feature.geometry,
       properties: {},
       type: "Feature"
     },
@@ -82,7 +93,11 @@ export async function setRoutes(
 
   each(nearbyRouteIds, (route, routeId) => {
     each(route.directions, directionId => {
-      const promise = getRouteGeometry(routeId, directionId);
+      const promise = getRouteGeometry(routeId, directionId).catch(error => {
+        // tslint:disable-next-line:no-console
+        console.error(error);
+        return undefined;
+      });
       promises.push(promise);
     });
   });

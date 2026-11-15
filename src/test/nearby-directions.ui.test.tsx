@@ -39,12 +39,12 @@ function NavigationProbe() {
 describe("route-aware destination selection", () => {
   let container: HTMLDivElement;
   let root: Root;
-  const onStopSelected = jest.fn();
+  const onSelectionChanged = jest.fn();
 
   beforeEach(() => {
     loadRoute.mockReset();
     loadRoute.mockResolvedValue(route);
-    onStopSelected.mockReset();
+    onSelectionChanged.mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -58,7 +58,7 @@ describe("route-aware destination selection", () => {
   async function render(query = "route=54&direction=1&from=101") {
     await act(async () => root.render(
       <MemoryRouter initialEntries={[`/nearby/directions?${query}`]}>
-        <NearbyDirections onStopSelected={onStopSelected} />
+        <NearbyDirections onSelectionChanged={onSelectionChanged} />
         <NavigationProbe />
       </MemoryRouter>
     ));
@@ -77,16 +77,26 @@ describe("route-aware destination selection", () => {
     expect(loadRoute).toHaveBeenCalledWith(54, 1);
     const destination = container.querySelector<HTMLSelectElement>("#trip-destination");
     expect(Array.from(destination.options).map(option => option.value)).toEqual(["", "102", "103"]);
-    expect(onStopSelected).toHaveBeenLastCalledWith(stops[0]);
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[0], destination: undefined },
+      expect.any(Function)
+    );
     choose("trip-destination", "103");
     expect(container.querySelector('[role="status"]').textContent).toBe("2 stops to Example Terminal.");
     expect(container.querySelector("output").textContent).toContain("from=101&to=103");
-    expect(onStopSelected).toHaveBeenLastCalledWith(stops[2]);
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[0], destination: stops[2] },
+      expect.any(Function)
+    );
     expect(container.querySelector(".wm-btn-primary").getAttribute("href")).toBe(
       "/nearby/simple-routes/54?stop=103&direction=1"
     );
 
     choose("trip-origin", "102");
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[1], destination: undefined },
+      expect.any(Function)
+    );
     expect(destination.value).toBe("");
     expect(container.querySelector("output").textContent).not.toContain("to=");
     expect(Array.from(destination.options).map(option => option.value)).toEqual(["", "103"]);
@@ -99,13 +109,16 @@ describe("route-aware destination selection", () => {
   it("restores a valid selection from the URL", async () => {
     await render("route=54&direction=1&from=101&to=102");
     expect(container.querySelector<HTMLSelectElement>("#trip-destination").value).toBe("102");
-    expect(onStopSelected).toHaveBeenLastCalledWith(stops[1]);
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[0], destination: stops[1] },
+      expect.any(Function)
+    );
   });
 
   it("cleans up the previous selected-stop marker when selection changes or the view closes", async () => {
     const clearOrigin = jest.fn();
     const clearDestination = jest.fn();
-    onStopSelected.mockReturnValueOnce(clearOrigin).mockReturnValueOnce(clearDestination);
+    onSelectionChanged.mockReturnValueOnce(clearOrigin).mockReturnValueOnce(clearDestination);
     await render();
     choose("trip-destination", "103");
     expect(clearOrigin).toHaveBeenCalledTimes(1);
@@ -116,18 +129,24 @@ describe("route-aware destination selection", () => {
   it("lets users recover from an unknown origin and explains terminal stops", async () => {
     await render("route=54&direction=1&from=999");
     expect(container.querySelector('[role="alert"]').textContent).toContain("Select a boarding stop");
-    expect(onStopSelected).not.toHaveBeenCalled();
+    expect(onSelectionChanged).not.toHaveBeenCalled();
     choose("trip-origin", "103");
     expect(container.querySelector<HTMLSelectElement>("#trip-destination").disabled).toBe(true);
     expect(container.querySelector('[role="status"]').textContent).toContain("last stop");
-    expect(onStopSelected).toHaveBeenLastCalledWith(stops[2]);
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[2], destination: undefined },
+      expect.any(Function)
+    );
   });
 
   it("rejects destinations before the origin rather than inventing a journey", async () => {
     await render("route=54&direction=1&from=102&to=101");
     expect(container.querySelector('[role="alert"]').textContent).toContain("after your boarding stop");
     expect(container.querySelector(".wm-btn-primary")).toBeNull();
-    expect(onStopSelected).toHaveBeenLastCalledWith(stops[1]);
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[1], destination: undefined },
+      expect.any(Function)
+    );
   });
 
   it("does not fetch an invalid route or direction", async () => {
@@ -166,6 +185,25 @@ describe("route-aware destination selection", () => {
     await act(async () => resolveOld(route));
     expect(container.textContent).toContain("12 Another route");
     expect(container.textContent).not.toContain("54 Example route");
-    expect(onStopSelected).toHaveBeenLastCalledWith({ ...stops[0], locid: 201 });
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      {
+        routeId: 12,
+        direction: 0,
+        origin: { ...stops[0], locid: 201 },
+        destination: undefined
+      },
+      expect.any(Function)
+    );
+  });
+
+  it("reports route-line failures without losing stop selections and retries the map", async () => {
+    onSelectionChanged.mockImplementationOnce((selection, onError) => onError());
+    await render("route=54&direction=1&from=101&to=103");
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Could not load the route line");
+    expect(container.querySelector<HTMLSelectElement>("#trip-destination").value).toBe("103");
+    const retry = Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry map");
+    act(() => retry.click());
+    expect(onSelectionChanged).toHaveBeenCalledTimes(2);
+    expect(container.querySelector('[role="alert"]')).toBeNull();
   });
 });

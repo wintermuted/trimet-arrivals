@@ -45,8 +45,10 @@ viewport-height offset.
 
 Go on a route's stop detail opens a stop picker with the current route, direction,
 and boarding stop. Destinations are limited to subsequent stops in route order;
-changing the boarding stop clears the destination. Selecting a stop focuses it
-on the map, and the destination summary links to its route-specific arrivals.
+changing the boarding stop clears the destination. The map shows the selected
+route line and labeled boarding/destination markers. With both stops selected it
+zooms to fit them, with padding that adapts to the map panel's size; with only a
+boarding stop it focuses that stop. The destination summary links to its route-specific arrivals.
 Selections are retained in the URL. This is a stop-selection flow, not a journey
 planner: it does not estimate travel times or promise departure/arrival times.
 

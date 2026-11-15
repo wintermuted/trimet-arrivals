@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import { TopNavBar } from "./common/TopNavBar";
+import { DirectionsSelection } from "../util/mapbox/directionsSelection";
 import "./NearbyRoutes.scss";
 
 type RouteState =
@@ -26,9 +27,12 @@ function stopId(value: string | null): number | null {
 }
 
 export default function NearbyDirections({
-  onStopSelected
+  onSelectionChanged
 }: {
-  onStopSelected: (stop: RouteDirectionStop) => void | (() => void);
+  onSelectionChanged: (
+    selection: DirectionsSelection,
+    onError: () => void
+  ) => void | (() => void);
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const routeId = stopId(searchParams.get("route"));
@@ -40,6 +44,8 @@ export default function NearbyDirections({
   const key = `${routeId}-${direction}`;
   const [state, setState] = useState<RouteState>({ status: "loading", key });
   const [retry, setRetry] = useState(0);
+  const [mapError, setMapError] = useState(false);
+  const [mapRetry, setMapRetry] = useState(0);
 
   useEffect(() => {
     if (!validRoute) {
@@ -81,13 +87,15 @@ export default function NearbyDirections({
   ) ?? -1;
   const origin = route?.stops[originIndex];
   const destination = origin && route?.stops[destinationIndex];
-  const selectedStop = destination || origin;
-
   useEffect(() => {
-    if (validRoute && selectedStop) {
-      return onStopSelected(selectedStop);
+    setMapError(false);
+    if (validRoute && origin) {
+      return onSelectionChanged(
+        { routeId, direction, origin, destination },
+        () => setMapError(true)
+      );
     }
-  }, [validRoute, selectedStop, onStopSelected]);
+  }, [routeId, direction, validRoute, origin, destination, onSelectionChanged, mapRetry]);
 
   if (!validRoute) {
     return (
@@ -134,6 +142,14 @@ export default function NearbyDirections({
   return (
     <div className="scrollarea transit-directions">
       <TopNavBar id="Choose a stop" backTo={backTo} />
+      {mapError && (
+        <div>
+          <p role="alert">Could not load the route line. Your stop selections are still available.</p>
+          <Button variant="secondary" onClick={() => setMapRetry(value => value + 1)}>
+            Retry map
+          </Button>
+        </div>
+      )}
       <div>
         <h4>{state.name}</h4>
         <p>{state.directionName}</p>
