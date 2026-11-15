@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import FontAwesome from "react-fontawesome";
 
 interface TopNavBarParams {
   id: string;
@@ -15,10 +16,10 @@ export function TopNavBar({
   const title = shortSign ? `${id} to ${shortSign}` : id;
   return (
     <header className="transit-detail-header">
-      <h3>{title}</h3>
-      <Link to={backTo} className="transit-nav-link">
-        Back
+      <Link to={backTo} className="transit-detail-back" aria-label="Back">
+        <FontAwesome name="caret-left" aria-hidden="true" />
       </Link>
+      <h3>{title}</h3>
     </header>
   );
 }
