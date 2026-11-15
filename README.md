@@ -33,8 +33,9 @@ public npm registry; no local integration tarball is required.
 
 Primary navigation pairs icons with labels and highlights the full active
 section, including line detail pages. On narrow screens, the Menu button reveals
-the routes. The theme selector lives in the footer on every page; the footer
-follows long content and sits at the bottom of the viewport on short pages.
+the routes. The theme selector lives in an always-visible footer on every page.
+Page content scrolls independently between the header and footer, keeping theme
+controls accessible without covering the content.
 
 Restart a running Vite development server after upgrading this package to clear
 cached package exports.
