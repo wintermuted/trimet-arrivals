@@ -4,6 +4,7 @@ import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { StopLocation } from "../api/trimet/interfaces/types";
 import BookmarkButton from "../component/buttons/BookmarkButton";
+import AppFooter from "../component/footer/AppFooter";
 import AddBookmarkSectionControl from "../view/bookmarks/component/bookmarkSections/AddBookmarkSectionControl";
 import BookmarksInSectionSelectionHandler from "../view/bookmarks/component/bookmarkSections/sectionSelector/BookmarksInSectionSelectionHandler";
 import MainNavigationMenu from "../view/mainNav/components/MainNavigationMenu";
@@ -175,19 +176,21 @@ describe("Wintermuted control integration", () => {
     expect(home.getAttribute("aria-current")).toBe("page");
   });
 
-  it("saves the header theme preference and restores it on remount", () => {
+  it("keeps the saved theme control in the footer and restores it on remount", () => {
     const render = () =>
       act(() =>
         root.render(
           <ThemeProvider>
             <MemoryRouter>
               <MainNavigationMenu numberOfBookmarks={0} timeOfLastLoad="" />
+              <AppFooter />
             </MemoryRouter>
           </ThemeProvider>
         )
       );
     render();
-    const select = container.querySelector("select");
+    expect(container.querySelector("header select")).toBeNull();
+    const select = container.querySelector("footer select");
     expect(Array.from(select.options).map(option => option.value)).toEqual([
       "system",
       "light",

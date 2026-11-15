@@ -49,6 +49,21 @@ describe("Wintermuted route navigation", () => {
     expect(currentLinks[0].getAttribute("href")).toBe(activeHref);
   });
 
+  it("keeps primary navigation labels alongside decorative icons", () => {
+    render("/", <MainNavigationMenu numberOfBookmarks={0} timeOfLastLoad="" />);
+    const links = Array.from(
+      container.querySelectorAll('[aria-label="Primary navigation"] a')
+    );
+    expect(links.map(link => link.textContent.trim())).toEqual([
+      "Home",
+      "Lines",
+      "Bookmarks"
+    ]);
+    links.forEach(link => {
+      expect(link.querySelector('.fa[aria-hidden="true"]')).not.toBeNull();
+    });
+  });
+
   it("closes the navigation disclosure on selection and Escape", () => {
     render(
       "/",

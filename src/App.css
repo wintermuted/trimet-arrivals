@@ -1,6 +1,38 @@
+.transit-app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 .main-view {
+  flex: 1;
   color: var(--wm-color-text);
   background: var(--wm-color-bg);
+}
+
+.transit-app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--wm-space-4);
+  padding: var(--wm-space-4);
+  border-top: 1px solid var(--wm-color-border);
+  background: var(--wm-color-surface-solid);
+  color: var(--wm-color-text-secondary);
+  font-size: var(--wm-text-sm);
+}
+
+.transit-footer-theme .wm-field {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-2);
+}
+
+.transit-footer-theme .wm-select {
+  width: auto;
+  min-width: 6.25rem;
 }
 
 .transit-container {

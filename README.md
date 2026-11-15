@@ -31,8 +31,10 @@ The app pins `@wintermuted/ui-theme@0.21.5`, the first published release with
 these React/theme/select entries. Both lockfiles resolve this package to the
 public npm registry; no local integration tarball is required.
 
-Primary navigation highlights the full active section, including line detail
-pages. On narrow screens, the Menu button reveals the routes and theme selector.
+Primary navigation pairs icons with labels and highlights the full active
+section, including line detail pages. On narrow screens, the Menu button reveals
+the routes. The theme selector lives in the footer on every page; the footer
+follows long content and sits at the bottom of the viewport on short pages.
 
 Restart a running Vite development server after upgrading this package to clear
 cached package exports.
