@@ -1,40 +1,36 @@
 .transit-app-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-sizing: border-box;
-  min-height: 4rem;
-  flex-wrap: wrap;
-  gap: var(--wm-space-6);
   margin: 0;
-  padding: var(--wm-space-2) var(--wm-space-4);
-  background: var(--wm-color-surface-solid);
+}
+
+.transit-header-inner {
+  padding-block: var(--wm-space-1);
+  padding-inline: var(--transit-shell-gutter);
 }
 
 .transit-brand {
-  display: inline-flex;
-  align-items: center;
   min-height: var(--wm-control-height);
-  color: var(--wm-color-text);
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
+  gap: var(--wm-space-2);
+}
+
+.transit-brand-icon {
+  font-size: var(--wm-text-lg);
 }
 
 .transit-navigation-content {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--wm-space-6);
   min-width: 0;
 }
 
 .transit-app-header .transit-nav-toggle {
   display: none;
-}
-
-.transit-app-header .transit-primary-nav {
-  gap: var(--wm-space-1);
+  min-height: var(--wm-control-height);
+  border: 1px solid var(--wm-color-border);
+  border-radius: 999px;
+  color: var(--wm-color-text-secondary);
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .transit-primary-nav a {
@@ -44,27 +40,23 @@
   gap: var(--wm-space-2);
   box-sizing: border-box;
   min-height: var(--wm-control-height);
-  padding: var(--wm-space-2) var(--wm-space-3);
-  font-size: var(--wm-text-sm);
+  color: var(--wm-color-text-secondary);
 }
 
 .transit-primary-nav a[aria-current="page"] {
-  background: var(--wm-color-accent-soft);
-  color: var(--wm-color-accent);
-  text-decoration: none;
+  color: var(--wm-color-text);
+  font-weight: 500;
 }
 
 @media (max-width: 48rem) {
-  .transit-app-header {
-    flex-direction: row;
+  .transit-header-inner {
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--wm-space-2);
-    padding-inline: var(--wm-space-3);
   }
 
   .transit-app-header .transit-nav-toggle {
     display: inline-flex;
-    min-height: var(--wm-control-height);
     margin-inline-start: auto;
   }
 
@@ -84,6 +76,8 @@
   .transit-app-header .transit-primary-nav {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
+    gap: var(--wm-space-1);
   }
 
   .transit-primary-nav a {

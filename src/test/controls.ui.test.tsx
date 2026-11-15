@@ -191,6 +191,7 @@ describe("Wintermuted control integration", () => {
     render();
     expect(container.querySelector("header select")).toBeNull();
     const select = container.querySelector("footer select");
+    expect(select.getAttribute("aria-label")).toBe("Theme");
     expect(Array.from(select.options).map(option => option.value)).toEqual([
       "system",
       "light",

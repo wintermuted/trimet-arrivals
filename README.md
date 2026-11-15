@@ -37,6 +37,11 @@ the routes. The theme selector lives in an always-visible footer on every page.
 Page content scrolls independently between the header and footer, keeping theme
 controls accessible without covering the content.
 
+The app shell follows the Wintermuted docs-topbar pattern used by Game of Life
+and Inventory: compact branding, underline-active navigation, consistent page
+gutters, and a quiet footer with source/releases links and theme controls.
+System mode and the always-visible footer are retained for this app.
+
 Restart a running Vite development server after upgrading this package to clear
 cached package exports.
 

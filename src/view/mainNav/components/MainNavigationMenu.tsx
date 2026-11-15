@@ -28,7 +28,7 @@ export default function MainNavigationMenu(props: Props) {
 
   return (
     <header
-      className="wm-app-header transit-app-header"
+      className="wm-docs-topbar transit-app-header"
       onKeyDown={event => {
         if (event.key === "Escape" && menuOpen) {
           closeMenu();
@@ -36,51 +36,73 @@ export default function MainNavigationMenu(props: Props) {
         }
       }}
     >
-      <Link to="/" className="transit-brand" onClick={closeMenu}>
-        Go By Transit
-      </Link>
-      <Button
-        ref={menuButton}
-        className="transit-nav-toggle"
-        variant="ghost"
-        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-        aria-expanded={menuOpen}
-        aria-controls={menuId}
-        onClick={() => setMenuOpen(open => !open)}
-      >
-        Menu
-      </Button>
-      <div
-        id={menuId}
-        className={`transit-navigation-content${menuOpen ? " is-open" : ""}`}
-      >
-        <Nav
-          className="wm-app-nav transit-primary-nav"
-          aria-label="Primary navigation"
+      <div className="wm-docs-topbar-inner transit-header-inner">
+        <Link
+          to="/"
+          className="wm-docs-topbar-brand transit-brand"
+          onClick={closeMenu}
         >
-          <Link
-            to="/"
-            className={homeActive ? "active" : undefined}
-            aria-current={homeActive ? "page" : undefined}
-            onClick={closeMenu}
+          <FontAwesome
+            name="bus"
+            className="transit-brand-icon"
+            aria-hidden="true"
+          />
+          <h1>Go By Transit</h1>
+        </Link>
+        <Button
+          ref={menuButton}
+          className="wm-docs-topbar-toggle transit-nav-toggle"
+          variant="ghost"
+          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={menuOpen}
+          aria-controls={menuId}
+          onClick={() => setMenuOpen(open => !open)}
+        >
+          <FontAwesome name={menuOpen ? "times" : "bars"} aria-hidden="true" />
+          {menuOpen ? "Close" : "Menu"}
+        </Button>
+        <div
+          id={menuId}
+          className={`transit-navigation-content${menuOpen ? " is-open" : ""}`}
+        >
+          <Nav
+            className="wm-docs-topbar-nav transit-primary-nav"
+            aria-label="Primary navigation"
           >
-            <FontAwesome name="home" fixedWidth aria-hidden="true" />
-            Home
-          </Link>
-          <Link
-            to="/lines/all"
-            className={linesActive ? "active" : undefined}
-            aria-current={linesActive ? "page" : undefined}
-            onClick={closeMenu}
-          >
-            <FontAwesome name="train" fixedWidth aria-hidden="true" />
-            Lines
-          </Link>
-          <NavLink to="/bookmarks" onClick={closeMenu}>
-            <FontAwesome name="bookmark" fixedWidth aria-hidden="true" />
-            Bookmarks
-          </NavLink>
-        </Nav>
+            <Link
+              to="/"
+              className={`wm-docs-topbar-link-devdocs${
+                homeActive ? " is-active" : ""
+              }`}
+              aria-current={homeActive ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              <FontAwesome name="home" fixedWidth aria-hidden="true" />
+              Home
+            </Link>
+            <Link
+              to="/lines/all"
+              className={`wm-docs-topbar-link-devdocs${
+                linesActive ? " is-active" : ""
+              }`}
+              aria-current={linesActive ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              <FontAwesome name="train" fixedWidth aria-hidden="true" />
+              Lines
+            </Link>
+            <NavLink
+              to="/bookmarks"
+              className={({ isActive }) =>
+                `wm-docs-topbar-link-devdocs${isActive ? " is-active" : ""}`
+              }
+              onClick={closeMenu}
+            >
+              <FontAwesome name="bookmark" fixedWidth aria-hidden="true" />
+              Bookmarks
+            </NavLink>
+          </Nav>
+        </div>
       </div>
     </header>
   );
