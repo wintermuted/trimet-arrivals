@@ -5,6 +5,7 @@
 
 .main-view {
   padding-block: 1rem;
+  padding-inline: var(--transit-shell-gutter);
 }
 
 .transit-route-link {
