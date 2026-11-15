@@ -1,6 +1,8 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
+import { ThemeProvider } from "@wintermuted/ui-theme/react";
+import MainNavigationMenu from "../view/mainNav/components/MainNavigationMenu";
 import ServiceNavigation from "../view/lines/component/ServiceNavigation";
 import NearbySubNav from "../view/nearby/components/common/NearbySubNav";
 
@@ -26,6 +28,72 @@ describe("Wintermuted route navigation", () => {
       )
     );
   }
+
+  it.each([
+    ["/nearby/simple-routes/54", "/"],
+    ["/lines/bus", "/lines/all"],
+    ["/lines/54", "/lines/all"]
+  ])("highlights the primary section for %s", (path, activeHref) => {
+    render(
+      path,
+      <ThemeProvider>
+        <MainNavigationMenu numberOfBookmarks={0} timeOfLastLoad="" />
+      </ThemeProvider>
+    );
+
+    const navigation = container.querySelector(
+      '[aria-label="Primary navigation"]'
+    );
+    const currentLinks = navigation.querySelectorAll('[aria-current="page"]');
+    expect(currentLinks.length).toBe(1);
+    expect(currentLinks[0].getAttribute("href")).toBe(activeHref);
+  });
+
+  it("closes the navigation disclosure on selection and Escape", () => {
+    render(
+      "/",
+      <ThemeProvider>
+        <MainNavigationMenu numberOfBookmarks={0} timeOfLastLoad="" />
+      </ThemeProvider>
+    );
+    const toggle = container.querySelector<HTMLButtonElement>(
+      "button[aria-controls]"
+    );
+    const content = document.getElementById(
+      toggle.getAttribute("aria-controls")
+    );
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+
+    act(() => toggle.click());
+    act(() =>
+      container.querySelector<HTMLAnchorElement>(".transit-brand").click()
+    );
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+
+    act(() => toggle.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(content.classList.contains("is-open")).toBe(true);
+
+    const lines = content.querySelector<HTMLAnchorElement>(
+      'a[href="/lines/all"]'
+    );
+    act(() => lines.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(lines.getAttribute("aria-current")).toBe("page");
+
+    act(() => toggle.click());
+    lines.focus();
+    act(() =>
+      lines.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Escape",
+          bubbles: true
+        })
+      )
+    );
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(toggle);
+  });
 
   it("keeps Nearby deep links active and changes views through real links", () => {
     render(

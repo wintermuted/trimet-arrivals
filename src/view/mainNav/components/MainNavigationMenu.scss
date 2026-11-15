@@ -2,29 +2,124 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  box-sizing: border-box;
+  min-height: 4rem;
   flex-wrap: wrap;
+  gap: var(--wm-space-6);
   margin: 0;
-  padding: 0.75rem 1rem;
+  padding: var(--wm-space-2) var(--wm-space-4);
   background: var(--wm-color-surface-solid);
 }
 
 .transit-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--wm-control-height);
   color: var(--wm-color-text);
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
 }
 
+.transit-navigation-content {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--wm-space-6);
+  min-width: 0;
+}
+
+.transit-app-header .transit-nav-toggle {
+  display: none;
+}
+
+.transit-app-header .transit-primary-nav {
+  gap: var(--wm-space-1);
+}
+
+.transit-primary-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: var(--wm-control-height);
+  padding: var(--wm-space-2) var(--wm-space-3);
+  font-size: var(--wm-text-sm);
+}
+
+.transit-primary-nav a[aria-current="page"] {
+  background: var(--wm-color-accent-soft);
+  color: var(--wm-color-accent);
+  text-decoration: none;
+}
+
 .transit-header-actions {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--wm-space-2);
   margin-inline-start: auto;
 }
 
-@media (max-width: 767px) {
+.transit-header-actions .wm-field {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-2);
+}
+
+.transit-header-actions label {
+  color: var(--wm-color-text-secondary);
+  font-size: var(--wm-text-sm);
+}
+
+.transit-header-actions .wm-select {
+  width: auto;
+  min-width: 6.25rem;
+}
+
+@media (max-width: 48rem) {
+  .transit-app-header {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--wm-space-2);
+    padding-inline: var(--wm-space-3);
+  }
+
+  .transit-app-header .transit-nav-toggle {
+    display: inline-flex;
+    min-height: var(--wm-control-height);
+    margin-inline-start: auto;
+  }
+
+  .transit-navigation-content {
+    display: none;
+    flex: 1 0 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--wm-space-3);
+    padding-block: var(--wm-space-2);
+  }
+
+  .transit-navigation-content.is-open {
+    display: flex;
+  }
+
+  .transit-app-header .transit-primary-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .transit-primary-nav a {
+    justify-content: flex-start;
+  }
+
   .transit-header-actions {
     margin-inline-start: 0;
+    padding-top: var(--wm-space-3);
+    border-top: 1px solid var(--wm-color-border);
+  }
+
+  .transit-header-actions .wm-field {
+    justify-content: space-between;
+    width: 100%;
   }
 }

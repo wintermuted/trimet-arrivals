@@ -1,5 +1,5 @@
-import { Menu, Nav, ThemeSelect } from "@wintermuted/ui-theme/react";
-import React from "react";
+import { Button, Nav, ThemeSelect } from "@wintermuted/ui-theme/react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import "./MainNavigationMenu.scss";
 
@@ -10,37 +10,76 @@ interface Props {
 
 export default function MainNavigationMenu(props: Props) {
   const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+  const menuButton = useRef<HTMLButtonElement>(null);
   const homeActive =
     pathname === "/" ||
     pathname === "/nearby" ||
     pathname.startsWith("/nearby/");
+  const linesActive = pathname === "/lines" || pathname.startsWith("/lines/");
+
+  useEffect(() => setMenuOpen(false), [pathname]);
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
   return (
-    <header className="wm-app-header transit-app-header">
-      <Link to="/" className="transit-brand">
+    <header
+      className="wm-app-header transit-app-header"
+      onKeyDown={event => {
+        if (event.key === "Escape" && menuOpen) {
+          closeMenu();
+          menuButton.current?.focus();
+        }
+      }}
+    >
+      <Link to="/" className="transit-brand" onClick={closeMenu}>
         Go By Transit
       </Link>
-      <Nav className="wm-app-nav" aria-label="Primary navigation">
-        <Link
-          to="/"
-          className={homeActive ? "active" : undefined}
-          aria-current={homeActive ? "page" : undefined}
+      <Button
+        ref={menuButton}
+        className="transit-nav-toggle"
+        variant="ghost"
+        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+        aria-expanded={menuOpen}
+        aria-controls={menuId}
+        onClick={() => setMenuOpen(open => !open)}
+      >
+        Menu
+      </Button>
+      <div
+        id={menuId}
+        className={`transit-navigation-content${menuOpen ? " is-open" : ""}`}
+      >
+        <Nav
+          className="wm-app-nav transit-primary-nav"
+          aria-label="Primary navigation"
         >
-          Home
-        </Link>
-        <NavLink to="/lines/all">Lines</NavLink>
-        <NavLink to="/bookmarks">Bookmarks</NavLink>
-      </Nav>
-      <div className="transit-header-actions">
-        <ThemeSelect />
-        <Menu
-          label="Dropdown"
-          items={[
-            { id: "action", label: "Action", href: "#action/3.1" },
-            { id: "another", label: "Another action", href: "#action/3.2" },
-            { id: "something", label: "Something", href: "#action/3.3" },
-            { id: "separated", label: "Separated link", href: "#action/3.4" }
-          ]}
-        />
+          <Link
+            to="/"
+            className={homeActive ? "active" : undefined}
+            aria-current={homeActive ? "page" : undefined}
+            onClick={closeMenu}
+          >
+            Home
+          </Link>
+          <Link
+            to="/lines/all"
+            className={linesActive ? "active" : undefined}
+            aria-current={linesActive ? "page" : undefined}
+            onClick={closeMenu}
+          >
+            Lines
+          </Link>
+          <NavLink to="/bookmarks" onClick={closeMenu}>
+            Bookmarks
+          </NavLink>
+        </Nav>
+        <div className="transit-header-actions">
+          <ThemeSelect label="Theme" />
+        </div>
       </div>
     </header>
   );
