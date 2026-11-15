@@ -43,6 +43,12 @@ contained map. On narrow screens the results and map share the available height
 in stacked panels; map resizing follows panel size changes rather than a fixed
 viewport-height offset.
 
+Mapbox maps use the Standard basemap's day/night lighting preset to follow the
+app's resolved Light/Dark theme, including saved and system preferences. Changing
+themes updates the existing map configuration rather than replacing the style,
+preserving route lines, stop markers, selected trips, and the camera position.
+Map removal also disconnects its theme subscription.
+
 Go on a route's stop detail opens a stop picker with the current route, direction,
 and boarding stop. Destinations are limited to subsequent stops in route order;
 changing the boarding stop clears the destination. The map shows the selected
