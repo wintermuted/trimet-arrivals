@@ -34,10 +34,10 @@ function NearbyMapV2({
 
   return (
     <div className="transit-nearby-map">
+      {mapBoxMap}
       <div className="sidebar">
         Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
       </div>
-      {mapBoxMap}
     </div>
   );
 }

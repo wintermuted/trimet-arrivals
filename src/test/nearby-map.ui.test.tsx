@@ -34,6 +34,9 @@ it("resizes the map when its available panel changes and disconnects on unmount"
     );
     expect(initializeMap).toHaveBeenCalledTimes(1);
     expect(observe).toHaveBeenCalledWith(mapContainerRef.current);
+    const metadata = container.querySelector(".sidebar");
+    expect(mapContainerRef.current.nextElementSibling).toBe(metadata);
+    expect(metadata.textContent).toBe("Longitude: 0 | Latitude: 0 | Zoom: 12");
     act(() => notifyResize());
     expect(resize).toHaveBeenCalledTimes(1);
     act(() => root.render(null));
