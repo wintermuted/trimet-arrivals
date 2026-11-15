@@ -1,6 +1,12 @@
+import {
+  Card,
+  CardFooter,
+  CardHeader,
+  ListGroup,
+  ListItem
+} from "@wintermuted/ui-theme/react";
 import { map } from "lodash";
 import React, { useEffect } from "react";
-import { Card, ListGroup } from "react-bootstrap";
 import {
   StopData,
   StopLocation,
@@ -16,13 +22,9 @@ import { SearchRadiusSelection } from "./SearchRadiusSelection";
 
 function getRouteDirections(route: TrimetRoute) {
   return (
-    <ListGroup.Item
-      key={`${route.route}-${route.dir[0].dir}`}
-      action={true}
-      variant="light"
-    >
+    <ListItem key={`${route.route}-${route.dir[0].dir}`}>
       <RouteIndicator routeId={route.route} /> {route.dir[0].desc}
-    </ListGroup.Item>
+    </ListItem>
   );
 }
 
@@ -37,19 +39,19 @@ function getLocationInfo(stopLocations: StopData, currentLocation: number[]) {
       return (
         <>
           <Card key={key}>
-            <Card.Header as="h6">
+            <CardHeader as="h6">
               <StopLocationIndicator
                 locationId={stopLocation.locid}
                 nearbyStops={true}
               />
               {stopLocation.desc}
-            </Card.Header>
-            <ListGroup variant="flush">
+            </CardHeader>
+            <ListGroup>
               {stopLocation.route.map(r => getRouteDirections(r))}
             </ListGroup>
-            <Card.Footer className="text-muted">
+            <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
               {distanceDescription}
-            </Card.Footer>
+            </CardFooter>
           </Card>
           <br />
         </>

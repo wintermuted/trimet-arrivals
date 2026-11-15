@@ -1,48 +1,49 @@
 .route-indicator-column {
-    padding-top: 0px;
-    padding-bottom: 0px;
-    width: 30px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  width: 30px;
 }
 
-.arrivals-table th, .arrivals-table td {
-    padding: 5px;
-    text-align: left;
+.arrivals-table th,
+.arrivals-table td {
+  padding: 5px;
+  text-align: left;
 }
 
 .arrival-on-time {
-    color: green;
+  color: var(--wm-color-success);
 }
 .arrivals-loading {
-    opacity: 0.3;
+  opacity: 0.3;
 }
 
 .arrivals-wrapper {
-    position: relative;
+  position: relative;
 }
 
 .arrivals-load-more-control {
-    background: lightgrey;
-    padding: 2px;
+  background: var(--wm-color-surface-strong);
+  padding: 2px;
 }
 
 .arrivals-table thead {
-    background: lightgrey;
+  background: var(--wm-color-surface-strong);
 }
 
 .load-more-flex-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .load-more-flex-container button {
-    max-width: 50%;
-    background: darkgrey;
-    font-size: 14px;
-    line-height: 26px;
-    cursor: pointer;
+  max-width: 50%;
+  background: var(--wm-color-surface-muted);
+  font-size: 14px;
+  line-height: 26px;
+  cursor: pointer;
 }
 
 .load-more-flex-container button:hover {
-    background-color: dimgray;
+  background-color: var(--wm-color-surface-strong);
 }

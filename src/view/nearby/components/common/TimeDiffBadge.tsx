@@ -1,6 +1,6 @@
+import { Badge } from "@wintermuted/ui-theme/react";
 import moment from "moment";
 import React from "react";
-import { Badge } from "react-bootstrap";
 import {
   getTimeDifferenceInMinutes,
   getTimeUntilArrival
@@ -34,7 +34,7 @@ function TimeDiffBadge({
     } else if (late) {
       return "danger";
     } else {
-      return "primary";
+      return "info";
     }
   };
 
@@ -51,7 +51,7 @@ function TimeDiffBadge({
   };
 
   return (
-    <Badge bg={color} pill={true}>
+    <Badge tone={color}>
       <span>
         {timeUntilArrival} {getStatusDescription()}
       </span>

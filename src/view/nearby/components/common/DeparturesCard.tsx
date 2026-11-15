@@ -1,7 +1,12 @@
+import {
+  Card,
+  CardHeader,
+  ListGroup,
+  ListItem
+} from "@wintermuted/ui-theme/react";
 import { map } from "lodash";
 import moment from "moment";
 import React from "react";
-import { Card, ListGroup } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
 import { getTimeUntilArrival } from "../../util/timeUtils";
@@ -13,8 +18,8 @@ interface DeparturesCardParams {
 export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
   return (
     <Card>
-      <Card.Header>Departures</Card.Header>
-      <ListGroup className="list-group-flush">
+      <CardHeader>Departures</CardHeader>
+      <ListGroup>
         {map(filteredArrivals, (arrival: any, index: number) => {
           const estimatedArrivalTime = arrival.estimated;
           const scheduledArrivalTime = arrival.scheduled;
@@ -31,18 +36,25 @@ export function DeparturesCard({ filteredArrivals }: DeparturesCardParams) {
             : scheduledTime;
 
           return (
-            <ListGroup.Item
+            <ListItem
               key={index}
-              variant={variant}
               as="li"
-              className="d-flex justify-content-between align-items-start"
+              style={{
+                background:
+                  variant === "primary"
+                    ? "var(--wm-color-accent-soft)"
+                    : undefined,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start"
+              }}
             >
               <span>
                 {index === 0 && <FontAwesome name="caret-right" />}
                 {timeUntilArrival}
               </span>
               <small>{arrivalTime}</small>
-            </ListGroup.Item>
+            </ListItem>
           );
         })}
       </ListGroup>

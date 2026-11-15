@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Col, Container, Row } from "react-bootstrap";
+
 import { getAlertsByRouteId } from "../../../api/trimet/alerts";
 import { Alert, AlertsData } from "../../../api/trimet/interfaces/alertsData";
 import {
@@ -44,25 +44,25 @@ export default function LinesViewComponent(props: Props) {
   const routeSchedule = maxLightRail[id];
 
   return (
-    <Container fluid={true}>
-      <Row>
-        <Col>
+    <div className="transit-container">
+      <div className="transit-columns">
+        <div className="transit-column">
           <RouteListItem route={route} />
-        </Col>
-      </Row>
+        </div>
+      </div>
       <br />
-      <Row>
-        <Col md="3">
+      <div className="transit-columns">
+        <div className="transit-column transit-column-3">
           <ScheduleCard routeSchedule={routeSchedule} route={route} />
           <br />
           <MapCard />
           <br />
           <AlertsCard alertsData={alertsData} />
-        </Col>
-        <Col md="9">
+        </div>
+        <div className="transit-column transit-column-9">
           <StopsCard route={route} alertsData={alertsData} />
-        </Col>
-      </Row>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 }

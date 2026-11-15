@@ -1,7 +1,7 @@
 .arrival-estimated-late {
-    color: red;
+  color: var(--wm-color-danger);
 }
 
 .arrival-estimated-early {
-    color: yellowgreen;
+  color: var(--wm-color-success);
 }

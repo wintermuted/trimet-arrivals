@@ -1,5 +1,10 @@
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardText
+} from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Card } from "react-bootstrap";
 import { TrimetRoute } from "../../../api/trimet/interfaces/routes";
 import FrequentServiceIndicator from "../../../component/route/FrequentServiceIndicator";
 import { LineScheduleInfo } from "../../../data/trimet/schedules/maxLightRail";
@@ -12,9 +17,9 @@ interface ScheduleCardParams {
 export function ScheduleCard({ routeSchedule, route }: ScheduleCardParams) {
   return (
     <Card>
-      <Card.Header as="h5">Schedule</Card.Header>
-      <Card.Body>
-        <Card.Text>
+      <CardHeader as="h5">Schedule</CardHeader>
+      <CardBody>
+        <CardText>
           <>
             {routeSchedule && routeSchedule.frequentService && (
               <FrequentServiceIndicator
@@ -27,8 +32,8 @@ export function ScheduleCard({ routeSchedule, route }: ScheduleCardParams) {
             <br />
             <strong>Areas served:</strong>
           </>
-        </Card.Text>
-      </Card.Body>
+        </CardText>
+      </CardBody>
     </Card>
   );
 }

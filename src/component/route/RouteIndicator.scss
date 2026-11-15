@@ -1,83 +1,77 @@
-@import '../../styles/routes';
+@import "../../styles/routes";
 
 .route-indicator {
-    background: $bus-blue;
-    height: 21px;
-    min-width: 18px;
-    vertical-align: middle;
-    text-align: center;
-    color: white !important;
-    font-size: 12px;
-    line-height: 22px;
-    border-radius: 5px;
-    display: inline-block;
-    cursor: pointer;
-    border: 2px solid #c25033;
-    padding-left: 2px;
-    padding-right: 2px;
+  background: $bus-blue;
+  height: 21px;
+  min-width: 18px;
+  vertical-align: middle;
+  text-align: center;
+  color: white !important;
+  font-size: 12px;
+  line-height: 22px;
+  border-radius: 5px;
+  display: inline-block;
+  cursor: pointer;
+  border: 1px solid var(--wm-color-border);
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .route-indicator-schedule-wrapper {
-    //position: absolute;
-    //right: 0;
-    //top: 0;
-    background: #E0D0C1;
+  //position: absolute;
+  //right: 0;
+  //top: 0;
+  background: var(--wm-color-surface-muted);
 }
-
 
 .train-route-indicator {
-    margin-right: 5px;
-    text-shadow: 1px 1px 1px black;
-}
-
-.route-indicator-text {
-    text-shadow: 1px 1px 1px black;
+  margin-right: 5px;
 }
 
 .route-indicator-green {
-    color: black;
-    background: $green !important;
-    border: 2px solid $green !important;
+  color: black;
+  background: $green !important;
+  border: 2px solid $green !important;
 }
 
 .route-indicator-yellow {
-    color: black;
-    background: $yellow !important;
-    border: 2px solid $yellow !important;
+  color: black;
+  background: $yellow !important;
+  border: 2px solid $yellow !important;
 }
 
 .route-indicator-red {
-    color: black;
-    background: $red !important;
-    border: 2px solid $red !important;
+  color: black;
+  background: $red !important;
+  border: 2px solid $red !important;
 }
 
 .route-indicator-blue {
-    color: white;
-    background: $blue !important;
-    border: 2px solid $blue !important;
+  color: white;
+  background: $blue !important;
+  border: 2px solid $blue !important;
 }
 
 .route-indicator-orange {
-    color: black;
-    background: $orange !important;
-    border: 2px solid $orange !important;
+  color: black;
+  background: $orange !important;
+  border: 2px solid $orange !important;
 }
 
 .route-indicator-lightgreen {
-    color: white;
-    background: $light-green !important;
-    border: 2px solid $light-green !important;
+  color: white;
+  background: $light-green !important;
+  border: 2px solid $light-green !important;
 }
 
 .route-indicator-pink {
-    color: white;
-    background: $pink !important;
-    border: 2px solid $pink !important;
+  color: white;
+  background: $pink !important;
+  border: 2px solid $pink !important;
 }
 
 .route-indicator-cyan {
-    color: white;
-    background: $cyan !important;
-    border: 2px solid $cyan !important;
+  color: white;
+  background: $cyan !important;
+  border: 2px solid $cyan !important;
 }

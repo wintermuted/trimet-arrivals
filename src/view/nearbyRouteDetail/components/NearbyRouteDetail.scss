@@ -1,5 +1,5 @@
 .route-directions-stops-wrapper {
-  background: white;
+  background: var(--wm-color-surface);
   padding: 10px;
   h3 {
     margin-top: 0px;
@@ -7,13 +7,14 @@
 }
 
 .route-directions-header {
-  background: lightgray;
+  background: var(--wm-color-surface-strong);
   line-height: 30px;
   padding-left: 5px;
 }
 
 .route-alerts-wrapper {
-  background: yellow;
+  background: var(--wm-color-warning-soft);
+  color: var(--wm-color-warning);
   padding: 10px;
   ul {
     list-style: none;

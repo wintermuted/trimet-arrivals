@@ -1,87 +1,39 @@
+import { Button, Tooltip } from "@wintermuted/ui-theme/react";
 import React from "react";
-import {
-  Button,
-  ButtonGroup,
-  Card,
-  OverlayTrigger,
-  Stack,
-  Tooltip
-} from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 import { Link, useNavigate } from "react-router-dom";
 import { StopLocation } from "../../../../api/trimet/interfaces/types";
-
-const BookmarkTooltip = props => (
-  <Tooltip id="button-tooltip" {...props}>
-    Bookmark this route
-  </Tooltip>
-);
-
-const GoToolTip = props => (
-  <Tooltip id="button-tooltip" {...props}>
-    Go from this stop
-  </Tooltip>
-);
 
 interface StopInfoParams {
   shortSign: string;
   stopLocation: StopLocation;
 }
 
-function RouteStopInfo({ shortSign, stopLocation }: StopInfoParams) {
+export default function RouteStopInfo({ stopLocation }: StopInfoParams) {
   const navigate = useNavigate();
 
   function handleGoClick() {
-    const url = `/nearby/directions?route=54&direction=1&from=1&to=2`;
-    navigate(url);
+    navigate("/nearby/directions?route=54&direction=1&from=1&to=2");
   }
 
   return (
-    <Stack direction="horizontal" gap={3}>
-      <div className="me-auto">
-        <Card>
-          <Card.Body>
-            {/* <Card.Title>
-              <FontAwesome name="arrow-circle-right" />
-              {shortSign}
-            </Card.Title> */}
-            <Card.Text>
-              <small className="text-muted">
-                <span>
-                  <strong>From: </strong>
-                </span>
-                <Link to={`/nearby/stops/${stopLocation.id}`}>
-                  {stopLocation.desc} ({stopLocation.id})
-                </Link>
-              </small>
-            </Card.Text>
-          </Card.Body>
-        </Card>
+    <div className="transit-stop-actions">
+      <small>
+        <strong>From: </strong>
+        <Link to={`/nearby/stops/${stopLocation.id}`}>
+          {stopLocation.desc} ({stopLocation.id})
+        </Link>
+      </small>
+      <div className="transit-button-stack">
+        <Tooltip text="Go from this stop">
+          <Button onClick={handleGoClick}>GO</Button>
+        </Tooltip>
+        <Tooltip text="Bookmark this route">
+          <Button variant="secondary" aria-label="Bookmark this route">
+            <FontAwesome name="bookmark" />
+          </Button>
+        </Tooltip>
       </div>
-      <div>
-        <ButtonGroup vertical={true}>
-          <OverlayTrigger
-            placement="right"
-            delay={{ show: 250, hide: 400 }}
-            overlay={GoToolTip}
-          >
-            <Button variant="primary" onClick={handleGoClick}>
-              GO
-            </Button>
-          </OverlayTrigger>
-          <OverlayTrigger
-            placement="right"
-            delay={{ show: 250, hide: 400 }}
-            overlay={BookmarkTooltip}
-          >
-            <Button variant="outline-secondary">
-              <FontAwesome name="bookmark" />
-            </Button>
-          </OverlayTrigger>
-        </ButtonGroup>
-      </div>
-    </Stack>
+    </div>
   );
 }
-
-export default RouteStopInfo;

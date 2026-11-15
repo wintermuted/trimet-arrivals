@@ -1,6 +1,11 @@
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardText
+} from "@wintermuted/ui-theme/react";
 import { sortBy, uniq } from "lodash";
 import React, { useEffect, useState } from "react";
-import { Card, Col, Container, Row } from "react-bootstrap";
 import { getAlertsByLocationId } from "../../../api/trimet/alerts";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Alert, AlertsData } from "../../../api/trimet/interfaces/alertsData";
@@ -32,12 +37,12 @@ interface MapCardParams {
 function MapCard({ coordinates }: MapCardParams) {
   return (
     <Card>
-      <Card.Header as="h5">Map</Card.Header>
-      <Card.Body>
-        <Card.Text>
+      <CardHeader as="h5">Map</CardHeader>
+      <CardBody>
+        <CardText>
           <Map currentLocation={coordinates} />
-        </Card.Text>
-      </Card.Body>
+        </CardText>
+      </CardBody>
     </Card>
   );
 }
@@ -69,23 +74,23 @@ export default function StopLocationView(props: Props) {
 
   const coordinates: LatLngCoords = [location.lng, location.lat];
   return (
-    <Container fluid={true}>
+    <div className="transit-container">
       {/*<br />*/}
-      <Row>
+      <div className="transit-columns">
         <StopLocationHeader
           location={location}
           onBookmarkClick={onBookmarkClick}
           stopIsBookmarked={stopIsBookmarked}
         />
-      </Row>
+      </div>
       <br />
-      <Row>
-        <Col md="3">
+      <div className="transit-columns">
+        <div className="transit-column transit-column-3">
           <LocationInfoPane arrivalData={arrivalData} />
           <br />
           <AlertsCard alertsData={alertsData} />
-        </Col>
-        <Col md="9">
+        </div>
+        <div className="transit-column transit-column-9">
           <StopLocationArrivalsTableNav
             routes={routes}
             locationId={location.id}
@@ -94,8 +99,8 @@ export default function StopLocationView(props: Props) {
           <StopLocationArrivals arrivalData={arrivalData} />
           <br />
           <MapCard coordinates={coordinates} />
-        </Col>
-      </Row>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 }

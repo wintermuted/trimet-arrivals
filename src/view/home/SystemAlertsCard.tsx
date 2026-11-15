@@ -1,6 +1,6 @@
+import { Alert, Card, CardHeader } from "@wintermuted/ui-theme/react";
 import { isEmpty } from "lodash";
 import React from "react";
-import { Alert, Card, ListGroup, ListGroupItem } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 import { Alert as IAlert } from "../../api/trimet/interfaces/alertsData";
 import Loading from "../loading/Loading";
@@ -16,12 +16,10 @@ function getSystemAlerts(systemAlertsData: IAlert[]) {
 
   return systemAlertsData.map(alert => {
     return (
-      <Alert key={alert.id} variant="warning">
-        <Alert.Heading>{alert.header_text}</Alert.Heading>
-        <p className="mb-0">
-          <a href={alert.info_link_url} className="alert-link">
-            More Info
-          </a>
+      <Alert key={alert.id} tone="warning">
+        <h3>{alert.header_text}</h3>
+        <p style={{ marginBottom: 0 }}>
+          <a href={alert.info_link_url}>More Info</a>
         </p>
       </Alert>
     );
@@ -44,10 +42,10 @@ function getSystemAlerts(systemAlertsData: IAlert[]) {
 export function SystemAlertsCard({ systemAlertsData }: Props) {
   return (
     <Card>
-      <Card.Header as="h5">
+      <CardHeader as="h5">
         <FontAwesome name="bell" />
         System Alerts
-      </Card.Header>
+      </CardHeader>
       {getSystemAlerts(systemAlertsData)}
     </Card>
   );

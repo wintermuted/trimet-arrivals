@@ -1,6 +1,6 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import { map, split } from "lodash";
 import React, { Component } from "react";
-import { Button } from "react-bootstrap";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import RouteIndicator from "../../../component/route/RouteIndicator";
 import "./StopRouteListing.scss";
@@ -63,7 +63,7 @@ export default class StopRouteListing extends Component<Props, State> {
     if (expanded) {
       return (
         <div>
-          <button onClick={this.toggleDetails}>Details</button>
+          <Button onClick={this.toggleDetails}>Details</Button>
           <ul className="route-detail-list">
             {getDetailedRouteList(routes, onClick)}
           </ul>

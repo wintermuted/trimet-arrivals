@@ -1,3 +1,4 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import _ from "lodash";
 import React from "react";
 import {
@@ -38,9 +39,9 @@ export default class RouteDirection extends React.Component<Props, State> {
       <div>
         <div className="route-directions-header">
           {direction.desc}
-          <button onClick={this.toggleOpenState}>
+          <Button onClick={this.toggleOpenState}>
             {open ? "Close" : "Open"}
-          </button>
+          </Button>
         </div>
         {open && <ul>{this.getRouteDirectionStops(direction.stop)}</ul>}
       </div>

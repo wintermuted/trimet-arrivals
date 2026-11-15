@@ -1,5 +1,5 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Button } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 
 interface RemoveBookmarkSectionButtonProps {

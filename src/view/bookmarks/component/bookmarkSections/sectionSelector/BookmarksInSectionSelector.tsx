@@ -1,7 +1,7 @@
+import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import React from "react";
-import Select from "react-select";
 import { StopLocation } from "../../../../../api/trimet/interfaces/types";
-import { customStyles, formatStopLocations } from "./sectionSelectorUtil";
+import { formatStopLocations } from "./sectionSelectorUtil";
 
 interface Props {
   bookmarksInSection: StopLocation[];
@@ -18,8 +18,8 @@ export default function BookmarksInSectionSelector({
   const options = formatStopLocations(allBookmarks);
 
   return (
-    <Select
-      styles={customStyles()}
+    <MultiSelect
+      aria-label="Stops in this bookmark section"
       options={options}
       isMulti={true}
       defaultValue={defaultOptions}

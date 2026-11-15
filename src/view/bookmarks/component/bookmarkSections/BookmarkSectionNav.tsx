@@ -21,7 +21,7 @@ export const BookmarkSectionNav = ({
   bookmarkSectionId
 }: BookmarkSectionNavProps) => {
   return (
-    <nav className="bookmark-section-nav-wrapper">
+    <div className="bookmark-section-nav-wrapper">
       <BookmarkSectionNameControl
         editMode={editMode}
         name={name}
@@ -36,6 +36,6 @@ export const BookmarkSectionNav = ({
           />
         )}
       </div>
-    </nav>
+    </div>
   );
 };

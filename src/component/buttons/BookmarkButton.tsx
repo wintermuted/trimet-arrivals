@@ -1,5 +1,5 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Button } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
 import { StopLocation } from "../../api/trimet/interfaces/types";
 import "./BookmarkButton.css";
@@ -10,21 +10,10 @@ interface BookmarkIconParams {
 
 function BookmarkIcon({ stopIsBookmarked }: BookmarkIconParams) {
   if (stopIsBookmarked) {
-    const style = {
-      color: "red"
-    };
-
-    return (
-      <FontAwesome
-        className="bookmarked"
-        name="bookmark"
-        color="red"
-        style={style}
-      />
-    );
+    return <FontAwesome name="bookmark" className="bookmarked" />;
   }
 
-  return <FontAwesome className="not-bookmarked" name="bookmark" />;
+  return <FontAwesome name="bookmark" className="not-bookmarked" />;
 }
 
 export type BookmarkClick = (
@@ -47,7 +36,15 @@ export default function BookmarkButton({
     onBookmarkClick &&
     onBookmarkClick.bind(this, stopLocation, stopIsBookmarked);
   return (
-    <Button onClick={onClick} className="bookmark-button">
+    <Button
+      onClick={onClick}
+      className="bookmark-button"
+      variant="secondary"
+      aria-pressed={stopIsBookmarked}
+      aria-label={
+        stopIsBookmarked ? "Remove stop bookmark" : "Bookmark this stop"
+      }
+    >
       <BookmarkIcon stopIsBookmarked={stopIsBookmarked} />
     </Button>
   );

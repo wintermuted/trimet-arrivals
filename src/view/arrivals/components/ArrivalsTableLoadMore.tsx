@@ -1,3 +1,4 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import { Moment } from "moment";
 import React from "react";
 import { Arrival } from "../../../api/trimet/interfaces/arrivals";
@@ -67,12 +68,12 @@ export default class ArrivalsTableLoadMore extends React.Component<
       <div className="arrivals-load-more-control">
         <div className="load-more-flex-container">
           {showMore && (
-            <button onClick={this.toggleShowMore}>Only show 5 arrivals</button>
+            <Button onClick={this.toggleShowMore}>Only show 5 arrivals</Button>
           )}
           {!showMore && (
-            <button onClick={this.toggleShowMore}>
+            <Button onClick={this.toggleShowMore}>
               Show {additionalArrivals} more arrivals
-            </button>
+            </Button>
           )}
         </div>
       </div>

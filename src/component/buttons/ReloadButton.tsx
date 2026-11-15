@@ -1,3 +1,4 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import cx from "classnames";
 import React from "react";
 import FontAwesome from "react-fontawesome";
@@ -22,7 +23,7 @@ export default class ReloadButton extends React.PureComponent<Props> {
     const classes = cx("reload-button", className);
 
     return (
-      <button
+      <Button
         disabled={disabled}
         title="Reload arrivals for stop"
         className={classes}
@@ -31,7 +32,7 @@ export default class ReloadButton extends React.PureComponent<Props> {
         {disabled && <FontAwesome name="refresh" spin={true} size="2x" />}
         {!disabled && <FontAwesome name="refresh" size="2x" />}
         {children}
-      </button>
+      </Button>
     );
   }
 }

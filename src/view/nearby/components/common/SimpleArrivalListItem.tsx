@@ -1,6 +1,6 @@
+import { ListItem } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { ListGroup } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
 import {
   Direction,
@@ -23,8 +23,6 @@ function SimpleArrivalListItem({
   route,
   stop
 }: ArrivalListItemParams) {
-  const navigate = useNavigate();
-
   if (!arrival || !route || !stop) {
     return null;
   }
@@ -39,35 +37,27 @@ function SimpleArrivalListItem({
     scheduledArrivalTime
   );
 
-  function handleClick() {
-    const url = `/nearby/simple-routes/${routeId}?stop=${stop.locid}&direction=${routeDirection.dir}`;
-    navigate(url);
-  }
-
   return (
-    <ListGroup.Item
-      variant="light"
-      as="li"
-      className="d-flex justify-content-between align-items-start"
-      onClick={handleClick}
-    >
-      <div className="ms-2 me-auto">
-        <span className="fw-bold h2">
-          {routeId}
-          <span className="h6">{routeDirection.desc}</span>
-        </span>
-        {/* <br /> */}
-        {/* <span>{routeDirection.desc}</span> */}
-        <br />
-        <small>
-          at {stopName} ({stop.locid})
-        </small>
-      </div>
-      <div>
-        <span className="h5">{timeUntilArrival}</span>
-        <br />
-      </div>
-    </ListGroup.Item>
+    <ListItem>
+      <Link
+        className="transit-arrival-link"
+        to={`/nearby/simple-routes/${routeId}?stop=${stop.locid}&direction=${routeDirection.dir}`}
+      >
+        <div>
+          <div className="transit-arrival-heading">
+            <strong className="transit-arrival-route">{routeId}</strong>
+            <span>{routeDirection.desc}</span>
+          </div>
+          <small>
+            at {stopName} ({stop.locid})
+          </small>
+        </div>
+        <div>
+          <strong className="transit-arrival-time">{timeUntilArrival}</strong>
+          <br />
+        </div>
+      </Link>
+    </ListItem>
   );
 }
 

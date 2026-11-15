@@ -1,7 +1,7 @@
+import { Badge } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Badge } from "react-bootstrap";
 import FontAwesome from "react-fontawesome";
-import { LinkContainer } from "react-router-bootstrap";
+import { Link } from "react-router-dom";
 import { ROUTE_DISPLAY } from "../../api/trimet/constants";
 import { TrimetRoute } from "../../api/trimet/interfaces/types";
 import "./RouteIndicator.scss";
@@ -13,6 +13,7 @@ interface Props {
   route?: TrimetRoute;
   verbose?: boolean;
   routeColor?: string;
+  linked?: boolean;
 }
 
 function getRouteDisplay(routeId: number, verboseRouteDisplay: boolean) {
@@ -21,7 +22,7 @@ function getRouteDisplay(routeId: number, verboseRouteDisplay: boolean) {
   if (!routeFound) {
     if (routeId) {
       return (
-        <Badge bg="secondary">
+        <Badge tone="neutral">
           <FontAwesome name="bus" />
           <span>
             {routeId} {verboseRouteDisplay && "Bus"}
@@ -32,7 +33,7 @@ function getRouteDisplay(routeId: number, verboseRouteDisplay: boolean) {
     return routeId || "-";
   } else {
     return (
-      <Badge bg="secondary">
+      <Badge tone="neutral">
         <FontAwesome name="train" />
         <span className="route-indicator-text">{routeFound}</span>
       </Badge>
@@ -43,11 +44,16 @@ function getRouteDisplay(routeId: number, verboseRouteDisplay: boolean) {
 export default function RouteIndicator({
   routeColor = DEFAULT_ROUTE_COLOR,
   routeId,
-  verbose
+  verbose,
+  linked = true
 }: Props) {
+  const display = getRouteDisplay(routeId, verbose);
+  if (!linked) {
+    return <>{display}</>;
+  }
   return (
-    <LinkContainer to={`/lines/${routeId}`}>
-      {getRouteDisplay(routeId, verbose)}
-    </LinkContainer>
+    <Link to={`/lines/${routeId}`} className="transit-route-link">
+      {display}
+    </Link>
   );
 }

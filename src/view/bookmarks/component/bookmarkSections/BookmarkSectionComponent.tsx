@@ -1,6 +1,6 @@
+import { Card, CardHeader, CardBody } from "@wintermuted/ui-theme/react";
 import { isEmpty, map } from "lodash";
 import React, { Component } from "react";
-import { Card } from "react-bootstrap";
 import { StopLocation } from "../../../../api/trimet/interfaces/types";
 import { RemoveBookmarkButton } from "../../../../component/buttons/RemoveBookmarkButton";
 import StopContainer from "../../../nearbyStops/containers/StopContainer";
@@ -104,17 +104,21 @@ export default class BookmarkSectionComponent extends Component<Props, State> {
 
     return (
       <Card key={id}>
-        <BookmarkSectionNav
-          name={name}
-          toggleEditMode={this.toggleEditMode}
-          editMode={this.state.editMode}
-          removeBookmarkSection={removeSection}
-          updateBookmarkSectionName={onUpdateBookmarkSectionName}
-          bookmarkSectionId={id}
-        />
-        <ul className="bookmark-section-bookmarks">
-          {this.getBookmarksInSection(bookmarksInSection, id)}
-        </ul>
+        <CardHeader>
+          <BookmarkSectionNav
+            name={name}
+            toggleEditMode={this.toggleEditMode}
+            editMode={this.state.editMode}
+            removeBookmarkSection={removeSection}
+            updateBookmarkSectionName={onUpdateBookmarkSectionName}
+            bookmarkSectionId={id}
+          />
+        </CardHeader>
+        <CardBody>
+          <ul className="bookmark-section-bookmarks">
+            {this.getBookmarksInSection(bookmarksInSection, id)}
+          </ul>
+        </CardBody>
       </Card>
     );
   }

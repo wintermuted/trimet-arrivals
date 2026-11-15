@@ -1,4 +1,5 @@
 import React from "react";
+import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import { Provider } from "react-redux";
 import "./App.css";
 import RootAppRoutes from "./routes/RootAppRoutes";
@@ -9,11 +10,13 @@ const store = appStore();
 export default class App extends React.Component {
   public render() {
     return (
-      <Provider store={store}>
-        <div>
-          <RootAppRoutes />
-        </div>
-      </Provider>
+      <ThemeProvider>
+        <Provider store={store}>
+          <div>
+            <RootAppRoutes />
+          </div>
+        </Provider>
+      </ThemeProvider>
     );
   }
 }

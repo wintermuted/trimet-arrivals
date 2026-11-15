@@ -1,5 +1,5 @@
+import { Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
 import React from "react";
-import { Card } from "react-bootstrap";
 import "./CollapsiblePane.scss";
 
 interface Props {
@@ -44,12 +44,10 @@ export default class CollapsiblePane extends React.Component<Props, State> {
 
     return (
       <Card>
-        <Card.Header>{title}</Card.Header>
-        <Card.Body>
-          <Card.Text>
-            {CollapsiblePane.getPaneContents(className, children)}
-          </Card.Text>
-        </Card.Body>
+        <CardHeader>{title}</CardHeader>
+        <CardBody>
+          {CollapsiblePane.getPaneContents(className, children)}
+        </CardBody>
       </Card>
     );
   }

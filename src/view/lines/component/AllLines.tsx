@@ -1,6 +1,6 @@
 import { filter, includes, isEmpty, map } from "lodash";
 import React, { useEffect, useState } from "react";
-import { Container, Row } from "react-bootstrap";
+
 import {
   RouteDataResultSet,
   TrimetRoute
@@ -86,28 +86,24 @@ export function AllLines() {
   const wesCommuterRail = getWesCommuterRail(routes);
 
   return (
-    <Container fluid={true}>
+    <div className="transit-container">
       <div className="line-detail-view-wrapper">
         <h2>Max Light Rail</h2>
-        <Row xs={1} md={4} className="g-4">
-          {getRoutes(maxLines)}
-        </Row>
+        <div className="transit-grid transit-grid-4">{getRoutes(maxLines)}</div>
         <br />
         <h2>Portland Street Car</h2>
-        <Row xs={1} md={4} className="g-4">
+        <div className="transit-grid transit-grid-4">
           {getRoutes(streetCarLines)}
-        </Row>
+        </div>
         <br />
         <h2>WES Commuter Rail</h2>
-        <Row xs={1} md={4} className="g-4">
+        <div className="transit-grid transit-grid-4">
           {getRoutes(wesCommuterRail)}
-        </Row>
+        </div>
         <br />
         <h2>Bus</h2>
-        <Row xs={1} md={4} className="g-4">
-          {getRoutes(busLines)}
-        </Row>
+        <div className="transit-grid transit-grid-4">{getRoutes(busLines)}</div>
       </div>
-    </Container>
+    </div>
   );
 }

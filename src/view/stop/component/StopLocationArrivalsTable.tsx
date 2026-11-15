@@ -1,6 +1,6 @@
+import { Table } from "@wintermuted/ui-theme/react";
 import { map } from "lodash";
 import React from "react";
-import { Table } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import ArrivalRowContainer from "../container/ArrivalRowContainer";
@@ -27,7 +27,7 @@ function StopLocationArrivalsTable({ arrivalData }: Props) {
     : arrivalData.arrival;
 
   return (
-    <Table striped={true} bordered={true} hover={true} size="lg">
+    <Table responsive={true}>
       <thead>
         <tr>
           <td />

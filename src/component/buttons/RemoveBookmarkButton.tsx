@@ -1,3 +1,4 @@
+import { Button } from "@wintermuted/ui-theme/react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 
@@ -15,12 +16,12 @@ export const RemoveBookmarkButton = ({
     : undefined;
 
   return (
-    <button
+    <Button
       onClick={onClick}
-      className="close-button"
       title="Remove bookmark from Bookmark Section"
+      className="close-button"
     >
       <FontAwesome name="times-circle" />
-    </button>
+    </Button>
   );
 };

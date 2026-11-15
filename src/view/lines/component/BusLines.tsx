@@ -1,6 +1,6 @@
 import { isEmpty } from "lodash";
 import React, { useEffect, useState } from "react";
-import { Container, Row } from "react-bootstrap";
+
 import { RouteDataResultSet } from "../../../api/trimet/interfaces/routes";
 import { getAllRoutes } from "../../../api/trimet/routeConfig";
 import { createRoutesDictionary } from "../../../store/reducers/data/routeDataReducer";
@@ -24,11 +24,11 @@ export function BusLines() {
   const busLines = getBusLines(routes);
 
   return (
-    <Container fluid={true}>
+    <div className="transit-container">
       <CollapsiblePane
-        className="route-detail-information-pane"
         title="Schedule"
         open={true}
+        className="route-detail-information-pane"
       >
         <p>
           Some lines offer <strong>Frequent Service</strong>, others provide{" "}
@@ -36,9 +36,7 @@ export function BusLines() {
         </p>
       </CollapsiblePane>
       <br />
-      <Row xs={1} md={4} className="g-4">
-        {getRoutes(busLines)}
-      </Row>
-    </Container>
+      <div className="transit-grid transit-grid-4">{getRoutes(busLines)}</div>
+    </div>
   );
 }

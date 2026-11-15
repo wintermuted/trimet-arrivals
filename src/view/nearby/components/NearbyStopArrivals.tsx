@@ -1,7 +1,12 @@
+import {
+  Card,
+  CardHeader,
+  ListGroup,
+  Table
+} from "@wintermuted/ui-theme/react";
 import { map, sortBy } from "lodash";
 import moment from "moment";
 import React from "react";
-import { Card, ListGroup, Tab, Table, Tabs } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import { getFormattedTime } from "../util/timeUtils";
@@ -37,10 +42,8 @@ export function ArrivalList({ data }: ArrivalsTableParams) {
 
   return (
     <Card>
-      <Card.Header>Departures</Card.Header>
-      <ListGroup variant="flush" as="ul">
-        {arrivalsList}
-      </ListGroup>
+      <CardHeader>Departures</CardHeader>
+      <ListGroup as="ul">{arrivalsList}</ListGroup>
     </Card>
   );
 }
@@ -54,7 +57,7 @@ function getArrivalRows(data: ArrivalData) {
     const scheduledTime = getFormattedTime(arrival.scheduled);
 
     return (
-      <tr>
+      <tr key={arrival.id}>
         <td>
           <small>{arrival.shortSign}</small>
         </td>
@@ -71,11 +74,13 @@ function getArrivalRows(data: ArrivalData) {
 
 function ArrivalsTable({ data }: ArrivalsTableParams) {
   return (
-    <Table striped={true} bordered={true} hover={true} size="sm">
+    <Table responsive={true}>
       <thead>
-        <th>Route</th>
-        <th>Est. Arrival</th>
-        <th>Scheduled</th>
+        <tr>
+          <th>Route</th>
+          <th>Est. Arrival</th>
+          <th>Scheduled</th>
+        </tr>
       </thead>
       <tbody>{getArrivalRows(data)}</tbody>
     </Table>
@@ -83,20 +88,7 @@ function ArrivalsTable({ data }: ArrivalsTableParams) {
 }
 
 function StopArrivals({ data }: StopArrivalsParams) {
-  return (
-    <>
-      <ArrivalList data={data} />
-      {/*<h5>Arrivals</h5>*/}
-      {/*<Tabs defaultActiveKey="list" id="stop-arrival-tabs" className="mb-3">*/}
-      {/*  <Tab eventKey="list" title="List">*/}
-      {/*    <ArrivalList data={data} />*/}
-      {/*  </Tab>*/}
-      {/*  <Tab eventKey="table" title="Table">*/}
-      {/*    <ArrivalsTable data={data} />*/}
-      {/*  </Tab>*/}
-      {/*</Tabs>*/}
-    </>
-  );
+  return <ArrivalList data={data} />;
 }
 
 export default StopArrivals;

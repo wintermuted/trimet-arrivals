@@ -1,6 +1,6 @@
+import { Button, Input } from "@wintermuted/ui-theme/react";
 import { isEmpty } from "lodash";
 import React, { Component } from "react";
-import { Button, Form, InputGroup } from "react-bootstrap";
 import "./AddBookmarkSectionControl.css";
 
 interface Props {
@@ -54,29 +54,31 @@ export default class AddBookmarkSectionControl extends Component<Props, State> {
 
     return (
       <div className="add-bookmark-section-control">
-        <Form className="add-bookmark-input-form">
+        <form
+          className="add-bookmark-input-form"
+          onSubmit={this.onClickAddBookmark}
+        >
           <div className="add-bookmark-name-input-flex-container">
-            <InputGroup className="mb-3">
-              <Form.Control
+            <div className="transit-field-row" style={{ marginBottom: "1rem" }}>
+              <Input
                 type="text"
-                className="add-bookmark-name-input"
                 aria-label="Bookmark Section Name"
-                aria-describedby="basic-addon2"
                 value={this.state.bookmarkSectionName}
                 placeholder="Bookmark Section Name"
                 onChange={this.onChange}
+                className="add-bookmark-name-input"
               />
               <Button
                 id="button-addon2"
                 variant="primary"
-                onClick={this.onClickAddBookmark}
+                type="submit"
                 disabled={noTextEntered}
               >
                 Create
               </Button>
-            </InputGroup>
+            </div>
           </div>
-        </Form>
+        </form>
       </div>
     );
   }
