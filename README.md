@@ -44,7 +44,8 @@ in stacked panels; map resizing follows panel size changes rather than a fixed
 viewport-height offset.
 Nearby removes the main content's outer gutters so the map reaches the available
 edges; the results sidebar retains 14px horizontal padding only, with no top/bottom
-gutter. Other pages keep the standard content spacing.
+gutter. The sidebar detail header spans the full available sidebar width while its
+contents align with the padded content below. Other pages keep the standard content spacing.
 
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the
 app's resolved Light/Dark theme, including saved and system preferences. Changing
