@@ -126,6 +126,8 @@ highlights its marker and opens its map tooltip. Hovering a marker also shows
 the tooltip, and selecting a stop in either place opens its stop view.
 The stop view's Back link returns to the originating route details, including
 its query parameters; direct stop links without a referrer return to Nearby Stops.
+Stop details show the selected stop on the map even outside the nearby radius
+and list the routes serving that stop.
 
 Nearby Stops card headers put the stop name first and the stop ID on the right;
 the full header opens the stop. Hovering a card or focusing any of its links

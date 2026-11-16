@@ -2,11 +2,13 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { getArrivals } from "../api/trimet/arrivals";
+import { getNearbyStops } from "../api/trimet/stops";
 import { ArrivalData } from "../api/trimet/interfaces/arrivals";
 import { getWalkingRoute, WalkingRoute } from "../api/mapbox/walking";
 import { NearbyStopsDetail } from "../view/nearby/components/NearbyStopsDetail";
 
 jest.mock("../api/trimet/arrivals");
+jest.mock("../api/trimet/stops");
 jest.mock("../api/mapbox/walking");
 
 function stopData(id: number): ArrivalData {
@@ -55,6 +57,16 @@ describe("general Nearby stop walking access", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(getArrivals).mockReset().mockResolvedValue(stopData(340));
+    jest.mocked(getNearbyStops).mockReset().mockResolvedValue({
+      queryTime: "",
+      location: [340, 367].map((locid) => ({
+        locid, desc: `Example stop ${locid}`, dir: "E", lat: 0.001, lng: 0.001,
+        route: [
+          { route: 54, desc: "Beaverton Hillsdale", type: "bus", dir: [] },
+          { route: 56, desc: "Scholls Ferry", type: "bus", dir: [] }
+        ]
+      }))
+    });
     jest.mocked(getWalkingRoute).mockReset().mockResolvedValue(walking);
     onWalkingRouteChanged.mockReturnValue(close);
     container = document.createElement("div");
@@ -176,6 +188,60 @@ describe("general Nearby stop walking access", () => {
   it("returns direct stop links to Nearby Stops", async () => {
     await render();
     expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe("/nearby/stops");
+  });
+
+  it("shows all routes serving the exact stop even when there are no departures", async () => {
+    jest.mocked(getNearbyStops).mockResolvedValueOnce({
+      queryTime: "",
+      location: [
+        { locid: 999, desc: "Other stop", dir: "E", lat: 0.001, lng: 0.001,
+          route: [{ route: 99, desc: "Other route", type: "bus", dir: [] }] },
+        { locid: 340, desc: "Example stop 340", dir: "E", lat: 0.001, lng: 0.001,
+          route: [
+            { route: 54, desc: "Beaverton Hillsdale", type: "bus", dir: [] },
+            { route: 56, desc: "Scholls Ferry", type: "bus", dir: [] }
+          ] }
+      ]
+    });
+    await render();
+    expect(getNearbyStops).toHaveBeenCalledWith(
+      { coords: { latitude: 0.001, longitude: 0.001 } }, 100
+    );
+    expect(container.querySelector('[aria-label="Route 54: Beaverton Hillsdale"]')?.textContent).toBe("54");
+    expect(container.querySelector('[aria-label="Route 56: Scholls Ferry"]')?.getAttribute("title")).toBe("Scholls Ferry");
+    expect(container.querySelector('[aria-label="Route 99: Other route"]')).toBeNull();
+  });
+
+  it("reports missing stop metadata instead of displaying another stop's routes", async () => {
+    jest.mocked(getNearbyStops).mockResolvedValueOnce({
+      queryTime: "", location: [{
+        locid: 999, desc: "Other stop", dir: "E", lat: 0.001, lng: 0.001,
+        route: [{ route: 99, desc: "Other route", type: "bus", dir: [] }]
+      }]
+    });
+    await render();
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain("Routes could not be loaded");
+    expect(container.querySelector('[aria-label="Route 99: Other route"]')).toBeNull();
+  });
+
+  it("reports route lookup errors and retries without losing the stop", async () => {
+    jest.mocked(getNearbyStops).mockRejectedValueOnce(new Error("Unavailable"));
+    await render();
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain("Routes could not be loaded");
+    expect(container.textContent).toContain("Example stop 340");
+    await act(async () => Array.from(container.querySelectorAll("button"))
+      .find((button) => button.textContent === "Retry routes").click());
+    expect(container.querySelector('[aria-label="Route 56: Scholls Ferry"]')).not.toBeNull();
+  });
+
+  it("removes the selected stop marker on navigation", async () => {
+    const cleanup = jest.fn();
+    handleStopOpened.mockReturnValueOnce(cleanup);
+    await render();
+    jest.mocked(getArrivals).mockResolvedValueOnce(stopData(367));
+    await act(async () => container.querySelector<HTMLAnchorElement>('a[href="/nearby/stops/367"]').click());
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(handleStopOpened).toHaveBeenLastCalledWith(stopData(367).location[0]);
   });
 
   it.each(["https://example.com", "//example.com", "/\\example.com", "/nearby/../../outside", "/outside", ""])(

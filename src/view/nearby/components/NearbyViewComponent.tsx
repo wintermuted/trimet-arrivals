@@ -35,7 +35,7 @@ import {
   removeCurrentLocationMarkers,
   removeStopLocationLayers,
   setNearbyStops,
-  updateStopMarkerColor
+  showStopDetailMarker
 } from "../util/mapbox/stopLocationMarker.util";
 import NearbySimpleRoutes from "./NearbySimpleRoutes";
 import NearbySimpleRouteArrivals from "./NearbySimpleRouteArrivals";
@@ -62,7 +62,7 @@ export interface NearbyViewComponentOutletContextProps {
   radiusSize: number;
   handleRadiusSelectionChange: (e: any) => void;
   initializeMap: () => void;
-  handleStopOpened: (stopLocation: ArrivalLocation) => void;
+  handleStopOpened: (stopLocation: ArrivalLocation) => void | (() => void);
   handleDirectionsSelection: (
     selection: DirectionsSelection,
     onError: () => void
@@ -376,8 +376,9 @@ export default function NearbyViewComponent() {
   }, []);
 
   const handleStopOpened = useCallback((stopLocation: ArrivalLocation) => {
+    const cleanup = showStopDetailMarker(mapRef.current, stopLocation);
     flyToCenter(stopLocation.lng, stopLocation.lat);
-    updateStopMarkerColor(mapRef.current, `${stopLocation.id}`, "#ff0000");
+    return cleanup;
   }, [flyToCenter]);
 
   const handleDirectionsSelection = useCallback((

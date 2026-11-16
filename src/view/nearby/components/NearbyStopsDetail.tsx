@@ -15,7 +15,7 @@ import { stopBackUrl } from "../util/stopNavigation";
 
 interface Props {
   currentLocation: number[];
-  handleStopOpened: (stopLocation: ArrivalLocation) => void;
+  handleStopOpened: (stopLocation: ArrivalLocation) => void | (() => void);
   walkingEnabled?: boolean;
   onWalkingRouteChanged?: (feature: Feature<LineString>) => void | (() => void);
 }
@@ -38,6 +38,7 @@ export function NearbyStopsDetail({
 
   useEffect(() => {
     let active = true;
+    let removeMarker: void | (() => void);
     setState({ id });
     async function fetchData() {
       try {
@@ -45,11 +46,12 @@ export function NearbyStopsDetail({
         const stopLocation = arrivals.location?.find(
           (location) => location.id === Number(id)
         );
-        if (!stopLocation || !Array.isArray(arrivals.arrival)) {
+        if (!stopLocation || !Number.isFinite(stopLocation.lat) ||
+            !Number.isFinite(stopLocation.lng) || !Array.isArray(arrivals.arrival)) {
           throw new Error("The requested stop was not reported.");
         }
         if (active) {
-          handleStopOpened(stopLocation);
+          removeMarker = handleStopOpened(stopLocation);
           setState({ data: arrivals, id });
         }
       } catch {
@@ -60,6 +62,7 @@ export function NearbyStopsDetail({
     void fetchData();
     return () => {
       active = false;
+      if (removeMarker) removeMarker();
     };
   }, [id, retry, handleStopOpened]);
 

@@ -32,6 +32,7 @@ jest.mock("../view/nearby/util/mapbox/stopLocationMarker.util", () => ({
   removeCurrentLocationMarkers: jest.fn(),
   removeStopLocationLayers: jest.fn(),
   setNearbyStops: jest.fn(),
+  showStopDetailMarker: jest.fn(() => jest.fn()),
   updateStopMarkerColor: jest.fn(),
 }));
 jest.mock("mapbox-gl", () => ({
@@ -98,6 +99,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
       }]
     });
     jest.mocked(showRouteInfo).mockReturnValue(jest.fn());
+    jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util")
+      .showStopDetailMarker.mockImplementation(() => jest.fn());
     jest
       .requireMock("../view/nearby/util/mapbox/initializeMap")
       .initializeMap.mockReturnValue(map);
@@ -171,6 +174,31 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(setNearbyStops).toHaveBeenCalledTimes(1);
   });
 
+  it("shows a directly opened stop outside the nearby radius and removes its marker on exit", async () => {
+    jest.mocked(getArrivals).mockResolvedValue({
+      arrival: [], detour: [], queryTime: "",
+      location: [{ desc: "Far stop", dir: "E", id: 8455, lat: 2, lng: 1, passengerCode: "E" }]
+    });
+    const showMarker = jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util").showStopDetailMarker;
+    await act(async () => root.render(
+      <FeatureFlagsProvider>
+        <MemoryRouter initialEntries={["/nearby/stops/8455"]}>
+          <Routes>
+            <Route path="/nearby" element={<NearbyViewComponent />}>
+              <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </FeatureFlagsProvider>
+    ));
+    await act(async () => finishMapLoading());
+    expect(setNearbyStops).toHaveBeenCalledWith(map, { 101: stops.location[0] }, ["56"], expect.any(Function));
+    expect(showMarker).toHaveBeenCalledWith(map, expect.objectContaining({ id: 8455, lat: 2, lng: 1 }));
+    const cleanup = showMarker.mock.results[0].value;
+    await act(async () => root.render(null));
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
   it("opens the nearby stop view when a route-info marker is clicked", async () => {
     await act(async () => root.render(
       <FeatureFlagsProvider>
@@ -191,6 +219,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     });
     const stopClick = jest.mocked(showRouteInfo).mock.calls[0][3];
     await act(async () => stopClick(101));
+    expect(jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util").showStopDetailMarker)
+      .toHaveBeenCalledWith(map, expect.objectContaining({ id: 101, lat: 0, lng: 0.001 }));
     const back = container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]');
     expect(back.getAttribute("href")).toBe("/nearby/simple-routes?route=56&keep=yes#directions");
     await act(async () => back.click());
