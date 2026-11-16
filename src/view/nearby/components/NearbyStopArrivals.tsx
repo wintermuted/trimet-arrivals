@@ -1,16 +1,17 @@
 import {
-  Card,
-  CardHeader,
+  Accordion,
   ListGroup,
   Table
 } from "@wintermuted/ui-theme/react";
 import { map, sortBy } from "lodash";
 import moment from "moment";
 import React from "react";
+import FontAwesome from "react-fontawesome";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import { getFormattedTime } from "../util/timeUtils";
 import ArrivalListItem from "./common/ArrivalListItem";
+import "./NearbyRoutes.scss";
 
 interface StopArrivalsParams {
   data: ArrivalData;
@@ -41,10 +42,13 @@ export function ArrivalList({ data }: ArrivalsTableParams) {
   const arrivalsList = getArrivalsList(sortedArrivals);
 
   return (
-    <Card>
-      <CardHeader>Departures</CardHeader>
+    <Accordion
+      open
+      className="transit-stop-panel"
+      title={<><FontAwesome name="clock-o" aria-hidden="true" /> Departures</>}
+    >
       <ListGroup as="ul">{arrivalsList}</ListGroup>
-    </Card>
+    </Accordion>
   );
 }
 
