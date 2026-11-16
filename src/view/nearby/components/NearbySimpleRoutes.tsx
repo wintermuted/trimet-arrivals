@@ -20,6 +20,7 @@ import {
 import Loading from "../../loading/Loading";
 import { getNormalizedDistanceString, getDistance } from "../util/turfUtils";
 import { getTimeUntilArrival } from "../util/timeUtils";
+import useStopHighlight from "../util/useStopHighlight";
 import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
@@ -33,6 +34,7 @@ interface Props {
   handleRadiusSelectionChange: (e: any) => void;
   routeCount: number;
   stopCount: number;
+  onStopHighlightChanged?: (stopId?: number) => void;
 }
 
 interface RouteStop {
@@ -181,6 +183,7 @@ export default function NearbySimpleRoutes({
   handleSimpleRoutesOpened,
   routeCount,
   stopCount,
+  onStopHighlightChanged,
 }: Props) {
   const [arrivalData, setArrivalData] = useState<ArrivalData>();
   const [isLoading, setIsLoading] = useState(true);
@@ -192,6 +195,17 @@ export default function NearbySimpleRoutes({
   const [sortBy, setSortBy] = useState<"arrival" | "distance" | "route">(
     "arrival"
   );
+  const { clearHighlight, focusStop, hoverStop } = useStopHighlight(onStopHighlightChanged);
+
+  useEffect(() => {
+    clearHighlight();
+  }, [nearbyStops, isLoading, selectedFilterValues, sortBy, clearHighlight]);
+
+  function handleDisclosureToggle(event: React.SyntheticEvent<HTMLDetailsElement>) {
+    if (!event.currentTarget.open) {
+      clearHighlight();
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -452,92 +466,101 @@ export default function NearbySimpleRoutes({
               aria-label="Nearby route arrivals"
             >
               {displayRoutes.map(({ route, directions }) => (
-                <details
-                  key={route.route}
-                  className="transit-simple-route-group"
-                  aria-labelledby={`nearby-route-${route.route}`}
-                  open
-                >
-                  <summary
-                    id={`nearby-route-${route.route}`}
-                    className="transit-simple-route-heading"
+                <div key={route.route} className="transit-simple-route">
+                  <details
+                    className="transit-simple-route-group"
+                    onToggle={handleDisclosureToggle}
+                    aria-labelledby={`nearby-route-${route.route}`}
+                    open
                   >
-                    <FontAwesome name="caret-right" aria-hidden="true" />
-                    <strong>Route {route.route}</strong>
-                    <span>{route.desc}</span>
-                  </summary>
+                    <summary
+                      id={`nearby-route-${route.route}`}
+                      className="transit-simple-route-heading"
+                    >
+                      <FontAwesome name="caret-right" aria-hidden="true" />
+                      <strong>{route.route}</strong>
+                      <span>{route.desc}</span>
+                    </summary>
+                    {directions.map((direction) => (
+                      <details
+                        key={direction.key}
+                        className="transit-simple-route-direction"
+                        onToggle={handleDisclosureToggle}
+                        aria-labelledby={`nearby-direction-${direction.key}`}
+                        open
+                      >
+                        <summary id={`nearby-direction-${direction.key}`}>
+                          <FontAwesome name="caret-right" aria-hidden="true" />
+                          {direction.direction.desc}
+                        </summary>
+                        <ListGroup
+                          aria-label={`Route ${route.route}, ${direction.direction.desc} stops`}
+                        >
+                          {direction.stops.map(
+                            ({ stop, arrivals, distanceMiles }) => {
+                              const arrival = arrivals[0];
+                              const arrivalTime = getArrivalTime(arrival);
+                              const arrivalLabel = !arrival
+                                ? "No arrivals reported"
+                                : arrivalTime == null
+                                  ? "Time unavailable"
+                                  : getTimeUntilArrival(
+                                      arrival.estimated,
+                                      arrival.scheduled
+                                    );
+                              const distanceLabel =
+                                distanceMiles == null
+                                  ? "Distance unavailable"
+                                  : getNormalizedDistanceString(
+                                      currentLocation,
+                                      [stop.lng, stop.lat]
+                                    );
+
+                              return (
+                                <ListItem
+                                  key={stop.locid}
+                                  className="transit-simple-route-item"
+                                >
+                                  <Link
+                                    className="transit-simple-route-stop"
+                                    data-stop-id={stop.locid}
+                                    onBlur={() => focusStop()}
+                                    onFocus={() => focusStop(stop.locid)}
+                                    onMouseEnter={() => hoverStop(stop.locid)}
+                                    onMouseLeave={() => hoverStop()}
+                                    to={`/nearby/simple-routes/${route.route}?stop=${stop.locid}&direction=${direction.direction.dir}`}
+                                  >
+                                    <span className="transit-simple-route-stop-name">
+                                      {stop.desc} ({stop.locid})
+                                    </span>
+                                    <span className="transit-simple-route-arrivals">
+                                      <strong>{arrivalLabel}</strong>
+                                      <span className="transit-simple-route-distance">
+                                        {distanceLabel}
+                                      </span>
+                                    </span>
+                                    <span className="transit-simple-route-action">
+                                      View arrivals{" "}
+                                      <span aria-hidden="true">›</span>
+                                    </span>
+                                  </Link>
+                                </ListItem>
+                              );
+                            }
+                          )}
+                        </ListGroup>
+                      </details>
+                    ))}
+                  </details>
                   <Link
                     className="transit-simple-route-details-link"
                     to={`/lines/${route.route}`}
                     aria-label={`View Route ${route.route} details`}
+                    title={`Route ${route.route} details`}
                   >
-                    Route details
+                    <FontAwesome name="info-circle" aria-hidden="true" />
                   </Link>
-                  {directions.map((direction) => (
-                    <details
-                      key={direction.key}
-                      className="transit-simple-route-direction"
-                      aria-labelledby={`nearby-direction-${direction.key}`}
-                      open
-                    >
-                      <summary id={`nearby-direction-${direction.key}`}>
-                        <FontAwesome name="caret-right" aria-hidden="true" />
-                        {direction.direction.desc}
-                      </summary>
-                      <ListGroup
-                        aria-label={`Route ${route.route}, ${direction.direction.desc} stops`}
-                      >
-                        {direction.stops.map(
-                          ({ stop, arrivals, distanceMiles }) => {
-                            const arrival = arrivals[0];
-                            const arrivalTime = getArrivalTime(arrival);
-                            const arrivalLabel = !arrival
-                              ? "No arrivals reported"
-                              : arrivalTime == null
-                                ? "Time unavailable"
-                                : getTimeUntilArrival(
-                                    arrival.estimated,
-                                    arrival.scheduled
-                                  );
-                            const distanceLabel =
-                              distanceMiles == null
-                                ? "Distance unavailable"
-                                : getNormalizedDistanceString(currentLocation, [
-                                    stop.lng,
-                                    stop.lat,
-                                  ]);
-
-                            return (
-                              <ListItem
-                                key={stop.locid}
-                                className="transit-simple-route-item"
-                              >
-                                <Link
-                                  className="transit-simple-route-stop"
-                                  to={`/nearby/simple-routes/${route.route}?stop=${stop.locid}&direction=${direction.direction.dir}`}
-                                >
-                                  <span className="transit-simple-route-stop-name">
-                                    {stop.desc} ({stop.locid})
-                                  </span>
-                                  <span className="transit-simple-route-arrivals">
-                                    <strong>{arrivalLabel}</strong>
-                                    <span className="transit-simple-route-distance">
-                                      {distanceLabel}
-                                    </span>
-                                  </span>
-                                  <span className="transit-simple-route-action">
-                                    View arrivals{" "}
-                                    <span aria-hidden="true">›</span>
-                                  </span>
-                                </Link>
-                              </ListItem>
-                            );
-                          }
-                        )}
-                      </ListGroup>
-                    </details>
-                  ))}
-                </details>
+                </div>
               ))}
             </div>
           )}

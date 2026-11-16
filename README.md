@@ -54,15 +54,22 @@ Departure rows support mouse and keyboard selection, with a highlight and caret
 identifying the selected departure. Selection persists across updates while that
 departure remains available; otherwise the first departure is selected.
 
-The Nearby route list groups stops by route, then direction.
+The Nearby route list groups stops by route, then direction; route headings use
+the number alone (for example, 56 rather than Route 56).
 Route and direction headings are independent keyboard-accessible disclosures,
 expanded by default; collapsing a route retains its directions' open/closed state.
-The Route details link opens the general line page separately from the disclosures.
+The right-aligned info icon in each route header opens the general line page
+separately from the disclosures and stays available when the route is collapsed.
 Each stop row shows
 its next reported arrival and distance; click the row's View arrivals action to
 open that route, direction, and boarding stop in the sidebar. All nearby stops
 are listed rather than hidden in a selector. The right-aligned filter and sort
-icons open their controls; sorting ranks whole routes by their earliest reported
+icons open their controls. Hovering or keyboard-focusing a stop row highlights
+its matching map marker and shows the same tooltip as hovering the marker itself.
+Leaving or blurring restores any remaining focus/hover
+highlight, otherwise the normal marker color. Collapsing, filtering, sorting,
+refreshing the stop list, or leaving the view clears stale highlights. Sorting
+ranks whole routes by their earliest reported
 arrival, nearest stop, or route number without separating their directions.
 
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the

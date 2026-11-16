@@ -539,6 +539,11 @@
   padding: 0;
 }
 
+.transit-simple-route {
+  position: relative;
+  min-width: 0;
+}
+
 .transit-simple-route-group {
   min-width: 0;
 }
@@ -576,11 +581,25 @@
 }
 
 .transit-simple-route-details-link {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: var(--wm-control-height);
   min-height: var(--wm-control-height);
   color: var(--wm-color-accent);
-  font-size: 0.875rem;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--wm-color-surface-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: -2px;
+  }
 }
 
 .transit-simple-route-direction {
@@ -603,6 +622,7 @@
   gap: var(--wm-space-2);
   min-width: 0;
   margin: 0;
+  padding-inline-end: calc(var(--wm-control-height) + var(--wm-space-2));
   font-size: 1rem;
 
   > strong {

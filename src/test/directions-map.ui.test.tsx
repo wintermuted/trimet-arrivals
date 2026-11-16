@@ -2,7 +2,7 @@ import { act } from "react";
 import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
 import { DirectionsSelection, highlightDirectionsStop, showDirectionsSelection } from "../view/nearby/util/mapbox/directionsSelection";
 import { setRoutes } from "../view/nearby/util/mapbox/routeLines";
-import { setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
+import { highlightNearbyStop, removeStopLocationLayers, setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLocation";
 
 jest.mock("!mapbox-gl", () => jest.requireMock("mapbox-gl"), { virtual: true });
@@ -10,10 +10,13 @@ jest.mock("!mapbox-gl", () => jest.requireMock("mapbox-gl"), { virtual: true });
 jest.mock("mapbox-gl", () => {
   const createMap = () => ({
     getContainer: jest.fn().mockReturnValue({ clientWidth: 800, clientHeight: 400 }),
+    getCanvas: jest.fn().mockReturnValue(global.document.createElement("canvas")),
+    getCenter: jest.fn().mockReturnValue({ lng: 0, lat: 0 }),
     fitBounds: jest.fn(),
     flyTo: jest.fn(),
     loaded: jest.fn().mockReturnValue(true),
     on: jest.fn(),
+    off: jest.fn(),
     setPaintProperty: jest.fn(),
     addSource: jest.fn(),
     addLayer: jest.fn(),
@@ -34,6 +37,10 @@ jest.mock("mapbox-gl", () => {
     remove: jest.fn()
   });
   const createPopup = () => ({
+    addTo: jest.fn().mockReturnThis(),
+    remove: jest.fn().mockReturnThis(),
+    setHTML: jest.fn().mockReturnThis(),
+    setLngLat: jest.fn().mockReturnThis(),
     setText: jest.fn().mockReturnThis()
   });
   const mocks = {
@@ -111,6 +118,60 @@ describe("directions route line and endpoint framing", () => {
         document.documentElement.dataset.theme = previousTheme;
       }
     }
+  });
+
+  it("restores nearby marker colors and ignores highlights after the layer is removed", () => {
+    updateStopMarkerColor(map, "102", "#ff0000");
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "stopLocationLayer", "circle-color",
+      ["case", ["==", ["get", "locid"], 102], "#ff0000", "#4264fb"]
+    );
+    updateStopMarkerColor(map, undefined, "#ff0000");
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith("stopLocationLayer", "circle-color", "#4264fb");
+    map.setPaintProperty.mockClear();
+    map.getLayer.mockReturnValue(undefined);
+    updateStopMarkerColor(map, "102", "#ff0000");
+    expect(map.setPaintProperty).not.toHaveBeenCalled();
+  });
+
+  it("shares one tooltip between sidebar and map hover, restores focused stops and cleans up old listeners", () => {
+    const stops = {
+      101: { desc: "Example First", dir: "E", lat: 0, lng: 0, locid: 101, route: [] },
+      102: { desc: "Example Next", dir: "E", lat: 1, lng: 1, locid: 102, route: [] }
+    };
+    setNearbyStops(map, stops, ["54", "12"], jest.fn());
+    const popup = jest.mocked(Popup).mock.results[0].value;
+    highlightNearbyStop(map, 101);
+    expect(popup.setLngLat).toHaveBeenLastCalledWith([0, 0]);
+    expect(popup.setHTML).toHaveBeenLastCalledWith(
+      "<strong>Stop ID</strong>: 101<br><strong>Routes</strong>: 54, 12"
+    );
+    expect(popup.addTo).toHaveBeenLastCalledWith(map);
+    const enter = map.on.mock.calls.find(([event]) => event === "mouseenter")[2];
+    const leave = map.on.mock.calls.find(([event]) => event === "mouseleave")[2];
+    enter({ features: [{ properties: { locid: 102 } }], lngLat: { lng: 1 } });
+    expect(popup.setLngLat).toHaveBeenLastCalledWith([1, 1]);
+    expect(popup.setHTML).toHaveBeenLastCalledWith(
+      "<strong>Stop ID</strong>: 102<br><strong>Routes</strong>: 54, 12"
+    );
+    leave();
+    expect(popup.setLngLat).toHaveBeenLastCalledWith([0, 0]);
+    highlightNearbyStop(map);
+    expect(popup.remove).toHaveBeenCalled();
+    expect(map.flyTo).not.toHaveBeenCalled();
+    expect(map.fitBounds).not.toHaveBeenCalled();
+
+    removeStopLocationLayers(map);
+    expect(map.off).toHaveBeenCalledWith("mouseenter", "stopLocationLayer", enter);
+    expect(map.off).toHaveBeenCalledWith("mouseleave", "stopLocationLayer", leave);
+    expect(map.off).toHaveBeenCalledWith("click", "stopLocationLayer", expect.any(Function));
+    popup.addTo.mockClear();
+    highlightNearbyStop(map, 101);
+    expect(popup.addTo).not.toHaveBeenCalled();
+    setNearbyStops(map, stops, ["54", "12"], jest.fn());
+    highlightNearbyStop(map, 102);
+    expect(jest.mocked(Popup).mock.results[1].value.addTo).toHaveBeenCalledWith(map);
+    expect(popup.addTo).not.toHaveBeenCalled();
   });
 
   it("draws actual route geometry and fits both labeled endpoint markers", async () => {
