@@ -6,6 +6,14 @@ import { addMapboxLayer, getRouteGeometry, removeRoutes } from "./routeLines";
 
 const STOPS = "route-info-stops";
 
+export function highlightRouteInfoStop(map: MapboxMap, stopId?: number) {
+  if (!map?.getLayer(STOPS)) return;
+  map.setPaintProperty(STOPS, "circle-color", stopId === undefined
+    ? "#4264fb" : ["case", ["==", ["get", "locid"], stopId], "#ff0000", "#4264fb"]);
+  map.setPaintProperty(STOPS, "circle-radius", stopId === undefined
+    ? 6 : ["case", ["==", ["get", "locid"], stopId], 12, 6]);
+}
+
 export function showRouteInfo(map: MapboxMap, route: TrimetRoute, onError: () => void): () => void {
   const abort = new AbortController();
   let closed = false;

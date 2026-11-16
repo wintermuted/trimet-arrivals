@@ -5,7 +5,7 @@ import { setRoutes } from "../view/nearby/util/mapbox/routeLines";
 import { highlightNearbyStop, removeStopLocationLayers, setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLocation";
 import { showWalkingRoute } from "../view/nearby/util/mapbox/walkingRoute";
-import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
+import { highlightRouteInfoStop, showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 
 jest.mock("!mapbox-gl", () => jest.requireMock("mapbox-gl"), { virtual: true });
 
@@ -142,6 +142,25 @@ describe("directions route line and endpoint framing", () => {
     await act(async () => resolveGeometry({ ok: true, json: async () => geometry }));
     expect(map.addLayer).not.toHaveBeenCalledWith(expect.objectContaining({ id: "route-info-1" }));
     expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it("highlights and restores the route-information stop marker", () => {
+    highlightRouteInfoStop(map, 101);
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "route-info-stops", "circle-color",
+      ["case", ["==", ["get", "locid"], 101], "#ff0000", "#4264fb"]
+    );
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "route-info-stops", "circle-radius",
+      ["case", ["==", ["get", "locid"], 101], 12, 6]
+    );
+    highlightRouteInfoStop(map);
+    expect(map.setPaintProperty).toHaveBeenCalledWith("route-info-stops", "circle-color", "#4264fb");
+    expect(map.setPaintProperty).toHaveBeenCalledWith("route-info-stops", "circle-radius", 6);
+    map.setPaintProperty.mockClear();
+    map.getLayer.mockReturnValueOnce(undefined);
+    highlightRouteInfoStop(map, 101);
+    expect(map.setPaintProperty).not.toHaveBeenCalled();
   });
   it("draws and cleans up only the walking overlay, preserving the bus route", () => {
     const close = showWalkingRoute(map, {
