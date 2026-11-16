@@ -103,13 +103,13 @@ export default function NearbyDirections({
         {
           routeId, direction, origin, destination,
           ...(!showTripTimes && !showTrip ? {
-            routeStops: route.stops
+            destinationStops: route.stops.slice(originIndex + 1)
           } : {})
         },
         () => setMapError(true)
       );
     }
-  }, [routeId, direction, validRoute, origin, destination, onSelectionChanged, mapRetry, route, showTripTimes, showTrip]);
+  }, [routeId, direction, validRoute, origin, originIndex, destination, onSelectionChanged, mapRetry, route, showTripTimes, showTrip]);
 
   if (!validRoute) {
     return (
