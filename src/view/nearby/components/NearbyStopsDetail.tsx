@@ -35,6 +35,17 @@ export function NearbyStopsDetail({
     error?: boolean;
   }>({ id });
   const [retry, setRetry] = useState(0);
+  const [selectedRoutes, setSelectedRoutes] = useState<number[]>([]);
+
+  useEffect(() => {
+    setSelectedRoutes([]);
+  }, [id]);
+
+  function toggleRoute(route: number) {
+    setSelectedRoutes((selected) => selected.includes(route)
+      ? selected.filter((item) => item !== route)
+      : [...selected, route]);
+  }
 
   useEffect(() => {
     let active = true;
@@ -94,7 +105,12 @@ export function NearbyStopsDetail({
     <div className="scrollarea">
       <TopNavBar id={stopLocation.desc} backTo={backTo} truncateTitle />
       <br />
-      <StopInfo stopLocation={stopLocation} />
+      <StopInfo
+        stopLocation={stopLocation}
+        arrivalRoutes={data.arrival.map((arrival) => arrival.route)}
+        selectedRoutes={selectedRoutes}
+        onToggleRoute={toggleRoute}
+      />
       {onWalkingRouteChanged && (
         <WalkingAccess
           currentLocation={currentLocation}
@@ -109,7 +125,7 @@ export function NearbyStopsDetail({
         />
       )}
       <br />
-      <StopArrivals data={data} />
+      <StopArrivals data={data} selectedRoutes={selectedRoutes} />
     </div>
   );
 }
