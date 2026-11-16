@@ -110,6 +110,10 @@ wheelchair-accessibility guidance. There is no continuous GPS tracking: refresh
 walking estimates reuses the current location snapshot; reopen Nearby to obtain
 a new location. Stops outside the radial discovery area are not evaluated.
 
+Nearby stop markers are initialized when the map finishes loading, independently
+of the sidebar view. Full refreshes and direct links to Nearby Stops therefore
+show the same markers without first visiting Nearby Routes.
+
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the
 app's resolved Light/Dark theme, including saved and system preferences. Changing
 themes updates the existing map configuration rather than replacing the style,
