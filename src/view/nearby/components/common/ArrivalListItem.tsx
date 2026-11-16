@@ -21,7 +21,7 @@ function ArrivalListItem({ id, arrival }: ArrivalListItemParams) {
         className="transit-arrival-link transit-stop-arrival-link"
         to={`/nearby/simple-routes/${arrival.route}?stop=${arrival.locid}&direction=${arrival.dir}`}
       >
-        <strong className="transit-stop-arrival-sign">
+        <strong className="transit-stop-arrival-sign" title={arrival.shortSign}>
           {arrival.shortSign}
         </strong>
         <div className="transit-stop-arrival-times">
@@ -29,10 +29,12 @@ function ArrivalListItem({ id, arrival }: ArrivalListItemParams) {
             estimatedArrivalTime={estimatedArrivalTime}
             scheduledArrivalTime={scheduledArrivalTime}
           />
-          {estimatedArrivalTime ? (
-            <small>Estimated: {getFormattedTime(estimatedArrivalTime)}</small>
-          ) : null}
-          <small>Scheduled: {scheduledTime}</small>
+          <span className="transit-stop-arrival-clock-times">
+            {estimatedArrivalTime ? (
+              <small>Estimated: {getFormattedTime(estimatedArrivalTime)}</small>
+            ) : null}
+            <small>Scheduled: {scheduledTime}</small>
+          </span>
         </div>
       </Link>
     </li>

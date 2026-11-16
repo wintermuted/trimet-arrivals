@@ -49,6 +49,7 @@
 }
 
 .transit-stop-arrival-link {
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--wm-space-2);
   min-height: var(--wm-control-height);
   padding-block: var(--wm-space-3);
@@ -67,17 +68,26 @@
 
 .transit-stop-arrival-sign {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .transit-stop-arrival-times {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--wm-space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.transit-stop-arrival-clock-times {
+  display: flex;
   flex-direction: column;
   align-items: flex-end;
-  justify-self: end;
   gap: var(--wm-space-1);
   text-align: right;
-  font-variant-numeric: tabular-nums;
 
   > small {
     color: var(--wm-color-text-muted);

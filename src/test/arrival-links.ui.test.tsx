@@ -115,10 +115,16 @@ describe("accessible transit detail links", () => {
   });
 
   it("groups every stop-departure time separately from the route label", () => {
-    render(<ArrivalListItem id={368} arrival={arrival} />);
+    const shortSign = "54 To A Destination With A Very Long Name";
+    render(<ArrivalListItem id={368} arrival={{ ...arrival, shortSign }} />);
     const link = container.querySelector(".transit-stop-arrival-link");
-    expect(link.querySelector(".transit-stop-arrival-sign").textContent).toBe("54 Beaverton");
+    const sign = link.querySelector(".transit-stop-arrival-sign");
+    expect(sign.textContent).toBe(shortSign);
+    expect(sign.getAttribute("title")).toBe(shortSign);
     const times = link.querySelector(".transit-stop-arrival-times");
+    expect(sign.nextElementSibling).toBe(times);
+    expect(times.firstElementChild.classList.contains("wm-badge")).toBe(true);
+    expect(times.querySelector(".transit-stop-arrival-clock-times")).not.toBeNull();
     expect(times.textContent).toContain("Estimated:");
     expect(times.textContent).toContain("Scheduled:");
     expect(link.querySelectorAll("small")).toHaveLength(2);
