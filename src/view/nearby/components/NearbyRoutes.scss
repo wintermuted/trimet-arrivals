@@ -91,6 +91,12 @@
   }
 }
 
+.transit-boarding-stop a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 .transit-trip-stops {
   display: grid;
   gap: var(--wm-space-3);
@@ -131,6 +137,15 @@
   time,
   small {
     display: block;
+  }
+
+  time {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  th small {
+    font-weight: normal;
   }
 }
 

@@ -103,7 +103,7 @@ export default function NearbyDirections({
   if (!validRoute) {
     return (
       <div className="transit-directions">
-        <TopNavBar id="Choose a stop" />
+        <TopNavBar id="Choose a destination" />
         <p role="alert">Choose a route and direction from Routes to get started.</p>
       </div>
     );
@@ -112,7 +112,7 @@ export default function NearbyDirections({
   if (state.key !== key || state.status === "loading") {
     return (
       <div className="transit-directions">
-        <TopNavBar id="Choose a stop" />
+        <TopNavBar id="Choose a destination" />
         <p role="status">Loading route stops...</p>
       </div>
     );
@@ -121,7 +121,7 @@ export default function NearbyDirections({
   if (state.status === "error") {
     return (
       <div className="transit-directions">
-        <TopNavBar id="Choose a stop" />
+        <TopNavBar id="Choose a destination" />
         <p role="alert">Could not load stops for this route and direction.</p>
         <Button onClick={() => setRetry(value => value + 1)}>Try again</Button>
       </div>
@@ -170,18 +170,15 @@ export default function NearbyDirections({
     );
   }
 
-  function changeStop(name: "from" | "to", value: string) {
+  function changeDestination(value: string) {
     const next = new URLSearchParams(searchParams);
-    next.set(name, value);
-    if (name === "from") {
-      next.delete("to");
-    }
+    next.set("to", value);
     setSearchParams(next, { replace: true });
   }
 
   return (
     <div className="scrollarea transit-directions">
-      <TopNavBar id="Choose a stop" backTo={backTo} />
+      <TopNavBar id="Choose a destination" backTo={backTo} />
       {mapError && (
         <div>
           <p role="alert">Could not load the route line. Your stop selections are still available.</p>
@@ -194,23 +191,16 @@ export default function NearbyDirections({
         <h4>{state.name}</h4>
         <p>{state.directionName}</p>
       </div>
-      <FieldGroup label="Board at" htmlFor="trip-origin">
-        <Select
-          id="trip-origin"
-          value={origin ? String(from) : ""}
-          onChange={event => changeStop("from", event.target.value)}
-        >
-          <option value="" disabled>Choose a boarding stop</option>
-          {state.stops.map(stop => (
-            <option key={`${stop.locid}-${stop.seq}`} value={stop.locid}>
-              {stop.desc} ({stop.locid})
-            </option>
-          ))}
-        </Select>
-      </FieldGroup>
-      {!origin && (
-        <p role="alert">Select a boarding stop on this route and direction.</p>
-      )}
+      <div className="transit-boarding-stop">
+        {origin ? (
+          <dl className="transit-trip-stops">
+            <div><dt>Board at</dt><dd>{origin.desc} ({from})</dd></div>
+          </dl>
+        ) : (
+          <p role="alert">Go back to select a boarding stop on this route and direction.</p>
+        )}
+        <Link to={backTo}>Go back to change boarding stop</Link>
+      </div>
       <FieldGroup
         label="Get off at"
         htmlFor="trip-destination"
@@ -220,7 +210,7 @@ export default function NearbyDirections({
           id="trip-destination"
           value={destination ? String(to) : ""}
           disabled={!remainingStops.length}
-          onChange={event => changeStop("to", event.target.value)}
+          onChange={event => changeDestination(event.target.value)}
         >
           <option value="" disabled>Choose a destination</option>
           {remainingStops.map(stop => (
@@ -231,7 +221,7 @@ export default function NearbyDirections({
         </Select>
       </FieldGroup>
       {origin && !remainingStops.length && (
-        <p role="status">This is the last stop in this direction. Choose an earlier boarding stop.</p>
+        <p role="status">This is the last stop in this direction. Go back to choose an earlier boarding stop.</p>
       )}
       {searchParams.has("to") && !destination && remainingStops.length > 0 && (
         <p role="alert">Choose a destination after your boarding stop.</p>
