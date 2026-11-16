@@ -208,6 +208,7 @@ export default function NearbyDirections({
         id={state.name}
         subtitle={destination ? `To ${destination.desc}` : state.directionName}
         backTo={backTo}
+        truncateTitle
       />
       {mapError && (
         <div className="transit-directions-map-error">

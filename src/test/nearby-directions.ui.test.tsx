@@ -109,6 +109,21 @@ describe("route-aware destination selection", () => {
     });
   }
 
+  it("truncates the route title without changing its subtitle or back link", async () => {
+    const name = "54 Example route with a long descriptive name";
+    loadRoute.mockResolvedValueOnce({ route: [{ ...route.route[0], desc: name }] });
+    await render();
+    const title = container.querySelector<HTMLHeadingElement>("header h3");
+    expect(title.textContent).toBe(name);
+    expect(title.title).toBe(name);
+    expect(title.classList.contains("transit-detail-title-truncated")).toBe(true);
+    expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Example Terminal");
+    expect(container.querySelector('header a[aria-label="Back"]').getAttribute("href"))
+      .toBe("/nearby/simple-routes/54?stop=101&direction=1");
+    chooseDestination("102");
+    expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Example Middle");
+  });
+
   it("orders downstream choices and keeps destination, map focus and arrivals in sync", async () => {
     await render();
     expect(loadRoute).toHaveBeenCalledWith(54, 1);
