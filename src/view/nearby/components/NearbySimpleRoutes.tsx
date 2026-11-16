@@ -8,7 +8,7 @@ import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import { each, filter, groupBy, join, map } from "lodash";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { WalkingEstimate } from "../../../api/mapbox/walking";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
@@ -209,8 +209,14 @@ export default function NearbySimpleRoutes({
   onRouteInfoChanged,
   onRouteInfoStopHighlighted,
 }: Props) {
-  const [infoRoute, setInfoRoute] = useState<TrimetRoute>();
-  const infoButton = useRef<HTMLButtonElement>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const routeValues = searchParams.getAll("route");
+  const routeValue = routeValues[0];
+  const parsedRoute = /^\d+$/.test(routeValue || "") ? Number(routeValue) : NaN;
+  const infoRouteId = routeValues.length === 1 && Number.isSafeInteger(parsedRoute) && parsedRoute > 0
+    ? parsedRoute : undefined;
+  const invalidRoute = routeValues.length > 0 && infoRouteId === undefined;
+  const infoButton = useRef<HTMLAnchorElement>();
   const [arrivalData, setArrivalData] = useState<ArrivalData>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -382,21 +388,43 @@ export default function NearbySimpleRoutes({
     setSelectedFilterValues([]);
   }
 
+  function closeRouteInfo() {
+    const next = new URLSearchParams(searchParams);
+    next.delete("route");
+    setSearchParams(next, { replace: true });
+    requestAnimationFrame(() => infoButton.current?.focus());
+  }
+
+  function routeInfoSearch(routeId: number) {
+    const next = new URLSearchParams(searchParams);
+    next.set("route", String(routeId));
+    return `?${next.toString()}`;
+  }
+
   return (
     <>
-    {infoRoute && (
+    {infoRouteId !== undefined && (
       <NearbyRouteInfo
-        routeId={infoRoute.route}
-        routeName={infoRoute.desc}
+        key={infoRouteId}
+        routeId={infoRouteId}
         onMapChanged={onRouteInfoChanged}
         onStopHighlightChanged={onRouteInfoStopHighlighted}
-        onClose={() => {
-          setInfoRoute(undefined);
-          requestAnimationFrame(() => infoButton.current?.focus());
-        }}
+        onClose={closeRouteInfo}
       />
     )}
-    <div hidden={Boolean(infoRoute)}>
+    {invalidRoute && (
+      <section className="transit-destination-panel" aria-label="Route details" onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          closeRouteInfo();
+        }
+      }}>
+        <p role="alert">Invalid route number in the link.</p>
+        <Button autoFocus variant="secondary" onClick={closeRouteInfo}>Close</Button>
+      </section>
+    )}
+    <div hidden={infoRouteId !== undefined || invalidRoute}>
     <div id="nearby-view-routes" className="scrollarea">
       <SearchRadiusSelection
         radiusSize={radiusSize}
@@ -609,19 +637,18 @@ export default function NearbySimpleRoutes({
                       </details>
                     ))}
                   </details>
-                  <button
-                    type="button"
+                  <Link
                     className="transit-simple-route-details-link"
+                    to={{ search: routeInfoSearch(route.route) }}
                     aria-label={`View Route ${route.route} details`}
                     title={`Route ${route.route} details`}
                     onClick={(event) => {
                       infoButton.current = event.currentTarget;
                       clearHighlight();
-                      setInfoRoute(route);
                     }}
                   >
                     <FontAwesome name="info-circle" aria-hidden="true" />
-                  </button>
+                  </Link>
                 </div>
               ))}
             </div>

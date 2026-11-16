@@ -8,13 +8,11 @@ import useStopHighlight from "../util/useStopHighlight";
 
 export default function NearbyRouteInfo({
   routeId,
-  routeName,
   onClose,
   onMapChanged,
   onStopHighlightChanged,
 }: {
   routeId: number;
-  routeName: string;
   onClose: () => void;
   onMapChanged?: (route: TrimetRoute, onError: () => void) => () => void;
   onStopHighlightChanged?: (stopId?: number) => void;
@@ -66,7 +64,7 @@ export default function NearbyRouteInfo({
       }}
     >
       <div className="transit-destination-panel-header">
-        <h4>Route {routeId}: {routeName}</h4>
+        <h4>Route {routeId}{route?.desc ? `: ${route.desc}` : ""}</h4>
         <Button ref={closeButton} variant="ghost" onClick={onClose}>Close</Button>
       </div>
       {error ? (

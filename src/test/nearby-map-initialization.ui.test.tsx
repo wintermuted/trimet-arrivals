@@ -185,7 +185,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       </FeatureFlagsProvider>
     ));
     await act(async () => finishMapLoading());
-    await act(async () => container.querySelector<HTMLButtonElement>(".transit-simple-route-details-link").click());
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link").click());
     const stopClick = jest.mocked(showRouteInfo).mock.calls[0][3];
     await act(async () => stopClick(101));
     expect(container.textContent).toContain("Stop detail opened");
