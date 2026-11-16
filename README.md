@@ -77,7 +77,9 @@ content, matching pointer arrows, and visible close-button focus states.
 
 Go on a route's stop detail opens a destination picker with the current route, direction,
 and boarding stop. Destinations are limited to subsequent stops in route order;
-the boarding stop is read-only here: go back to change it. The map shows the selected
+the boarding stop is read-only here: go back to change it. The header shows the route
+and selected destination (or route direction until a destination is chosen).
+The map shows the selected
 route line and labeled boarding/destination markers. With both stops selected it
 shows a solid line for the selected portion and fits both stops plus the intervening
 road geometry, with padding that adapts to the map panel's size; with only a
