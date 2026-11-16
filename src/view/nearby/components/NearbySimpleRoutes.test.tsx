@@ -158,6 +158,29 @@ describe("NearbySimpleRoutes", () => {
       container.querySelectorAll(".transit-simple-route-group")
     ).toHaveLength(1);
     expect(container.querySelectorAll('a[href="/lines/54"]')).toHaveLength(1);
+    const routeDisclosure =
+      container.querySelector<HTMLDetailsElement>(".transit-simple-route-group");
+    const directionDisclosures = Array.from(
+      container.querySelectorAll<HTMLDetailsElement>(
+        ".transit-simple-route-direction"
+      )
+    );
+    if (!routeDisclosure || directionDisclosures.length !== 2) {
+      throw new Error("The route and direction disclosures were not rendered.");
+    }
+    expect(routeDisclosure.open).toBe(true);
+    expect(directionDisclosures.every((direction) => direction.open)).toBe(true);
+    await act(async () => {
+      directionDisclosures[0].open = false;
+      routeDisclosure.open = false;
+      routeDisclosure.open = true;
+    });
+    expect(directionDisclosures[0].open).toBe(false);
+    expect(directionDisclosures[1].open).toBe(true);
+    await act(async () => {
+      directionDisclosures[0].open = true;
+    });
+
     const north = container.querySelector(
       '[aria-label="Route 54, Northbound stops"]'
     );
@@ -273,6 +296,19 @@ describe("NearbySimpleRoutes", () => {
       container.querySelectorAll(".transit-simple-route-group")
     ).toHaveLength(2);
     expect(container.querySelectorAll('a[href="/lines/54"]')).toHaveLength(1);
+    const routeDisclosure = container.querySelector<HTMLDetailsElement>(
+      '[aria-labelledby="nearby-route-54"]'
+    );
+    const directionDisclosure = container.querySelector<HTMLDetailsElement>(
+      '[aria-labelledby="nearby-direction-54-0"]'
+    );
+    if (!routeDisclosure || !directionDisclosure) {
+      throw new Error("The route disclosures were not rendered.");
+    }
+    await act(async () => {
+      directionDisclosure.open = false;
+      routeDisclosure.open = false;
+    });
 
     const filterButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button")
@@ -301,5 +337,10 @@ describe("NearbySimpleRoutes", () => {
 
     expect(routeLinks()[0]).toBe("/lines/12");
     expect(sortButton.getAttribute("aria-label")).toBe("Sort: Nearest stop");
+    expect(
+      container.querySelector('[aria-labelledby="nearby-route-54"]')
+    ).toBe(routeDisclosure);
+    expect(routeDisclosure.open).toBe(false);
+    expect(directionDisclosure.open).toBe(false);
   });
 });

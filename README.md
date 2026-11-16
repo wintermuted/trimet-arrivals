@@ -54,7 +54,11 @@ Departure rows support mouse and keyboard selection, with a highlight and caret
 identifying the selected departure. Selection persists across updates while that
 departure remains available; otherwise the first departure is selected.
 
-The Nearby route list groups stops by route, then direction. Each stop row shows
+The Nearby route list groups stops by route, then direction.
+Route and direction headings are independent keyboard-accessible disclosures,
+expanded by default; collapsing a route retains its directions' open/closed state.
+The Route details link opens the general line page separately from the disclosures.
+Each stop row shows
 its next reported arrival and distance; click the row's View arrivals action to
 open that route, direction, and boarding stop in the sidebar. All nearby stops
 are listed rather than hidden in a selector. The right-aligned filter and sort

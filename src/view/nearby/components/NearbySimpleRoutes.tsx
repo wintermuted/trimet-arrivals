@@ -7,6 +7,7 @@ import {
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import { each, filter, groupBy, join, map } from "lodash";
 import React, { useEffect, useMemo, useState } from "react";
+import FontAwesome from "react-fontawesome";
 import { Link } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
@@ -451,32 +452,38 @@ export default function NearbySimpleRoutes({
               aria-label="Nearby route arrivals"
             >
               {displayRoutes.map(({ route, directions }) => (
-                <section
+                <details
                   key={route.route}
                   className="transit-simple-route-group"
                   aria-labelledby={`nearby-route-${route.route}`}
+                  open
                 >
-                  <h4
+                  <summary
                     id={`nearby-route-${route.route}`}
                     className="transit-simple-route-heading"
                   >
-                    <Link
-                      to={`/lines/${route.route}`}
-                      aria-label={`View Route ${route.route} details`}
-                    >
-                      Route {route.route}
-                    </Link>
+                    <FontAwesome name="caret-right" aria-hidden="true" />
+                    <strong>Route {route.route}</strong>
                     <span>{route.desc}</span>
-                  </h4>
+                  </summary>
+                  <Link
+                    className="transit-simple-route-details-link"
+                    to={`/lines/${route.route}`}
+                    aria-label={`View Route ${route.route} details`}
+                  >
+                    Route details
+                  </Link>
                   {directions.map((direction) => (
-                    <section
+                    <details
                       key={direction.key}
                       className="transit-simple-route-direction"
                       aria-labelledby={`nearby-direction-${direction.key}`}
+                      open
                     >
-                      <h5 id={`nearby-direction-${direction.key}`}>
+                      <summary id={`nearby-direction-${direction.key}`}>
+                        <FontAwesome name="caret-right" aria-hidden="true" />
                         {direction.direction.desc}
-                      </h5>
+                      </summary>
                       <ListGroup
                         aria-label={`Route ${route.route}, ${direction.direction.desc} stops`}
                       >
@@ -528,9 +535,9 @@ export default function NearbySimpleRoutes({
                           }
                         )}
                       </ListGroup>
-                    </section>
+                    </details>
                   ))}
-                </section>
+                </details>
               ))}
             </div>
           )}
