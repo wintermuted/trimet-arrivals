@@ -6,7 +6,7 @@ import {
 } from "@wintermuted/ui-theme/react";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import { each, filter, groupBy, join, map } from "lodash";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { Link } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
@@ -28,6 +28,8 @@ import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
 import { SearchRadiusSelection } from "./SearchRadiusSelection";
+import NearbyRouteInfo from "./NearbyRouteInfo";
+import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
 
 interface Props {
   nearbyStops: StopData;
@@ -39,6 +41,7 @@ interface Props {
   stopCount: number;
   onStopHighlightChanged?: (stopId?: number) => void;
   walkingEnabled?: boolean;
+  onRouteInfoChanged?: (route: DetailedRoute, onError: () => void) => () => void;
 }
 
 interface RouteStop {
@@ -202,7 +205,10 @@ export default function NearbySimpleRoutes({
   stopCount,
   onStopHighlightChanged,
   walkingEnabled = false,
+  onRouteInfoChanged,
 }: Props) {
+  const [infoRoute, setInfoRoute] = useState<TrimetRoute>();
+  const infoButton = useRef<HTMLButtonElement>();
   const [arrivalData, setArrivalData] = useState<ArrivalData>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -375,6 +381,19 @@ export default function NearbySimpleRoutes({
   }
 
   return (
+    <>
+    {infoRoute && (
+      <NearbyRouteInfo
+        routeId={infoRoute.route}
+        routeName={infoRoute.desc}
+        onMapChanged={onRouteInfoChanged}
+        onClose={() => {
+          setInfoRoute(undefined);
+          requestAnimationFrame(() => infoButton.current?.focus());
+        }}
+      />
+    )}
+    <div hidden={Boolean(infoRoute)}>
     <div id="nearby-view-routes" className="scrollarea">
       <SearchRadiusSelection
         radiusSize={radiusSize}
@@ -587,14 +606,19 @@ export default function NearbySimpleRoutes({
                       </details>
                     ))}
                   </details>
-                  <Link
+                  <button
+                    type="button"
                     className="transit-simple-route-details-link"
-                    to={`/lines/${route.route}`}
                     aria-label={`View Route ${route.route} details`}
                     title={`Route ${route.route} details`}
+                    onClick={(event) => {
+                      infoButton.current = event.currentTarget;
+                      clearHighlight();
+                      setInfoRoute(route);
+                    }}
                   >
                     <FontAwesome name="info-circle" aria-hidden="true" />
-                  </Link>
+                  </button>
                 </div>
               ))}
             </div>
@@ -602,5 +626,7 @@ export default function NearbySimpleRoutes({
         </>
       )}
     </div>
+    </div>
+    </>
   );
 }

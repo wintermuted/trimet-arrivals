@@ -5,6 +5,7 @@ import { setRoutes } from "../view/nearby/util/mapbox/routeLines";
 import { highlightNearbyStop, removeStopLocationLayers, setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLocation";
 import { showWalkingRoute } from "../view/nearby/util/mapbox/walkingRoute";
+import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 
 jest.mock("!mapbox-gl", () => jest.requireMock("mapbox-gl"), { virtual: true });
 
@@ -13,8 +14,12 @@ jest.mock("mapbox-gl", () => {
     getContainer: jest.fn().mockReturnValue({ clientWidth: 800, clientHeight: 400 }),
     getCanvas: jest.fn().mockReturnValue(global.document.createElement("canvas")),
     getCenter: jest.fn().mockReturnValue({ lng: 0, lat: 0 }),
+    getZoom: jest.fn().mockReturnValue(14),
+    getLayoutProperty: jest.fn().mockReturnValue("visible"),
+    setLayoutProperty: jest.fn(),
     fitBounds: jest.fn(),
     flyTo: jest.fn(),
+    jumpTo: jest.fn(),
     loaded: jest.fn().mockReturnValue(true),
     on: jest.fn(),
     off: jest.fn(),
@@ -28,7 +33,8 @@ jest.mock("mapbox-gl", () => {
     removeSource: jest.fn()
   });
   const createBounds = () => ({
-    extend: jest.fn().mockReturnThis()
+    extend: jest.fn().mockReturnThis(),
+    isEmpty: jest.fn().mockReturnValue(false)
   });
   const createMarker = () => ({
     setLngLat: jest.fn().mockReturnThis(),
@@ -89,6 +95,54 @@ describe("directions route line and endpoint framing", () => {
     global.fetch = originalFetch;
   });
 
+  it("shows all directions and unique route stops, then restores nearby markers", async () => {
+      const route = {
+        route: 54, id: 54, desc: "Example", type: "bus", routeColor: "", routeSortOrder: 54,
+        dir: [
+          { dir: 0, desc: "Outbound", stop: [selection.origin, selection.destination] },
+          { dir: 1, desc: "Inbound", stop: [selection.destination] }
+        ]
+      };
+      let close: () => void;
+      await act(async () => { close = showRouteInfo(map, route, onError); });
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(map.addSource).toHaveBeenCalledWith("route-info-stops", expect.objectContaining({
+        data: expect.objectContaining({ features: expect.arrayContaining([
+          expect.objectContaining({ properties: expect.objectContaining({ locid: 101 }) }),
+          expect.objectContaining({ properties: expect.objectContaining({ locid: 103 }) })
+        ]) })
+      }));
+      expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: "route-info-0" }));
+      expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: "route-info-1" }));
+      expect(map.setLayoutProperty).toHaveBeenCalledWith("stopLocationLayer", "visibility", "none");
+      close();
+      expect(map.removeLayer).toHaveBeenCalledWith("route-info-stops");
+      expect(map.removeLayer).toHaveBeenCalledWith("route-info-0");
+      expect(map.removeLayer).toHaveBeenCalledWith("route-info-1");
+      expect(map.setLayoutProperty).toHaveBeenLastCalledWith("stopLocationLayer", "visibility", "visible");
+      expect(map.jumpTo).toHaveBeenCalledWith(expect.objectContaining({ zoom: 14 }));
+  });
+
+  it("reports failed geometry and ignores late responses after the panel closes", async () => {
+    let resolveGeometry: (value: any) => void;
+    global.fetch = jest.fn()
+      .mockRejectedValueOnce(new Error("Unavailable"))
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveGeometry = resolve; }));
+    const route = {
+      route: 54, id: 54, desc: "Example", type: "bus", routeColor: "", routeSortOrder: 54,
+      dir: [
+        { dir: 0, desc: "Outbound", stop: [selection.origin] },
+        { dir: 1, desc: "Inbound", stop: [selection.destination] }
+      ]
+    };
+    let close: () => void;
+    await act(async () => { close = showRouteInfo(map, route, onError); });
+    expect(onError).toHaveBeenCalledTimes(1);
+    close();
+    await act(async () => resolveGeometry({ ok: true, json: async () => geometry }));
+    expect(map.addLayer).not.toHaveBeenCalledWith(expect.objectContaining({ id: "route-info-1" }));
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
   it("draws and cleans up only the walking overlay, preserving the bus route", () => {
     const close = showWalkingRoute(map, {
       geometry: { coordinates: [[0, 0], [0, 0.001], [0.001, 0.001]], type: "LineString" },
