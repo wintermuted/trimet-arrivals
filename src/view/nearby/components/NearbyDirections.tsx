@@ -50,6 +50,7 @@ export default function NearbyDirections({
   const [retry, setRetry] = useState(0);
   const [mapError, setMapError] = useState(false);
   const [mapRetry, setMapRetry] = useState(0);
+  const [choosingDestination, setChoosingDestination] = useState(false);
 
   useEffect(() => {
     if (!validRoute) {
@@ -178,7 +179,7 @@ export default function NearbyDirections({
   }
 
   return (
-    <div className="scrollarea transit-directions">
+    <div className={`scrollarea transit-directions${choosingDestination ? " transit-directions-picking" : ""}`}>
       <TopNavBar
         id={state.name}
         subtitle={destination ? `To ${destination.desc}` : state.directionName}
@@ -203,6 +204,7 @@ export default function NearbyDirections({
         <Link to={backTo}>Go back to change boarding stop</Link>
       </div>
       <FieldGroup
+        className="transit-destination-field"
         label="Get off at"
         htmlFor="trip-destination"
         hint="Stops ahead of your boarding stop, in route order."
@@ -211,6 +213,7 @@ export default function NearbyDirections({
           stops={remainingStops}
           destination={destination}
           routeId={routeId}
+          onOpenChange={setChoosingDestination}
           onSelect={stop => changeDestination(String(stop.locid))}
         />
       </FieldGroup>

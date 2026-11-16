@@ -97,6 +97,15 @@
   min-height: 44px;
 }
 
+.transit-directions-picking {
+  > :not(.transit-destination-field),
+  .transit-destination-field > label,
+  .transit-destination-field > .wm-field-hint,
+  .transit-destination-trigger {
+    display: none;
+  }
+}
+
 .transit-destination-trigger {
   width: 100%;
   justify-content: flex-start;
@@ -114,10 +123,15 @@
 }
 
 .transit-destination-panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--wm-space-2);
+  padding-block: var(--wm-space-2);
+  background: var(--wm-color-surface);
 
   h4 {
     min-width: 0;
