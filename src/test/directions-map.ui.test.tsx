@@ -242,9 +242,10 @@ describe("directions route line and endpoint framing", () => {
     }));
   });
 
-  it("shows only downstream destination markers and previews through the terminus while choosing", async () => {
+  it("shows every route stop and fits the full line before and after the origin", async () => {
     const middle = { ...selection.destination, locid: 102, seq: 20, lng: 1, lat: 0 };
-    const destinationStops = [middle, middle, selection.destination];
+    const before = { ...selection.origin, locid: 100, seq: 0, lng: -1 };
+    const routeStops = [before, selection.origin, middle, middle, selection.destination];
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -260,13 +261,13 @@ describe("directions route line and endpoint framing", () => {
       close = showDirectionsSelection(map, {
         ...selection,
         destination: middle,
-        destinationStops
+        routeStops
       }, onError);
     });
     const stopSource = map.addSource.mock.calls.find(([id]) => id === "directions-stops")[1];
     expect(stopSource).toEqual({
       data: {
-        features: [middle, selection.destination].map(stop => ({
+        features: [before, middle, selection.destination].map(stop => ({
           geometry: { coordinates: [stop.lng, stop.lat], type: "Point" },
           properties: {
             color: stop.locid === middle.locid ? "#c55316" : "#4264fb",
@@ -279,13 +280,16 @@ describe("directions route line and endpoint framing", () => {
       type: "geojson"
     });
     expect(map.addSource).toHaveBeenCalledWith("directions-route", expect.objectContaining({
-      data: expect.objectContaining({ geometry: geometry.geometry })
+      data: expect.objectContaining({ geometry: {
+        coordinates: [[-1, 0], ...geometry.geometry.coordinates, [3, 1]],
+        type: "LineString"
+      } })
     }));
     expect(map.moveLayer).toHaveBeenCalledWith("directions-route", "directions-stops");
     const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
     expect(bounds.extend).toHaveBeenCalledWith([2, 1]);
-    expect(bounds.extend).not.toHaveBeenCalledWith([-1, 0]);
-    expect(bounds.extend).not.toHaveBeenCalledWith([3, 1]);
+    expect(bounds.extend).toHaveBeenCalledWith([-1, 0]);
+    expect(bounds.extend).toHaveBeenCalledWith([3, 1]);
     expect(map.fitBounds).toHaveBeenLastCalledWith(bounds, expect.anything());
     expect(map.flyTo).not.toHaveBeenCalled();
     expect(Marker).toHaveBeenCalledTimes(1);
@@ -297,7 +301,7 @@ describe("directions route line and endpoint framing", () => {
 
   it("highlights and restores a stop without refetching geometry or moving the camera", async () => {
     await act(async () => showDirectionsSelection(map, {
-      ...selection, destinationStops: [selection.destination]
+      ...selection, routeStops: [selection.origin, selection.destination]
     }, onError));
     const fits = map.fitBounds.mock.calls.length;
     highlightDirectionsStop(map, 103);
@@ -321,11 +325,33 @@ describe("directions route line and endpoint framing", () => {
     expect(map.setPaintProperty).not.toHaveBeenCalled();
   });
 
+  it("shows and fits the full route even before a destination is chosen", async () => {
+    const before = { ...selection.origin, locid: 100, seq: 0, lng: -1 };
+    const fullGeometry = {
+      ...geometry,
+      geometry: { type: "LineString", coordinates: [[-1, 0], ...geometry.geometry.coordinates, [3, 1]] }
+    };
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => fullGeometry });
+    await act(async () => showDirectionsSelection(map, {
+      ...selection,
+      destination: undefined,
+      routeStops: [before, selection.origin, selection.destination]
+    }, onError));
+    expect(map.addSource).toHaveBeenCalledWith("directions-route", expect.objectContaining({
+      data: expect.objectContaining({ geometry: fullGeometry.geometry })
+    }));
+    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    expect(bounds.extend).toHaveBeenCalledWith([-1, 0]);
+    expect(bounds.extend).toHaveBeenCalledWith([3, 1]);
+    expect(map.fitBounds).toHaveBeenCalled();
+    expect(map.flyTo).not.toHaveBeenCalled();
+  });
+
   it("removes choosing markers and ignores a late route response after cancellation", async () => {
     let resolveFetch: (response: object) => void;
     global.fetch = jest.fn().mockImplementation(() => new Promise(resolve => { resolveFetch = resolve; }));
     const close = showDirectionsSelection(map, {
-      ...selection, destination: undefined, destinationStops: [selection.destination]
+      ...selection, destination: undefined, routeStops: [selection.origin, selection.destination]
     }, onError);
     expect(map.flyTo).not.toHaveBeenCalled();
     close();
