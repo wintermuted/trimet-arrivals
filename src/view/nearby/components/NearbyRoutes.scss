@@ -145,8 +145,15 @@
   gap: var(--wm-space-1);
   padding-inline-start: var(--wm-space-4);
 
-  li {
+  a {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--wm-space-2);
+    min-height: var(--wm-control-height);
+    align-items: center;
     padding: var(--wm-space-1) var(--wm-space-2);
+    color: var(--wm-color-text);
+    text-decoration: none;
     overflow-wrap: anywhere;
 
     &:hover,
@@ -161,7 +168,7 @@
   }
 
   small {
-    float: right;
+    flex-shrink: 0;
     margin-inline-start: var(--wm-space-2);
     color: var(--wm-color-text-muted);
   }

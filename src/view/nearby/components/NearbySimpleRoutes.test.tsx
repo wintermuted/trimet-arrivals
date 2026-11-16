@@ -353,6 +353,30 @@ describe("NearbySimpleRoutes", () => {
     expect(highlight).toHaveBeenLastCalledWith();
   });
 
+  it("opens the selected route stop from the details list", async () => {
+    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    jest.mocked(getRouteById).mockResolvedValue({
+      route: [{
+        route: 54, id: 54, desc: "Beaverton", type: "bus",
+        routeColor: "", routeSortOrder: 54,
+        dir: [{ dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
+      }]
+    });
+    await act(async () => root.render(
+      <MemoryRouter>
+        <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
+          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          routeCount={1} stopCount={2} />
+        <CurrentLocation />
+      </MemoryRouter>
+    ));
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-simple-route-details-link").click());
+    const stopLink = container.querySelector<HTMLAnchorElement>('[aria-label="Route 54 details"] a[data-stop-id="101"]');
+    expect(stopLink.getAttribute("href")).toBe("/nearby/stops/101");
+    await act(async () => stopLink.click());
+    expect(container.querySelector("output")?.textContent).toBe("/nearby/stops/101");
+  });
+
   it("reports route detail failures and retries without leaving the nearby list", async () => {
     jest.mocked(getArrivals).mockResolvedValue(response([]));
     jest.mocked(getRouteById)

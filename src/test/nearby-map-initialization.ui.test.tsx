@@ -3,14 +3,23 @@ import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import geoLocateCurrentPosition from "../api/geolocation/geoLocateCurrentPosition";
 import { getNearbyStops } from "../api/trimet/stops";
+import { getArrivals } from "../api/trimet/arrivals";
+import { getRouteById } from "../api/trimet/routeConfig";
 import { StopData } from "../api/trimet/interfaces/types";
 import { FeatureFlagsProvider } from "../component/feature-flags/FeatureFlags";
-import NearbyViewComponent from "../view/nearby/components/NearbyViewComponent";
+import NearbyViewComponent, { NearbySimpleRoutesComp } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
+import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 
 jest.mock("../api/geolocation/geoLocateCurrentPosition");
 jest.mock("../api/trimet/stops");
+jest.mock("../api/trimet/arrivals");
+jest.mock("../api/trimet/routeConfig");
 jest.mock("../api/mapbox/walking");
+jest.mock("../view/nearby/util/mapbox/routeInfo", () => ({
+  highlightRouteInfoStop: jest.fn(),
+  showRouteInfo: jest.fn(),
+}));
 jest.mock("../view/nearby/util/mapbox/initializeMap", () => ({
   initializeMap: jest.fn(),
 }));
@@ -54,7 +63,7 @@ const stops: StopData = {
 describe("Nearby map initialization independently of the sidebar", () => {
   let container: HTMLDivElement;
   let root: Root;
-  const map = { on: jest.fn(), remove: jest.fn(), resize: jest.fn() };
+  const map = { on: jest.fn(), remove: jest.fn(), resize: jest.fn(), flyTo: jest.fn() };
   const previousResizeObserver = global.ResizeObserver;
 
   beforeEach(() => {
@@ -76,6 +85,19 @@ describe("Nearby map initialization independently of the sidebar", () => {
       timestamp: 0,
     });
     jest.mocked(getNearbyStops).mockResolvedValue(stops);
+    jest.mocked(getArrivals).mockResolvedValue({
+      arrival: [], detour: [], location: [], queryTime: ""
+    });
+    jest.mocked(getRouteById).mockResolvedValue({
+      route: [{
+        route: 56, id: 56, desc: "Example route", type: "bus",
+        routeColor: "", routeSortOrder: 56,
+        dir: [{ dir: 0, desc: "To Example Destination", stop: [
+          { ...stops.location[0], seq: 1, tp: false }
+        ] }]
+      }]
+    });
+    jest.mocked(showRouteInfo).mockReturnValue(jest.fn());
     jest
       .requireMock("../view/nearby/util/mapbox/initializeMap")
       .initializeMap.mockReturnValue(map);
@@ -85,6 +107,9 @@ describe("Nearby map initialization independently of the sidebar", () => {
     jest
       .requireMock("../view/nearby/util/mapbox/stopLocationMarker.util")
       .setNearbyStops.mockReturnValue(map);
+    jest
+      .requireMock("../view/nearby/util/mapbox/stopLocationMarker.util")
+      .removeStopLocationLayers.mockReturnValue(map);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -144,5 +169,26 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(setNearbyStops).not.toHaveBeenCalled();
     finishMapLoading();
     expect(setNearbyStops).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the nearby stop view when a route-info marker is clicked", async () => {
+    await act(async () => root.render(
+      <FeatureFlagsProvider>
+        <MemoryRouter initialEntries={["/nearby/simple-routes"]}>
+          <Routes>
+            <Route path="/nearby" element={<NearbyViewComponent />}>
+              <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
+              <Route path="stops/:id" element={<p>Stop detail opened</p>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </FeatureFlagsProvider>
+    ));
+    await act(async () => finishMapLoading());
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-simple-route-details-link").click());
+    const stopClick = jest.mocked(showRouteInfo).mock.calls[0][3];
+    await act(async () => stopClick(101));
+    expect(container.textContent).toContain("Stop detail opened");
+    expect(jest.mocked(showRouteInfo).mock.results[0].value).toHaveBeenCalled();
   });
 });

@@ -100,16 +100,17 @@ export default function NearbyRouteInfo({
               <summary><FontAwesome name="caret-right" aria-hidden="true" />{direction.desc}</summary>
               <ol className="transit-route-info-stops">
                 {direction.stop.map((stop) => (
-                  <li
-                    key={`${stop.locid}-${stop.seq}`}
-                    tabIndex={0}
-                    data-stop-id={stop.locid}
-                    onMouseEnter={() => hoverStop(stop.locid)}
-                    onMouseLeave={() => hoverStop()}
-                    onFocus={() => focusStop(stop.locid)}
-                    onBlur={() => focusStop()}
-                  >
-                    <span>{stop.desc}</span><small>{stop.locid}</small>
+                  <li key={`${stop.locid}-${stop.seq}`}>
+                    <Link
+                      to={`/nearby/stops/${stop.locid}`}
+                      data-stop-id={stop.locid}
+                      onMouseEnter={() => hoverStop(stop.locid)}
+                      onMouseLeave={() => hoverStop()}
+                      onFocus={() => focusStop(stop.locid)}
+                      onBlur={() => focusStop()}
+                    >
+                      <span>{stop.desc}</span><small>{stop.locid}</small>
+                    </Link>
                   </li>
                 ))}
               </ol>

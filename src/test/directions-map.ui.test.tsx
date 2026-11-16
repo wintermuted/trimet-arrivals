@@ -162,6 +162,52 @@ describe("directions route line and endpoint framing", () => {
     highlightRouteInfoStop(map, 101);
     expect(map.setPaintProperty).not.toHaveBeenCalled();
   });
+
+  it("shows a safe tooltip for list and map hovers, navigates on click, and removes handlers", async () => {
+    const route = {
+      route: 54, id: 54, desc: "Example", type: "bus", routeColor: "", routeSortOrder: 54,
+      dir: [{ dir: 0, desc: "Outbound", stop: [
+        { ...selection.origin, desc: "<Example First>" }, selection.destination
+      ] }]
+    };
+    const onStopClick = jest.fn();
+    let close: () => void;
+    await act(async () => { close = showRouteInfo(map, route, onError, onStopClick); });
+    const popup = jest.mocked(Popup).mock.results[0].value;
+    const handler = (name: string) => map.on.mock.calls.find(([event, layer]) =>
+      event === name && layer === "route-info-stops")[2] as (event?: any) => void;
+    const enter = handler("mouseenter");
+    const move = handler("mousemove");
+    const leave = handler("mouseleave");
+    const click = handler("click");
+    const event = (id: number) => ({ features: [{ properties: { locid: id } }], lngLat: { lng: 2 } });
+
+    highlightRouteInfoStop(map, 101);
+    expect(popup.setText).toHaveBeenLastCalledWith("<Example First>\nStop ID: 101\nRoute: 54");
+    expect(popup.setHTML).not.toHaveBeenCalled();
+    expect(popup.setLngLat).toHaveBeenLastCalledWith([0, 0]);
+    enter(event(103));
+    expect(popup.setText).toHaveBeenLastCalledWith("Example Last\nStop ID: 103\nRoute: 54");
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "route-info-stops", "circle-radius", ["case", ["==", ["get", "locid"], 103], 12, 6]
+    );
+    move(event(101));
+    expect(popup.setText).toHaveBeenLastCalledWith("<Example First>\nStop ID: 101\nRoute: 54");
+    leave();
+    expect(popup.setText).toHaveBeenLastCalledWith("<Example First>\nStop ID: 101\nRoute: 54");
+    highlightRouteInfoStop(map);
+    expect(popup.remove).toHaveBeenCalled();
+    click(event(103));
+    click(event(999));
+    expect(onStopClick).toHaveBeenCalledTimes(1);
+    expect(onStopClick).toHaveBeenCalledWith(103);
+    close();
+    expect(map.off).toHaveBeenCalledWith("mouseenter", "route-info-stops", enter);
+    expect(map.off).toHaveBeenCalledWith("mousemove", "route-info-stops", move);
+    expect(map.off).toHaveBeenCalledWith("mouseleave", "route-info-stops", leave);
+    expect(map.off).toHaveBeenCalledWith("click", "route-info-stops", click);
+    expect(map.getCanvas().style.cursor).toBe("");
+  });
   it("draws and cleans up only the walking overlay, preserving the bus route", () => {
     const close = showWalkingRoute(map, {
       geometry: { coordinates: [[0, 0], [0, 0.001], [0.001, 0.001]], type: "LineString" },
