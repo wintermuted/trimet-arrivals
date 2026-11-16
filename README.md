@@ -119,6 +119,8 @@ the full header opens the stop. Hovering a card or focusing any of its links
 highlights its marker and opens the same popup as marker hover. Pointer hover
 takes precedence over keyboard focus, and leaving restores any focused card.
 Changing the stop data or radius, or leaving the view, clears stale highlights.
+Each listed route direction has a Go action that starts destination selection
+from that stop.
 With walking estimates enabled, cards are ordered by estimated walking-network
 distance, nearest first, with ties broken by stop ID. Unreachable, unreliable, or missing
 estimates are listed last, never ranked using straight-line distance as a
