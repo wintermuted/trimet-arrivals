@@ -190,6 +190,16 @@ describe("general Nearby stop walking access", () => {
     expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe("/nearby/stops");
   });
 
+  it("shows the full stop name in a truncatable header without repeating it in the card", async () => {
+    await render();
+    const heading = container.querySelector<HTMLHeadingElement>(".transit-detail-header h3");
+    expect(heading.textContent).toBe("Example stop 340");
+    expect(heading.title).toBe("Example stop 340");
+    expect(heading.classList.contains("transit-detail-title-truncated")).toBe(true);
+    expect(container.textContent.match(/Example stop 340/g)).toHaveLength(1);
+    expect(container.textContent).toContain("StopID: 340");
+  });
+
   it("shows all routes serving the exact stop even when there are no departures", async () => {
     jest.mocked(getNearbyStops).mockResolvedValueOnce({
       queryTime: "",
