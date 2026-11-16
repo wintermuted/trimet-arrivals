@@ -3,6 +3,25 @@ import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { TopNavBar } from "../view/nearby/components/common/TopNavBar";
 
+it("keeps the route and destination together in the header", async () => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  try {
+    await act(async () => root.render(
+      <MemoryRouter>
+        <TopNavBar id="54 Example Route" subtitle="To Example Destination" />
+      </MemoryRouter>
+    ));
+    const heading = container.querySelector("header .transit-detail-heading");
+    expect(heading.querySelector("h3").textContent).toBe("54 Example Route");
+    expect(heading.querySelector("p").textContent).toBe("To Example Destination");
+  } finally {
+    act(() => root.unmount());
+    container.remove();
+  }
+});
+
 it.each([undefined, "/nearby/stops"])(
   "places an accessible back caret before the title and navigates to %s",
   async (backTo) => {

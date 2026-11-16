@@ -83,6 +83,9 @@ describe("route-aware destination selection", () => {
   it("orders downstream choices and keeps destination, map focus and arrivals in sync", async () => {
     await render();
     expect(loadRoute).toHaveBeenCalledWith(54, 1);
+    expect(container.querySelector("header h3").textContent).toBe("54 Example route");
+    expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Example Terminal");
+    expect(container.querySelector(".transit-directions > div > h4")).toBeNull();
     expect(container.querySelector("#trip-origin")).toBeNull();
     expect(container.querySelector(".transit-boarding-stop").textContent).toContain("Board atExample First (101)");
     expect(container.querySelector(".transit-boarding-stop a").getAttribute("href")).toBe(
@@ -111,6 +114,7 @@ describe("route-aware destination selection", () => {
       expect.any(Function)
     );
     expect(destination.value).toBe("102");
+    expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Example Middle");
     expect(container.querySelector("output").textContent).toContain("from=101&to=102");
     expect(Array.from(destination.options).map(option => option.value)).toEqual(["", "102", "103"]);
     expect(container.querySelector('[role="status"]').textContent).toBe("1 stop to Example Middle.");

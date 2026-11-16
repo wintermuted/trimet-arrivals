@@ -5,12 +5,14 @@ import FontAwesome from "react-fontawesome";
 interface TopNavBarParams {
   id: string;
   shortSign?: string;
+  subtitle?: string;
   backTo?: string;
 }
 
 export function TopNavBar({
   id,
   shortSign,
+  subtitle,
   backTo = "/nearby/simple-routes"
 }: TopNavBarParams) {
   const title = shortSign ? `${id} to ${shortSign}` : id;
@@ -19,7 +21,10 @@ export function TopNavBar({
       <Link to={backTo} className="transit-detail-back" aria-label="Back">
         <FontAwesome name="caret-left" aria-hidden="true" />
       </Link>
-      <h3>{title}</h3>
+      <div className="transit-detail-heading">
+        <h3>{title}</h3>
+        {subtitle && <p className="transit-detail-subtitle">{subtitle}</p>}
+      </div>
     </header>
   );
 }

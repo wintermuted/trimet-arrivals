@@ -178,7 +178,11 @@ export default function NearbyDirections({
 
   return (
     <div className="scrollarea transit-directions">
-      <TopNavBar id="Choose a destination" backTo={backTo} />
+      <TopNavBar
+        id={state.name}
+        subtitle={destination ? `To ${destination.desc}` : state.directionName}
+        backTo={backTo}
+      />
       {mapError && (
         <div>
           <p role="alert">Could not load the route line. Your stop selections are still available.</p>
@@ -187,10 +191,6 @@ export default function NearbyDirections({
           </Button>
         </div>
       )}
-      <div>
-        <h4>{state.name}</h4>
-        <p>{state.directionName}</p>
-      </div>
       <div className="transit-boarding-stop">
         {origin ? (
           <dl className="transit-trip-stops">
