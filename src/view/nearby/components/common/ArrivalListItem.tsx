@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
 import { getFormattedTime } from "../../util/timeUtils";
 import TimeDiffBadge from "./TimeDiffBadge";
+import "./SimpleArrivalListItem.scss";
 
 interface ArrivalListItemParams {
   id: any;
@@ -16,28 +17,24 @@ function ArrivalListItem({ id, arrival }: ArrivalListItemParams) {
   const scheduledTime = getFormattedTime(scheduledArrivalTime);
 
   return (
-    <ListItem>
+    <ListItem style={{ padding: 0 }}>
       <Link
-        className="transit-arrival-link"
+        className="transit-arrival-link transit-stop-arrival-link"
         to={`/nearby/simple-routes/${arrival.route}?stop=${arrival.locid}&direction=${arrival.dir}`}
       >
-        <div>
-          <span style={{ fontWeight: 700 }}>{arrival.shortSign}</span>
-          <div>
-            {estimatedArrivalTime ? (
-              <small>
-                Estimated: {getFormattedTime(estimatedArrivalTime)} /{" "}
-                {scheduledTime}
-              </small>
-            ) : (
-              <small>Scheduled: {scheduledTime}</small>
-            )}
-          </div>
+        <strong className="transit-stop-arrival-sign">
+          {arrival.shortSign}
+        </strong>
+        <div className="transit-stop-arrival-times">
+          <TimeDiffBadge
+            estimatedArrivalTime={estimatedArrivalTime}
+            scheduledArrivalTime={scheduledArrivalTime}
+          />
+          {estimatedArrivalTime ? (
+            <small>Estimated: {getFormattedTime(estimatedArrivalTime)}</small>
+          ) : null}
+          <small>Scheduled: {scheduledTime}</small>
         </div>
-        <TimeDiffBadge
-          estimatedArrivalTime={estimatedArrivalTime}
-          scheduledArrivalTime={scheduledArrivalTime}
-        />
       </Link>
     </ListItem>
   );
