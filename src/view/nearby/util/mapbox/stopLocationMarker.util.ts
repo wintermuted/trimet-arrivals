@@ -30,6 +30,7 @@ export function showStopDetailMarker(mapBoxMap: Map, stop: ArrivalLocation) {
       properties: { locid: stop.id }
     }
   });
+  let popup: InstanceType<typeof mapboxgl.Popup>;
   try {
     mapBoxMap.addLayer({
       id: STOP_DETAIL_MARKER,
@@ -43,11 +44,23 @@ export function showStopDetailMarker(mapBoxMap: Map, stop: ArrivalLocation) {
         "circle-stroke-width": 2
       }
     });
+    popup = new mapboxgl.Popup({
+      anchor: "bottom",
+      closeButton: false,
+      closeOnClick: false,
+      offset: 10
+    });
+    popup.setLngLat([stop.lng, stop.lat])
+      .setText(`${stop.desc}\nStop ID: ${stop.id}`)
+      .addTo(mapBoxMap);
   } catch (error) {
+    popup?.remove();
+    if (mapBoxMap.getLayer(STOP_DETAIL_MARKER)) mapBoxMap.removeLayer(STOP_DETAIL_MARKER);
     mapBoxMap.removeSource(STOP_DETAIL_MARKER);
     throw error;
   }
   return () => {
+    popup.remove();
     if (mapBoxMap.getLayer(STOP_DETAIL_MARKER)) mapBoxMap.removeLayer(STOP_DETAIL_MARKER);
     if (mapBoxMap.getSource(STOP_DETAIL_MARKER)) mapBoxMap.removeSource(STOP_DETAIL_MARKER);
   };
