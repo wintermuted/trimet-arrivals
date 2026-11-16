@@ -76,8 +76,16 @@ Map marker popups use the app's surface/text tokens for readable Light/Dark
 content, matching pointer arrows, and visible close-button focus states.
 
 Go on a route's stop detail opens a destination picker with the current route, direction,
-and boarding stop. Destinations are limited to subsequent stops in route order;
-the boarding stop is read-only here: go back to change it. The header shows the route
+and boarding stop. Destinations are limited to subsequent stops in route order.
+Get off at expands an inline sidebar picker instead of a dropdown or overlay.
+Each stop lists the other
+routes reported at that exact stop, without duplicating the current route or
+combining opposite-side stops. Search by stop name, stop number, or connecting
+route, then select a stop to update the destination and collapse the picker.
+Other-route metadata loads when the picker expands and is reused while it
+remains mounted. Loading failures offer retry without blocking stop selection;
+collapsing, Cancel, or Escape keeps the existing destination and restores button focus.
+The boarding stop is read-only here: go back to change it. The header shows the route
 and selected destination (or route direction until a destination is chosen).
 The map shows the selected
 route line and labeled boarding/destination markers. With both stops selected it
