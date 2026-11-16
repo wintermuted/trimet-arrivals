@@ -2,7 +2,7 @@ import { act } from "react";
 import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
 import { DirectionsSelection, highlightDirectionsStop, showDirectionsSelection } from "../view/nearby/util/mapbox/directionsSelection";
 import { setRoutes } from "../view/nearby/util/mapbox/routeLines";
-import { highlightNearbyStop, removeStopLocationLayers, setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
+import { highlightNearbyStop, removeStopLocationLayers, setNearbyStops, showStopDetailMarker, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLocation";
 import { showWalkingRoute } from "../view/nearby/util/mapbox/walkingRoute";
 import { highlightRouteInfoStop, showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
@@ -93,6 +93,32 @@ describe("directions route line and endpoint framing", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  it("adds a selected-stop marker independently of nearby markers and removes it on exit", () => {
+    const close = showStopDetailMarker(map, {
+      id: 8455, desc: "Example stop", dir: "E", lat: 2, lng: 1, passengerCode: "E"
+    });
+    expect(map.addSource).toHaveBeenCalledWith("stop-detail-marker", expect.objectContaining({
+      data: expect.objectContaining({
+        geometry: { type: "Point", coordinates: [1, 2] },
+        properties: { locid: 8455 }
+      })
+    }));
+    expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
+      id: "stop-detail-marker", source: "stop-detail-marker"
+    }));
+    close();
+    expect(map.removeLayer).toHaveBeenCalledWith("stop-detail-marker");
+    expect(map.removeSource).toHaveBeenCalledWith("stop-detail-marker");
+  });
+
+  it("removes the selected-stop source if its marker layer cannot be created", () => {
+    map.addLayer.mockImplementationOnce(() => { throw new Error("Map unavailable"); });
+    expect(() => showStopDetailMarker(map, {
+      id: 8455, desc: "Example stop", dir: "E", lat: 2, lng: 1, passengerCode: "E"
+    })).toThrow("Map unavailable");
+    expect(map.removeSource).toHaveBeenCalledWith("stop-detail-marker");
   });
 
   it("shows all directions and unique route stops, then restores nearby markers", async () => {

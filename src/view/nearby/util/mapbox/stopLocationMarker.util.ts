@@ -4,6 +4,7 @@ import mapboxgl, { Map } from "!mapbox-gl";
 import { MapLayerMouseEvent } from "mapbox-gl";
 import { map } from "lodash";
 import { StopLocationsDictionary } from "../../../../store/reducers/util/formatStopLocations";
+import { ArrivalLocation } from "../../../../api/trimet/interfaces/arrivals";
 import {
   STOP_LOCATION_LAYER,
   STOP_LOCATIONS_SOURCE,
@@ -17,6 +18,40 @@ const stopHoverControls = new WeakMap<Map, {
   dispose: () => void;
   highlight: (stopId?: number) => void;
 }>();
+
+const STOP_DETAIL_MARKER = "stop-detail-marker";
+
+export function showStopDetailMarker(mapBoxMap: Map, stop: ArrivalLocation) {
+  mapBoxMap.addSource(STOP_DETAIL_MARKER, {
+    type: "geojson",
+    data: {
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [stop.lng, stop.lat] },
+      properties: { locid: stop.id }
+    }
+  });
+  try {
+    mapBoxMap.addLayer({
+      id: STOP_DETAIL_MARKER,
+      type: "circle",
+      source: STOP_DETAIL_MARKER,
+      paint: {
+        "circle-color": "#ff0000",
+        "circle-emissive-strength": 1,
+        "circle-radius": 8,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2
+      }
+    });
+  } catch (error) {
+    mapBoxMap.removeSource(STOP_DETAIL_MARKER);
+    throw error;
+  }
+  return () => {
+    if (mapBoxMap.getLayer(STOP_DETAIL_MARKER)) mapBoxMap.removeLayer(STOP_DETAIL_MARKER);
+    if (mapBoxMap.getSource(STOP_DETAIL_MARKER)) mapBoxMap.removeSource(STOP_DETAIL_MARKER);
+  };
+}
 
 export function removeStopLocationLayers(mapBoxMap: Map) {
   stopHoverControls.get(mapBoxMap)?.dispose();
