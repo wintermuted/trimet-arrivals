@@ -166,7 +166,7 @@ export function NearbySimpleRoutesComp() {
 export function NearbySimpleRouteArrivalsComp() {
   const {
     handleDirectionsSelection, currentLocation, walkingEnabled,
-    handleWalkingRouteChanged
+    handleWalkingRouteChanged, handleRouteInfoChanged, handleRouteInfoStopHighlighted
   } = useOutletContext<
     NearbyViewComponentOutletContextProps
   >();
@@ -177,6 +177,8 @@ export function NearbySimpleRouteArrivalsComp() {
       currentLocation={currentLocation}
       walkingEnabled={walkingEnabled}
       onWalkingRouteChanged={handleWalkingRouteChanged}
+      onRouteInfoChanged={handleRouteInfoChanged}
+      onRouteInfoStopHighlighted={handleRouteInfoStopHighlighted}
     />
   );
 }

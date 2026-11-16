@@ -1,10 +1,11 @@
 import { Button, FieldGroup, Select } from "@wintermuted/ui-theme/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import FontAwesome from "react-fontawesome";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Arrival } from "../../../api/trimet/interfaces/arrivals";
-import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
+import { RouteDirectionStop, TrimetRoute } from "../../../api/trimet/interfaces/routes";
 import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";
 import { DirectionsSelection } from "../util/mapbox/directionsSelection";
 import WalkingAccess from "./WalkingAccess";
@@ -14,6 +15,7 @@ import { InfoCard } from "./common/InfoCard";
 import RouteStopInfo from "./common/RouteStopInfo";
 import { StopsOnRoute } from "./common/StopsOnRoute";
 import { TopNavBar } from "./common/TopNavBar";
+import NearbyRouteInfo from "./NearbyRouteInfo";
 import "./NearbyRoutes.scss";
 
 type RouteState =
@@ -30,19 +32,28 @@ export default function NearbySimpleRouteArrivals({
   onSelectionChanged,
   currentLocation,
   walkingEnabled = false,
-  onWalkingRouteChanged
+  onWalkingRouteChanged,
+  onRouteInfoChanged,
+  onRouteInfoStopHighlighted
 }: {
   onSelectionChanged: (selection: DirectionsSelection, onError: () => void) => void | (() => void);
   currentLocation?: number[];
   walkingEnabled?: boolean;
   onWalkingRouteChanged?: (feature: Feature<LineString>) => void | (() => void);
+  onRouteInfoChanged?: (route: TrimetRoute, onError: () => void) => () => void;
+  onRouteInfoStopHighlighted?: (stopId?: number) => void;
 }) {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const infoButton = useRef<HTMLAnchorElement>(null);
   const stop = searchParams.get("stop");
   const direction = searchParams.get("direction");
   const validRoute = /^\d+$/.test(id || "") && Number(id) > 0 &&
     (direction === "0" || direction === "1");
+  const routeInfoValues = searchParams.getAll("route");
+  const routeInfoOpen = validRoute && routeInfoValues.length === 1 && routeInfoValues[0] === id;
   const routeKey = `${id}-${direction}`;
   const arrivalsKey = `${routeKey}-${stop}`;
   const [route, setRoute] = useState<RouteState>({ status: "loading", key: routeKey });
@@ -52,6 +63,9 @@ export default function NearbySimpleRouteArrivals({
   const [mapRetry, setMapRetry] = useState(0);
   const [mapError, setMapError] = useState(false);
   const [selection, setSelection] = useState<{ key: string; id: string }>();
+  const showWalkingRoute = useCallback((feature: Feature<LineString>) => {
+    if (!routeInfoOpen && onWalkingRouteChanged) return onWalkingRouteChanged(feature);
+  }, [routeInfoOpen, onWalkingRouteChanged]);
 
   useEffect(() => {
     if (!validRoute) return;
@@ -127,13 +141,13 @@ export default function NearbySimpleRouteArrivals({
 
   useEffect(() => {
     setMapError(false);
-    if (origin && validRoute) {
+    if (origin && validRoute && !routeInfoOpen) {
       return onSelectionChanged(
         { routeId: Number(id), direction: Number(direction), origin },
         () => setMapError(true)
       );
     }
-  }, [origin, id, direction, validRoute, onSelectionChanged, mapRetry]);
+  }, [origin, id, direction, validRoute, routeInfoOpen, onSelectionChanged, mapRetry]);
 
   if (!validRoute) {
     return <><TopNavBar id="Route" /><p role="alert">Choose a valid route and direction from Routes.</p></>;
@@ -151,13 +165,50 @@ export default function NearbySimpleRouteArrivals({
     setSearchParams(next);
   }
 
+  function routeInfoSearch(open: boolean) {
+    const next = new URLSearchParams(searchParams);
+    if (open) next.set("route", id);
+    else next.delete("route");
+    const query = next.toString();
+    return query ? `?${query}` : "";
+  }
+
+  function closeRouteInfo() {
+    navigate({ pathname: location.pathname, search: routeInfoSearch(false), hash: location.hash }, { replace: true });
+    requestAnimationFrame(() => infoButton.current?.focus());
+  }
+
   const stopLocation = origin && { ...origin, id: origin.locid };
   const stopCounts = new Map<number, number>();
   route.stops.forEach(item => stopCounts.set(item.locid, (stopCounts.get(item.locid) ?? 0) + 1));
   const repeatedStopIds = Array.from(stopCounts).filter(([, count]) => count > 1).map(([locid]) => locid);
   return (
-    <div className="scrollarea">
-      <TopNavBar id={id} shortSign={route.directionName.replace(/^To\s+/i, "")} />
+    <>
+    {routeInfoOpen && (
+      <NearbyRouteInfo
+        routeId={Number(id)}
+        onClose={closeRouteInfo}
+        onMapChanged={onRouteInfoChanged}
+        onStopHighlightChanged={onRouteInfoStopHighlighted}
+      />
+    )}
+    <div className="scrollarea transit-route-stop-content" hidden={routeInfoOpen}>
+      <TopNavBar
+        id={id}
+        shortSign={route.directionName.replace(/^To\s+/i, "")}
+        truncateTitle
+        action={
+          <Link
+            ref={infoButton}
+            className="transit-detail-info"
+            to={{ pathname: location.pathname, search: routeInfoSearch(true), hash: location.hash }}
+            aria-label={`View Route ${id} details`}
+            title={`Route ${id} details`}
+          >
+            <FontAwesome name="info-circle" aria-hidden="true" />
+          </Link>
+        }
+      />
       {mapError && <div><p role="alert">Could not load the route line.</p><Button onClick={() => setMapRetry(value => value + 1)}>Retry map</Button></div>}
       <br />
       <FieldGroup label="From" htmlFor="route-origin">
@@ -174,7 +225,7 @@ export default function NearbySimpleRouteArrivals({
               currentLocation={currentLocation}
               stop={origin}
               enabled={walkingEnabled}
-              onRouteChanged={onWalkingRouteChanged}
+              onRouteChanged={showWalkingRoute}
             />
           )}
           <br />
@@ -194,5 +245,6 @@ export default function NearbySimpleRouteArrivals({
         </>
       )}
     </div>
+    </>
   );
 }

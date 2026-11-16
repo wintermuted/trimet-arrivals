@@ -8,6 +8,7 @@ interface TopNavBarParams {
   subtitle?: string;
   backTo?: string;
   truncateTitle?: boolean;
+  action?: React.ReactNode;
 }
 
 export function TopNavBar({
@@ -15,6 +16,7 @@ export function TopNavBar({
   shortSign,
   subtitle,
   truncateTitle = false,
+  action,
   backTo = "/nearby/simple-routes"
 }: TopNavBarParams) {
   const title = shortSign ? `${id} to ${shortSign}` : id;
@@ -32,6 +34,7 @@ export function TopNavBar({
         </h3>
         {subtitle && <p className="transit-detail-subtitle">{subtitle}</p>}
       </div>
+      {action}
     </header>
   );
 }

@@ -121,6 +121,8 @@ use the checked-in geometry snapshot, which may lag current stop information.
 Route details can be shared or reopened at `/nearby/simple-routes?route=54`
 (substitute the desired route number); browser back and forward navigate the
 panel, and closing it preserves other query parameters.
+The route-stop header also opens this panel without discarding the selected stop
+or departure; its route query parameter can likewise be shared or reopened.
 Directions can be collapsed independently; hovering or focusing a stop
 highlights its marker and opens its map tooltip. Hovering a marker also shows
 the tooltip, and selecting a stop in either place opens its stop view.
