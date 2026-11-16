@@ -38,6 +38,7 @@ import { NearbyStopsDetail } from "./NearbyStopsDetail";
 import { ArrivalLocation } from "../../../api/trimet/interfaces/arrivals";
 import {
   DirectionsSelection,
+  highlightDirectionsStop,
   showDirectionsSelection
 } from "../util/mapbox/directionsSelection";
 import NearbyStops from "./NearbyStops";
@@ -58,6 +59,7 @@ export interface NearbyViewComponentOutletContextProps {
     selection: DirectionsSelection,
     onError: () => void
   ) => () => void;
+  handleDirectionsStopHighlighted: (stopId?: number) => void;
   handleSimpleRoutesOpened: () => void;
 }
 
@@ -144,12 +146,17 @@ export function NearbySimpleRouteArrivalsComp() {
 export function NearbyDirectionsComp({
   showTripTimes = false, showTrip = false
 }: { showTripTimes?: boolean; showTrip?: boolean }) {
-  const { handleDirectionsSelection } = useOutletContext<
+  const { handleDirectionsSelection, handleDirectionsStopHighlighted } = useOutletContext<
     NearbyViewComponentOutletContextProps
   >();
 
   return (
-    <NearbyDirections onSelectionChanged={handleDirectionsSelection} showTripTimes={showTripTimes} showTrip={showTrip} />
+    <NearbyDirections
+      onSelectionChanged={handleDirectionsSelection}
+      onStopHighlightChanged={handleDirectionsStopHighlighted}
+      showTripTimes={showTripTimes}
+      showTrip={showTrip}
+    />
   );
 }
 
@@ -329,6 +336,8 @@ export default function NearbyViewComponent() {
     selection: DirectionsSelection,
     onError: () => void
   ) => showDirectionsSelection(mapRef.current, selection, onError), []);
+  const handleDirectionsStopHighlighted = useCallback((stopId?: number) =>
+    highlightDirectionsStop(mapRef.current, stopId), []);
 
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
@@ -351,6 +360,7 @@ export default function NearbyViewComponent() {
     initializeMap: initializeMapboxMap,
     handleStopOpened,
     handleDirectionsSelection,
+    handleDirectionsStopHighlighted,
     handleSimpleRoutesOpened
   };
 

@@ -30,11 +30,13 @@ function stopId(value: string | null): number | null {
 
 export default function NearbyDirections({
   onSelectionChanged,
+  onStopHighlightChanged,
   showTripTimes = false,
   showTrip = false
 }: {
   showTripTimes?: boolean;
   showTrip?: boolean;
+  onStopHighlightChanged?: (stopId?: number) => void;
   onSelectionChanged: (
     selection: DirectionsSelection,
     onError: () => void
@@ -98,11 +100,16 @@ export default function NearbyDirections({
     setMapError(false);
     if (validRoute && origin) {
       return onSelectionChanged(
-        { routeId, direction, origin, destination },
+        {
+          routeId, direction, origin, destination,
+          ...(choosingDestination ? {
+            destinationStops: route.stops.slice(originIndex + 1)
+          } : {})
+        },
         () => setMapError(true)
       );
     }
-  }, [routeId, direction, validRoute, origin, destination, onSelectionChanged, mapRetry]);
+  }, [routeId, direction, validRoute, origin, originIndex, destination, onSelectionChanged, mapRetry, choosingDestination, route]);
 
   if (!validRoute) {
     return (
@@ -203,7 +210,7 @@ export default function NearbyDirections({
         backTo={backTo}
       />
       {mapError && (
-        <div>
+        <div className="transit-directions-map-error">
           <p role="alert">Could not load the route line. Your stop selections are still available.</p>
           <Button variant="secondary" onClick={() => setMapRetry(value => value + 1)}>
             Retry map
@@ -231,6 +238,7 @@ export default function NearbyDirections({
           destination={destination}
           routeId={routeId}
           onOpenChange={setChoosingDestination}
+          onStopHighlightChanged={onStopHighlightChanged}
           onSelect={stop => changeDestination(String(stop.locid))}
         />
       </FieldGroup>

@@ -98,7 +98,7 @@
 }
 
 .transit-directions-picking {
-  > :not(.transit-destination-field),
+  > :not(.transit-destination-field):not(.transit-directions-map-error),
   .transit-destination-field > label,
   .transit-destination-field > .wm-field-hint,
   .transit-destination-trigger {
