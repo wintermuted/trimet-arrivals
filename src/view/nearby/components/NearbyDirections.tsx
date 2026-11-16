@@ -243,6 +243,16 @@ export default function NearbyDirections({
             {destinationIndex - originIndex === 1 ? "stop" : "stops"} to{" "}
             <strong>{destination.desc}</strong>.
           </p>
+          <NearbyTripTimes
+            inline
+            routeId={routeId}
+            direction={direction}
+            origin={origin}
+            destination={destination}
+            routeName={state.name}
+            directionName={state.directionName}
+            backTo={selectionUrl}
+          />
           <Link
             className="wm-btn wm-btn-primary"
             to={`/nearby/directions/arrivals?${selectionQuery}`}
