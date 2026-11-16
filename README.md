@@ -58,6 +58,7 @@ The Nearby route list groups stops by route, then direction; route headings use
 the number alone (for example, 56 rather than Route 56).
 Route and direction headings are independent keyboard-accessible disclosures,
 expanded by default; collapsing a route retains its directions' open/closed state.
+Direction sections use compact spacing while retaining full-size heading targets.
 The right-aligned info icon in each route header opens the general line page
 separately from the disclosures and stays available when the route is collapsed.
 Each stop row shows
