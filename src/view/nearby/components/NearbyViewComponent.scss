@@ -3,6 +3,35 @@
   border-radius: var(--wm-radius-xs);
 }
 
+.transit-nearby-stop-heading {
+  padding: 0;
+}
+
+.transit-nearby-stop-heading-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--wm-space-2);
+  min-height: var(--wm-control-height);
+  padding: var(--wm-space-3) var(--wm-space-4);
+  color: var(--wm-color-text);
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: -2px;
+  }
+}
+
+.transit-nearby-stop-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.transit-nearby-stop-id {
+  flex-shrink: 0;
+}
+
 .stop-wrapper {
   margin-bottom: 10px;
 }

@@ -1,0 +1,9 @@
+.transit-simple-route-distance {
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+
+  > span,
+  > small {
+    display: block;
+  }
+}
