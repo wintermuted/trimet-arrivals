@@ -10,7 +10,7 @@ import { ArrivalList } from "../view/nearby/components/NearbyStopArrivals";
 
 jest.mock("../api/trimet/stops");
 
-it("shows stop departures in the shared collapsible panel and preserves links and collapsed state", async () => {
+it("shows borderless stop departures in the route disclosure style and preserves links and collapsed state", async () => {
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
@@ -30,10 +30,12 @@ it("shows stop departures in the shared collapsible panel and preserves links an
     const panel = container.querySelector("details");
     const summary = panel.querySelector("summary");
     expect(panel.open).toBe(true);
-    expect(panel.classList.contains("transit-stop-panel")).toBe(true);
+    expect(panel.classList.contains("transit-simple-route-direction")).toBe(true);
     expect(panel.closest(".wm-card")).toBeNull();
     expect(summary.textContent).toContain("Departures");
-    expect(summary.querySelector('.fa-clock-o[aria-hidden="true"]')).not.toBeNull();
+    expect(summary.querySelector('.fa-caret-right[aria-hidden="true"]')).not.toBeNull();
+    expect(panel.querySelector(".transit-stop-departures-list")).not.toBeNull();
+    expect(panel.querySelector(".wm-list-item")).toBeNull();
     const links = Array.from(panel.querySelectorAll("li a"));
     expect(links.map((link) => link.textContent)).toEqual([
       expect.stringContaining("Early"), expect.stringContaining("Late")

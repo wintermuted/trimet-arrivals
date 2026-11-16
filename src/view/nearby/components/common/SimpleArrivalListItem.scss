@@ -51,12 +51,18 @@
 .transit-stop-arrival-link {
   gap: var(--wm-space-2);
   min-height: var(--wm-control-height);
-  padding: var(--wm-space-3) var(--wm-space-4);
+  padding-block: var(--wm-space-3);
 
   &:focus-visible {
     outline: 2px solid var(--wm-color-accent);
     outline-offset: -2px;
   }
+}
+
+.transit-stop-departures-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .transit-stop-arrival-sign {

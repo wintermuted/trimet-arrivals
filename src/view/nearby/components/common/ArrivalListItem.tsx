@@ -1,4 +1,3 @@
-import { ListItem } from "@wintermuted/ui-theme/react";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
@@ -17,7 +16,7 @@ function ArrivalListItem({ id, arrival }: ArrivalListItemParams) {
   const scheduledTime = getFormattedTime(scheduledArrivalTime);
 
   return (
-    <ListItem style={{ padding: 0 }}>
+    <li>
       <Link
         className="transit-arrival-link transit-stop-arrival-link"
         to={`/nearby/simple-routes/${arrival.route}?stop=${arrival.locid}&direction=${arrival.dir}`}
@@ -36,7 +35,7 @@ function ArrivalListItem({ id, arrival }: ArrivalListItemParams) {
           <small>Scheduled: {scheduledTime}</small>
         </div>
       </Link>
-    </ListItem>
+    </li>
   );
 }
 

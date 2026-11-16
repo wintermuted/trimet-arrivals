@@ -1,6 +1,4 @@
 import {
-  Accordion,
-  ListGroup,
   Table
 } from "@wintermuted/ui-theme/react";
 import { map, sortBy } from "lodash";
@@ -42,13 +40,10 @@ export function ArrivalList({ data }: ArrivalsTableParams) {
   const arrivalsList = getArrivalsList(sortedArrivals);
 
   return (
-    <Accordion
-      open
-      className="transit-stop-panel"
-      title={<><FontAwesome name="clock-o" aria-hidden="true" /> Departures</>}
-    >
-      <ListGroup as="ul">{arrivalsList}</ListGroup>
-    </Accordion>
+    <details className="transit-simple-route-direction" open>
+      <summary><FontAwesome name="caret-right" aria-hidden="true" />Departures</summary>
+      <ul className="transit-stop-departures-list">{arrivalsList}</ul>
+    </details>
   );
 }
 
