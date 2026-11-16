@@ -114,6 +114,19 @@ describe("accessible transit detail links", () => {
     );
   });
 
+  it("groups every stop-departure time separately from the route label", () => {
+    render(<ArrivalListItem id={368} arrival={arrival} />);
+    const link = container.querySelector(".transit-stop-arrival-link");
+    expect(link.querySelector(".transit-stop-arrival-sign").textContent).toBe("54 Beaverton");
+    const times = link.querySelector(".transit-stop-arrival-times");
+    expect(times.textContent).toContain("Estimated:");
+    expect(times.textContent).toContain("Scheduled:");
+    expect(link.querySelectorAll("small")).toHaveLength(2);
+    render(<ArrivalListItem id={368} arrival={{ ...arrival, estimated: null }} />);
+    expect(container.querySelector(".transit-stop-arrival-times").textContent).not.toContain("Estimated:");
+    expect(container.querySelector(".transit-stop-arrival-times").textContent).toContain("Scheduled:");
+  });
+
   it("groups stop actions while preserving the stop link and Go navigation", () => {
     render(
       <>

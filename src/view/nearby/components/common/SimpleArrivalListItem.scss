@@ -47,3 +47,34 @@
   font-size: 1.1rem;
   white-space: nowrap;
 }
+
+.transit-stop-arrival-link {
+  gap: var(--wm-space-2);
+  min-height: var(--wm-control-height);
+  padding: var(--wm-space-3) var(--wm-space-4);
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: -2px;
+  }
+}
+
+.transit-stop-arrival-sign {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.transit-stop-arrival-times {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-self: end;
+  gap: var(--wm-space-1);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+
+  > small {
+    color: var(--wm-color-text-muted);
+    white-space: nowrap;
+  }
+}

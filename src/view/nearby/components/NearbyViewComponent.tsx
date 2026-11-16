@@ -72,13 +72,20 @@ export interface NearbyViewComponentOutletContextProps {
 }
 
 export function NearbyStopDetailComponent() {
-  const { currentLocation, handleStopOpened } = useOutletContext<
+  const {
+    currentLocation,
+    handleStopOpened,
+    walkingEnabled,
+    handleWalkingRouteChanged
+  } = useOutletContext<
     NearbyViewComponentOutletContextProps
   >();
   return (
     <NearbyStopsDetail
       currentLocation={currentLocation}
       handleStopOpened={handleStopOpened}
+      walkingEnabled={walkingEnabled}
+      onWalkingRouteChanged={handleWalkingRouteChanged}
     />
   );
 }
@@ -340,19 +347,19 @@ export default function NearbyViewComponent() {
     navigate(`/nearby/stops/${data.properties.locid}`);
   }
 
-  function flyToCenter(lng: number, lat: number) {
+  const flyToCenter = useCallback((lng: number, lat: number) => {
     if (mapRef.current) {
       mapRef.current.flyTo({
         center: [lng, lat],
         essential: true // this animation is considered essential with respect to prefers-reduced-motion
       });
     }
-  }
+  }, []);
 
-  function handleStopOpened(stopLocation: ArrivalLocation) {
+  const handleStopOpened = useCallback((stopLocation: ArrivalLocation) => {
     flyToCenter(stopLocation.lng, stopLocation.lat);
     updateStopMarkerColor(mapRef.current, `${stopLocation.id}`, "#ff0000");
-  }
+  }, [flyToCenter]);
 
   const handleDirectionsSelection = useCallback((
     selection: DirectionsSelection,

@@ -13,6 +13,7 @@ interface Props {
   currentLocation: number[];
   stop: WalkingStop;
   enabled: boolean;
+  title?: string;
   onRouteChanged: (feature: Feature<LineString>) => void | (() => void);
 }
 
@@ -26,6 +27,7 @@ export default function WalkingAccess({
   stop,
   enabled,
   onRouteChanged,
+  title = "Walk to boarding stop",
 }: Props) {
   const lng = currentLocation?.[0];
   const lat = currentLocation?.[1];
@@ -74,11 +76,8 @@ export default function WalkingAccess({
   }
   if (!enabled) return null;
   return (
-    <section
-      className="transit-walking-access"
-      aria-label="Walk to boarding stop"
-    >
-      <h4>Walk to boarding stop</h4>
+    <section className="transit-walking-access" aria-label={title}>
+      <h4>{title}</h4>
       <WalkingDistance
         enabled
         estimate={route}

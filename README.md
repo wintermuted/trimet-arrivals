@@ -89,6 +89,12 @@ The labels retain explicitly marked straight-line distances when walking
 estimates are unavailable; failures provide manual retry, with no automatic
 retry loop. Selecting a boarding stop shows its walking distance/time and a
 dashed green walking path, independently of the bus route.
+The general Nearby stop view (`/nearby/stops/:id`) uses the same feature flag,
+current-location snapshot, walking estimates and map path. Changing stops or
+turning the flag off removes the previous path; stop-data failures offer retry
+and never reuse a previous stop's location. Its full-row departure links keep
+route/destination labels on the left and relative, estimated and scheduled
+times together on the right, with explicit estimated/scheduled labels.
 
 Walking routing uses the existing map's public Mapbox access token. The token
 and account must allow the walking Matrix and Directions APIs, with appropriate
