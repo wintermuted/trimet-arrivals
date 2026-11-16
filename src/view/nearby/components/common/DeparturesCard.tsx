@@ -8,7 +8,7 @@ import moment from "moment";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
-import { getTimeUntilArrival } from "../../util/timeUtils";
+import TimeDiffBadge from "./TimeDiffBadge";
 
 interface DeparturesCardParams {
   filteredArrivals: Arrival[];
@@ -27,11 +27,6 @@ export function DeparturesCard({ filteredArrivals, selectedArrival, onSelect }: 
         {map(filteredArrivals, (arrival: Arrival) => {
           const estimatedArrivalTime = arrival.estimated;
           const scheduledArrivalTime = arrival.scheduled;
-          const timeUntilArrival = getTimeUntilArrival(
-            estimatedArrivalTime,
-            scheduledArrivalTime
-          );
-
           const selected = arrival === selectedArrival;
           const estimatedTime = moment(estimatedArrivalTime).format("h:mm a");
           const scheduledTime = moment(scheduledArrivalTime).format("h:mm a");
@@ -49,12 +44,16 @@ export function DeparturesCard({ filteredArrivals, selectedArrival, onSelect }: 
                 type="button"
                 className="transit-departure-option"
                 aria-pressed={selected}
-                aria-label={`Depart at ${arrivalTime}, ${timeUntilArrival}`}
                 onClick={() => onSelect(arrival)}
               >
-                <span>
-                  {selected && <FontAwesome name="caret-right" aria-hidden="true" />}
-                  {timeUntilArrival}
+                <span className="transit-departure-label">
+                  <span className="transit-departure-caret" aria-hidden="true">
+                    {selected && <FontAwesome name="caret-right" />}
+                  </span>
+                  <TimeDiffBadge
+                    estimatedArrivalTime={estimatedArrivalTime}
+                    scheduledArrivalTime={scheduledArrivalTime}
+                  />
                 </span>
                 <small>{arrivalTime}</small>
               </button>

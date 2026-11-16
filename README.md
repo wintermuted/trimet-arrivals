@@ -206,6 +206,8 @@ remain visible in the trip view after their departure time passes.
 The route stop detail's Departures and Stops panels use independent native
 disclosures with clock/stop icons. Both start expanded and support keyboard
 activation without clearing their data when collapsed.
+Departure badges indicate whether a prediction is late, on time, or early;
+scheduled-only departures do not imply a live prediction.
 The stop view's route badges filter Departures: select multiple routes to combine
 them, and deselect all to show every departure. A selected route remains available
 if its departures disappear. Departures can also be grouped by route using the
