@@ -9,7 +9,7 @@ export interface DirectionsSelection {
   direction: number;
   origin: RouteDirectionStop;
   destination?: RouteDirectionStop;
-  routeStops?: RouteDirectionStop[];
+  destinationStops?: RouteDirectionStop[];
 }
 
 const DIRECTIONS_ROUTE = "directions-route";
@@ -28,12 +28,12 @@ export function highlightDirectionsStop(map: MapboxMap, stopId?: number) {
 
 export function showDirectionsSelection(
   map: MapboxMap,
-  { routeId, direction, origin, destination, routeStops }: DirectionsSelection,
+  { routeId, direction, origin, destination, destinationStops }: DirectionsSelection,
   onError: () => void
 ): () => void {
   const request = new AbortController();
   let closed = false;
-  const stops = destination && !routeStops ? [origin, destination] : [origin];
+  const stops = destination && !destinationStops ? [origin, destination] : [origin];
   const markers = stops.map((stop, index) => {
     const label = index === 0 ? "Board at" : "Get off at";
     const marker = new Marker({ color: index === 0 ? "#4264fb" : "#c55316" })
@@ -44,9 +44,9 @@ export function showDirectionsSelection(
     return marker;
   });
 
-  if (routeStops) {
+  if (destinationStops) {
     const uniqueStops = Array.from(new Map<number, RouteDirectionStop>(
-      routeStops.filter(stop => stop.locid !== origin.locid).map(stop => [stop.locid, stop])
+      destinationStops.map(stop => [stop.locid, stop])
     ).values());
     const data: FeatureCollection<Point> = {
       features: uniqueStops.map(stop => ({
@@ -87,9 +87,9 @@ export function showDirectionsSelection(
   }
 
   const bounds = new LngLatBounds([origin.lng, origin.lat], [origin.lng, origin.lat]);
-  if (routeStops || destination) {
-    if (routeStops) {
-      routeStops.forEach(stop => bounds.extend([stop.lng, stop.lat]));
+  if (destinationStops || destination) {
+    if (destinationStops) {
+      destinationStops.forEach(stop => bounds.extend([stop.lng, stop.lat]));
     } else if (destination) {
       bounds.extend([destination.lng, destination.lat]);
     }
@@ -101,18 +101,21 @@ export function showDirectionsSelection(
   getRouteGeometry(String(routeId), direction, request.signal)
     .then(feature => {
       if (!closed) {
-        const selected = !routeStops && destination
-          ? getSelectedRouteSegment(feature, origin, destination)
+        const routeEnd = destinationStops
+          ? destinationStops[destinationStops.length - 1] ?? origin
+          : destination;
+        const selected = routeEnd
+          ? getSelectedRouteSegment(feature, origin, routeEnd)
           : feature;
         addMapboxLayer(map, selected, DIRECTIONS_ROUTE, {
           "line-color": "#0080ff",
           "line-opacity": 1,
           "line-width": 4
         });
-        if (routeStops) {
+        if (destinationStops) {
           map.moveLayer(DIRECTIONS_ROUTE, DIRECTIONS_STOPS);
         }
-        if (routeStops || destination) {
+        if (destinationStops || destination) {
           const lines = selected.geometry.type === "LineString"
             ? [selected.geometry.coordinates]
             : selected.geometry.coordinates;
@@ -131,6 +134,6 @@ export function showDirectionsSelection(
     closed = true;
     request.abort();
     markers.forEach(marker => marker.remove());
-    removeRoutes(map, routeStops ? [DIRECTIONS_ROUTE, DIRECTIONS_STOPS] : [DIRECTIONS_ROUTE]);
+    removeRoutes(map, destinationStops ? [DIRECTIONS_ROUTE, DIRECTIONS_STOPS] : [DIRECTIONS_ROUTE]);
   };
 }

@@ -152,8 +152,9 @@ Other-route metadata loads when the picker expands and is reused while it
 remains mounted. Loading failures offer retry without blocking stop selection;
 Cancel or Escape keeps the existing destination and restores button focus.
 The Cancel action stays visible while scrolling the stop list.
-The destination-selection map shows and fits the full route line and all stops,
-including stops before boarding. The boarding pin stays visible for context;
+The destination-selection map matches the open picker: it shows downstream stop
+markers and fits the route from the boarding stop to the terminus, both before
+and after a destination is chosen. The boarding pin stays visible for context;
 neither earlier stops nor the boarding stop appear as destination choices.
 Searching the list does not hide map markers. Hovering or
 keyboard-focusing a destination highlights and enlarges its map marker without
