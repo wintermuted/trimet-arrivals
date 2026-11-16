@@ -1,4 +1,4 @@
-import { Button, FieldGroup, Select } from "@wintermuted/ui-theme/react";
+import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";
@@ -6,6 +6,7 @@ import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import { TopNavBar } from "./common/TopNavBar";
 import { DirectionsSelection } from "../util/mapbox/directionsSelection";
 import NearbyTripTimes from "./NearbyTripTimes";
+import NearbyDestinationPicker from "./NearbyDestinationPicker";
 import "./NearbyRoutes.scss";
 
 type RouteState =
@@ -206,19 +207,12 @@ export default function NearbyDirections({
         htmlFor="trip-destination"
         hint="Stops ahead of your boarding stop, in route order."
       >
-        <Select
-          id="trip-destination"
-          value={destination ? String(to) : ""}
-          disabled={!remainingStops.length}
-          onChange={event => changeDestination(event.target.value)}
-        >
-          <option value="" disabled>Choose a destination</option>
-          {remainingStops.map(stop => (
-            <option key={`${stop.locid}-${stop.seq}`} value={stop.locid}>
-              {stop.desc} ({stop.locid})
-            </option>
-          ))}
-        </Select>
+        <NearbyDestinationPicker
+          stops={remainingStops}
+          destination={destination}
+          routeId={routeId}
+          onSelect={stop => changeDestination(String(stop.locid))}
+        />
       </FieldGroup>
       {origin && !remainingStops.length && (
         <p role="status">This is the last stop in this direction. Go back to choose an earlier boarding stop.</p>

@@ -97,6 +97,114 @@
   min-height: 44px;
 }
 
+.transit-destination-trigger {
+  width: 100%;
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.transit-destination-picker,
+.transit-destination-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--wm-space-3);
+}
+
+.transit-destination-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-2);
+
+  h4 {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.transit-destination-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wm-space-1);
+
+  input {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.transit-destination-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wm-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transit-destination-option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wm-space-2);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--wm-space-3);
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-base);
+  background: var(--wm-color-surface);
+  color: var(--wm-color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &[aria-pressed="true"] {
+    background: var(--wm-color-surface-muted);
+    border-color: var(--wm-color-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: 2px;
+  }
+
+  small {
+    color: var(--wm-color-text-muted);
+  }
+}
+
+.transit-destination-name {
+  width: 100%;
+  min-width: 0;
+
+  strong,
+  small {
+    display: block;
+  }
+
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.transit-destination-connections {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--wm-space-1);
+
+  .wm-badge {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
 .transit-trip-stops {
   display: grid;
   gap: var(--wm-space-3);
