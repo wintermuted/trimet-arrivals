@@ -1,12 +1,56 @@
 import React, { act, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { DeparturesCard } from "../view/nearby/components/common/DeparturesCard";
 import { StopsOnRoute } from "../view/nearby/components/common/StopsOnRoute";
 import { getNearbyStops } from "../api/trimet/stops";
 import { arrival1 } from "../api/trimet/fixture/arrival";
 import { Arrival } from "../api/trimet/interfaces/arrivals";
+import { ArrivalList } from "../view/nearby/components/NearbyStopArrivals";
 
 jest.mock("../api/trimet/stops");
+
+it("shows stop departures in the shared collapsible panel and preserves links and collapsed state", async () => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const earlier = { ...arrival1, id: "earlier", route: 54, locid: 123, dir: 0, shortSign: "Early", scheduled: 1000 };
+  const later = { ...arrival1, id: "later", route: 56, locid: 123, dir: 1, shortSign: "Late", scheduled: 2000 };
+  const render = (arrivals: Arrival[]) => act(async () => root.render(
+    <MemoryRouter initialEntries={["/nearby/stops/123"]}>
+      <Routes>
+        <Route path="/nearby/stops/:id" element={
+          <ArrivalList data={{ arrival: arrivals, detour: [], location: [], queryTime: "" }} />
+        } />
+      </Routes>
+    </MemoryRouter>
+  ));
+  try {
+    await render([later, earlier]);
+    const panel = container.querySelector("details");
+    const summary = panel.querySelector("summary");
+    expect(panel.open).toBe(true);
+    expect(panel.classList.contains("transit-stop-panel")).toBe(true);
+    expect(panel.closest(".wm-card")).toBeNull();
+    expect(summary.textContent).toContain("Departures");
+    expect(summary.querySelector('.fa-clock-o[aria-hidden="true"]')).not.toBeNull();
+    const links = Array.from(panel.querySelectorAll("li a"));
+    expect(links.map((link) => link.textContent)).toEqual([
+      expect.stringContaining("Early"), expect.stringContaining("Late")
+    ]);
+    expect(links[0].getAttribute("href")).toBe("/nearby/simple-routes/54?stop=123&direction=0");
+    act(() => summary.click());
+    expect(panel.open).toBe(false);
+    await render([earlier]);
+    expect(panel.open).toBe(false);
+    act(() => summary.click());
+    expect(panel.open).toBe(true);
+    expect(panel.querySelectorAll("li")).toHaveLength(1);
+  } finally {
+    act(() => root.unmount());
+    container.remove();
+  }
+});
 
 function SelectableDepartures({ arrivals }: { arrivals: Arrival[] }) {
   const [id, setId] = useState<string>();
