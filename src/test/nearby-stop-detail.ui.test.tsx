@@ -237,7 +237,7 @@ describe("general Nearby stop walking access", () => {
     );
     const departures = () => Array.from(container.querySelectorAll(".transit-stop-departures-list a"))
       .map((link) => link.textContent);
-    expect(container.querySelector("select")).toBeNull();
+    expect(container.querySelectorAll("select")).toHaveLength(1);
     expect(badge(8)).not.toBeNull();
     expect(departures()).toHaveLength(3);
     act(() => badge(54).click());

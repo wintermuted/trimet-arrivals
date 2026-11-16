@@ -675,6 +675,42 @@
   }
 }
 
+.transit-stop-departures {
+  position: relative;
+
+  > summary {
+    padding-inline-end: 10rem;
+  }
+}
+
+.transit-stop-departures-group-control {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-1);
+  min-height: var(--wm-control-height);
+
+  label {
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
+  .wm-select {
+    width: auto;
+  }
+}
+
+.transit-stop-departures-group {
+  > h4 {
+    margin: var(--wm-space-3) 0 0;
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+  }
+}
+
 .transit-walking-access {
   margin-block: var(--wm-space-3);
   font-size: 0.875rem;

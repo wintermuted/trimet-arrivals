@@ -90,6 +90,59 @@ it("filters stop departures by the selected routes and shows an empty state", as
   }
 });
 
+it("groups filtered departures by route without changing chronological order within each group", async () => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const first = { ...arrival1, id: "first", route: 54, shortSign: "Early 54", scheduled: 1000 };
+  const second = { ...arrival1, id: "second", route: 54, shortSign: "Late 54", scheduled: 3000 };
+  const other = { ...arrival1, id: "other", route: 8, shortSign: "Route 8", scheduled: 2000 };
+  const render = (selectedRoutes: number[] = []) => act(async () => root.render(
+    <MemoryRouter initialEntries={["/nearby/stops/123"]}>
+      <Routes>
+        <Route path="/nearby/stops/:id" element={
+          <ArrivalList data={{ arrival: [second, other, first], detour: [], location: [], queryTime: "" }}
+            selectedRoutes={selectedRoutes} />
+        } />
+      </Routes>
+    </MemoryRouter>
+  ));
+  try {
+    await render();
+    const panel = container.querySelector("details");
+    const select = container.querySelector("select");
+    expect(container.querySelector(`label[for="${select.id}"]`).textContent).toBe("Group by");
+    expect(select.value).toBe("none");
+    act(() => {
+      select.value = "route";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(panel.open).toBe(true);
+    const groups = () => Array.from(container.querySelectorAll(".transit-stop-departures-group"));
+    expect(groups().map(group => group.querySelector("h4").textContent)).toEqual(["Route 8", "Route 54"]);
+    expect(Array.from(groups()[1].querySelectorAll("li a")).map(link => link.textContent)).toEqual([
+      expect.stringContaining("Early 54"), expect.stringContaining("Late 54")
+    ]);
+    await render([54]);
+    expect(groups().map(group => group.querySelector("h4").textContent)).toEqual(["Route 54"]);
+    act(() => panel.querySelector("summary").click());
+    await render([8]);
+    expect(panel.open).toBe(false);
+    expect(select.value).toBe("route");
+    act(() => panel.querySelector("summary").click());
+    expect(groups().map(group => group.querySelector("h4").textContent)).toEqual(["Route 8"]);
+    act(() => {
+      select.value = "none";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(groups()).toHaveLength(0);
+    expect(container.querySelectorAll(".transit-stop-departures-list li")).toHaveLength(1);
+  } finally {
+    act(() => root.unmount());
+    container.remove();
+  }
+});
+
 function SelectableDepartures({ arrivals }: { arrivals: Arrival[] }) {
   const [id, setId] = useState<string>();
   const selected = arrivals.find(arrival => arrival.id === id) ?? arrivals[0];
