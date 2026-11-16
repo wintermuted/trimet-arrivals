@@ -55,6 +55,7 @@ describe("route-aware destination selection", () => {
   let container: HTMLDivElement;
   let root: Root;
   const onSelectionChanged = jest.fn();
+  const onStopHighlightChanged = jest.fn();
 
   beforeEach(() => {
     loadRoute.mockReset();
@@ -66,6 +67,7 @@ describe("route-aware destination selection", () => {
       arrival: [], queryTime: String(Date.now()), location: [], detour: []
     });
     onSelectionChanged.mockReset();
+    onStopHighlightChanged.mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -79,7 +81,7 @@ describe("route-aware destination selection", () => {
   async function render(query = "route=54&direction=1&from=101", showTripTimes = false, showTrip = false) {
     await act(async () => root.render(
       <MemoryRouter initialEntries={[`/nearby/directions?${query}`]}>
-        <NearbyDirections onSelectionChanged={onSelectionChanged} showTripTimes={showTripTimes} showTrip={showTrip} />
+        <NearbyDirections onSelectionChanged={onSelectionChanged} onStopHighlightChanged={onStopHighlightChanged} showTripTimes={showTripTimes} showTrip={showTrip} />
         <NavigationProbe />
       </MemoryRouter>
     ));
@@ -126,7 +128,7 @@ describe("route-aware destination selection", () => {
     expect(Array.from(document.querySelectorAll("[data-stop-id]")).map(option => option.getAttribute("data-stop-id")))
       .toEqual(["102", "103"]);
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[0], destination: undefined },
+      { routeId: 54, direction: 1, origin: stops[0], destination: undefined, destinationStops: stops.slice(1) },
       expect.any(Function)
     );
     chooseDestination("103");
@@ -159,6 +161,42 @@ describe("route-aware destination selection", () => {
     expect(container.querySelector("#trip-destination").textContent).toBe("Example Middle (102)");
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
       { routeId: 54, direction: 1, origin: stops[0], destination: stops[1] },
+      expect.any(Function)
+    );
+  });
+
+  it("links pointer and keyboard stop highlights without redrawing the route, clearing on search and dismissal", async () => {
+    await render("route=54&direction=1&from=102&to=103");
+    await act(async () => openDestinations());
+    expect(Array.from(container.querySelectorAll("[data-stop-id]"))
+      .map(row => row.getAttribute("data-stop-id"))).toEqual(["103"]);
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2], destinationStops: [stops[2]] },
+      expect.any(Function)
+    );
+    const selections = onSelectionChanged.mock.calls.length;
+    const terminal = container.querySelector<HTMLButtonElement>('[data-stop-id="103"]');
+    act(() => terminal.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(103);
+    act(() => terminal.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(undefined);
+    act(() => terminal.focus());
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(103);
+    act(() => terminal.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    act(() => terminal.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(103);
+    act(() => terminal.blur());
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(undefined);
+    act(() => terminal.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    searchDestinations("not a stop");
+    expect(container.querySelector("[data-stop-id]")).toBeNull();
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
+    expect(onSelectionChanged).toHaveBeenCalledTimes(selections);
+    act(() => container.querySelector<HTMLInputElement>('input[type="search"]')
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2] },
       expect.any(Function)
     );
   });

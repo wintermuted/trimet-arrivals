@@ -12,12 +12,14 @@ export default function NearbyDestinationPicker({
   routeId,
   onSelect,
   onOpenChange,
+  onStopHighlightChanged,
 }: {
   stops: RouteDirectionStop[];
   destination?: RouteDirectionStop;
   routeId: number;
   onSelect: (stop: RouteDirectionStop) => void;
   onOpenChange: (open: boolean) => void;
+  onStopHighlightChanged?: (stopId?: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -28,6 +30,8 @@ export default function NearbyDestinationPicker({
   const picker = useRef<HTMLDivElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const wasOpen = useRef(false);
+  const hoveredStop = useRef<number | undefined>(undefined);
+  const focusedStop = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (open) {
@@ -42,7 +46,10 @@ export default function NearbyDestinationPicker({
     wasOpen.current = open;
   }, [open]);
 
-  useEffect(() => () => onOpenChange(false), [onOpenChange]);
+  useEffect(() => () => {
+    onOpenChange(false);
+    onStopHighlightChanged?.();
+  }, [onOpenChange, onStopHighlightChanged]);
 
   useEffect(() => {
     if (!open || routes) {
@@ -125,6 +132,19 @@ export default function NearbyDestinationPicker({
   function close() {
     setOpen(false);
     onOpenChange(false);
+    hoveredStop.current = undefined;
+    focusedStop.current = undefined;
+    onStopHighlightChanged?.();
+  }
+
+  function hoverStop(stopId?: number) {
+    hoveredStop.current = stopId;
+    onStopHighlightChanged?.(stopId ?? focusedStop.current);
+  }
+
+  function focusStop(stopId?: number) {
+    focusedStop.current = stopId;
+    onStopHighlightChanged?.(hoveredStop.current ?? stopId);
   }
 
   return (
@@ -180,7 +200,12 @@ export default function NearbyDestinationPicker({
               className="wm-input"
               ref={searchInput}
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                hoveredStop.current = undefined;
+                focusedStop.current = undefined;
+                onStopHighlightChanged?.();
+              }}
             />
           </label>
           {loading && (
@@ -206,6 +231,10 @@ export default function NearbyDestinationPicker({
                   data-stop-id={stop.locid}
                   aria-pressed={destination?.locid === stop.locid}
                   onClick={() => choose(stop)}
+                  onMouseEnter={() => hoverStop(stop.locid)}
+                  onMouseLeave={() => hoverStop()}
+                  onFocus={() => focusStop(stop.locid)}
+                  onBlur={() => focusStop()}
                 >
                   <span className="transit-destination-name">
                     <strong title={stop.desc}>{stop.desc}</strong>

@@ -1,6 +1,6 @@
 import { act } from "react";
 import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
-import { DirectionsSelection, showDirectionsSelection } from "../view/nearby/util/mapbox/directionsSelection";
+import { DirectionsSelection, highlightDirectionsStop, showDirectionsSelection } from "../view/nearby/util/mapbox/directionsSelection";
 import { setRoutes } from "../view/nearby/util/mapbox/routeLines";
 import { setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLocation";
@@ -17,6 +17,7 @@ jest.mock("mapbox-gl", () => {
     setPaintProperty: jest.fn(),
     addSource: jest.fn(),
     addLayer: jest.fn(),
+    moveLayer: jest.fn(),
     getLayer: jest.fn().mockReturnValue({ id: "directions-route" }),
     getSource: jest.fn().mockReturnValue({ type: "geojson" }),
     removeLayer: jest.fn(),
@@ -158,6 +159,99 @@ describe("directions route line and endpoint framing", () => {
     expect(map.fitBounds).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       padding: { top: 45, bottom: 20, left: 48, right: 48 }
     }));
+  });
+
+  it("shows only downstream destination markers and previews through the terminus while choosing", async () => {
+    const middle = { ...selection.destination, locid: 102, seq: 20, lng: 1, lat: 0 };
+    const destinationStops = [middle, middle, selection.destination];
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...geometry,
+        geometry: {
+          coordinates: [[-1, 0], ...geometry.geometry.coordinates, [3, 1]],
+          type: "LineString"
+        }
+      })
+    });
+    let close: () => void;
+    await act(async () => {
+      close = showDirectionsSelection(map, {
+        ...selection,
+        destination: middle,
+        destinationStops
+      }, onError);
+    });
+    const stopSource = map.addSource.mock.calls.find(([id]) => id === "directions-stops")[1];
+    expect(stopSource).toEqual({
+      data: {
+        features: [middle, selection.destination].map(stop => ({
+          geometry: { coordinates: [stop.lng, stop.lat], type: "Point" },
+          properties: {
+            color: stop.locid === middle.locid ? "#c55316" : "#4264fb",
+            locid: stop.locid
+          },
+          type: "Feature"
+        })),
+        type: "FeatureCollection"
+      },
+      type: "geojson"
+    });
+    expect(map.addSource).toHaveBeenCalledWith("directions-route", expect.objectContaining({
+      data: expect.objectContaining({ geometry: geometry.geometry })
+    }));
+    expect(map.moveLayer).toHaveBeenCalledWith("directions-route", "directions-stops");
+    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    expect(bounds.extend).toHaveBeenCalledWith([2, 1]);
+    expect(bounds.extend).not.toHaveBeenCalledWith([-1, 0]);
+    expect(bounds.extend).not.toHaveBeenCalledWith([3, 1]);
+    expect(map.fitBounds).toHaveBeenLastCalledWith(bounds, expect.anything());
+    expect(map.flyTo).not.toHaveBeenCalled();
+    expect(Marker).toHaveBeenCalledTimes(1);
+    expect(jest.mocked(Marker).mock.results[0].value.setLngLat).toHaveBeenCalledWith([0, 0]);
+    close();
+    expect(map.removeLayer).toHaveBeenCalledWith("directions-stops");
+    expect(map.removeSource).toHaveBeenCalledWith("directions-stops");
+  });
+
+  it("highlights and restores a stop without refetching geometry or moving the camera", async () => {
+    await act(async () => showDirectionsSelection(map, {
+      ...selection, destinationStops: [selection.destination]
+    }, onError));
+    const fits = map.fitBounds.mock.calls.length;
+    highlightDirectionsStop(map, 103);
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "directions-stops", "circle-color",
+      ["case", ["==", ["get", "locid"], 103], "#ff0000", ["get", "color"]]
+    );
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "directions-stops", "circle-radius",
+      ["case", ["==", ["get", "locid"], 103], 12, 8]
+    );
+    highlightDirectionsStop(map);
+    expect(map.setPaintProperty).toHaveBeenCalledWith("directions-stops", "circle-color", ["get", "color"]);
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith("directions-stops", "circle-radius", 8);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(map.fitBounds).toHaveBeenCalledTimes(fits);
+    expect(map.flyTo).not.toHaveBeenCalled();
+    map.getLayer.mockReturnValue(undefined);
+    map.setPaintProperty.mockClear();
+    highlightDirectionsStop(map, 103);
+    expect(map.setPaintProperty).not.toHaveBeenCalled();
+  });
+
+  it("removes choosing markers and ignores a late route response after cancellation", async () => {
+    let resolveFetch: (response: object) => void;
+    global.fetch = jest.fn().mockImplementation(() => new Promise(resolve => { resolveFetch = resolve; }));
+    const close = showDirectionsSelection(map, {
+      ...selection, destination: undefined, destinationStops: [selection.destination]
+    }, onError);
+    expect(map.flyTo).not.toHaveBeenCalled();
+    close();
+    await act(async () => resolveFetch({ ok: true, json: async () => geometry }));
+    expect(map.removeSource).toHaveBeenCalledWith("directions-stops");
+    expect(map.addSource).toHaveBeenCalledTimes(1);
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it("draws a solid selected route and includes intervening road bends in the fitted bounds", async () => {
