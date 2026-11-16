@@ -48,6 +48,12 @@
   overflow-wrap: anywhere;
 }
 
+.transit-detail-header h3.transit-detail-title-truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .transit-detail-header .transit-detail-subtitle {
   margin: var(--wm-space-1) 0 0;
   color: var(--wm-color-text-muted);

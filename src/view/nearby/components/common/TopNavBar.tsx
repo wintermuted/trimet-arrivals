@@ -7,12 +7,14 @@ interface TopNavBarParams {
   shortSign?: string;
   subtitle?: string;
   backTo?: string;
+  truncateTitle?: boolean;
 }
 
 export function TopNavBar({
   id,
   shortSign,
   subtitle,
+  truncateTitle = false,
   backTo = "/nearby/simple-routes"
 }: TopNavBarParams) {
   const title = shortSign ? `${id} to ${shortSign}` : id;
@@ -22,7 +24,12 @@ export function TopNavBar({
         <FontAwesome name="caret-left" aria-hidden="true" />
       </Link>
       <div className="transit-detail-heading">
-        <h3>{title}</h3>
+        <h3
+          className={truncateTitle ? "transit-detail-title-truncated" : undefined}
+          title={truncateTitle ? title : undefined}
+        >
+          {title}
+        </h3>
         {subtitle && <p className="transit-detail-subtitle">{subtitle}</p>}
       </div>
     </header>

@@ -2,7 +2,6 @@ import {
   Card,
   CardBody,
   CardText,
-  CardTitle,
   Button
 } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useState } from "react";
@@ -36,7 +35,6 @@ function StopInfo({ stopLocation }: StopInfoParams) {
   return (
     <Card>
       <CardBody>
-        <CardTitle>{stopLocation.desc}</CardTitle>
         <CardText>
           <small style={{ color: "var(--wm-color-text-muted)" }}>
             StopID: {stopLocation.id}

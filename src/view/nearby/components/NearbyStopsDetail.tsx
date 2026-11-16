@@ -73,7 +73,7 @@ export function NearbyStopsDetail({
   if (state.id !== id || !state.data) {
     return (
       <div className="scrollarea">
-        <TopNavBar id={`Stop ${id}`} backTo={backTo} />
+        <TopNavBar id={`Stop ${id}`} backTo={backTo} truncateTitle />
         {state.id === id && state.error ? (
           <div role="alert">
             <p>Could not load this stop's departures and location.</p>
@@ -92,7 +92,7 @@ export function NearbyStopsDetail({
 
   return (
     <div className="scrollarea">
-      <TopNavBar id={stopLocation.desc} backTo={backTo} />
+      <TopNavBar id={stopLocation.desc} backTo={backTo} truncateTitle />
       <br />
       <StopInfo stopLocation={stopLocation} />
       {onWalkingRouteChanged && (
