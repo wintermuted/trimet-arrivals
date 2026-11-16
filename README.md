@@ -206,8 +206,9 @@ remain visible in the trip view after their departure time passes.
 The route stop detail's Departures and Stops panels use independent native
 disclosures with clock/stop icons. Both start expanded and support keyboard
 activation without clearing their data when collapsed.
-The stop view's Departures list can be filtered by route; it initially shows all
-reported routes and retains the chosen route if its departures disappear.
+The stop view's route badges filter Departures: select multiple routes to combine
+them, and deselect all to show every departure. A selected route remains available
+if its departures disappear.
 The From selector lists every stop in route order for the selected direction;
 changing it updates the URL, departures, stop details, Go action, downstream
 stops and map. A stop with no departures remains selectable.

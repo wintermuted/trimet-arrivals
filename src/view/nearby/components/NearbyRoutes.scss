@@ -568,20 +568,25 @@
   color: var(--wm-color-text-muted);
 }
 
-.transit-stop-departures-filter {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--wm-space-2);
-  margin-bottom: var(--wm-space-2);
+.transit-stop-route-filter {
+  min-width: 2rem;
+  min-height: 2rem;
+  cursor: pointer;
+  font: inherit;
 
-  label {
-    color: var(--wm-color-text-muted);
-    font-size: 0.875rem;
+  &:hover {
+    border-color: var(--wm-color-accent);
   }
 
-  .wm-select {
-    max-width: 100%;
+  &[aria-pressed="true"] {
+    border-color: var(--wm-color-accent);
+    background: var(--wm-color-accent-soft);
+    color: var(--wm-color-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: 2px;
   }
 }
 

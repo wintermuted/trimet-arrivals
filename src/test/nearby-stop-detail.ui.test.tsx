@@ -4,6 +4,7 @@ import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { getArrivals } from "../api/trimet/arrivals";
 import { getNearbyStops } from "../api/trimet/stops";
 import { ArrivalData } from "../api/trimet/interfaces/arrivals";
+import { arrival1 } from "../api/trimet/fixture/arrival";
 import { getWalkingRoute, WalkingRoute } from "../api/mapbox/walking";
 import { NearbyStopsDetail } from "../view/nearby/components/NearbyStopsDetail";
 
@@ -220,6 +221,54 @@ describe("general Nearby stop walking access", () => {
     expect(container.querySelector('[aria-label="Route 54: Beaverton Hillsdale"]')?.textContent).toBe("54");
     expect(container.querySelector('[aria-label="Route 56: Scholls Ferry"]')?.getAttribute("title")).toBe("Scholls Ferry");
     expect(container.querySelector('[aria-label="Route 99: Other route"]')).toBeNull();
+  });
+
+  it("toggles route badges to combine departure filters and resets them for a different stop", async () => {
+    const data = stopData(340);
+    data.arrival = [
+      { ...arrival1, id: "54", route: 54, shortSign: "Route 54", scheduled: 1000 },
+      { ...arrival1, id: "8", route: 8, shortSign: "Route 8", scheduled: 2000 },
+      { ...arrival1, id: "56", route: 56, shortSign: "Route 56", scheduled: 3000 },
+    ];
+    jest.mocked(getArrivals).mockResolvedValueOnce(data);
+    await render();
+    const badge = (route: number) => container.querySelector<HTMLButtonElement>(
+      `.transit-stop-route-filter[aria-label^="Route ${route}"]`
+    );
+    const departures = () => Array.from(container.querySelectorAll(".transit-stop-departures-list a"))
+      .map((link) => link.textContent);
+    expect(container.querySelector("select")).toBeNull();
+    expect(badge(8)).not.toBeNull();
+    expect(departures()).toHaveLength(3);
+    act(() => badge(54).click());
+    expect(badge(54).getAttribute("aria-pressed")).toBe("true");
+    expect(departures()).toEqual([expect.stringContaining("Route 54")]);
+    act(() => badge(56).click());
+    expect(departures()).toEqual([expect.stringContaining("Route 54"), expect.stringContaining("Route 56")]);
+    act(() => badge(54).click());
+    expect(badge(54).getAttribute("aria-pressed")).toBe("false");
+    expect(departures()).toEqual([expect.stringContaining("Route 56")]);
+    act(() => badge(56).click());
+    expect(departures()).toHaveLength(3);
+    act(() => badge(8).click());
+    jest.mocked(getArrivals).mockResolvedValueOnce({ ...stopData(367), arrival: data.arrival });
+    await act(async () => container.querySelector<HTMLAnchorElement>('a[href="/nearby/stops/367"]').click());
+    expect(departures()).toHaveLength(3);
+    expect(badge(8).getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("keeps departure route badges usable if route metadata fails", async () => {
+    jest.mocked(getNearbyStops).mockRejectedValueOnce(new Error("Unavailable"));
+    jest.mocked(getArrivals).mockResolvedValueOnce({
+      ...stopData(340),
+      arrival: [{ ...arrival1, id: "54", route: 54, shortSign: "Route 54" }]
+    });
+    await render();
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Routes could not be loaded");
+    const badge = container.querySelector<HTMLButtonElement>('button[aria-label="Route 54"]');
+    act(() => badge.click());
+    expect(badge.getAttribute("aria-pressed")).toBe("true");
+    expect(container.querySelectorAll(".transit-stop-departures-list a")).toHaveLength(1);
   });
 
   it("reports missing stop metadata instead of displaying another stop's routes", async () => {

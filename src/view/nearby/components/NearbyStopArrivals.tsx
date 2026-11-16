@@ -1,10 +1,7 @@
-import {
-  Select,
-  Table
-} from "@wintermuted/ui-theme/react";
+import { Table } from "@wintermuted/ui-theme/react";
 import { map, sortBy } from "lodash";
 import moment from "moment";
-import React, { useId, useState } from "react";
+import React from "react";
 import FontAwesome from "react-fontawesome";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
@@ -14,6 +11,7 @@ import "./NearbyRoutes.scss";
 
 interface StopArrivalsParams {
   data: ArrivalData;
+  selectedRoutes: number[];
 }
 
 function sortArrivalsByEstimated(arrivals: Arrival[]): Arrival[] {
@@ -36,35 +34,21 @@ function getArrivalsList(sortedArrivals: Arrival[]) {
   });
 }
 
-export function ArrivalList({ data }: ArrivalsTableParams) {
-  const [selectedRoute, setSelectedRoute] = useState("");
-  const filterId = useId();
-  const routes = Array.from(new Set(data.arrival.map(arrival => arrival.route)));
-  if (selectedRoute && !routes.includes(Number(selectedRoute))) {
-    routes.push(Number(selectedRoute));
-  }
-  routes.sort((a, b) => a - b);
+export function ArrivalList({ data, selectedRoutes = [] }: ArrivalsTableParams & { selectedRoutes?: number[] }) {
   const sortedArrivals = sortArrivalsByEstimated(data.arrival);
-  const filteredArrivals = selectedRoute
-    ? sortedArrivals.filter(arrival => String(arrival.route) === selectedRoute)
+  const filteredArrivals = selectedRoutes.length
+    ? sortedArrivals.filter(arrival => selectedRoutes.includes(arrival.route))
     : sortedArrivals;
   const arrivalsList = getArrivalsList(filteredArrivals);
 
   return (
-    <details className="transit-simple-route-direction" open>
+    <details id="stop-departures" className="transit-simple-route-direction" open>
       <summary><FontAwesome name="caret-right" aria-hidden="true" />Departures</summary>
-      <div className="transit-stop-departures-filter">
-        <label htmlFor={filterId}>Filter by route</label>
-        <Select id={filterId} value={selectedRoute} onChange={event => setSelectedRoute(event.target.value)}>
-          <option value="">All routes</option>
-          {routes.map(route => <option key={route} value={route}>Route {route}</option>)}
-        </Select>
-      </div>
       {filteredArrivals.length ? (
         <ul className="transit-stop-departures-list">{arrivalsList}</ul>
       ) : (
         <p className="transit-route-list-message" role="status">
-          {selectedRoute ? `No departures for route ${selectedRoute}.` : "No departures available."}
+          {selectedRoutes.length ? "No departures for the selected routes." : "No departures available."}
         </p>
       )}
     </details>
@@ -110,8 +94,8 @@ function ArrivalsTable({ data }: ArrivalsTableParams) {
   );
 }
 
-function StopArrivals({ data }: StopArrivalsParams) {
-  return <ArrivalList data={data} />;
+function StopArrivals({ data, selectedRoutes }: StopArrivalsParams) {
+  return <ArrivalList data={data} selectedRoutes={selectedRoutes} />;
 }
 
 export default StopArrivals;
