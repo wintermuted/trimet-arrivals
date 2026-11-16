@@ -30,9 +30,11 @@ function stopId(value: string | null): number | null {
 
 export default function NearbyDirections({
   onSelectionChanged,
-  showTripTimes = false
+  showTripTimes = false,
+  showTrip = false
 }: {
   showTripTimes?: boolean;
+  showTrip?: boolean;
   onSelectionChanged: (
     selection: DirectionsSelection,
     onError: () => void
@@ -139,13 +141,25 @@ export default function NearbyDirections({
   }).toString();
   const selectionUrl = `/nearby/directions?${selectionQuery}`;
 
-  if (showTripTimes) {
+  if (showTripTimes || showTrip) {
     if (!origin || !destination) {
       return (
         <div className="transit-directions">
           <TopNavBar id="Trip times" backTo={selectionUrl} />
           <p role="alert">Choose a boarding stop and a downstream destination to view trip times.</p>
           <Link className="wm-btn wm-btn-primary" to={selectionUrl}>Choose stops</Link>
+        </div>
+      );
+    }
+    const tripBackTo = showTrip && searchParams.get("source") === "arrivals"
+      ? `/nearby/directions/arrivals?${selectionQuery}` : selectionUrl;
+    const departureId = searchParams.get("departure");
+    if (showTrip && !departureId) {
+      return (
+        <div className="transit-directions">
+          <TopNavBar id="Trip details" backTo={tripBackTo} />
+          <p role="alert">Choose a departure to view its trip.</p>
+          <Link className="wm-btn wm-btn-primary" to={tripBackTo}>Choose a trip</Link>
         </div>
       );
     }
@@ -166,7 +180,10 @@ export default function NearbyDirections({
           destination={destination}
           routeName={state.name}
           directionName={state.directionName}
-          backTo={selectionUrl}
+          backTo={tripBackTo}
+          selectedTrip={showTrip && departureId ? {
+            departureId, tripId: searchParams.get("trip") || undefined
+          } : undefined}
         />
       </>
     );

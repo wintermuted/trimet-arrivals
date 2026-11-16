@@ -7,6 +7,7 @@ export interface StopTime {
 
 export interface TripTime {
   id: string;
+  tripId?: string;
   departure: StopTime;
   arrival?: StopTime;
   durationMs?: number;
@@ -73,6 +74,7 @@ export function getTripTimes(
     const arrival = getMatchingStopTime(origin, routeArrivals, to);
     trips.push({
       id: origin.id,
+      tripId: origin.tripID,
       departure,
       arrival,
       durationMs: arrival ? arrival.at - departure.at : undefined

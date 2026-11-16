@@ -46,6 +46,7 @@ describe("corresponding trip times", () => {
     ], 54, 1, 101, 103, now);
     expect(trips).toHaveLength(1);
     expect(trips[0]).toMatchObject({
+      tripId: "trip-a",
       departure: { at: now + 10 * minute, kind: "Estimated" },
       arrival: { at: now + 24 * minute, kind: "Estimated" },
       durationMs: 14 * minute
@@ -108,13 +109,15 @@ describe("selected-stop trip times view", () => {
     jest.useRealTimers();
   });
 
-  async function render(to = destination) {
+  async function render(to = destination, selectedTrip?: { departureId: string; tripId?: string }, inline = false) {
     await act(async () => root.render(
       <MemoryRouter>
         <NearbyTripTimes
           routeId={54} direction={1} origin={origin} destination={to}
           routeName="54 Example Route" directionName="To Downtown"
           backTo="/nearby/directions?route=54&direction=1&from=101&to=103"
+          selectedTrip={selectedTrip}
+          inline={inline}
         />
       </MemoryRouter>
     ));
@@ -143,6 +146,85 @@ describe("selected-stop trip times view", () => {
     expect(container.querySelector("tbody").textContent).toContain("12:10 AM");
     expect(container.querySelector("tbody").textContent).toContain("Sun, Nov 15");
     expect(container.querySelector("tbody").textContent).toContain("Scheduled");
+  });
+
+  it.each([false, true])("links each trip to a bookmarkable detail view (inline: %s)", async inline => {
+    const tripID = "trip/a?b=c";
+    const id = "board & 1";
+    loadArrivals.mockResolvedValue(response([
+      arrival({ id, tripID }),
+      arrival({ locid: 103, tripID, estimated: now + 24 * minute })
+    ]));
+    await render(destination, undefined, inline);
+    const link = container.querySelector<HTMLAnchorElement>(".transit-trip-link");
+    const url = new URL(link.href);
+    expect(url.pathname).toBe("/nearby/directions/trip");
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      route: "54", direction: "1", from: "101", to: "103",
+      departure: id, trip: tripID, ...(inline ? {} : { source: "arrivals" })
+    });
+    expect(link.getAttribute("aria-label")).toContain("View trip departing at 10:10 PM");
+    expect(link.textContent).toContain("View trip");
+    expect(container.querySelectorAll("tbody a")).toHaveLength(1);
+  });
+
+  it("shows only the chosen departure and keeps its identity as estimates refresh", async () => {
+    const later = arrival({ id: "board-later", tripID: "trip-later", estimated: now + 20 * minute });
+    const laterDestination = arrival({
+      id: "destination-later", locid: 103, tripID: "trip-later", estimated: now + 40 * minute
+    });
+    loadArrivals.mockResolvedValue(response([departure, atDestination, later, laterDestination]));
+    await render(destination, { departureId: later.id, tripId: later.tripID });
+    expect(container.querySelector("header h3").textContent).toBe("54 Example Route");
+    expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Destination Stop");
+    expect(container.textContent).toContain("Trip details");
+    expect(container.textContent).toContain("Trip trip-later");
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(1);
+    expect(container.querySelector("tbody").textContent).toMatch(/10:20 PM.*10:40 PM.*20 min ride/);
+    expect(container.querySelector(".transit-trip-link")).toBeNull();
+
+    loadArrivals.mockResolvedValueOnce(response([
+      departure, atDestination,
+      { ...later, estimated: now + 22 * minute },
+      { ...laterDestination, estimated: now + 43 * minute }
+    ]));
+    await act(async () => container.querySelector<HTMLButtonElement>("button").click());
+    expect(container.querySelector("tbody").textContent).toMatch(/10:22 PM.*10:43 PM.*21 min ride/);
+    expect(container.querySelector("tbody").textContent).not.toContain("10:10 PM");
+  });
+
+  it.each(["unknown departure", "different trip", "no longer reported"])("does not substitute another trip for %s", async reason => {
+    if (reason === "no longer reported") {
+      loadArrivals.mockResolvedValueOnce(response([]));
+    }
+    await render(destination, {
+      departureId: reason === "unknown departure" ? "missing" : departure.id,
+      tripId: reason === "different trip" ? "different" : departure.tripID
+    });
+    expect(container.querySelector("table")).toBeNull();
+    expect(container.querySelector('[role="status"]').textContent).toContain("This trip is no longer reported");
+    expect(container.querySelector('[role="status"] a').getAttribute("href"))
+      .toBe("/nearby/directions?route=54&direction=1&from=101&to=103");
+  });
+
+  it("keeps a reported selected trip after boarding time passes", async () => {
+    loadArrivals.mockResolvedValueOnce(response([
+      { ...departure, estimated: now - minute }, atDestination
+    ]));
+    await render(destination, { departureId: departure.id, tripId: departure.tripID });
+    expect(container.querySelector("tbody").textContent).toContain("9:59 PM");
+    expect(container.querySelector("tbody").textContent).toContain("10:24 PM");
+  });
+
+  it("can select a departure without a trip ID but never invents destination times", async () => {
+    loadArrivals.mockResolvedValue(response([{ ...departure, tripID: undefined }, atDestination]));
+    await render();
+    const url = new URL(container.querySelector<HTMLAnchorElement>(".transit-trip-link").href);
+    expect(url.searchParams.get("departure")).toBe(departure.id);
+    expect(url.searchParams.has("trip")).toBe(false);
+    await render(destination, { departureId: departure.id });
+    expect(container.textContent).toContain("Trip ID not reported");
+    expect(container.querySelector("tbody").textContent).toContain("Not reported");
   });
 
   it("explains an unmatched destination without displaying a made-up duration", async () => {
