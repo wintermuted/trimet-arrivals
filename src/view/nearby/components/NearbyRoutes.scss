@@ -602,6 +602,10 @@
   }
 }
 
+.transit-route-stop-content[hidden] {
+  display: none;
+}
+
 .transit-simple-route-item {
   display: block;
   padding: 0;

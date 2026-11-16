@@ -80,6 +80,25 @@
   outline-offset: 2px;
 }
 
+.transit-detail-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--wm-control-height);
+  min-height: var(--wm-control-height);
+  color: var(--wm-color-accent);
+  text-decoration: none;
+}
+
+.transit-detail-info:hover {
+  background: var(--wm-color-surface-muted);
+}
+
+.transit-detail-info:focus-visible {
+  outline: 2px solid var(--wm-color-accent);
+  outline-offset: -2px;
+}
+
 .transit-field-row {
   display: flex;
   flex-wrap: wrap;
