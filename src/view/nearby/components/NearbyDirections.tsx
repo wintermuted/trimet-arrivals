@@ -102,14 +102,14 @@ export default function NearbyDirections({
       return onSelectionChanged(
         {
           routeId, direction, origin, destination,
-          ...(choosingDestination ? {
-            destinationStops: route.stops.slice(originIndex + 1)
+          ...(!showTripTimes && !showTrip ? {
+            routeStops: route.stops
           } : {})
         },
         () => setMapError(true)
       );
     }
-  }, [routeId, direction, validRoute, origin, originIndex, destination, onSelectionChanged, mapRetry, choosingDestination, route]);
+  }, [routeId, direction, validRoute, origin, destination, onSelectionChanged, mapRetry, route, showTripTimes, showTrip]);
 
   if (!validRoute) {
     return (

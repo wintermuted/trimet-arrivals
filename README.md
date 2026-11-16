@@ -152,21 +152,18 @@ Other-route metadata loads when the picker expands and is reused while it
 remains mounted. Loading failures offer retry without blocking stop selection;
 Cancel or Escape keeps the existing destination and restores button focus.
 The Cancel action stays visible while scrolling the stop list.
-While choosing, the map shows only downstream destination markers and fits the
-remaining route from the boarding stop to the terminus. The boarding pin stays
-visible for context; neither earlier stops nor the boarding stop appear as
-destination choices. Searching the list does not hide downstream map markers. Hovering or
+The destination-selection map shows and fits the full route line and all stops,
+including stops before boarding. The boarding pin stays visible for context;
+neither earlier stops nor the boarding stop appear as destination choices.
+Searching the list does not hide map markers. Hovering or
 keyboard-focusing a destination highlights and enlarges its map marker without
 moving the map. Highlights clear when no stop is hovered or focused, or when
-searching or dismissing;
-closing the picker restores the selected trip's route segment and endpoint pins.
+searching or dismissing.
 The boarding stop is read-only here: go back to change it. The header shows the route
 and selected destination (or route direction until a destination is chosen).
-The map shows the selected
-route line and labeled boarding/destination markers. With both stops selected it
-shows a solid line for the selected portion and fits both stops plus the intervening
-road geometry, with padding that adapts to the map panel's size; with only a
-boarding stop it focuses that stop. Selecting both stops also displays matched
+The trip-times and trip-detail maps show the selected route segment and labeled
+boarding/destination markers, fitting both stops and the intervening road geometry
+with padding that adapts to the map panel's size. Selecting both stops also displays matched
 departure and arrival times directly beneath the destination picker, including travel
 duration, refresh/retry, and explicit unavailable predictions. Departure and arrival
 have separate, stop-labeled columns with emphasized times; ride duration appears

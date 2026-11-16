@@ -122,13 +122,19 @@ describe("route-aware destination selection", () => {
     );
     const destination = container.querySelector<HTMLButtonElement>("#trip-destination");
     expect(container.querySelector("select")).toBeNull();
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[0], destination: undefined, routeStops: stops },
+      expect.any(Function)
+    );
+    const mapUpdates = onSelectionChanged.mock.calls.length;
     openDestinations();
+    expect(onSelectionChanged).toHaveBeenCalledTimes(mapUpdates);
     expect(container.querySelector("#trip-destination-options")).not.toBeNull();
     expect(document.querySelector("dialog")).toBeNull();
     expect(Array.from(document.querySelectorAll("[data-stop-id]")).map(option => option.getAttribute("data-stop-id")))
       .toEqual(["102", "103"]);
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[0], destination: undefined, destinationStops: stops.slice(1) },
+      { routeId: 54, direction: 1, origin: stops[0], destination: undefined, routeStops: stops },
       expect.any(Function)
     );
     chooseDestination("103");
@@ -137,7 +143,7 @@ describe("route-aware destination selection", () => {
     expect(container.querySelector('[role="status"]').textContent).toBe("2 stops to Example Terminal.");
     expect(container.querySelector("output").textContent).toContain("from=101&to=103");
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[0], destination: stops[2] },
+      { routeId: 54, direction: 1, origin: stops[0], destination: stops[2], routeStops: stops },
       expect.any(Function)
     );
     expect(container.querySelector(".wm-btn-primary").getAttribute("href")).toBe(
@@ -146,7 +152,7 @@ describe("route-aware destination selection", () => {
 
     chooseDestination("102");
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[0], destination: stops[1] },
+      { routeId: 54, direction: 1, origin: stops[0], destination: stops[1], routeStops: stops },
       expect.any(Function)
     );
     expect(destination.textContent).toBe("Example Middle (102)");
@@ -160,7 +166,7 @@ describe("route-aware destination selection", () => {
     await render("route=54&direction=1&from=101&to=102");
     expect(container.querySelector("#trip-destination").textContent).toBe("Example Middle (102)");
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[0], destination: stops[1] },
+      { routeId: 54, direction: 1, origin: stops[0], destination: stops[1], routeStops: stops },
       expect.any(Function)
     );
   });
@@ -171,7 +177,7 @@ describe("route-aware destination selection", () => {
     expect(Array.from(container.querySelectorAll("[data-stop-id]"))
       .map(row => row.getAttribute("data-stop-id"))).toEqual(["103"]);
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2], destinationStops: [stops[2]] },
+      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2], routeStops: stops },
       expect.any(Function)
     );
     const selections = onSelectionChanged.mock.calls.length;
@@ -195,8 +201,9 @@ describe("route-aware destination selection", () => {
     act(() => container.querySelector<HTMLInputElement>('input[type="search"]')
       .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
     expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
+    expect(onSelectionChanged).toHaveBeenCalledTimes(selections);
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2] },
+      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2], routeStops: stops },
       expect.any(Function)
     );
   });
@@ -389,7 +396,7 @@ describe("route-aware destination selection", () => {
     expect(container.querySelector('[role="status"]').textContent).toContain("Go back");
     expect(container.querySelector("#trip-origin")).toBeNull();
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[2], destination: undefined },
+      { routeId: 54, direction: 1, origin: stops[2], destination: undefined, routeStops: stops },
       expect.any(Function)
     );
   });
@@ -399,7 +406,7 @@ describe("route-aware destination selection", () => {
     expect(container.querySelector('[role="alert"]').textContent).toContain("after your boarding stop");
     expect(container.querySelector(".wm-btn-primary")).toBeNull();
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[1], destination: undefined },
+      { routeId: 54, direction: 1, origin: stops[1], destination: undefined, routeStops: stops },
       expect.any(Function)
     );
   });
@@ -445,7 +452,8 @@ describe("route-aware destination selection", () => {
         routeId: 12,
         direction: 0,
         origin: { ...stops[0], locid: 201 },
-        destination: undefined
+        destination: undefined,
+        routeStops: [{ ...stops[0], locid: 201 }]
       },
       expect.any(Function)
     );
