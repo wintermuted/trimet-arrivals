@@ -94,6 +94,7 @@ describe("route-aware destination selection", () => {
   function chooseDestination(value: string) {
     if (!container.querySelector("#trip-destination-options")) {
       openDestinations();
+      expect(container.querySelector(".scrollarea").classList.contains("transit-directions-picking")).toBe(true);
     }
     act(() => document.querySelector<HTMLButtonElement>(`[data-stop-id="${value}"]`).click());
   }
@@ -129,6 +130,7 @@ describe("route-aware destination selection", () => {
       expect.any(Function)
     );
     chooseDestination("103");
+    expect(container.querySelector(".scrollarea").classList.contains("transit-directions-picking")).toBe(false);
     expect(container.querySelector("#trip-destination-options")).toBeNull();
     expect(container.querySelector('[role="status"]').textContent).toBe("2 stops to Example Terminal.");
     expect(container.querySelector("output").textContent).toContain("from=101&to=103");
@@ -210,6 +212,7 @@ describe("route-aware destination selection", () => {
     });
     expect(container.querySelector("#trip-destination-options")).toBeNull();
     expect(document.activeElement).toBe(trigger);
+    expect(container.querySelector(".scrollarea").classList.contains("transit-directions-picking")).toBe(false);
     expect(container.querySelector("output").textContent).toContain("from=101&to=103");
     await act(async () => openDestinations());
     expect(loadAllRoutes).toHaveBeenCalledTimes(1);

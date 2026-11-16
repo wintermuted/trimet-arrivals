@@ -11,11 +11,13 @@ export default function NearbyDestinationPicker({
   destination,
   routeId,
   onSelect,
+  onOpenChange,
 }: {
   stops: RouteDirectionStop[];
   destination?: RouteDirectionStop;
   routeId: number;
   onSelect: (stop: RouteDirectionStop) => void;
+  onOpenChange: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -25,12 +27,22 @@ export default function NearbyDestinationPicker({
   const [retry, setRetry] = useState(0);
   const picker = useRef<HTMLDivElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
+  const wasOpen = useRef(false);
 
   useEffect(() => {
     if (open) {
-      searchInput.current?.focus();
+      const sidebar = picker.current?.closest(".scrollarea");
+      if (sidebar) {
+        sidebar.scrollTop = 0;
+      }
+      searchInput.current?.focus({ preventScroll: true });
+    } else if (wasOpen.current) {
+      picker.current?.querySelector<HTMLButtonElement>("#trip-destination")?.focus();
     }
+    wasOpen.current = open;
   }, [open]);
+
+  useEffect(() => () => onOpenChange(false), [onOpenChange]);
 
   useEffect(() => {
     if (!open || routes) {
@@ -112,9 +124,7 @@ export default function NearbyDestinationPicker({
 
   function close() {
     setOpen(false);
-    picker.current
-      ?.querySelector<HTMLButtonElement>("#trip-destination")
-      ?.focus();
+    onOpenChange(false);
   }
 
   return (
@@ -132,6 +142,7 @@ export default function NearbyDestinationPicker({
           } else {
             setSearch("");
             setOpen(true);
+            onOpenChange(true);
           }
         }}
       >
