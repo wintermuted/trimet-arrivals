@@ -389,7 +389,8 @@ export default function NearbyViewComponent() {
   const handleWalkingRouteChanged = useCallback((feature: Feature<LineString>) =>
     showWalkingRoute(mapRef.current, feature), []);
   const handleRouteInfoChanged = useCallback((route: DetailedRoute, onError: () => void) =>
-    showRouteInfo(mapRef.current, route, onError), []);
+    showRouteInfo(mapRef.current, route, onError, (stopId) =>
+      navigate(`/nearby/stops/${stopId}`)), [navigate]);
   const handleRouteInfoStopHighlighted = useCallback((stopId?: number) =>
     highlightRouteInfoStop(mapRef.current, stopId), []);
 

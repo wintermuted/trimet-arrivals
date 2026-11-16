@@ -1,12 +1,13 @@
 import { FeatureCollection, Point } from "geojson";
-import { LngLatBounds, Map as MapboxMap } from "mapbox-gl";
+import { LngLatBounds, Map as MapboxMap, MapLayerMouseEvent, Popup } from "mapbox-gl";
 import { TrimetRoute } from "../../../../api/trimet/interfaces/routes";
 import { STOP_LOCATION_LAYER } from "./consts";
 import { addMapboxLayer, getRouteGeometry, removeRoutes } from "./routeLines";
 
 const STOPS = "route-info-stops";
+const routeInfoControls = new WeakMap<MapboxMap, { highlight: (stopId?: number) => void }>();
 
-export function highlightRouteInfoStop(map: MapboxMap, stopId?: number) {
+function paintHighlight(map: MapboxMap, stopId?: number) {
   if (!map?.getLayer(STOPS)) return;
   map.setPaintProperty(STOPS, "circle-color", stopId === undefined
     ? "#4264fb" : ["case", ["==", ["get", "locid"], stopId], "#ff0000", "#4264fb"]);
@@ -14,7 +15,18 @@ export function highlightRouteInfoStop(map: MapboxMap, stopId?: number) {
     ? 6 : ["case", ["==", ["get", "locid"], stopId], 12, 6]);
 }
 
-export function showRouteInfo(map: MapboxMap, route: TrimetRoute, onError: () => void): () => void {
+export function highlightRouteInfoStop(map: MapboxMap, stopId?: number) {
+  const controls = map && routeInfoControls.get(map);
+  if (controls) controls.highlight(stopId);
+  else paintHighlight(map, stopId);
+}
+
+export function showRouteInfo(
+  map: MapboxMap,
+  route: TrimetRoute,
+  onError: () => void,
+  onStopClick?: (stopId: number) => void
+): () => void {
   const abort = new AbortController();
   let closed = false;
   const previousCenter = map.getCenter();
@@ -44,6 +56,61 @@ export function showRouteInfo(map: MapboxMap, route: TrimetRoute, onError: () =>
       "circle-radius": 6, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2
     }
   });
+  const stopsById = new Map(stops.map((stop) => [stop.locid, stop]));
+  const popup = new Popup({ closeButton: false, closeOnClick: false });
+  let listStop: number | undefined;
+  let mapStop: number | undefined;
+  let mapLongitude: number | undefined;
+
+  function updateHighlight() {
+    const id = mapStop ?? listStop;
+    paintHighlight(map, id);
+    const stop = id === undefined ? undefined : stopsById.get(id);
+    if (!stop) {
+      popup.remove();
+      return;
+    }
+    const coordinates: [number, number] = [stop.lng, stop.lat];
+    const longitude = mapStop === undefined ? map.getCenter().lng : mapLongitude;
+    while (longitude !== undefined && Math.abs(longitude - coordinates[0]) > 180) {
+      coordinates[0] += longitude > coordinates[0] ? 360 : -360;
+    }
+    popup.setLngLat(coordinates)
+      .setText(`${stop.desc}\nStop ID: ${stop.locid}\nRoute: ${route.route}`)
+      .addTo(map);
+  }
+
+  function handleMapHover(event: MapLayerMouseEvent) {
+    const id = Number(event.features?.[0]?.properties?.locid);
+    mapStop = stopsById.has(id) ? id : undefined;
+    mapLongitude = event.lngLat.lng;
+    map.getCanvas().style.cursor = "pointer";
+    updateHighlight();
+  }
+
+  function handleMapLeave() {
+    mapStop = undefined;
+    mapLongitude = undefined;
+    map.getCanvas().style.cursor = "";
+    updateHighlight();
+  }
+
+  function handleMapClick(event: MapLayerMouseEvent) {
+    const id = Number(event.features?.[0]?.properties?.locid);
+    if (stopsById.has(id)) onStopClick?.(id);
+  }
+
+  const controls = {
+    highlight: (stopId?: number) => {
+      listStop = stopId;
+      updateHighlight();
+    }
+  };
+  routeInfoControls.set(map, controls);
+  map.on("mouseenter", STOPS, handleMapHover);
+  map.on("mousemove", STOPS, handleMapHover);
+  map.on("mouseleave", STOPS, handleMapLeave);
+  map.on("click", STOPS, handleMapClick);
   const bounds = new LngLatBounds();
   stops.forEach((stop) => bounds.extend([stop.lng, stop.lat]));
   const fit = () => {
@@ -74,6 +141,13 @@ export function showRouteInfo(map: MapboxMap, route: TrimetRoute, onError: () =>
   return () => {
     closed = true;
     abort.abort();
+    map.off("mouseenter", STOPS, handleMapHover);
+    map.off("mousemove", STOPS, handleMapHover);
+    map.off("mouseleave", STOPS, handleMapLeave);
+    map.off("click", STOPS, handleMapClick);
+    popup.remove();
+    map.getCanvas().style.cursor = "";
+    if (routeInfoControls.get(map) === controls) routeInfoControls.delete(map);
     removeRoutes(map, [...ids, STOPS]);
     if (map.getLayer(STOP_LOCATION_LAYER)) {
       map.setLayoutProperty(STOP_LOCATION_LAYER, "visibility", previousVisibility ?? "visible");
