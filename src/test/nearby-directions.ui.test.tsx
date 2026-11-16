@@ -76,10 +76,10 @@ describe("route-aware destination selection", () => {
     container.remove();
   });
 
-  async function render(query = "route=54&direction=1&from=101", showTripTimes = false) {
+  async function render(query = "route=54&direction=1&from=101", showTripTimes = false, showTrip = false) {
     await act(async () => root.render(
       <MemoryRouter initialEntries={[`/nearby/directions?${query}`]}>
-        <NearbyDirections onSelectionChanged={onSelectionChanged} showTripTimes={showTripTimes} />
+        <NearbyDirections onSelectionChanged={onSelectionChanged} showTripTimes={showTripTimes} showTrip={showTrip} />
         <NavigationProbe />
       </MemoryRouter>
     ));
@@ -289,6 +289,39 @@ describe("route-aware destination selection", () => {
     expect(container.querySelector('[role="alert"]').textContent).toContain("downstream destination");
     expect(container.querySelector(".wm-btn-primary").textContent).toBe("Choose stops");
     expect(container.querySelector("table")).toBeNull();
+  });
+
+  it("opens a selected trip from its URL with a return path to the originating list", async () => {
+    const at = Date.now() + 10 * 60000;
+    const selected = {
+      ...arrival1, id: "selected-departure", tripID: "selected-trip",
+      route: 54, dir: 1, locid: 101, estimated: at, dropOffOnly: false, status: "estimated"
+    };
+    loadArrivals.mockResolvedValue({
+      arrival: [selected, { ...selected, id: "dest", locid: 103, estimated: at + 14 * 60000 }],
+      queryTime: String(Date.now()), location: [], detour: []
+    });
+    await render("route=54&direction=1&from=101&to=103&departure=selected-departure&trip=selected-trip&source=arrivals", false, true);
+    expect(container.textContent).toContain("Trip details");
+    expect(container.textContent).toContain("Trip selected-trip");
+    expect(container.querySelector("header h3").textContent).toBe("54 Example route");
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(1);
+    expect(container.querySelector("tbody").textContent).toContain("14 min ride");
+    expect(container.querySelector("#trip-destination")).toBeNull();
+    expect(container.querySelector("header a").getAttribute("href"))
+      .toBe("/nearby/directions/arrivals?route=54&direction=1&from=101&to=103");
+    expect(onSelectionChanged).toHaveBeenLastCalledWith(
+      { routeId: 54, direction: 1, origin: stops[0], destination: stops[2] },
+      expect.any(Function)
+    );
+  });
+
+  it("requires an explicit departure for a direct trip URL", async () => {
+    await render("route=54&direction=1&from=101&to=103", false, true);
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Choose a departure");
+    expect(loadArrivals).not.toHaveBeenCalled();
+    expect(container.querySelector(".wm-btn-primary").getAttribute("href"))
+      .toBe("/nearby/directions?route=54&direction=1&from=101&to=103");
   });
 
   it("cleans up the previous selected-stop marker when selection changes or the view closes", async () => {

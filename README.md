@@ -110,6 +110,13 @@ destination predictions remain explicitly unavailable; unrelated buses, canceled
 trips, uncertain predictions and drop-off-only boarding stops are never used to
 invent a journey. This is a same-route stop-time comparison, not a transfer planner;
 boarding times use TriMet stop predictions rather than guaranteed departures.
+Each trip row is a keyboard-accessible link; selecting anywhere on it opens
+`/nearby/directions/trip` for that specific departure. The URL retains the route,
+direction, boarding stop, destination, departure ID, and reported trip ID.
+The trip view shows only that departure's matched times and ride duration, with
+refresh/retry and a back link to the originating trip list. A missing or no-longer
+reported departure never silently selects another trip. Reported departures
+remain visible in the trip view after their departure time passes.
 The route stop detail's Departures and Stops panels use independent native
 disclosures with clock/stop icons. Both start expanded and support keyboard
 activation without clearing their data when collapsed.

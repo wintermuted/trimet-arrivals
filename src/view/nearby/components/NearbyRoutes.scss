@@ -277,6 +277,42 @@
   font-size: 0.875rem;
 }
 
+.transit-trip-selectable {
+  position: relative;
+
+  &:hover,
+  &:focus-within {
+    background: var(--wm-color-surface-muted);
+  }
+}
+
+.transit-trip-link {
+  display: block;
+  min-height: 44px;
+  color: inherit;
+  text-decoration: none;
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::after {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: -2px;
+  }
+}
+
+.transit-trip-times-table .transit-trip-action {
+  color: var(--wm-color-accent);
+  text-decoration: underline;
+}
+
 .route-header {
   background: var(--wm-color-surface);
   padding: 0;

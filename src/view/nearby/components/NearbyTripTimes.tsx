@@ -1,9 +1,10 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
-import { dayFormat, getTripTimes, StopTime, timeFormat } from "../util/tripTimes";
+import { dayFormat, getTripTimes, StopTime, timeFormat, TripTime } from "../util/tripTimes";
 import { TopNavBar } from "./common/TopNavBar";
 
 function TripStopTime({ time, today }: { time: StopTime; today: string }) {
@@ -25,7 +26,7 @@ interface TimesState {
 }
 
 export default function NearbyTripTimes({
-  routeId, direction, origin, destination, routeName, directionName, backTo, inline = false
+  routeId, direction, origin, destination, routeName, directionName, backTo, inline = false, selectedTrip
 }: {
   routeId: number;
   direction: number;
@@ -35,6 +36,7 @@ export default function NearbyTripTimes({
   directionName: string;
   backTo: string;
   inline?: boolean;
+  selectedTrip?: { departureId: string; tripId?: string };
 }) {
   const from = origin.locid;
   const to = destination.locid;
@@ -82,9 +84,28 @@ export default function NearbyTripTimes({
 
   const current = state.key === key ? state : null;
   const data = current?.data;
-  const trips = data ? getTripTimes(data.arrival, routeId, direction, from, to, Date.now()) : [];
+  const trips = data ? getTripTimes(data.arrival, routeId, direction, from, to, selectedTrip ? 0 : Date.now()) : [];
+  const selected = selectedTrip && trips.find(trip =>
+    trip.id === selectedTrip.departureId &&
+    (!selectedTrip.tripId || trip.tripId === selectedTrip.tripId)
+  );
+  const visibleTrips = selectedTrip ? selected ? [selected] : [] : trips;
   const today = dayFormat.format(Date.now());
   const loading = !current || current.loading;
+
+  function tripUrl(trip: TripTime) {
+    const query = new URLSearchParams({
+      route: String(routeId), direction: String(direction),
+      from: String(from), to: String(to), departure: trip.id
+    });
+    if (trip.tripId) {
+      query.set("trip", trip.tripId);
+    }
+    if (!inline) {
+      query.set("source", "arrivals");
+    }
+    return `/nearby/directions/trip?${query}`;
+  }
 
   return (
     <div className={inline ? "transit-directions" : "scrollarea transit-directions"}>
@@ -92,11 +113,22 @@ export default function NearbyTripTimes({
         <h4>Departure and arrival times</h4>
       ) : (
         <>
-          <TopNavBar id="Trip times" backTo={backTo} />
-          <div>
+          <TopNavBar
+            id={selectedTrip ? routeName : "Trip times"}
+            subtitle={selectedTrip ? `To ${destination.desc}` : undefined}
+            backTo={backTo}
+          />
+          {selectedTrip ? (
+            <div>
+              <h4>Trip details</h4>
+              <p className="transit-trip-note">
+                {selectedTrip.tripId ? `Trip ${selectedTrip.tripId}` : "Trip ID not reported"}
+              </p>
+            </div>
+          ) : <div>
             <h4>{routeName}</h4>
             <p>{directionName}</p>
-          </div>
+          </div>}
           <dl className="transit-trip-stops">
             <div><dt>Board at</dt><dd>{origin.desc} ({from})</dd></div>
             <div><dt>Get off at</dt><dd>{destination.desc} ({to})</dd></div>
@@ -127,7 +159,7 @@ export default function NearbyTripTimes({
       )}
       {data && (
         <>
-          {trips.length > 0 ? (
+          {visibleTrips.length > 0 ? (
             <table className="transit-trip-times-table">
               <caption className="wm-sr-only">
                 Departures from {origin.desc} and corresponding arrivals at {destination.desc}
@@ -137,9 +169,20 @@ export default function NearbyTripTimes({
                 <th scope="col">Arrival<small>{destination.desc}</small></th>
               </tr></thead>
               <tbody>
-                {trips.map(trip => (
-                  <tr key={trip.id}>
-                    <td><TripStopTime time={trip.departure} today={today} /></td>
+                {visibleTrips.map(trip => (
+                  <tr key={trip.id} className={selectedTrip ? undefined : "transit-trip-selectable"}>
+                    <td>
+                      {selectedTrip ? <TripStopTime time={trip.departure} today={today} /> : (
+                        <Link
+                          className="transit-trip-link"
+                          to={tripUrl(trip)}
+                          aria-label={`View trip departing at ${timeFormat.format(trip.departure.at)} from ${origin.desc} to ${destination.desc}`}
+                        >
+                          <TripStopTime time={trip.departure} today={today} />
+                          <small className="transit-trip-action">View trip</small>
+                        </Link>
+                      )}
+                    </td>
                     <td>
                       {trip.arrival
                         ? <TripStopTime time={trip.arrival} today={today} />
@@ -154,9 +197,14 @@ export default function NearbyTripTimes({
               </tbody>
             </table>
           ) : (
-            <p role="status">No upcoming boardable trips with reported times. Refresh or choose different stops.</p>
+            selectedTrip ? (
+              <div role="status">
+                <p>This trip is no longer reported for these stops. It may have departed or its predictions may be unavailable.</p>
+                <Link to={backTo}>Choose another trip</Link>
+              </div>
+            ) : <p role="status">No upcoming boardable trips with reported times. Refresh or choose different stops.</p>
           )}
-          {trips.some(trip => !trip.arrival) && (
+          {visibleTrips.some(trip => !trip.arrival) && (
             <p className="transit-trip-note">
               Some destination times are not yet reported.
             </p>
