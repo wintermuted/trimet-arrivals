@@ -307,6 +307,52 @@ describe("NearbySimpleRoutes", () => {
     );
   });
 
+  it("collapses route directions independently and highlights hovered or focused stops", async () => {
+    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    jest.mocked(getRouteById).mockResolvedValue({
+      route: [{
+        route: 54, id: 54, desc: "Beaverton", type: "bus",
+        routeColor: "", routeSortOrder: 54,
+        dir: [
+          { dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] },
+          { dir: 1, desc: "Southbound", stop: [{ ...stop(102, 0.02), seq: 1, tp: false }] }
+        ]
+      }]
+    });
+    const highlight = jest.fn();
+    await act(async () => root.render(
+      <MemoryRouter>
+        <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
+          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          routeCount={1} stopCount={2} onRouteInfoStopHighlighted={highlight} />
+      </MemoryRouter>
+    ));
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-simple-route-details-link").click());
+    const panel = container.querySelector('[aria-label="Route 54 details"]');
+    const directions = Array.from(panel.querySelectorAll<HTMLDetailsElement>("details"));
+    const first = directions[0].querySelector<HTMLElement>('[data-stop-id="101"]');
+    const second = directions[1].querySelector<HTMLElement>('[data-stop-id="102"]');
+    expect(directions.map((direction) => direction.open)).toEqual([true, true]);
+    highlight.mockClear();
+    await act(async () => first.focus());
+    expect(highlight).toHaveBeenLastCalledWith(101);
+    await act(async () => second.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(highlight).toHaveBeenLastCalledWith(102);
+    await act(async () => second.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(highlight).toHaveBeenLastCalledWith(101);
+    await act(async () => {
+      directions[0].open = false;
+      directions[0].dispatchEvent(new Event("toggle"));
+    });
+    expect(directions[1].open).toBe(true);
+    expect(highlight).toHaveBeenLastCalledWith();
+    await act(async () => {
+      const close = Array.from(panel.querySelectorAll("button")).find((button) => button.textContent === "Close");
+      close.click();
+    });
+    expect(highlight).toHaveBeenLastCalledWith();
+  });
+
   it("reports route detail failures and retries without leaving the nearby list", async () => {
     jest.mocked(getArrivals).mockResolvedValue(response([]));
     jest.mocked(getRouteById)

@@ -118,6 +118,8 @@ The info button on a Nearby route opens its details in the sidebar without
 leaving the map. Both directions and their stops are listed and shown on the
 map; closing restores the nearby markers and previous map view. The route lines
 use the checked-in geometry snapshot, which may lag current stop information.
+Directions can be collapsed independently; hovering or focusing a stop
+highlights its marker on the map.
 
 Nearby Stops card headers put the stop name first and the stop ID on the right;
 the full header opens the stop. Hovering a card or focusing any of its links

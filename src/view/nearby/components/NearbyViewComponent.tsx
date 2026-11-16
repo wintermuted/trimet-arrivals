@@ -50,7 +50,7 @@ import NearbyStops from "./NearbyStops";
 import NearbyRoutes from "./NearbyRoutes";
 import NearbyDirections from "./NearbyDirections";
 import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
-import { showRouteInfo } from "../util/mapbox/routeInfo";
+import { highlightRouteInfoStop, showRouteInfo } from "../util/mapbox/routeInfo";
 
 const DEFAULT_RADIUS = 1000;
 
@@ -72,6 +72,7 @@ export interface NearbyViewComponentOutletContextProps {
   walkingEnabled: boolean;
   handleWalkingRouteChanged: (feature: Feature<LineString>) => () => void;
   handleRouteInfoChanged: (route: DetailedRoute, onError: () => void) => () => void;
+  handleRouteInfoStopHighlighted: (stopId?: number) => void;
 }
 
 export function NearbyStopDetailComponent() {
@@ -134,6 +135,7 @@ export function NearbySimpleRoutesComp() {
     handleSimpleRoutesOpened,
     handleNearbyStopHighlighted,
     handleRouteInfoChanged,
+    handleRouteInfoStopHighlighted,
     walkingEnabled
   } = useOutletContext<NearbyViewComponentOutletContextProps>();
 
@@ -151,6 +153,7 @@ export function NearbySimpleRoutesComp() {
         handleSimpleRoutesOpened={handleSimpleRoutesOpened}
         onStopHighlightChanged={handleNearbyStopHighlighted}
         onRouteInfoChanged={handleRouteInfoChanged}
+        onRouteInfoStopHighlighted={handleRouteInfoStopHighlighted}
         walkingEnabled={walkingEnabled}
         routeCount={routeCount}
         stopCount={stopCount}
@@ -387,6 +390,8 @@ export default function NearbyViewComponent() {
     showWalkingRoute(mapRef.current, feature), []);
   const handleRouteInfoChanged = useCallback((route: DetailedRoute, onError: () => void) =>
     showRouteInfo(mapRef.current, route, onError), []);
+  const handleRouteInfoStopHighlighted = useCallback((stopId?: number) =>
+    highlightRouteInfoStop(mapRef.current, stopId), []);
 
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
@@ -414,7 +419,8 @@ export default function NearbyViewComponent() {
     handleSimpleRoutesOpened,
     walkingEnabled,
     handleWalkingRouteChanged,
-    handleRouteInfoChanged
+    handleRouteInfoChanged,
+    handleRouteInfoStopHighlighted
   };
 
   return (

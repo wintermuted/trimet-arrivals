@@ -42,6 +42,7 @@ interface Props {
   onStopHighlightChanged?: (stopId?: number) => void;
   walkingEnabled?: boolean;
   onRouteInfoChanged?: (route: DetailedRoute, onError: () => void) => () => void;
+  onRouteInfoStopHighlighted?: (stopId?: number) => void;
 }
 
 interface RouteStop {
@@ -206,6 +207,7 @@ export default function NearbySimpleRoutes({
   onStopHighlightChanged,
   walkingEnabled = false,
   onRouteInfoChanged,
+  onRouteInfoStopHighlighted,
 }: Props) {
   const [infoRoute, setInfoRoute] = useState<TrimetRoute>();
   const infoButton = useRef<HTMLButtonElement>();
@@ -387,6 +389,7 @@ export default function NearbySimpleRoutes({
         routeId={infoRoute.route}
         routeName={infoRoute.desc}
         onMapChanged={onRouteInfoChanged}
+        onStopHighlightChanged={onRouteInfoStopHighlighted}
         onClose={() => {
           setInfoRoute(undefined);
           requestAnimationFrame(() => infoButton.current?.focus());
