@@ -1,22 +1,26 @@
 import {
+  Badge,
+  Button,
   Card,
   CardFooter,
   CardHeader,
   ListGroup,
   ListItem
 } from "@wintermuted/ui-theme/react";
-import { map } from "lodash";
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   StopData,
   StopLocation,
   TrimetRoute
 } from "../../../api/trimet/interfaces/types";
 import RouteIndicator from "../../../component/route/RouteIndicator";
-import StopLocationIndicator from "../../../component/stop/StopLocationIndicator";
 import Loading from "../../loading/Loading";
 import { getNormalizedDistanceString } from "../util/turfUtils";
+import useStopHighlight from "../util/useStopHighlight";
+import useWalkingEstimates from "../util/useWalkingEstimates";
 import NearbySubNav from "./common/NearbySubNav";
+import { WalkingDistance } from "./common/WalkingDistance";
 import "./NearbyViewComponent.scss";
 import { SearchRadiusSelection } from "./SearchRadiusSelection";
 
@@ -28,38 +32,6 @@ function getRouteDirections(route: TrimetRoute) {
   );
 }
 
-function getLocationInfo(stopLocations: StopData, currentLocation: number[]) {
-  return map(
-    stopLocations.location,
-    (stopLocation: StopLocation, key: number) => {
-      const distanceDescription = getNormalizedDistanceString(currentLocation, [
-        stopLocation.lng,
-        stopLocation.lat
-      ]);
-      return (
-        <>
-          <Card key={key}>
-            <CardHeader as="h6">
-              <StopLocationIndicator
-                locationId={stopLocation.locid}
-                nearbyStops={true}
-              />
-              {stopLocation.desc}
-            </CardHeader>
-            <ListGroup>
-              {stopLocation.route.map(r => getRouteDirections(r))}
-            </ListGroup>
-            <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
-              {distanceDescription}
-            </CardFooter>
-          </Card>
-          <br />
-        </>
-      );
-    }
-  );
-}
-
 export interface NearbyStopsProps {
   nearbyStops: StopData;
   radiusSize: number;
@@ -67,6 +39,8 @@ export interface NearbyStopsProps {
   stopCount: number;
   routeCount: number;
   currentLocation: number[];
+  onStopHighlightChanged?: (stopId?: number) => void;
+  walkingEnabled?: boolean;
 }
 
 export default function NearbyStops({
@@ -75,10 +49,38 @@ export default function NearbyStops({
   handleRadiusSelectionChange,
   routeCount,
   stopCount,
-  currentLocation
+  currentLocation,
+  onStopHighlightChanged,
+  walkingEnabled = false
 }: NearbyStopsProps) {
+  const { clearHighlight, focusStop, hoverStop } = useStopHighlight(
+    onStopHighlightChanged
+  );
+  const walking = useWalkingEstimates(
+    currentLocation,
+    nearbyStops?.location ?? [],
+    walkingEnabled
+  );
+
+  useEffect(() => {
+    clearHighlight();
+  }, [nearbyStops, radiusSize, walkingEnabled, walking.status, clearHighlight]);
+
   if (!nearbyStops) {
     return <Loading />;
+  }
+
+  const stopLocations = [...nearbyStops.location];
+  if (walkingEnabled && walking.status === "ready") {
+    stopLocations.sort((first, second) => {
+      const firstEstimate = walking.estimates.get(first.locid);
+      const secondEstimate = walking.estimates.get(second.locid);
+      const firstDistance =
+        firstEstimate?.status === "ready" ? firstEstimate.meters : Infinity;
+      const secondDistance =
+        secondEstimate?.status === "ready" ? secondEstimate.meters : Infinity;
+      return firstDistance - secondDistance || first.locid - second.locid;
+    });
   }
 
   return (
@@ -90,7 +92,80 @@ export default function NearbyStops({
       <br />
       <NearbySubNav routeCount={routeCount} stopCount={stopCount} />
       <br />
-      {getLocationInfo(nearbyStops, currentLocation)}
+      {!walkingEnabled && (
+        <p>
+          Enable walking estimates in Feature flags to sort by walking distance.
+        </p>
+      )}
+      {walkingEnabled && walking.status === "loading" && (
+        <p role="status">Calculating walking distances...</p>
+      )}
+      {walkingEnabled && walking.status === "error" && (
+        <div role="alert">
+          <p>
+            Walking estimates unavailable. {walking.error} Stops are not ranked
+            by walking distance.
+          </p>
+          <Button variant="secondary" onClick={walking.refresh}>
+            Retry walking estimates
+          </Button>
+        </div>
+      )}
+      {walkingEnabled && walking.status === "ready" && (
+        <>
+          <p role="status">Closest walk first; unavailable estimates last.</p>
+          <Button variant="link" onClick={walking.refresh}>
+            Refresh walking estimates
+          </Button>
+        </>
+      )}
+      {stopLocations.map((stopLocation: StopLocation) => (
+        <React.Fragment key={stopLocation.locid}>
+          <Card
+            data-stop-id={stopLocation.locid}
+            onMouseEnter={() => hoverStop(stopLocation.locid)}
+            onMouseLeave={() => hoverStop()}
+            onFocusCapture={() => focusStop(stopLocation.locid)}
+            onBlurCapture={event => {
+              if (
+                !(event.relatedTarget instanceof Node) ||
+                !event.currentTarget.contains(event.relatedTarget)
+              ) {
+                focusStop();
+              }
+            }}
+          >
+            <CardHeader as="h6" className="transit-nearby-stop-heading">
+              <Link
+                className="transit-nearby-stop-heading-link"
+                to={`/nearby/stops/${stopLocation.locid}`}
+              >
+                <span className="transit-nearby-stop-name">
+                  {stopLocation.desc}
+                </span>
+                <span className="transit-nearby-stop-id">
+                  <Badge>{stopLocation.locid}</Badge>
+                </span>
+              </Link>
+            </CardHeader>
+            <ListGroup>
+              {stopLocation.route.map(r => getRouteDirections(r))}
+            </ListGroup>
+            <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
+              <WalkingDistance
+                enabled={walkingEnabled}
+                loading={walking.status === "loading"}
+                estimate={walking.estimates.get(stopLocation.locid)}
+                straightLine={getNormalizedDistanceString(currentLocation, [
+                  stopLocation.lng,
+                  stopLocation.lat
+                ])}
+              />
+            </CardFooter>
+          </Card>
+          <br />
+        </React.Fragment>
+      ))}
     </div>
   );
 }

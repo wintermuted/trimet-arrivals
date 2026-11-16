@@ -624,11 +624,6 @@
   }
 }
 
-.transit-simple-route-distance > span,
-.transit-simple-route-distance > small {
-  display: block;
-}
-
 .transit-simple-route-heading {
   display: flex;
   flex-wrap: wrap;
@@ -690,11 +685,6 @@
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
-}
-
-.transit-simple-route-distance {
-  color: var(--wm-color-text-muted);
-  font-size: 0.875rem;
 }
 
 .transit-simple-route-action {

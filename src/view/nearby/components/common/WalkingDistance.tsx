@@ -1,5 +1,6 @@
 import React from "react";
 import { WalkingEstimate } from "../../../../api/mapbox/walking";
+import "./WalkingDistance.scss";
 
 export function WalkingDistance({
   enabled,

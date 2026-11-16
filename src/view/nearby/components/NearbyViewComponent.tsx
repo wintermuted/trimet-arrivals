@@ -96,7 +96,9 @@ export function NearbyStopsComponent() {
     nearbyRoutes,
     nearbyStops,
     radiusSize,
-    handleRadiusSelectionChange
+    handleRadiusSelectionChange,
+    handleNearbyStopHighlighted,
+    walkingEnabled
   } = useOutletContext<NearbyViewComponentOutletContextProps>();
 
   const stopCount = nearbyStops?.location?.length;
@@ -112,6 +114,8 @@ export function NearbyStopsComponent() {
         stopCount={stopCount}
         routeCount={routeCount}
         handleRadiusSelectionChange={handleRadiusSelectionChange}
+        onStopHighlightChanged={handleNearbyStopHighlighted}
+        walkingEnabled={walkingEnabled}
       />
     </div>
   );

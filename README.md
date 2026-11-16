@@ -114,6 +114,19 @@ Nearby stop markers are initialized when the map finishes loading, independently
 of the sidebar view. Full refreshes and direct links to Nearby Stops therefore
 show the same markers without first visiting Nearby Routes.
 
+Nearby Stops card headers put the stop name first and the stop ID on the right;
+the full header opens the stop. Hovering a card or focusing any of its links
+highlights its marker and opens the same popup as marker hover. Pointer hover
+takes precedence over keyboard focus, and leaving restores any focused card.
+Changing the stop data or radius, or leaving the view, clears stale highlights.
+With walking estimates enabled, cards are ordered by estimated walking-network
+distance, nearest first, with ties broken by stop ID. Unreachable, unreliable, or missing
+estimates are listed last, never ranked using straight-line distance as a
+substitute. Cards show walking distance and time, with labeled straight-line
+distances when walking is unavailable. Loading, retry and refresh controls use
+the same routing service and consent flag as Nearby Routes. Turning the flag off
+restores the original stop ordering without making walking requests.
+
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the
 app's resolved Light/Dark theme, including saved and system preferences. Changing
 themes updates the existing map configuration rather than replacing the style,
