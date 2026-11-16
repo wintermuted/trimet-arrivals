@@ -326,7 +326,12 @@ export default function NearbyViewComponent() {
 
     mapRef.current.on("load", () => {
       console.info("effect: initialize map markers and routes");
-      // mapRef.current = setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
+      mapRef.current = setNearbyStops(
+        mapRef.current,
+        stopLocations,
+        Object.keys(nearbyRouteIds),
+        handleStopMarkerClick
+      );
       setIsMapLoaded(true);
     });
   }
