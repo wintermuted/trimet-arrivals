@@ -95,9 +95,9 @@ describe("directions route line and endpoint framing", () => {
     global.fetch = originalFetch;
   });
 
-  it("adds a selected-stop marker independently of nearby markers and removes it on exit", () => {
+  it("shows a selected-stop marker and its popup independently of nearby markers, then removes both", () => {
     const close = showStopDetailMarker(map, {
-      id: 8455, desc: "Example stop", dir: "E", lat: 2, lng: 1, passengerCode: "E"
+      id: 8455, desc: "<Example stop>", dir: "E", lat: 2, lng: 1, passengerCode: "E"
     });
     expect(map.addSource).toHaveBeenCalledWith("stop-detail-marker", expect.objectContaining({
       data: expect.objectContaining({
@@ -108,7 +108,16 @@ describe("directions route line and endpoint framing", () => {
     expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
       id: "stop-detail-marker", source: "stop-detail-marker"
     }));
+    const popup = jest.mocked(Popup).mock.results[0].value;
+    expect(Popup).toHaveBeenCalledWith(expect.objectContaining({
+      closeButton: false, closeOnClick: false, offset: 10
+    }));
+    expect(popup.setLngLat).toHaveBeenCalledWith([1, 2]);
+    expect(popup.setText).toHaveBeenCalledWith("<Example stop>\nStop ID: 8455");
+    expect(popup.setHTML).not.toHaveBeenCalled();
+    expect(popup.addTo).toHaveBeenCalledWith(map);
     close();
+    expect(popup.remove).toHaveBeenCalledTimes(1);
     expect(map.removeLayer).toHaveBeenCalledWith("stop-detail-marker");
     expect(map.removeSource).toHaveBeenCalledWith("stop-detail-marker");
   });
@@ -118,6 +127,15 @@ describe("directions route line and endpoint framing", () => {
     expect(() => showStopDetailMarker(map, {
       id: 8455, desc: "Example stop", dir: "E", lat: 2, lng: 1, passengerCode: "E"
     })).toThrow("Map unavailable");
+    expect(map.removeSource).toHaveBeenCalledWith("stop-detail-marker");
+  });
+
+  it("removes marker resources if the stop popup cannot be created", () => {
+    jest.mocked(Popup).mockImplementationOnce(() => { throw new Error("Popup unavailable"); });
+    expect(() => showStopDetailMarker(map, {
+      id: 8455, desc: "Example stop", dir: "E", lat: 2, lng: 1, passengerCode: "E"
+    })).toThrow("Popup unavailable");
+    expect(map.removeLayer).toHaveBeenCalledWith("stop-detail-marker");
     expect(map.removeSource).toHaveBeenCalledWith("stop-detail-marker");
   });
 
