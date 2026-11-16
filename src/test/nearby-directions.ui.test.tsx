@@ -221,7 +221,10 @@ describe("route-aware destination selection", () => {
     await act(async () => openDestinations());
     const middle = document.querySelector('[data-stop-id="102"]');
     const terminal = document.querySelector('[data-stop-id="103"]');
-    expect(middle.textContent).toContain("12 Example Crosstown");
+    const connection = middle.querySelector(".wm-badge");
+    expect(connection.textContent).toBe("12");
+    expect(connection.getAttribute("title")).toBe("12 Example Crosstown");
+    expect(connection.getAttribute("aria-label")).toBe("12 Example Crosstown");
     expect(middle.querySelectorAll(".wm-badge")).toHaveLength(1);
     expect(middle.textContent).not.toContain("54 Example route");
     expect(terminal.textContent).toContain("None reported at this stop");
@@ -279,7 +282,8 @@ describe("route-aware destination selection", () => {
     await act(async () => retry.click());
     expect(loadAllRoutes).toHaveBeenCalledTimes(2);
     expect(container.querySelector('#trip-destination-options [role="alert"]')).toBeNull();
-    expect(document.querySelector('[data-stop-id="102"]').textContent).toContain("12 Example Crosstown");
+    expect(document.querySelector('[data-stop-id="102"] .wm-badge').getAttribute("title"))
+      .toBe("12 Example Crosstown");
     chooseDestination("102");
     expect(container.querySelector("output").textContent).toContain("from=101&to=102");
   });

@@ -146,7 +146,8 @@ page-wide overlay. The trip view is hidden until a stop is selected or the picke
 is dismissed, without discarding its current destination or loaded trip times.
 Each stop lists the other
 routes reported at that exact stop, without duplicating the current route or
-combining opposite-side stops. Search by stop name, stop number, or connecting
+combining opposite-side stops. Connections show route numbers, with full route
+names available on hover and to screen readers. Search by stop name, stop number, or connecting
 route, then select a stop to update the destination and collapse the picker.
 Other-route metadata loads when the picker expands and is reused while it
 remains mounted. Loading failures offer retry without blocking stop selection;

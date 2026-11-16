@@ -231,8 +231,13 @@ export default function NearbyDestinationPicker({
                       <small>Other routes: </small>
                       {otherRoutes.get(stop.locid)?.length ? (
                         otherRoutes.get(stop.locid).map((route) => (
-                          <span className="wm-badge" key={route.route}>
-                            {route.desc}
+                          <span
+                            className="wm-badge"
+                            key={route.route}
+                            title={route.desc}
+                            aria-label={route.desc}
+                          >
+                            {route.route}
                           </span>
                         ))
                       ) : (
