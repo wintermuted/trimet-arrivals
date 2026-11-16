@@ -7,6 +7,8 @@ import { Arrival } from "../../../api/trimet/interfaces/arrivals";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";
 import { DirectionsSelection } from "../util/mapbox/directionsSelection";
+import WalkingAccess from "./WalkingAccess";
+import { Feature, LineString } from "geojson";
 import { DeparturesCard } from "./common/DeparturesCard";
 import { InfoCard } from "./common/InfoCard";
 import RouteStopInfo from "./common/RouteStopInfo";
@@ -25,9 +27,15 @@ type ArrivalsState =
   | { status: "ready"; key: string; arrivals: Arrival[]; refreshing: boolean; refreshError: boolean };
 
 export default function NearbySimpleRouteArrivals({
-  onSelectionChanged
+  onSelectionChanged,
+  currentLocation,
+  walkingEnabled = false,
+  onWalkingRouteChanged
 }: {
   onSelectionChanged: (selection: DirectionsSelection, onError: () => void) => void | (() => void);
+  currentLocation?: number[];
+  walkingEnabled?: boolean;
+  onWalkingRouteChanged?: (feature: Feature<LineString>) => void | (() => void);
 }) {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -161,6 +169,14 @@ export default function NearbySimpleRouteArrivals({
       {!origin ? <p role="alert">Choose a stop on this route and direction.</p> : (
         <>
           <RouteStopInfo shortSign={route.directionName} stopLocation={stopLocation} routeId={Number(id)} direction={Number(direction)} showFromLabel={false} />
+          {onWalkingRouteChanged && (
+            <WalkingAccess
+              currentLocation={currentLocation}
+              stop={origin}
+              enabled={walkingEnabled}
+              onRouteChanged={onWalkingRouteChanged}
+            />
+          )}
           <br />
           {arrivals.key !== arrivalsKey || arrivals.status === "loading" ? <div><p role="status">Loading departures...</p><Button onClick={() => setArrivalsRetry(value => value + 1)}>Retry departures</Button></div> :
             arrivals.status === "error" ? <div><p role="alert">Could not load departures for this stop.</p><Button onClick={() => setArrivalsRetry(value => value + 1)}>Try again</Button></div> :

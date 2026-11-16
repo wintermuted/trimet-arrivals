@@ -1,5 +1,9 @@
 import { Button } from "@wintermuted/ui-theme/react";
-import { Map } from "mapbox-gl";
+import mapboxgl, { Map } from "mapbox-gl";
+import { Feature, LineString } from "geojson";
+import { clearWalkingCache, setWalkingAccessToken } from "../../../api/mapbox/walking";
+import { showWalkingRoute } from "../util/mapbox/walkingRoute";
+import { useFeatureFlags } from "../../../component/feature-flags/FeatureFlags";
 import { Dictionary, map, set, size } from "lodash";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
@@ -63,6 +67,8 @@ export interface NearbyViewComponentOutletContextProps {
   handleDirectionsStopHighlighted: (stopId?: number) => void;
   handleNearbyStopHighlighted: (stopId?: number) => void;
   handleSimpleRoutesOpened: () => void;
+  walkingEnabled: boolean;
+  handleWalkingRouteChanged: (feature: Feature<LineString>) => () => void;
 }
 
 export function NearbyStopDetailComponent() {
@@ -112,7 +118,8 @@ export function NearbySimpleRoutesComp() {
     radiusSize,
     handleRadiusSelectionChange,
     handleSimpleRoutesOpened,
-    handleNearbyStopHighlighted
+    handleNearbyStopHighlighted,
+    walkingEnabled
   } = useOutletContext<NearbyViewComponentOutletContextProps>();
 
   const stopCount = nearbyStops?.location?.length;
@@ -128,6 +135,7 @@ export function NearbySimpleRoutesComp() {
         handleRadiusSelectionChange={handleRadiusSelectionChange}
         handleSimpleRoutesOpened={handleSimpleRoutesOpened}
         onStopHighlightChanged={handleNearbyStopHighlighted}
+        walkingEnabled={walkingEnabled}
         routeCount={routeCount}
         stopCount={stopCount}
       />
@@ -136,13 +144,19 @@ export function NearbySimpleRoutesComp() {
 }
 
 export function NearbySimpleRouteArrivalsComp() {
-  const { handleDirectionsSelection } = useOutletContext<
+  const {
+    handleDirectionsSelection, currentLocation, walkingEnabled,
+    handleWalkingRouteChanged
+  } = useOutletContext<
     NearbyViewComponentOutletContextProps
   >();
 
   return (
     <NearbySimpleRouteArrivals
       onSelectionChanged={handleDirectionsSelection}
+      currentLocation={currentLocation}
+      walkingEnabled={walkingEnabled}
+      onWalkingRouteChanged={handleWalkingRouteChanged}
     />
   );
 }
@@ -201,6 +215,9 @@ export default function NearbyViewComponent() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [nearbyDataError, setNearbyDataError] = useState(false);
   const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
+  const { walkingEnabled } = useFeatureFlags();
+
+  useEffect(() => () => clearWalkingCache(), []);
 
   const currentLocation = [
     userLocation?.coords?.longitude,
@@ -292,6 +309,7 @@ export default function NearbyViewComponent() {
   function initializeMapboxMap() {
     console.log("initialize map", lng, lat, zoom);
     mapRef.current = initializeMap(lng, lat, mapContainerRef, zoom);
+    setWalkingAccessToken(mapboxgl.accessToken);
     mapRef.current = initializeCurrentLocationMarker(
       mapRef.current,
       lng,
@@ -344,6 +362,8 @@ export default function NearbyViewComponent() {
     highlightDirectionsStop(mapRef.current, stopId), []);
   const handleNearbyStopHighlighted = useCallback((stopId?: number) =>
     highlightNearbyStop(mapRef.current, stopId), []);
+  const handleWalkingRouteChanged = useCallback((feature: Feature<LineString>) =>
+    showWalkingRoute(mapRef.current, feature), []);
 
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
@@ -368,7 +388,9 @@ export default function NearbyViewComponent() {
     handleDirectionsSelection,
     handleDirectionsStopHighlighted,
     handleNearbyStopHighlighted,
-    handleSimpleRoutesOpened
+    handleSimpleRoutesOpened,
+    walkingEnabled,
+    handleWalkingRouteChanged
   };
 
   return (

@@ -3,6 +3,7 @@ import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import { Provider } from "react-redux";
 import "./App.css";
 import AppFooter from "./component/footer/AppFooter";
+import { FeatureFlagsProvider } from "./component/feature-flags/FeatureFlags";
 import RootAppRoutes from "./routes/RootAppRoutes";
 import appStore from "./store/store";
 
@@ -13,10 +14,12 @@ export default class App extends React.Component {
     return (
       <ThemeProvider>
         <Provider store={store}>
-          <div className="transit-app-shell">
-            <RootAppRoutes />
-            <AppFooter />
-          </div>
+          <FeatureFlagsProvider>
+            <div className="transit-app-shell">
+              <RootAppRoutes />
+              <AppFooter />
+            </div>
+          </FeatureFlagsProvider>
         </Provider>
       </ThemeProvider>
     );

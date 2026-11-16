@@ -73,6 +73,37 @@ refreshing the stop list, or leaving the view clears stale highlights. Sorting
 ranks whole routes by their earliest reported
 arrival, nearest stop, or route number without separating their directions.
 
+Nearby discovers candidates within the selected **straight-line radius**, not a
+walking catchment. Distances are explicitly labeled straight-line until you
+enable **Walking estimates** in **Feature flags**, opened from the footer menu.
+Opting in sends the current location snapshot and exact stop coordinates to
+Mapbox. Feature flags apply immediately across the app in the current tab, stay
+in memory only, and reset to off on reload. Turning walking estimates off
+aborts requests, removes the walking overlay and clears
+the in-memory routing cache. Coordinates are not persisted by this feature.
+Enabling walking estimates ranks stops within each direction, and the Nearest
+stop sort, by Mapbox's recommended walking-network distance. Arrival remains
+the default route sort. Unknown, unreachable or unreliable estimates rank
+after known walking distances rather than silently using geographic distance.
+The labels retain explicitly marked straight-line distances when walking
+estimates are unavailable; failures provide manual retry, with no automatic
+retry loop. Selecting a boarding stop shows its walking distance/time and a
+dashed green walking path, independently of the bus route.
+
+Walking routing uses the existing map's public Mapbox access token. The token
+and account must allow the walking Matrix and Directions APIs, with appropriate
+URL restrictions and billing enabled. Matrix requests use one origin and at
+most 24 distinct stops per batch; single-stop requests use Directions. Requests
+are sequential, cancel on changed inputs or leaving the view, and use a bounded
+60-second in-memory cache. No Matrix `fallback_speed` is used. Returned null
+pairs are unreachable; snapping over 50 meters is conservatively treated as
+unreliable, not proof of accessibility. HTTP access/rate-limit errors are shown
+without exposing request URLs. Walking estimates depend on GPS, map coverage
+and routing preferences; they are neither exact distance guarantees nor
+wheelchair-accessibility guidance. There is no continuous GPS tracking: refresh
+walking estimates reuses the current location snapshot; reopen Nearby to obtain
+a new location. Stops outside the radial discovery area are not evaluated.
+
 Mapbox maps use the Standard basemap's day/night lighting preset to follow the
 app's resolved Light/Dark theme, including saved and system preferences. Changing
 themes updates the existing map configuration rather than replacing the style,

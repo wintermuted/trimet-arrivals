@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { Link } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
+import { WalkingEstimate } from "../../../api/mapbox/walking";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import {
   Direction,
@@ -21,6 +22,8 @@ import Loading from "../../loading/Loading";
 import { getNormalizedDistanceString, getDistance } from "../util/turfUtils";
 import { getTimeUntilArrival } from "../util/timeUtils";
 import useStopHighlight from "../util/useStopHighlight";
+import useWalkingEstimates from "../util/useWalkingEstimates";
+import { WalkingDistance } from "./common/WalkingDistance";
 import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
@@ -35,12 +38,20 @@ interface Props {
   routeCount: number;
   stopCount: number;
   onStopHighlightChanged?: (stopId?: number) => void;
+  walkingEnabled?: boolean;
 }
 
 interface RouteStop {
   stop: StopLocation;
   arrivals: Arrival[];
   distanceMiles?: number;
+  walkingEstimate?: WalkingEstimate;
+}
+
+function stopDistance(stop: RouteStop, walking: boolean) {
+  return walking
+    ? stop.walkingEstimate?.status === "ready" ? stop.walkingEstimate.meters : Infinity
+    : stop.distanceMiles ?? Infinity;
 }
 
 export interface RouteStructure {
@@ -74,7 +85,8 @@ function hasCurrentLocation(currentLocation: number[]): boolean {
 export function getRouteArrivals(
   arrivalData: ArrivalData,
   nearbyStops: StopData,
-  currentLocation: number[]
+  currentLocation: number[],
+  walkingEstimates?: ReadonlyMap<number, WalkingEstimate>
 ): RouteStructure[] {
   const arrivalsByLocation = groupBy(arrivalData?.arrival || [], "locid");
   const routeDirections = new Map<
@@ -123,6 +135,7 @@ export function getRouteArrivals(
               ? getDistance(currentLocation, [stop.lng, stop.lat])
               : undefined,
           stop,
+          walkingEstimate: walkingEstimates?.get(stop.locid),
         });
       });
     });
@@ -133,6 +146,10 @@ export function getRouteArrivals(
     key,
     route: routeDirection.route,
     stops: Array.from(routeDirection.stops.values()).sort((a, b) => {
+      if (walkingEstimates) {
+        return stopDistance(a, true) - stopDistance(b, true) ||
+          Number(a.stop.locid) - Number(b.stop.locid);
+      }
       if (a.distanceMiles != null && b.distanceMiles != null) {
         return (
           a.distanceMiles - b.distanceMiles ||
@@ -184,6 +201,7 @@ export default function NearbySimpleRoutes({
   routeCount,
   stopCount,
   onStopHighlightChanged,
+  walkingEnabled = false,
 }: Props) {
   const [arrivalData, setArrivalData] = useState<ArrivalData>();
   const [isLoading, setIsLoading] = useState(true);
@@ -196,6 +214,7 @@ export default function NearbySimpleRoutes({
     "arrival"
   );
   const { clearHighlight, focusStop, hoverStop } = useStopHighlight(onStopHighlightChanged);
+  const walking = useWalkingEstimates(currentLocation, nearbyStops?.location ?? [], walkingEnabled);
 
   useEffect(() => {
     clearHighlight();
@@ -260,9 +279,10 @@ export default function NearbySimpleRoutes({
   const routeStructures = useMemo(
     () =>
       arrivalData
-        ? getRouteArrivals(arrivalData, nearbyStops, currentLocation)
+        ? getRouteArrivals(arrivalData, nearbyStops, currentLocation,
+            walkingEnabled ? walking.estimates : undefined)
         : [],
-    [arrivalData, nearbyStops, currentLocation]
+    [arrivalData, nearbyStops, currentLocation, walkingEnabled, walking.estimates]
   );
 
   const routeOptions: FilterOption[] = Array.from(
@@ -308,7 +328,7 @@ export default function NearbySimpleRoutes({
       directions,
       distance: Math.min(
         ...directions.flatMap((direction) =>
-          direction.stops.map((stop) => stop.distanceMiles ?? Infinity)
+          direction.stops.map((stop) => stopDistance(stop, walkingEnabled))
         )
       ),
       nextArrival: Math.min(
@@ -363,6 +383,18 @@ export default function NearbySimpleRoutes({
       <br />
       <NearbySubNav routeCount={routeCount} stopCount={stopCount} />
       <br />
+      {walkingEnabled && walking.status === "loading" && (
+        <p role="status">Calculating walking distances...</p>
+      )}
+      {walkingEnabled && walking.status === "error" && (
+        <div role="alert">
+          <p>Walking estimates unavailable. {walking.error} Straight-line distances are labeled below.</p>
+          <Button variant="secondary" onClick={walking.refresh}>Retry walking estimates</Button>
+        </div>
+      )}
+      {walkingEnabled && walking.status === "ready" && (
+        <Button variant="link" onClick={walking.refresh}>Refresh walking estimates</Button>
+      )}
       {!nearbyStops ? (
         <Loading />
       ) : (
@@ -416,7 +448,7 @@ export default function NearbySimpleRoutes({
                 sortBy === "arrival"
                   ? "Soonest arrival"
                   : sortBy === "distance"
-                    ? "Nearest stop"
+                    ? `Nearest stop (${walkingEnabled ? "walking" : "straight-line"})`
                     : "Route number"
               }`}
               label="Route sorting"
@@ -429,7 +461,7 @@ export default function NearbySimpleRoutes({
                   onChange={handleSortChange}
                 >
                   <option value="arrival">Soonest arrival</option>
-                  <option value="distance">Nearest stop</option>
+                  <option value="distance">Nearest stop ({walkingEnabled ? "walking" : "straight-line"})</option>
                   <option value="route">Route number</option>
                 </Select>
               </div>
@@ -497,7 +529,7 @@ export default function NearbySimpleRoutes({
                           aria-label={`Route ${route.route}, ${direction.direction.desc} stops`}
                         >
                           {direction.stops.map(
-                            ({ stop, arrivals, distanceMiles }) => {
+                            ({ stop, arrivals, distanceMiles, walkingEstimate }) => {
                               const arrival = arrivals[0];
                               const arrivalTime = getArrivalTime(arrival);
                               const arrivalLabel = !arrival
@@ -535,9 +567,12 @@ export default function NearbySimpleRoutes({
                                     </span>
                                     <span className="transit-simple-route-arrivals">
                                       <strong>{arrivalLabel}</strong>
-                                      <span className="transit-simple-route-distance">
-                                        {distanceLabel}
-                                      </span>
+                                      <WalkingDistance
+                                        enabled={walkingEnabled}
+                                        loading={walking.status === "loading"}
+                                        estimate={walkingEstimate}
+                                        straightLine={distanceLabel}
+                                      />
                                     </span>
                                     <span className="transit-simple-route-action">
                                       View arrivals{" "}
