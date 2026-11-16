@@ -19,41 +19,20 @@ function TimeDiffBadge({
     estimatedArrivalTime,
     scheduledArrivalTime
   );
-  const minutesLate = getTimeDifferenceInMinutes(
-    scheduledArrivalTime,
-    moment(estimatedArrivalTime)
-  );
-
-  const onTime = minutesLate === 0;
-  const late = minutesLate < 0;
-  const early = minutesLate > 0;
-
-  const getColor = () => {
-    if (onTime) {
-      return "success";
-    } else if (late) {
-      return "danger";
-    } else {
-      return "info";
-    }
-  };
-
-  const color = getColor();
-
-  const getStatusDescription = () => {
-    if (onTime) {
-      return <span> | On Time</span>;
-    } else if (late) {
-      return <span> | late</span>;
-    } else {
-      return null;
-    }
-  };
+  const hasEstimate = Number.isFinite(estimatedArrivalTime) && estimatedArrivalTime > 0;
+  const hasSchedule = Number.isFinite(scheduledArrivalTime) && scheduledArrivalTime > 0;
+  const difference = hasEstimate && hasSchedule
+    ? getTimeDifferenceInMinutes(scheduledArrivalTime, moment(estimatedArrivalTime))
+    : null;
+  const status = !hasEstimate ? "Scheduled" : !hasSchedule ? "Estimated" :
+    difference === 0 ? "On Time" : difference < 0 ? "Late" : "Early";
+  const color = difference === null ? "neutral" :
+    difference === 0 ? "success" : difference < 0 ? "danger" : "info";
 
   return (
     <Badge tone={color}>
       <span>
-        {timeUntilArrival} {getStatusDescription()}
+        {timeUntilArrival} | {status}
       </span>
     </Badge>
   );

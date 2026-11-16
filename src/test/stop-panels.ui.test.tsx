@@ -175,6 +175,41 @@ it("selects departures and retains selection by arrival ID across updates", asyn
   }
 });
 
+it("labels late, on-time, early, and scheduled-only departures without shifting the caret column", () => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const scheduled = 1800000000000;
+  const arrivals = [
+    { ...arrival1, id: "late", scheduled, estimated: scheduled + 120000 },
+    { ...arrival1, id: "on-time", scheduled, estimated: scheduled },
+    { ...arrival1, id: "early", scheduled, estimated: scheduled - 120000 },
+    { ...arrival1, id: "scheduled", scheduled, estimated: null },
+  ];
+  try {
+    act(() => root.render(<SelectableDepartures arrivals={arrivals} />));
+    const buttons = Array.from(container.querySelectorAll(".transit-departure-option"));
+    expect(buttons.map(button => button.querySelector(".wm-badge").textContent)).toEqual([
+      expect.stringContaining("Late"),
+      expect.stringContaining("On Time"),
+      expect.stringContaining("Early"),
+      expect.stringContaining("Scheduled")
+    ]);
+    expect(buttons.map(button => button.querySelector(".wm-badge").className)).toEqual([
+      expect.stringContaining("wm-badge-danger"),
+      expect.stringContaining("wm-badge-success"),
+      expect.stringContaining("wm-badge-info"),
+      expect.stringContaining("wm-badge-neutral")
+    ]);
+    expect(buttons.every(button => button.querySelector(".transit-departure-caret[aria-hidden='true']"))).toBe(true);
+    expect(buttons[0].querySelector(".transit-departure-caret .fa-caret-right")).not.toBeNull();
+    expect(buttons[1].querySelector(".transit-departure-caret .fa-caret-right")).toBeNull();
+  } finally {
+    act(() => root.unmount());
+    container.remove();
+  }
+});
+
 it("keeps the icon-labeled panels independent and preserves contents and collapsed state on updates", async () => {
   const container = document.createElement("div");
   document.body.appendChild(container);

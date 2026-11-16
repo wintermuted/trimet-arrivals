@@ -131,6 +131,8 @@ describe("accessible transit detail links", () => {
     render(<ArrivalListItem id={368} arrival={{ ...arrival, estimated: null }} />);
     expect(container.querySelector(".transit-stop-arrival-times").textContent).not.toContain("Estimated:");
     expect(container.querySelector(".transit-stop-arrival-times").textContent).toContain("Scheduled:");
+    expect(container.querySelector(".wm-badge").textContent).toContain("Scheduled");
+    expect(container.querySelector(".wm-badge").classList.contains("wm-badge-neutral")).toBe(true);
   });
 
   it("groups stop actions while preserving the stop link and Go navigation", () => {

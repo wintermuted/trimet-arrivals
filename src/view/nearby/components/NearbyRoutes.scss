@@ -29,6 +29,18 @@
   }
 }
 
+.transit-departure-label {
+  display: grid;
+  grid-template-columns: 0.75rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--wm-space-2);
+  min-width: 0;
+}
+
+.transit-departure-caret {
+  text-align: center;
+}
+
 .transit-stop-panel {
   background: var(--wm-color-surface);
 
