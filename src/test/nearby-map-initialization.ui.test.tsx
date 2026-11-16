@@ -7,7 +7,7 @@ import { getArrivals } from "../api/trimet/arrivals";
 import { getRouteById } from "../api/trimet/routeConfig";
 import { StopData } from "../api/trimet/interfaces/types";
 import { FeatureFlagsProvider } from "../component/feature-flags/FeatureFlags";
-import NearbyViewComponent, { NearbySimpleRoutesComp } from "../view/nearby/components/NearbyViewComponent";
+import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 
@@ -174,21 +174,27 @@ describe("Nearby map initialization independently of the sidebar", () => {
   it("opens the nearby stop view when a route-info marker is clicked", async () => {
     await act(async () => root.render(
       <FeatureFlagsProvider>
-        <MemoryRouter initialEntries={["/nearby/simple-routes"]}>
+        <MemoryRouter initialEntries={["/nearby/simple-routes?route=56&keep=yes#directions"]}>
           <Routes>
             <Route path="/nearby" element={<NearbyViewComponent />}>
               <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
-              <Route path="stops/:id" element={<p>Stop detail opened</p>} />
+              <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
             </Route>
           </Routes>
         </MemoryRouter>
       </FeatureFlagsProvider>
     ));
     await act(async () => finishMapLoading());
-    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link").click());
+    jest.mocked(getArrivals).mockResolvedValue({
+      arrival: [], detour: [], queryTime: "",
+      location: [{ desc: "Example stop", dir: "E", id: 101, lat: 0, lng: 0.001, passengerCode: "E" }]
+    });
     const stopClick = jest.mocked(showRouteInfo).mock.calls[0][3];
     await act(async () => stopClick(101));
-    expect(container.textContent).toContain("Stop detail opened");
+    const back = container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]');
+    expect(back.getAttribute("href")).toBe("/nearby/simple-routes?route=56&keep=yes#directions");
+    await act(async () => back.click());
+    expect(container.querySelector('[aria-label="Route 56 details"]')).not.toBeNull();
     expect(jest.mocked(showRouteInfo).mock.results[0].value).toHaveBeenCalled();
   });
 });

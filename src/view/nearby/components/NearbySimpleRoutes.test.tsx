@@ -487,18 +487,18 @@ describe("NearbySimpleRoutes", () => {
       }]
     });
     await act(async () => root.render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={["/nearby/simple-routes?route=54&keep=yes#directions"]}>
         <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
           handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
           routeCount={1} stopCount={2} />
         <CurrentLocation />
       </MemoryRouter>
     ));
-    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link").click());
     const stopLink = container.querySelector<HTMLAnchorElement>('[aria-label="Route 54 details"] a[data-stop-id="101"]');
-    expect(stopLink.getAttribute("href")).toBe("/nearby/stops/101");
+    const referrer = "/nearby/simple-routes?route=54&keep=yes#directions";
+    expect(stopLink.getAttribute("href")).toBe(`/nearby/stops/101?${new URLSearchParams({ referrer })}`);
     await act(async () => stopLink.click());
-    expect(container.querySelector("output")?.textContent).toBe("/nearby/stops/101");
+    expect(container.querySelector("output")?.textContent).toBe(`/nearby/stops/101?${new URLSearchParams({ referrer })}`);
   });
 
   it("reports route detail failures and retries without leaving the nearby list", async () => {

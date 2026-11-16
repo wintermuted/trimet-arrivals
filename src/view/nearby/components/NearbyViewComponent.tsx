@@ -8,7 +8,7 @@ import { Dictionary, map, set, size } from "lodash";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import geoLocateCurrentPosition from "../../../api/geolocation/geoLocateCurrentPosition";
 import {
   Location,
@@ -51,6 +51,7 @@ import NearbyRoutes from "./NearbyRoutes";
 import NearbyDirections from "./NearbyDirections";
 import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
 import { highlightRouteInfoStop, showRouteInfo } from "../util/mapbox/routeInfo";
+import { stopDetailUrl } from "../util/stopNavigation";
 
 const DEFAULT_RADIUS = 1000;
 
@@ -224,6 +225,7 @@ export default function NearbyViewComponent() {
   const mapContainerRef = useRef(null);
   const mapRef = useRef<Map>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const [zoom, setZoom] = useState(16);
   const [radiusSize, setRadiusSize] = useState<number>(DEFAULT_RADIUS);
   const [nearbyStops, setNearbyStopData] = useState<StopData>(undefined);
@@ -390,7 +392,8 @@ export default function NearbyViewComponent() {
     showWalkingRoute(mapRef.current, feature), []);
   const handleRouteInfoChanged = useCallback((route: DetailedRoute, onError: () => void) =>
     showRouteInfo(mapRef.current, route, onError, (stopId) =>
-      navigate(`/nearby/stops/${stopId}`)), [navigate]);
+      navigate(stopDetailUrl(stopId, `${location.pathname}${location.search}${location.hash}`))),
+    [navigate, location.pathname, location.search, location.hash]);
   const handleRouteInfoStopHighlighted = useCallback((stopId?: number) =>
     highlightRouteInfoStop(mapRef.current, stopId), []);
 

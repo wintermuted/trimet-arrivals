@@ -1,7 +1,7 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import { Feature, LineString } from "geojson";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import {
   ArrivalData,
@@ -11,6 +11,7 @@ import StopInfo from "./common/StopInfo";
 import StopArrivals from "./NearbyStopArrivals";
 import { TopNavBar } from "./common/TopNavBar";
 import WalkingAccess from "./WalkingAccess";
+import { stopBackUrl } from "../util/stopNavigation";
 
 interface Props {
   currentLocation: number[];
@@ -26,6 +27,8 @@ export function NearbyStopsDetail({
   onWalkingRouteChanged,
 }: Props) {
   const { id } = useParams();
+  const { search } = useLocation();
+  const backTo = stopBackUrl(search);
   const [state, setState] = useState<{
     id: string;
     data?: ArrivalData;
@@ -67,7 +70,7 @@ export function NearbyStopsDetail({
   if (state.id !== id || !state.data) {
     return (
       <div className="scrollarea">
-        <TopNavBar id={`Stop ${id}`} backTo="/nearby/stops" />
+        <TopNavBar id={`Stop ${id}`} backTo={backTo} />
         {state.id === id && state.error ? (
           <div role="alert">
             <p>Could not load this stop's departures and location.</p>
@@ -86,7 +89,7 @@ export function NearbyStopsDetail({
 
   return (
     <div className="scrollarea">
-      <TopNavBar id={stopLocation.desc} backTo="/nearby/stops" />
+      <TopNavBar id={stopLocation.desc} backTo={backTo} />
       <br />
       <StopInfo stopLocation={stopLocation} />
       {onWalkingRouteChanged && (
