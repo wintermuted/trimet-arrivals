@@ -54,6 +54,53 @@ it("shows borderless stop departures in the route disclosure style and preserves
   }
 });
 
+it("filters stop departures by route and preserves the selection when a route disappears", async () => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const first = { ...arrival1, id: "first", route: 54, shortSign: "First 54", scheduled: 1000 };
+  const second = { ...arrival1, id: "second", route: 54, shortSign: "Second 54", scheduled: 3000 };
+  const other = { ...arrival1, id: "other", route: 8, shortSign: "Route 8", scheduled: 2000 };
+  const render = (arrivals: Arrival[]) => act(async () => root.render(
+    <MemoryRouter initialEntries={["/nearby/stops/123"]}>
+      <Routes>
+        <Route path="/nearby/stops/:id" element={
+          <ArrivalList data={{ arrival: arrivals, detour: [], location: [], queryTime: "" }} />
+        } />
+      </Routes>
+    </MemoryRouter>
+  ));
+  const selectRoute = (value: string) => {
+    const select = container.querySelector("select");
+    act(() => {
+      select.value = value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  };
+  const departureText = () => Array.from(container.querySelectorAll("li a")).map(link => link.textContent);
+  try {
+    await render([second, other, first]);
+    const select = container.querySelector("select");
+    expect(container.querySelector(`label[for="${select.id}"]`).textContent).toBe("Filter by route");
+    expect(Array.from(select.options).map(option => option.value)).toEqual(["", "8", "54"]);
+    expect(departureText()).toEqual([
+      expect.stringContaining("First 54"), expect.stringContaining("Route 8"), expect.stringContaining("Second 54")
+    ]);
+    selectRoute("54");
+    expect(departureText()).toEqual([expect.stringContaining("First 54"), expect.stringContaining("Second 54")]);
+    await render([other]);
+    expect(select.value).toBe("54");
+    expect(container.querySelector('[role="status"]').textContent).toBe("No departures for route 54.");
+    selectRoute("");
+    expect(departureText()).toEqual([expect.stringContaining("Route 8")]);
+    await render([]);
+    expect(container.querySelector('[role="status"]').textContent).toBe("No departures available.");
+  } finally {
+    act(() => root.unmount());
+    container.remove();
+  }
+});
+
 function SelectableDepartures({ arrivals }: { arrivals: Arrival[] }) {
   const [id, setId] = useState<string>();
   const selected = arrivals.find(arrival => arrival.id === id) ?? arrivals[0];
