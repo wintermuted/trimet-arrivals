@@ -208,7 +208,8 @@ disclosures with clock/stop icons. Both start expanded and support keyboard
 activation without clearing their data when collapsed.
 The stop view's route badges filter Departures: select multiple routes to combine
 them, and deselect all to show every departure. A selected route remains available
-if its departures disappear.
+if its departures disappear. Departures can also be grouped by route using the
+control in the Departures header; ungrouped departures remain in time order.
 The From selector lists every stop in route order for the selected direction;
 changing it updates the URL, departures, stop details, Go action, downstream
 stops and map. A stop with no departures remains selectable.
