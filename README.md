@@ -75,15 +75,17 @@ basemap lighting does not dim their colors, including the selected-stop highligh
 Map marker popups use the app's surface/text tokens for readable Light/Dark
 content, matching pointer arrows, and visible close-button focus states.
 
-Go on a route's stop detail opens a stop picker with the current route, direction,
+Go on a route's stop detail opens a destination picker with the current route, direction,
 and boarding stop. Destinations are limited to subsequent stops in route order;
-changing the boarding stop clears the destination. The map shows the selected
+the boarding stop is read-only here: go back to change it. The map shows the selected
 route line and labeled boarding/destination markers. With both stops selected it
 shows a solid line for the selected portion and fits both stops plus the intervening
 road geometry, with padding that adapts to the map panel's size; with only a
 boarding stop it focuses that stop. Selecting both stops also displays matched
-departure and arrival times directly beneath the stop pickers, including travel
-duration, refresh/retry, and explicit unavailable predictions.
+departure and arrival times directly beneath the destination picker, including travel
+duration, refresh/retry, and explicit unavailable predictions. Departure and arrival
+have separate, stop-labeled columns with emphasized times; ride duration appears
+below the arrival.
 View destination arrivals opens a trip-times
 view with the selected route, direction, boarding stop and destination retained
 in the URL. It requests both stops together and matches predictions by trip ID,

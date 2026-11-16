@@ -125,8 +125,10 @@ describe("selected-stop trip times view", () => {
     expect(loadArrivals).toHaveBeenCalledWith("101,103", 60);
     expect(container.textContent).toContain("Boarding Stop (101)");
     expect(container.textContent).toContain("Destination Stop (103)");
-    expect(container.querySelector("tbody").textContent).toMatch(/10:10 PM.*14 min.*10:24 PM/);
-    expect(container.querySelectorAll("tbody small")).toHaveLength(2);
+    expect(container.querySelector("tbody").textContent).toMatch(/10:10 PM.*10:24 PM.*14 min ride/);
+    expect(Array.from(container.querySelectorAll("thead th")).map(th => th.textContent))
+      .toEqual(["DepartureBoarding Stop", "ArrivalDestination Stop"]);
+    expect(container.querySelectorAll("tbody td")).toHaveLength(2);
     expect(container.querySelector("a").getAttribute("href"))
       .toBe("/nearby/directions?route=54&direction=1&from=101&to=103");
   });
@@ -146,7 +148,7 @@ describe("selected-stop trip times view", () => {
   it("explains an unmatched destination without displaying a made-up duration", async () => {
     loadArrivals.mockResolvedValue(response([departure]));
     await render();
-    expect(container.querySelector("tbody").textContent).toContain("Unavailable");
+    expect(container.querySelector("tbody").textContent).toContain("Travel time unavailable");
     expect(container.querySelector("tbody").textContent).toContain("Not reported");
     expect(container.textContent).toContain("destination times are not yet reported");
   });

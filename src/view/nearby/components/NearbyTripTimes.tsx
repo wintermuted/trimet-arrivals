@@ -133,22 +133,21 @@ export default function NearbyTripTimes({
                 Departures from {origin.desc} and corresponding arrivals at {destination.desc}
               </caption>
               <thead><tr>
-                <th scope="col">Departs</th>
-                <th scope="col">Travel</th>
-                <th scope="col">Arrives</th>
+                <th scope="col">Departure<small>{origin.desc}</small></th>
+                <th scope="col">Arrival<small>{destination.desc}</small></th>
               </tr></thead>
               <tbody>
                 {trips.map(trip => (
                   <tr key={trip.id}>
                     <td><TripStopTime time={trip.departure} today={today} /></td>
                     <td>
-                      {trip.durationMs === undefined ? "Unavailable" : trip.durationMs < 60000
-                        ? "<1 min" : `${Math.round(trip.durationMs / 60000)} min`}
-                    </td>
-                    <td>
                       {trip.arrival
                         ? <TripStopTime time={trip.arrival} today={today} />
                         : <span>Not reported</span>}
+                      <small>
+                        {trip.durationMs === undefined ? "Travel time unavailable" : trip.durationMs < 60000
+                          ? "<1 min ride" : `${Math.round(trip.durationMs / 60000)} min ride`}
+                      </small>
                     </td>
                   </tr>
                 ))}
