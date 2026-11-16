@@ -158,6 +158,11 @@ describe("NearbySimpleRoutes", () => {
       container.querySelectorAll(".transit-simple-route-group")
     ).toHaveLength(1);
     expect(container.querySelectorAll('a[href="/lines/54"]')).toHaveLength(1);
+    expect(container.querySelector(".transit-simple-route-heading strong")?.textContent).toBe("54");
+    const info = container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link");
+    expect(info?.getAttribute("aria-label")).toBe("View Route 54 details");
+    expect(info?.querySelector(".fa-info-circle")).not.toBeNull();
+    expect(info?.closest("details")).toBeNull();
     const routeDisclosure =
       container.querySelector<HTMLDetailsElement>(".transit-simple-route-group");
     const directionDisclosures = Array.from(
@@ -170,6 +175,12 @@ describe("NearbySimpleRoutes", () => {
     }
     expect(routeDisclosure.open).toBe(true);
     expect(directionDisclosures.every((direction) => direction.open)).toBe(true);
+    await act(async () => {
+      routeDisclosure.open = false;
+      info.click();
+    });
+    expect(container.querySelector("output")?.textContent).toBe("/lines/54");
+    expect(routeDisclosure.open).toBe(false);
     await act(async () => {
       directionDisclosures[0].open = false;
       routeDisclosure.open = false;
@@ -206,6 +217,72 @@ describe("NearbySimpleRoutes", () => {
     expect(container.querySelector("output")?.textContent).toBe(
       "/nearby/simple-routes/54?stop=103&direction=0"
     );
+  });
+
+  it("highlights the exact stop on hover and focus and clears hidden or removed rows", async () => {
+    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    const onStopHighlightChanged = jest.fn();
+    async function renderList(data = nearbyStops) {
+      await act(async () => root.render(
+        <MemoryRouter>
+          <NearbySimpleRoutes
+            nearbyStops={data}
+            currentLocation={[0, 0]}
+            radiusSize={1000}
+            handleSimpleRoutesOpened={jest.fn()}
+            handleRadiusSelectionChange={jest.fn()}
+            onStopHighlightChanged={onStopHighlightChanged}
+            routeCount={1}
+            stopCount={data.location.length}
+          />
+        </MemoryRouter>
+      ));
+    }
+    await renderList();
+    const first = container.querySelector<HTMLAnchorElement>('[data-stop-id="101"]');
+    const second = container.querySelector<HTMLAnchorElement>('[data-stop-id="102"]');
+    act(() => first.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(101);
+    act(() => first.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(undefined);
+    act(() => first.focus());
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(101);
+    act(() => second.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(102);
+    act(() => second.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(101);
+    act(() => first.blur());
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(undefined);
+
+    act(() => first.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    const direction = first.closest("details");
+    act(() => {
+      direction.open = false;
+      direction.dispatchEvent(new Event("toggle"));
+    });
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
+    act(() => { direction.open = true; });
+    act(() => first.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    const sortButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button"))
+      .find(button => button.getAttribute("aria-label")?.startsWith("Sort:"));
+    act(() => sortButton.click());
+    const sort = document.querySelector<HTMLSelectElement>("#nearby-route-sort");
+    act(() => {
+      sort.value = "distance";
+      sort.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
+    expect(getArrivals).toHaveBeenCalledTimes(1);
+
+    act(() => first.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    await renderList({ ...nearbyStops, location: [nearbyStops.location[1]] });
+    expect(container.querySelector('[data-stop-id="101"]')).toBeNull();
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
+    const remaining = container.querySelector<HTMLAnchorElement>('[data-stop-id="102"]');
+    act(() => remaining.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(102);
+    act(() => root.render(<div />));
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
   });
 
   it("shows a recoverable error when arrivals fail", async () => {
@@ -288,8 +365,8 @@ describe("NearbySimpleRoutes", () => {
     );
 
     const routeLinks = () =>
-      Array.from(container.querySelectorAll(".transit-simple-route-group")).map(
-        (item) => item.querySelector('a[href^="/lines/"]')?.getAttribute("href")
+      Array.from(container.querySelectorAll(".transit-simple-route-details-link")).map(
+        (item) => item.getAttribute("href")
       );
     expect(routeLinks()[0]).toBe("/lines/54");
     expect(

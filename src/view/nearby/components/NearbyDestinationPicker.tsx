@@ -5,6 +5,7 @@ import {
   RouteDirectionStop,
   TrimetRoute,
 } from "../../../api/trimet/interfaces/routes";
+import useStopHighlight from "../util/useStopHighlight";
 
 export default function NearbyDestinationPicker({
   stops,
@@ -30,8 +31,7 @@ export default function NearbyDestinationPicker({
   const picker = useRef<HTMLDivElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const wasOpen = useRef(false);
-  const hoveredStop = useRef<number | undefined>(undefined);
-  const focusedStop = useRef<number | undefined>(undefined);
+  const { clearHighlight, focusStop, hoverStop } = useStopHighlight(onStopHighlightChanged);
 
   useEffect(() => {
     if (open) {
@@ -46,10 +46,7 @@ export default function NearbyDestinationPicker({
     wasOpen.current = open;
   }, [open]);
 
-  useEffect(() => () => {
-    onOpenChange(false);
-    onStopHighlightChanged?.();
-  }, [onOpenChange, onStopHighlightChanged]);
+  useEffect(() => () => onOpenChange(false), [onOpenChange]);
 
   useEffect(() => {
     if (!open || routes) {
@@ -132,19 +129,7 @@ export default function NearbyDestinationPicker({
   function close() {
     setOpen(false);
     onOpenChange(false);
-    hoveredStop.current = undefined;
-    focusedStop.current = undefined;
-    onStopHighlightChanged?.();
-  }
-
-  function hoverStop(stopId?: number) {
-    hoveredStop.current = stopId;
-    onStopHighlightChanged?.(stopId ?? focusedStop.current);
-  }
-
-  function focusStop(stopId?: number) {
-    focusedStop.current = stopId;
-    onStopHighlightChanged?.(hoveredStop.current ?? stopId);
+    clearHighlight();
   }
 
   return (
@@ -202,9 +187,7 @@ export default function NearbyDestinationPicker({
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
-                hoveredStop.current = undefined;
-                focusedStop.current = undefined;
-                onStopHighlightChanged?.();
+                clearHighlight();
               }}
             />
           </label>

@@ -1,6 +1,7 @@
 // @ts-ignore
 // tslint:disable-next-line:no-implicit-dependencies
 import mapboxgl, { Map } from "!mapbox-gl";
+import { MapLayerMouseEvent } from "mapbox-gl";
 import { map } from "lodash";
 import { StopLocationsDictionary } from "../../../../store/reducers/util/formatStopLocations";
 import {
@@ -12,7 +13,14 @@ import {
   CURRENT_LOCATION_RADIUS
 } from "./consts";
 
+const stopHoverControls = new WeakMap<Map, {
+  dispose: () => void;
+  highlight: (stopId?: number) => void;
+}>();
+
 export function removeStopLocationLayers(mapBoxMap: Map) {
+  stopHoverControls.get(mapBoxMap)?.dispose();
+  stopHoverControls.delete(mapBoxMap);
   let map = mapBoxMap;
   console.log("removing stop location layers");
   if (mapBoxMap.getLayer(STOP_LOCATION_LAYER)) {
@@ -91,86 +99,99 @@ export function setNearbyStops(
     type: "circle"
   });
 
-  // Center the map on the coordinates of any clicked circle from the 'circle' layer.
-  mapBoxMap.on("click", STOP_LOCATION_LAYER, e => {
+  function handleClick(e: MapLayerMouseEvent) {
+    const feature = e.features?.[0];
+    if (feature?.geometry.type !== "Point") {
+      return;
+    }
     mapBoxMap.flyTo({
-      // @ts-ignore
-      center: e.features[0].geometry.coordinates
+      center: [feature.geometry.coordinates[0], feature.geometry.coordinates[1]]
     });
-    // @TODO: set zoom level
     mapBoxMap.setZoom(16);
-    const data = e.features[0];
-    handleStopMarkerClick(data);
-  });
+    handleStopMarkerClick(feature);
+  }
 
-  // Create a popup, but don't add it to the map yet.
   const popup = new mapboxgl.Popup({
     closeButton: false,
     closeOnClick: false
   });
+  let highlightedStop: number | undefined;
+  let hoveredMapStop: number | undefined;
+  let hoveredLongitude: number;
 
-  // Show popup on hover
-  mapBoxMap.on("mouseenter", STOP_LOCATION_LAYER, e => {
-    // Change the cursor style as a UI indicator.
-    mapBoxMap.getCanvas().style.cursor = "pointer";
+  function showPopup() {
+    const id = hoveredMapStop ?? highlightedStop;
+    const stop = id === undefined ? undefined : stopLocations[id];
+    if (!stop) {
+      popup.remove();
+      return;
+    }
+    const coordinates: [number, number] = [stop.lng, stop.lat];
+    const longitude = hoveredMapStop === undefined
+      ? mapBoxMap.getCenter().lng : hoveredLongitude;
 
-    // @ts-ignore
-    const coordinates = e.features[0].geometry.coordinates.slice();
-    const locid = e.features[0].properties.locid;
-    const routeids = e.features[0].properties.routeids;
-
-    // Ensure that if the map is zoomed out such that multiple
-    // copies of the feature are visible, the popup appears
-    // over the copy being pointed to.
-    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-      coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+    while (Math.abs(longitude - coordinates[0]) > 180) {
+      coordinates[0] += longitude > coordinates[0] ? 360 : -360;
     }
 
-    const popupHtml = `<strong>Stop ID</strong>: ${locid}<br><strong>Routes</strong>: ${routeids
-      .split(",")
-      .join(", ")}`;
-    // Populate the popup and set its coordinates
-    // based on the feature found.
+    const popupHtml = `<strong>Stop ID</strong>: ${stop.locid}<br><strong>Routes</strong>: ${routeIds.join(", ")}`;
     popup
       .setLngLat(coordinates)
       .setHTML(popupHtml)
       .addTo(mapBoxMap);
-  });
+  }
 
-  mapBoxMap.on("mouseleave", STOP_LOCATION_LAYER, () => {
+  function handleMouseEnter(e: MapLayerMouseEvent) {
+    mapBoxMap.getCanvas().style.cursor = "pointer";
+    hoveredMapStop = Number(e.features?.[0]?.properties.locid);
+    hoveredLongitude = e.lngLat.lng;
+    showPopup();
+  }
+
+  function handleMouseLeave() {
     mapBoxMap.getCanvas().style.cursor = "";
-    popup.remove();
+    hoveredMapStop = undefined;
+    showPopup();
+  }
+
+  mapBoxMap.on("click", STOP_LOCATION_LAYER, handleClick);
+  mapBoxMap.on("mouseenter", STOP_LOCATION_LAYER, handleMouseEnter);
+  mapBoxMap.on("mouseleave", STOP_LOCATION_LAYER, handleMouseLeave);
+  stopHoverControls.set(mapBoxMap, {
+    dispose: () => {
+      popup.remove();
+      mapBoxMap.getCanvas().style.cursor = "";
+      mapBoxMap.off("click", STOP_LOCATION_LAYER, handleClick);
+      mapBoxMap.off("mouseenter", STOP_LOCATION_LAYER, handleMouseEnter);
+      mapBoxMap.off("mouseleave", STOP_LOCATION_LAYER, handleMouseLeave);
+    },
+    highlight: (stopId?: number) => {
+      highlightedStop = stopId;
+      showPopup();
+    }
   });
 
   return mapBoxMap;
 }
 
-// Function to update the color of a specific stop marker by its ID
+export function highlightNearbyStop(mapBoxMap: Map, stopId?: number) {
+  updateStopMarkerColor(mapBoxMap, stopId === undefined ? undefined : String(stopId), "#ff0000");
+  stopHoverControls.get(mapBoxMap)?.highlight(stopId);
+}
+
 export function updateStopMarkerColor(
   mapBoxMap: Map,
-  stopId: string,
+  stopId: string | undefined,
   color: string
 ) {
-  const isLoaded = mapBoxMap?.loaded();
-  console.log("is map loaded", isLoaded);
-
-  function setMarkerColor() {
-    console.log("setting marker color", stopId, color);
-    mapBoxMap.setPaintProperty(STOP_LOCATION_LAYER, "circle-color", [
+  if (!mapBoxMap?.getLayer(STOP_LOCATION_LAYER)) {
+    return;
+  }
+  mapBoxMap.setPaintProperty(STOP_LOCATION_LAYER, "circle-color",
+    stopId === undefined ? "#4264fb" : [
       "case",
       ["==", ["get", "locid"], parseInt(stopId, 10)],
       color,
-      "#4264fb" // Default color for other markers
+      "#4264fb"
     ]);
-  }
-
-  // if (!isLoaded) {
-  //   mapBoxMap?.on("load", () => {
-  //     setMarkerColor();
-  //   });
-  // } else {
-  //   setMarkerColor();
-  // }
-
-  setMarkerColor();
 }

@@ -27,6 +27,7 @@ import {
 import { initializeMap } from "../util/mapbox/initializeMap";
 import { removeRoutes } from "../util/mapbox/routeLines";
 import {
+  highlightNearbyStop,
   removeCurrentLocationMarkers,
   removeStopLocationLayers,
   setNearbyStops,
@@ -60,6 +61,7 @@ export interface NearbyViewComponentOutletContextProps {
     onError: () => void
   ) => () => void;
   handleDirectionsStopHighlighted: (stopId?: number) => void;
+  handleNearbyStopHighlighted: (stopId?: number) => void;
   handleSimpleRoutesOpened: () => void;
 }
 
@@ -109,7 +111,8 @@ export function NearbySimpleRoutesComp() {
     currentLocation,
     radiusSize,
     handleRadiusSelectionChange,
-    handleSimpleRoutesOpened
+    handleSimpleRoutesOpened,
+    handleNearbyStopHighlighted
   } = useOutletContext<NearbyViewComponentOutletContextProps>();
 
   const stopCount = nearbyStops?.location?.length;
@@ -124,6 +127,7 @@ export function NearbySimpleRoutesComp() {
         radiusSize={radiusSize}
         handleRadiusSelectionChange={handleRadiusSelectionChange}
         handleSimpleRoutesOpened={handleSimpleRoutesOpened}
+        onStopHighlightChanged={handleNearbyStopHighlighted}
         routeCount={routeCount}
         stopCount={stopCount}
       />
@@ -338,6 +342,8 @@ export default function NearbyViewComponent() {
   ) => showDirectionsSelection(mapRef.current, selection, onError), []);
   const handleDirectionsStopHighlighted = useCallback((stopId?: number) =>
     highlightDirectionsStop(mapRef.current, stopId), []);
+  const handleNearbyStopHighlighted = useCallback((stopId?: number) =>
+    highlightNearbyStop(mapRef.current, stopId), []);
 
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
@@ -361,6 +367,7 @@ export default function NearbyViewComponent() {
     handleStopOpened,
     handleDirectionsSelection,
     handleDirectionsStopHighlighted,
+    handleNearbyStopHighlighted,
     handleSimpleRoutesOpened
   };
 
