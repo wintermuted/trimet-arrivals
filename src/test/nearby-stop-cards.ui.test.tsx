@@ -1,6 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { getWalkingEstimates } from "../api/mapbox/walking";
 import { StopData } from "../api/trimet/interfaces/types";
 import NearbyStops from "../view/nearby/components/NearbyStops";
@@ -81,6 +81,86 @@ describe("Nearby Stops card headers and shared marker highlights", () => {
       container.querySelector('[data-stop-id="101"]').querySelectorAll("a")
         .length
     ).toBeGreaterThan(1);
+  });
+
+  it("opens destination selection for the exact route, direction and boarding stop", () => {
+    const data = {
+      ...stops,
+      location: [
+        {
+          ...stops.location[0],
+          route: [
+            {
+              ...stops.location[0].route[0],
+              dir: [
+                { desc: "To East", dir: 0 },
+                { desc: "To West", dir: 1 }
+              ]
+            },
+            {
+              ...stops.location[0].route[0],
+              route: 12,
+              dir: [{ desc: "To Downtown", dir: 1 }]
+            }
+          ]
+        },
+        stops.location[1]
+      ]
+    };
+    function Destination() {
+      const location = useLocation();
+      return (
+        <p data-destination>
+          {location.pathname}
+          {location.search}
+        </p>
+      );
+    }
+    act(() =>
+      root.render(
+        <MemoryRouter initialEntries={["/nearby/stops"]}>
+          <Routes>
+            <Route
+              path="/nearby/stops"
+              element={
+                <NearbyStops
+                  nearbyStops={data}
+                  radiusSize={1000}
+                  handleRadiusSelectionChange={jest.fn()}
+                  routeCount={2}
+                  stopCount={2}
+                  currentLocation={[0, 0]}
+                  onStopHighlightChanged={onStopHighlightChanged}
+                />
+              }
+            />
+            <Route path="/nearby/directions" element={<Destination />} />
+          </Routes>
+        </MemoryRouter>
+      )
+    );
+    const card = container.querySelector('[data-stop-id="101"]');
+    const actions = card.querySelectorAll(".transit-nearby-stop-route-go");
+    expect(Array.from(actions).map(link => link.getAttribute("href"))).toEqual([
+      "/nearby/directions?route=56&direction=0&from=101",
+      "/nearby/directions?route=56&direction=1&from=101",
+      "/nearby/directions?route=12&direction=1&from=101"
+    ]);
+    expect(actions[1].getAttribute("aria-label")).toBe(
+      "Go on route 56, To West, from Example stop 101 (101)"
+    );
+    expect(
+      container
+        .querySelector('[data-stop-id="102"] .transit-nearby-stop-route-go')
+        .getAttribute("href")
+    ).toBe("/nearby/directions?route=56&direction=0&from=102");
+    onStopHighlightChanged.mockClear();
+    act(() => (actions[1] as HTMLElement).focus());
+    expect(onStopHighlightChanged).toHaveBeenLastCalledWith(101);
+    act(() => (actions[1] as HTMLElement).click());
+    expect(container.querySelector("[data-destination]").textContent).toBe(
+      "/nearby/directions?route=56&direction=1&from=101"
+    );
   });
 
   it("highlights whole cards, restores keyboard focus after hover and retains it between card links", () => {

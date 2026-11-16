@@ -32,6 +32,28 @@
   flex-shrink: 0;
 }
 
+.transit-nearby-stop-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-2);
+}
+
+.transit-nearby-stop-route-description {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.transit-nearby-stop-route-go {
+  flex-shrink: 0;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: 2px;
+  }
+}
+
 .stop-wrapper {
   margin-bottom: 10px;
 }

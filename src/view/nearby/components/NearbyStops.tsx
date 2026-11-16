@@ -24,12 +24,24 @@ import { WalkingDistance } from "./common/WalkingDistance";
 import "./NearbyViewComponent.scss";
 import { SearchRadiusSelection } from "./SearchRadiusSelection";
 
-function getRouteDirections(route: TrimetRoute) {
-  return (
-    <ListItem key={`${route.route}-${route.dir[0].dir}`}>
-      <RouteIndicator routeId={route.route} /> {route.dir[0].desc}
+function getRouteDirections(route: TrimetRoute, stop: StopLocation) {
+  return route.dir.map(direction => (
+    <ListItem
+      key={`${route.route}-${direction.dir}`}
+      className="transit-nearby-stop-route"
+    >
+      <span className="transit-nearby-stop-route-description">
+        <RouteIndicator routeId={route.route} /> {direction.desc}
+      </span>
+      <Link
+        className="wm-btn wm-btn-primary transit-nearby-stop-route-go"
+        to={`/nearby/directions?route=${route.route}&direction=${direction.dir}&from=${stop.locid}`}
+        aria-label={`Go on route ${route.route}, ${direction.desc}, from ${stop.desc} (${stop.locid})`}
+      >
+        Go
+      </Link>
     </ListItem>
-  );
+  ));
 }
 
 export interface NearbyStopsProps {
@@ -149,7 +161,7 @@ export default function NearbyStops({
               </Link>
             </CardHeader>
             <ListGroup>
-              {stopLocation.route.map(r => getRouteDirections(r))}
+              {stopLocation.route.map(r => getRouteDirections(r, stopLocation))}
             </ListGroup>
             <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
               <WalkingDistance
