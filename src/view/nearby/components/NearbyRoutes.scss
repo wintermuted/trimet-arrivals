@@ -427,8 +427,11 @@
 }
 
 .transit-simple-route-stop-name {
+  min-width: 0;
+  overflow: hidden;
   font-weight: 600;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .transit-simple-route-arrivals {
