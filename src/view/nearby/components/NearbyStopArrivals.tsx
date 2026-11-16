@@ -1,9 +1,10 @@
 import {
+  Select,
   Table
 } from "@wintermuted/ui-theme/react";
 import { map, sortBy } from "lodash";
 import moment from "moment";
-import React from "react";
+import React, { useId, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
@@ -36,13 +37,36 @@ function getArrivalsList(sortedArrivals: Arrival[]) {
 }
 
 export function ArrivalList({ data }: ArrivalsTableParams) {
+  const [selectedRoute, setSelectedRoute] = useState("");
+  const filterId = useId();
+  const routes = Array.from(new Set(data.arrival.map(arrival => arrival.route)));
+  if (selectedRoute && !routes.includes(Number(selectedRoute))) {
+    routes.push(Number(selectedRoute));
+  }
+  routes.sort((a, b) => a - b);
   const sortedArrivals = sortArrivalsByEstimated(data.arrival);
-  const arrivalsList = getArrivalsList(sortedArrivals);
+  const filteredArrivals = selectedRoute
+    ? sortedArrivals.filter(arrival => String(arrival.route) === selectedRoute)
+    : sortedArrivals;
+  const arrivalsList = getArrivalsList(filteredArrivals);
 
   return (
     <details className="transit-simple-route-direction" open>
       <summary><FontAwesome name="caret-right" aria-hidden="true" />Departures</summary>
-      <ul className="transit-stop-departures-list">{arrivalsList}</ul>
+      <div className="transit-stop-departures-filter">
+        <label htmlFor={filterId}>Filter by route</label>
+        <Select id={filterId} value={selectedRoute} onChange={event => setSelectedRoute(event.target.value)}>
+          <option value="">All routes</option>
+          {routes.map(route => <option key={route} value={route}>Route {route}</option>)}
+        </Select>
+      </div>
+      {filteredArrivals.length ? (
+        <ul className="transit-stop-departures-list">{arrivalsList}</ul>
+      ) : (
+        <p className="transit-route-list-message" role="status">
+          {selectedRoute ? `No departures for route ${selectedRoute}.` : "No departures available."}
+        </p>
+      )}
     </details>
   );
 }

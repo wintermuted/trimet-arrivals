@@ -568,6 +568,23 @@
   color: var(--wm-color-text-muted);
 }
 
+.transit-stop-departures-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wm-space-2);
+  margin-bottom: var(--wm-space-2);
+
+  label {
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .wm-select {
+    max-width: 100%;
+  }
+}
+
 .transit-simple-route-item {
   display: block;
   padding: 0;
