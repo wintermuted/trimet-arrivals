@@ -81,7 +81,10 @@ changing the boarding stop clears the destination. The map shows the selected
 route line and labeled boarding/destination markers. With both stops selected it
 shows a solid line for the selected portion and fits both stops plus the intervening
 road geometry, with padding that adapts to the map panel's size; with only a
-boarding stop it focuses that stop. View destination arrivals opens a trip-times
+boarding stop it focuses that stop. Selecting both stops also displays matched
+departure and arrival times directly beneath the stop pickers, including travel
+duration, refresh/retry, and explicit unavailable predictions.
+View destination arrivals opens a trip-times
 view with the selected route, direction, boarding stop and destination retained
 in the URL. It requests both stops together and matches predictions by trip ID,
 showing boarding/departure time, corresponding destination time, and their

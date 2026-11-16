@@ -3,10 +3,14 @@ import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { RouteDataResultSet } from "../api/trimet/interfaces/routes";
 import { getRouteByIdAndDirection } from "../api/trimet/routeConfig";
+import { getArrivals } from "../api/trimet/arrivals";
+import { arrival1 } from "../api/trimet/fixture/arrival";
 import NearbyDirections from "../view/nearby/components/NearbyDirections";
 
 jest.mock("../api/trimet/routeConfig");
+jest.mock("../api/trimet/arrivals");
 const loadRoute = jest.mocked(getRouteByIdAndDirection);
+const loadArrivals = jest.mocked(getArrivals);
 const stops = [
   { locid: 101, seq: 10, desc: "Example First", dir: "E", tp: true, lat: 0, lng: 0 },
   { locid: 102, seq: 20, desc: "Example Middle", dir: "E", tp: false, lat: 1, lng: 1 },
@@ -44,6 +48,10 @@ describe("route-aware destination selection", () => {
   beforeEach(() => {
     loadRoute.mockReset();
     loadRoute.mockResolvedValue(route);
+    loadArrivals.mockReset();
+    loadArrivals.mockResolvedValue({
+      arrival: [], queryTime: String(Date.now()), location: [], detour: []
+    });
     onSelectionChanged.mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -113,6 +121,39 @@ describe("route-aware destination selection", () => {
       { routeId: 54, direction: 1, origin: stops[0], destination: stops[1] },
       expect.any(Function)
     );
+  });
+
+  it("shows corresponding departure and arrival times directly below the selected stops", async () => {
+    const departureAt = Date.now() + 10 * 60000;
+    const arrivalAt = departureAt + 14 * 60000;
+    const departure = {
+      ...arrival1, id: "board", route: 54, dir: 1, locid: 101,
+      tripID: "selected-trip", status: "estimated",
+      estimated: departureAt, scheduled: departureAt, dropOffOnly: false
+    };
+    loadArrivals.mockResolvedValueOnce({
+      arrival: [
+        departure,
+        { ...departure, id: "destination", locid: 103, estimated: arrivalAt, dropOffOnly: true },
+        { ...departure, id: "unrelated", locid: 103, tripID: "another-trip", estimated: departureAt + 60000 }
+      ],
+      queryTime: String(Date.now()), location: [], detour: []
+    });
+    await render("route=54&direction=1&from=101&to=103");
+    expect(loadArrivals).toHaveBeenCalledWith("101,103", 60);
+    expect(container.textContent).toContain("Departure and arrival times");
+    const times = Array.from(container.querySelectorAll("tbody time"));
+    expect(times.map(time => time.getAttribute("datetime"))).toEqual([
+      new Date(departureAt).toISOString(),
+      new Date(arrivalAt).toISOString()
+    ]);
+    expect(container.querySelector("tbody").textContent).toContain("14 min");
+    expect(container.querySelector("tbody").textContent).toContain("Estimated");
+    expect(container.querySelectorAll(".scrollarea")).toHaveLength(1);
+
+    choose("trip-origin", "102");
+    expect(container.querySelector("table")).toBeNull();
+    expect(container.textContent).not.toContain("Departure and arrival times");
   });
 
   it("requires a valid downstream pair for a direct trip-times URL", async () => {

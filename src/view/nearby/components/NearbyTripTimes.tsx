@@ -25,7 +25,7 @@ interface TimesState {
 }
 
 export default function NearbyTripTimes({
-  routeId, direction, origin, destination, routeName, directionName, backTo
+  routeId, direction, origin, destination, routeName, directionName, backTo, inline = false
 }: {
   routeId: number;
   direction: number;
@@ -34,6 +34,7 @@ export default function NearbyTripTimes({
   routeName: string;
   directionName: string;
   backTo: string;
+  inline?: boolean;
 }) {
   const from = origin.locid;
   const to = destination.locid;
@@ -86,16 +87,22 @@ export default function NearbyTripTimes({
   const loading = !current || current.loading;
 
   return (
-    <div className="scrollarea transit-directions">
-      <TopNavBar id="Trip times" backTo={backTo} />
-      <div>
-        <h4>{routeName}</h4>
-        <p>{directionName}</p>
-      </div>
-      <dl className="transit-trip-stops">
-        <div><dt>Board at</dt><dd>{origin.desc} ({from})</dd></div>
-        <div><dt>Get off at</dt><dd>{destination.desc} ({to})</dd></div>
-      </dl>
+    <div className={inline ? "transit-directions" : "scrollarea transit-directions"}>
+      {inline ? (
+        <h4>Departure and arrival times</h4>
+      ) : (
+        <>
+          <TopNavBar id="Trip times" backTo={backTo} />
+          <div>
+            <h4>{routeName}</h4>
+            <p>{directionName}</p>
+          </div>
+          <dl className="transit-trip-stops">
+            <div><dt>Board at</dt><dd>{origin.desc} ({from})</dd></div>
+            <div><dt>Get off at</dt><dd>{destination.desc} ({to})</dd></div>
+          </dl>
+        </>
+      )}
       <div className="transit-trip-refresh">
         <p className="transit-trip-note">
           {data
