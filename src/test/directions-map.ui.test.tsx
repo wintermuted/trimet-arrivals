@@ -4,6 +4,7 @@ import { DirectionsSelection, highlightDirectionsStop, showDirectionsSelection }
 import { setRoutes } from "../view/nearby/util/mapbox/routeLines";
 import { highlightNearbyStop, removeStopLocationLayers, setNearbyStops, updateStopMarkerColor } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLocation";
+import { showWalkingRoute } from "../view/nearby/util/mapbox/walkingRoute";
 
 jest.mock("!mapbox-gl", () => jest.requireMock("mapbox-gl"), { virtual: true });
 
@@ -86,6 +87,25 @@ describe("directions route line and endpoint framing", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  it("draws and cleans up only the walking overlay, preserving the bus route", () => {
+    const close = showWalkingRoute(map, {
+      geometry: { coordinates: [[0, 0], [0, 0.001], [0.001, 0.001]], type: "LineString" },
+      properties: {}, type: "Feature"
+    });
+    expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
+      id: "walking-access-route",
+      paint: expect.objectContaining({ "line-dasharray": [1, 2], "line-emissive-strength": 1 })
+    }));
+    expect(map.fitBounds).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      maxZoom: 16, padding: 40
+    }));
+    close();
+    expect(map.removeLayer).toHaveBeenCalledWith("walking-access-route");
+    expect(map.removeSource).toHaveBeenCalledWith("walking-access-route");
+    expect(map.removeLayer).not.toHaveBeenCalledWith("directions-route");
+    expect(map.removeSource).not.toHaveBeenCalledWith("directions-route");
   });
 
   it.each(["light", "dark"])("keeps stop and location colors independent of %s basemap lighting", theme => {

@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { StopLocation } from "../api/trimet/interfaces/types";
 import BookmarkButton from "../component/buttons/BookmarkButton";
 import AppFooter from "../component/footer/AppFooter";
+import { FeatureFlagsProvider, useFeatureFlags } from "../component/feature-flags/FeatureFlags";
 import AddBookmarkSectionControl from "../view/bookmarks/component/bookmarkSections/AddBookmarkSectionControl";
 import BookmarksInSectionSelectionHandler from "../view/bookmarks/component/bookmarkSections/sectionSelector/BookmarksInSectionSelectionHandler";
 import MainNavigationMenu from "../view/mainNav/components/MainNavigationMenu";
@@ -18,6 +19,11 @@ const stop: StopLocation = {
   lat: 45.52,
   lng: -122.68
 };
+
+function FeatureFlagState() {
+  const { walkingEnabled } = useFeatureFlags();
+  return <output data-walking-enabled={walkingEnabled} />;
+}
 
 describe("Wintermuted control integration", () => {
   let container: HTMLDivElement;
@@ -219,7 +225,7 @@ describe("Wintermuted control integration", () => {
           <ThemeProvider>
             <MemoryRouter>
               <MainNavigationMenu numberOfBookmarks={0} timeOfLastLoad="" />
-              <AppFooter />
+              <FeatureFlagsProvider><AppFooter /></FeatureFlagsProvider>
             </MemoryRouter>
           </ThemeProvider>
         )
@@ -246,13 +252,52 @@ describe("Wintermuted control integration", () => {
     expect(container.querySelector("footer button").textContent).toBe("Dark");
   });
 
+  it("opens feature flags from the footer, shares changes immediately and resets flags on reload", () => {
+    const render = () => act(() => root.render(
+      <ThemeProvider>
+        <FeatureFlagsProvider>
+          <FeatureFlagState />
+          <AppFooter />
+        </FeatureFlagsProvider>
+      </ThemeProvider>
+    ));
+    render();
+    const storedPreferences = JSON.stringify({ ...localStorage });
+    const trigger = container.querySelector<HTMLButtonElement>('[aria-haspopup="dialog"]');
+    expect(document.querySelector("dialog")).toBeNull();
+    expect(container.querySelector("output").getAttribute("data-walking-enabled")).toBe("false");
+    act(() => trigger.click());
+    let dialog = document.querySelector("dialog");
+    expect(dialog.textContent).toContain("Feature flags");
+    expect(dialog.textContent).toContain("current location and stop coordinates to Mapbox");
+    expect(dialog.querySelector<HTMLInputElement>('[role="switch"]').checked).toBe(false);
+    act(() => dialog.querySelector<HTMLInputElement>('[role="switch"]').click());
+    expect(container.querySelector("output").getAttribute("data-walking-enabled")).toBe("true");
+    expect(JSON.stringify({ ...localStorage })).toBe(storedPreferences);
+    act(() => dialog.querySelector("button").click());
+    expect(document.querySelector("dialog")).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    act(() => trigger.click());
+    dialog = document.querySelector("dialog");
+    expect(dialog.querySelector<HTMLInputElement>('[role="switch"]').checked).toBe(true);
+    act(() => dialog.querySelector<HTMLInputElement>('[role="switch"]').click());
+    expect(container.querySelector("output").getAttribute("data-walking-enabled")).toBe("false");
+    act(() => dialog.dispatchEvent(new Event("cancel", { bubbles: true, cancelable: true })));
+    expect(document.querySelector("dialog")).toBeNull();
+    act(() => trigger.click());
+    act(() => document.querySelector<HTMLInputElement>('dialog [role="switch"]').click());
+    act(() => root.render(null));
+    render();
+    expect(container.querySelector("output").getAttribute("data-walking-enabled")).toBe("false");
+  });
+
   it("toggles from the resolved system theme rather than the system preference", () => {
     const matchMedia = window.matchMedia;
     window.matchMedia = media => ({ ...matchMedia(media), matches: true });
     act(() =>
       root.render(
         <ThemeProvider>
-          <AppFooter />
+          <FeatureFlagsProvider><AppFooter /></FeatureFlagsProvider>
         </ThemeProvider>
       )
     );

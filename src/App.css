@@ -75,6 +75,33 @@
   outline-offset: 2px;
 }
 
+.transit-feature-flags-content {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.transit-feature-flag {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-3);
+  min-height: var(--wm-control-height);
+  margin-block: var(--wm-space-4) var(--wm-space-2);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.transit-feature-flag input {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--wm-color-accent);
+}
+
+.transit-feature-flag input:focus-visible {
+  outline: 2px solid var(--wm-color-accent);
+  outline-offset: 3px;
+}
+
 .main-view .transit-container {
   padding-inline: 0;
 }

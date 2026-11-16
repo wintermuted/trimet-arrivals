@@ -615,6 +615,20 @@
   }
 }
 
+.transit-walking-access {
+  margin-block: var(--wm-space-3);
+  font-size: 0.875rem;
+
+  p {
+    margin: 0 0 var(--wm-space-2);
+  }
+}
+
+.transit-simple-route-distance > span,
+.transit-simple-route-distance > small {
+  display: block;
+}
+
 .transit-simple-route-heading {
   display: flex;
   flex-wrap: wrap;

@@ -9,12 +9,14 @@ import {
   TrimetRoute,
 } from "../../../api/trimet/interfaces/types";
 import { arrival1 } from "../../../api/trimet/fixture/arrival";
+import { getWalkingEstimates, WalkingEstimate } from "../../../api/mapbox/walking";
 import NearbySimpleRoutes, {
   filterRouteStructures,
   getRouteArrivals,
 } from "./NearbySimpleRoutes";
 
 jest.mock("../../../api/trimet/arrivals");
+jest.mock("../../../api/mapbox/walking");
 
 const now = Date.parse("2026-11-15T10:00:00Z");
 const minute = 60 * 1000;
@@ -82,6 +84,7 @@ describe("NearbySimpleRoutes", () => {
 
   beforeEach(() => {
     jest.mocked(getArrivals).mockReset();
+    jest.mocked(getWalkingEstimates).mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -90,6 +93,71 @@ describe("NearbySimpleRoutes", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+  });
+
+  it("only requests walking distances after consent and ranks by walking connections, not radial proximity", async () => {
+    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    const walking = new Map<number, WalkingEstimate>([
+      [101, { meters: 900, seconds: 600, status: "ready" }],
+      [102, { meters: 100, seconds: 60, status: "ready" }],
+      [103, { meters: 50, seconds: 40, status: "ready" }]
+    ]);
+    jest.mocked(getWalkingEstimates).mockResolvedValue(walking);
+    const candidates = {
+      ...nearbyStops,
+      location: [...nearbyStops.location, { ...stop(103, 0.03), route: [{ ...route, route: 12 }] }]
+    };
+    function WalkingRoutes({ enabled }: { enabled: boolean }) {
+      return (
+        <NearbySimpleRoutes
+          nearbyStops={candidates} currentLocation={[0, 0]} radiusSize={1000}
+          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          routeCount={2} stopCount={3} walkingEnabled={enabled}
+        />
+      );
+    }
+    await act(async () => root.render(<MemoryRouter><WalkingRoutes enabled={false} /></MemoryRouter>));
+    expect(getWalkingEstimates).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain("Enable walking estimates");
+    expect(container.textContent).toContain("(straight-line)");
+    expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("54");
+    await act(async () => root.render(<MemoryRouter><WalkingRoutes enabled /></MemoryRouter>));
+    expect(getWalkingEstimates).toHaveBeenCalledTimes(1);
+    expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("12");
+    const north = container.querySelector('[aria-labelledby="nearby-direction-54-0"]');
+    expect(Array.from(north.querySelectorAll("[data-stop-id]")).map(link => link.getAttribute("data-stop-id"))).toEqual(["102", "101"]);
+    expect(north.textContent).toContain("328 ft walk");
+    await act(async () => root.render(<MemoryRouter><WalkingRoutes enabled={false} /></MemoryRouter>));
+    expect(jest.mocked(getWalkingEstimates).mock.calls[0][2].aborted).toBe(true);
+    expect(north.textContent).not.toContain("ft walk");
+    expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("54");
+  });
+
+  it("labels walking failures and retries without silently treating straight-line distances as walking", async () => {
+    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    jest.mocked(getWalkingEstimates)
+      .mockRejectedValueOnce(new Error("Mapbox walking request limit reached."))
+      .mockResolvedValueOnce(new Map<number, WalkingEstimate>([
+        [101, { status: "unreachable" }],
+        [102, { meters: 100, seconds: 60, status: "ready" }]
+      ]));
+    await act(async () => root.render(
+      <MemoryRouter>
+        <NearbySimpleRoutes
+          nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
+          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          routeCount={1} stopCount={2} walkingEnabled
+        />
+      </MemoryRouter>
+    ));
+    expect(container.querySelector('[role="alert"]').textContent).toContain("limit reached");
+    expect(container.textContent).toContain("Walking distance unavailable");
+    expect(container.textContent).toContain("(straight-line)");
+    const retry = Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry walking estimates");
+    await act(async () => retry.click());
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(container.textContent).toContain("No walking route found");
+    expect(container.textContent).toContain("328 ft walk");
   });
 
   it("groups both directions, keeps multiple stops, and orders stops by distance", () => {
@@ -413,7 +481,7 @@ describe("NearbySimpleRoutes", () => {
     });
 
     expect(routeLinks()[0]).toBe("/lines/12");
-    expect(sortButton.getAttribute("aria-label")).toBe("Sort: Nearest stop");
+    expect(sortButton.getAttribute("aria-label")).toBe("Sort: Nearest stop (straight-line)");
     expect(
       container.querySelector('[aria-labelledby="nearby-route-54"]')
     ).toBe(routeDisclosure);
