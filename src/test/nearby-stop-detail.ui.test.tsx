@@ -66,10 +66,10 @@ describe("general Nearby stop walking access", () => {
     container.remove();
   });
 
-  function render(enabled = false) {
+  function render(enabled = false, path = "/nearby/stops/340") {
     return act(async () =>
       root.render(
-        <MemoryRouter initialEntries={["/nearby/stops/340"]}>
+        <MemoryRouter initialEntries={[path]}>
           <Link to="/nearby/stops/367">Next stop</Link>
           <Routes>
             <Route
@@ -150,4 +150,45 @@ describe("general Nearby stop walking access", () => {
     expect(getWalkingRoute).toHaveBeenCalledTimes(1);
     expect(handleStopOpened).toHaveBeenCalledWith(stopData(340).location[0]);
   });
+
+  it("preserves the route referrer while loading and after the stop loads", async () => {
+    let resolveStop: (data: ArrivalData) => void;
+    jest.mocked(getArrivals).mockImplementationOnce(() => new Promise((resolve) => {
+      resolveStop = resolve;
+    }));
+    const referrer = "/nearby/simple-routes?route=54&keep=yes#directions";
+    await render(false, `/nearby/stops/340?${new URLSearchParams({ referrer })}`);
+    expect(container.textContent).toContain("Loading stop");
+    expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe(referrer);
+    await act(async () => resolveStop(stopData(340)));
+    expect(container.textContent).toContain("Example stop 340");
+    expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe(referrer);
+  });
+
+  it("retains the route referrer when the stop fails to load", async () => {
+    jest.mocked(getArrivals).mockRejectedValueOnce(new Error("Unavailable"));
+    const referrer = "/nearby/simple-routes?route=54";
+    await render(false, `/nearby/stops/340?${new URLSearchParams({ referrer })}`);
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe(referrer);
+  });
+
+  it("returns direct stop links to Nearby Stops", async () => {
+    await render();
+    expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe("/nearby/stops");
+  });
+
+  it.each(["https://example.com", "//example.com", "/\\example.com", "/nearby/../../outside", "/outside", ""])(
+    "rejects an unsafe or invalid referrer %s",
+    async (referrer) => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        await render(false, `/nearby/stops/340?${new URLSearchParams({ referrer })}`);
+        expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe("/nearby/stops");
+        expect(warn).toHaveBeenCalledWith("Invalid stop referrer; returning to nearby stops.");
+      } finally {
+        warn.mockRestore();
+      }
+    }
+  );
 });

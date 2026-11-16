@@ -1,10 +1,11 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import FontAwesome from "react-fontawesome";
 import { getRouteById } from "../../../api/trimet/routeConfig";
 import { TrimetRoute } from "../../../api/trimet/interfaces/routes";
 import useStopHighlight from "../util/useStopHighlight";
+import { stopDetailUrl } from "../util/stopNavigation";
 
 export default function NearbyRouteInfo({
   routeId,
@@ -23,6 +24,7 @@ export default function NearbyRouteInfo({
   const [retry, setRetry] = useState(0);
   const [mapRetry, setMapRetry] = useState(0);
   const closeButton = useRef<HTMLButtonElement>(null);
+  const location = useLocation();
   const { clearHighlight, focusStop, hoverStop } = useStopHighlight(onStopHighlightChanged);
 
   useEffect(() => {
@@ -100,7 +102,7 @@ export default function NearbyRouteInfo({
                 {direction.stop.map((stop) => (
                   <li key={`${stop.locid}-${stop.seq}`}>
                     <Link
-                      to={`/nearby/stops/${stop.locid}`}
+                      to={stopDetailUrl(stop.locid, `${location.pathname}${location.search}${location.hash}`)}
                       data-stop-id={stop.locid}
                       onMouseEnter={() => hoverStop(stop.locid)}
                       onMouseLeave={() => hoverStop()}
