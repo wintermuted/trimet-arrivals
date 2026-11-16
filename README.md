@@ -114,6 +114,11 @@ Nearby stop markers are initialized when the map finishes loading, independently
 of the sidebar view. Full refreshes and direct links to Nearby Stops therefore
 show the same markers without first visiting Nearby Routes.
 
+The info button on a Nearby route opens its details in the sidebar without
+leaving the map. Both directions and their stops are listed and shown on the
+map; closing restores the nearby markers and previous map view. The route lines
+use the checked-in geometry snapshot, which may lag current stop information.
+
 Nearby Stops card headers put the stop name first and the stop ID on the right;
 the full header opens the stop. Hovering a card or focusing any of its links
 highlights its marker and opens the same popup as marker hover. Pointer hover

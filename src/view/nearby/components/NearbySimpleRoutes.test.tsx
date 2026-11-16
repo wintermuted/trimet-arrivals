@@ -2,6 +2,7 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
+import { getRouteById } from "../../../api/trimet/routeConfig";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import {
   StopData,
@@ -16,6 +17,7 @@ import NearbySimpleRoutes, {
 } from "./NearbySimpleRoutes";
 
 jest.mock("../../../api/trimet/arrivals");
+jest.mock("../../../api/trimet/routeConfig");
 jest.mock("../../../api/mapbox/walking");
 
 const now = Date.parse("2026-11-15T10:00:00Z");
@@ -84,6 +86,7 @@ describe("NearbySimpleRoutes", () => {
 
   beforeEach(() => {
     jest.mocked(getArrivals).mockReset();
+    jest.mocked(getRouteById).mockReset();
     jest.mocked(getWalkingEstimates).mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -193,6 +196,18 @@ describe("NearbySimpleRoutes", () => {
       queryTime: "",
     };
     jest.mocked(getArrivals).mockResolvedValue(response([]));
+    jest.mocked(getRouteById).mockResolvedValue({
+      route: [{
+        route: 54, id: 54, desc: "Beaverton", type: "bus",
+        routeColor: "", routeSortOrder: 54,
+        dir: [
+          { dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] },
+          { dir: 1, desc: "Southbound", stop: [{ ...stop(102, 0.02), seq: 1, tp: false }] }
+        ]
+      }]
+    });
+    const cleanupMap = jest.fn();
+    const onRouteInfoChanged = jest.fn(() => cleanupMap);
     await act(async () =>
       root.render(
         <MemoryRouter>
@@ -204,6 +219,7 @@ describe("NearbySimpleRoutes", () => {
             handleRadiusSelectionChange={jest.fn()}
             routeCount={1}
             stopCount={3}
+            onRouteInfoChanged={onRouteInfoChanged}
           />
           <CurrentLocation />
         </MemoryRouter>
@@ -214,7 +230,6 @@ describe("NearbySimpleRoutes", () => {
     expect(container.textContent).toContain("Northbound");
     expect(container.textContent).toContain("Southbound");
     expect(container.textContent).toContain("No arrivals reported");
-    expect(container.querySelector('a[href="/lines/54"]')).not.toBeNull();
     expect(
       container.querySelector(
         'a[href="/nearby/simple-routes/54?stop=101&direction=0"]'
@@ -225,9 +240,8 @@ describe("NearbySimpleRoutes", () => {
     expect(
       container.querySelectorAll(".transit-simple-route-group")
     ).toHaveLength(1);
-    expect(container.querySelectorAll('a[href="/lines/54"]')).toHaveLength(1);
     expect(container.querySelector(".transit-simple-route-heading strong")?.textContent).toBe("54");
-    const info = container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link");
+    const info = container.querySelector<HTMLButtonElement>(".transit-simple-route-details-link");
     expect(info?.getAttribute("aria-label")).toBe("View Route 54 details");
     expect(info?.querySelector(".fa-info-circle")).not.toBeNull();
     expect(info?.closest("details")).toBeNull();
@@ -247,7 +261,13 @@ describe("NearbySimpleRoutes", () => {
       routeDisclosure.open = false;
       info.click();
     });
-    expect(container.querySelector("output")?.textContent).toBe("/lines/54");
+    expect(container.querySelector("output")?.textContent).toBe("/");
+    expect(container.querySelector('[aria-label="Route 54 details"]')?.textContent).toContain("Stop 102");
+    expect(onRouteInfoChanged).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('a[href="/lines/54"]')).not.toBeNull();
+    const close = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Close");
+    await act(async () => close.click());
+    expect(cleanupMap).toHaveBeenCalledTimes(1);
     expect(routeDisclosure.open).toBe(false);
     await act(async () => {
       directionDisclosures[0].open = false;
@@ -285,6 +305,37 @@ describe("NearbySimpleRoutes", () => {
     expect(container.querySelector("output")?.textContent).toBe(
       "/nearby/simple-routes/54?stop=103&direction=0"
     );
+  });
+
+  it("reports route detail failures and retries without leaving the nearby list", async () => {
+    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    jest.mocked(getRouteById)
+      .mockRejectedValueOnce(new Error("Unavailable"))
+      .mockResolvedValueOnce({
+        route: [{
+          route: 54, id: 54, desc: "Beaverton", type: "bus",
+          routeColor: "", routeSortOrder: 54,
+          dir: [{ dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
+        }]
+      });
+    await act(async () => root.render(
+      <MemoryRouter>
+        <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
+          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          routeCount={1} stopCount={2} />
+      </MemoryRouter>
+    ));
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-simple-route-details-link").click());
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain("Route details could not be loaded");
+    const retry = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Retry");
+    await act(async () => retry.click());
+    expect(container.querySelector('[aria-label="Route 54 details"]')?.textContent).toContain("Stop 101");
+    expect(getRouteById).toHaveBeenCalledTimes(2);
+    await act(async () => container.querySelector('[aria-label="Route 54 details"]').dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
+    ));
+    expect(container.querySelector('[aria-label="Route 54 details"]')).toBeNull();
+    expect(container.querySelector(".transit-simple-route-group")).not.toBeNull();
   });
 
   it("highlights the exact stop on hover and focus and clears hidden or removed rows", async () => {
@@ -434,13 +485,13 @@ describe("NearbySimpleRoutes", () => {
 
     const routeLinks = () =>
       Array.from(container.querySelectorAll(".transit-simple-route-details-link")).map(
-        (item) => item.getAttribute("href")
+        (item) => item.getAttribute("aria-label")
       );
-    expect(routeLinks()[0]).toBe("/lines/54");
+    expect(routeLinks()[0]).toBe("View Route 54 details");
     expect(
       container.querySelectorAll(".transit-simple-route-group")
     ).toHaveLength(2);
-    expect(container.querySelectorAll('a[href="/lines/54"]')).toHaveLength(1);
+    expect(container.querySelectorAll('[aria-label="View Route 54 details"]')).toHaveLength(1);
     const routeDisclosure = container.querySelector<HTMLDetailsElement>(
       '[aria-labelledby="nearby-route-54"]'
     );
@@ -480,7 +531,7 @@ describe("NearbySimpleRoutes", () => {
       sortSelect.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
-    expect(routeLinks()[0]).toBe("/lines/12");
+    expect(routeLinks()[0]).toBe("View Route 12 details");
     expect(sortButton.getAttribute("aria-label")).toBe("Sort: Nearest stop (straight-line)");
     expect(
       container.querySelector('[aria-labelledby="nearby-route-54"]')

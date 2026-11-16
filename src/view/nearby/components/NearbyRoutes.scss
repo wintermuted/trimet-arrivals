@@ -140,6 +140,22 @@
   }
 }
 
+.transit-route-info-stops {
+  display: grid;
+  gap: var(--wm-space-1);
+  padding-inline-start: var(--wm-space-4);
+
+  li {
+    padding-block: var(--wm-space-1);
+  }
+
+  small {
+    float: right;
+    margin-inline-start: var(--wm-space-2);
+    color: var(--wm-color-text-muted);
+  }
+}
+
 .transit-destination-search {
   display: flex;
   flex-direction: column;
@@ -589,7 +605,11 @@
   justify-content: center;
   width: var(--wm-control-height);
   min-height: var(--wm-control-height);
+  border: 0;
+  background: transparent;
   color: var(--wm-color-accent);
+  font: inherit;
+  cursor: pointer;
   text-decoration: none;
 
   &:hover {

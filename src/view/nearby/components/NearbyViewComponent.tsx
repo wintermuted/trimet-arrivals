@@ -49,6 +49,8 @@ import {
 import NearbyStops from "./NearbyStops";
 import NearbyRoutes from "./NearbyRoutes";
 import NearbyDirections from "./NearbyDirections";
+import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
+import { showRouteInfo } from "../util/mapbox/routeInfo";
 
 const DEFAULT_RADIUS = 1000;
 
@@ -69,6 +71,7 @@ export interface NearbyViewComponentOutletContextProps {
   handleSimpleRoutesOpened: () => void;
   walkingEnabled: boolean;
   handleWalkingRouteChanged: (feature: Feature<LineString>) => () => void;
+  handleRouteInfoChanged: (route: DetailedRoute, onError: () => void) => () => void;
 }
 
 export function NearbyStopDetailComponent() {
@@ -130,6 +133,7 @@ export function NearbySimpleRoutesComp() {
     handleRadiusSelectionChange,
     handleSimpleRoutesOpened,
     handleNearbyStopHighlighted,
+    handleRouteInfoChanged,
     walkingEnabled
   } = useOutletContext<NearbyViewComponentOutletContextProps>();
 
@@ -146,6 +150,7 @@ export function NearbySimpleRoutesComp() {
         handleRadiusSelectionChange={handleRadiusSelectionChange}
         handleSimpleRoutesOpened={handleSimpleRoutesOpened}
         onStopHighlightChanged={handleNearbyStopHighlighted}
+        onRouteInfoChanged={handleRouteInfoChanged}
         walkingEnabled={walkingEnabled}
         routeCount={routeCount}
         stopCount={stopCount}
@@ -380,6 +385,8 @@ export default function NearbyViewComponent() {
     highlightNearbyStop(mapRef.current, stopId), []);
   const handleWalkingRouteChanged = useCallback((feature: Feature<LineString>) =>
     showWalkingRoute(mapRef.current, feature), []);
+  const handleRouteInfoChanged = useCallback((route: DetailedRoute, onError: () => void) =>
+    showRouteInfo(mapRef.current, route, onError), []);
 
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
@@ -406,7 +413,8 @@ export default function NearbyViewComponent() {
     handleNearbyStopHighlighted,
     handleSimpleRoutesOpened,
     walkingEnabled,
-    handleWalkingRouteChanged
+    handleWalkingRouteChanged,
+    handleRouteInfoChanged
   };
 
   return (
