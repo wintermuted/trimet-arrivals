@@ -7,6 +7,14 @@ import { TrimetRoute } from "../api/trimet/interfaces/routes";
 import BookmarkedRouteItem from "../view/bookmarks/component/BookmarkedRouteItem";
 import RouteBookmarkButton from "../view/bookmarks/component/RouteBookmarkButton";
 import BookmarkSectionComponent from "../view/bookmarks/component/bookmarkSections/BookmarkSectionComponent";
+import BookmarkSections from "../view/bookmarks/component/bookmarkSections/BookmarkSections";
+
+jest.mock("../view/bookmarks/container/BookmarkSectionContainer", () => ({
+  __esModule: true,
+  default: ({ bookmarkSectionId }) => (
+    <span data-testid="section-id">{typeof bookmarkSectionId}:{bookmarkSectionId}</span>
+  )
+}));
 
 const route: TrimetRoute = {
   routeColor: "",
@@ -109,5 +117,21 @@ describe("route bookmark controls", () => {
 
     expect(container.querySelector(".bookmark-section-add-more")).toBeNull();
     expect(container.querySelector("a").textContent).toBe("Route 9: Powell");
+  });
+
+  it("passes numeric section IDs from saved section dictionaries", () => {
+    act(() =>
+      root.render(
+        <BookmarkSections
+          bookmarkSections={{
+            2: { name: "Commute", order: 0, bookmarkedStops: [] }
+          }}
+        />
+      )
+    );
+
+    expect(container.querySelector("[data-testid=section-id]").textContent).toBe(
+      "number:2"
+    );
   });
 });

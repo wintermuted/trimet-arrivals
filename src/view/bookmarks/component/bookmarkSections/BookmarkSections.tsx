@@ -1,7 +1,6 @@
-import { isEmpty, map } from "lodash";
+import { isEmpty } from "lodash";
 import React from "react";
 import {
-  BookmarkSectionProps,
   BookmarkSectionsProps
 } from "../../../../store/reducers/bookmarkSectionReducer";
 import BookmarkSectionContainer from "../../container/BookmarkSectionContainer";
@@ -22,12 +21,9 @@ export default function BookmarkSections({ bookmarkSections }: Props) {
 
   return (
     <div className="bookmark-section-list">
-      {map(
-        bookmarkSections,
-        (bookmarkSection: BookmarkSectionProps, id: number) => {
-          return <BookmarkSectionContainer bookmarkSectionId={id} />;
-        }
-      )}
+      {Object.keys(bookmarkSections).map(id => (
+        <BookmarkSectionContainer key={id} bookmarkSectionId={Number(id)} />
+      ))}
     </div>
   );
 }
