@@ -20,6 +20,8 @@ export default function MainNavigationMenu(props: Props) {
     pathname === "/" ||
     pathname === "/nearby" ||
     pathname.startsWith("/nearby/");
+  const plannerActive =
+    pathname === "/planner" || pathname.startsWith("/planner/");
   const linesActive = pathname === "/lines" || pathname.startsWith("/lines/");
   const stopsActive =
     pathname === "/stops" ||
@@ -104,6 +106,21 @@ export default function MainNavigationMenu(props: Props) {
             >
               <FontAwesome name="home" fixedWidth={true} aria-hidden="true" />
               Home
+            </Link>
+            <Link
+              to="/planner"
+              className={`wm-docs-topbar-link-devdocs${
+                plannerActive ? " is-active" : ""
+              }`}
+              aria-current={plannerActive ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              <FontAwesome
+                name="exchange"
+                fixedWidth={true}
+                aria-hidden="true"
+              />
+              Plan a trip
             </Link>
             <Link
               to="/stops"

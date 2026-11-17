@@ -37,6 +37,7 @@ describe("Wintermuted route navigation", () => {
     ["/lines/54", "/lines/all"],
     ["/stops", "/stops"],
     ["/stop/123", "/stops"],
+    ["/planner?from=100&to=200", "/planner"],
   ])("highlights the primary section for %s", (path, activeHref) => {
     render(
       path,
@@ -60,6 +61,7 @@ describe("Wintermuted route navigation", () => {
     );
     expect(links.map((link) => link.textContent.trim())).toEqual([
       "Home",
+      "Plan a trip",
       "Stops",
       "Lines",
       "Bookmarks",

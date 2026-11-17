@@ -5,8 +5,9 @@
 Adapt the useful functionality from the older Token search work to the merged
 Wintermuted app, one coherent feature PR at a time. Port behavior and domain
 logic selectively; do not merge the older branch or reintroduce its Bootstrap UI.
-The first four increments, including bookmarks and groups in #968, are merged.
-This increment completes the next roadmap item: alerts and time displays.
+The selected-departure, Nearby, location/map, bookmarks/groups, alert/time and
+service-wide stop-catalog increments are merged. This increment adds the general
+stop-to-stop planner without changing the route-specific Nearby flow.
 
 - Cover all seven previously identified feature areas in separate increments.
 - Preserve existing stop bookmarks and add route/group bookmarks without data
@@ -20,11 +21,9 @@ This increment completes the next roadmap item: alerts and time displays.
 
 ## Progress and integration strategy
 
-The following status reflects merged `master` at `eb1b2e2` after
-[#964](https://github.com/wintermuted/trimet-arrivals/pull/964),
-[#965](https://github.com/wintermuted/trimet-arrivals/pull/965), and
-[#967](https://github.com/wintermuted/trimet-arrivals/pull/967), and
-[#968](https://github.com/wintermuted/trimet-arrivals/pull/968):
+The following status reflects merged `master` through the service-wide catalog
+in [#970](https://github.com/wintermuted/trimet-arrivals/pull/970), plus
+increment 7 on this feature branch:
 
 | Increment | Status | Current scope |
 | --- | --- | --- |
@@ -32,15 +31,16 @@ The following status reflects merged `master` at `eb1b2e2` after
 | Richer Nearby route lists | Implemented | Grouped routes and directions, filters, multi-stop information, sorting and route navigation are available. |
 | Location and map controls | Implemented | Dropped-pin and search-this-area flows are integrated with the existing location, radius and map controls. |
 | Bookmarks and groups | Implemented | Existing stop bookmarks/sections are preserved; route bookmarks and route membership in mixed stop/route sections use separate versioned storage. |
-| Alerts and time displays | Implemented in this increment | System, route and stop alerts are scoped and expose refresh, empty and error states; persisted 12/24-hour and timezone preferences preserve the prior defaults. |
-| Service-wide stop catalog | Implemented in this increment | Searchable, deduplicated stop names and IDs are available from the Stops navigation without geolocation; missing route-direction data is surfaced. |
-| General stop-to-stop trip planner | Pending | The existing route-specific destination and trip views are not a transfer-capable general planner. |
+| Alerts and time displays | Implemented (#969) | System, route and stop alerts are scoped and expose refresh, empty and error states; persisted 12/24-hour and timezone preferences preserve the prior defaults. |
+| Service-wide stop catalog | Implemented (#970) | Searchable, deduplicated stop names and IDs are available from the Stops navigation without geolocation; missing route-direction data is surfaced. |
+| General stop-to-stop trip planner | Implemented in this increment | `/planner` accepts catalog stops by name or ID, resolves them to stop IDs, and presents normalized TriMet itineraries without using the route-specific Nearby flow. |
 | Search homepage | Pending | `/` still opens Nearby; a planner-backed search homepage remains. |
 
-These statuses summarize the merged location-controls, bookmarks and
-alerts/time-display increments, plus the service-wide catalog implemented here.
-Before each subsequent increment, verify the current behavior and remaining
-acceptance criteria rather than assuming either completeness or absence.
+These statuses summarize the merged increments through the service-wide catalog
+in [#970](https://github.com/wintermuted/trimet-arrivals/pull/970), plus the
+planner implemented here. Before each subsequent increment, verify the current
+behavior and remaining acceptance criteria rather than assuming either
+completeness or absence.
 
 Work merged alongside increment 2 goes beyond the original plan:
 
@@ -230,25 +230,32 @@ the user explicitly refreshes; a failed fetch is retried on the next attempt.
 It retains distinct stop records after indexing and caps rendered search
 results at 100.
 
-### 7. General stop-to-stop trip planner — pending
+### 7. General stop-to-stop trip planner — implemented
 
 Route-specific destination selection, paired trip times and optional walking
 access now exist. Keep those experiences intact and avoid treating them as a
 general multi-route or transfer planner.
 
-- Adapt the older TriMet trip-planner client and itinerary rendering, using
-  the service-wide catalog for boarding and destination stops. Keep the
-  existing same-route Nearby directions flow intact and add an explicit
-  route-less planner flow rather than sending incomplete parameters to it.
-- Verify the currently supported TriMet API response/format and actual browser
-  access before choosing an XML parser or adding a dependency. Normalize
-  single/multiple itineraries and walking/transit legs; retain route, stop,
-  timing and transfer details. Stop IDs and stop names are the initial input
-  boundary; do not add address/geocoder functionality.
-- Acceptance: different-route and transfer journeys, deep links, invalid or
-  identical stops, no itinerary, partial data, retries and mobile/keyboard
-  flows work. Existing route-specific directions, selected-trip times and map
-  behavior continue to work.
+- Added a standalone `/planner` route linked from primary navigation. It resolves
+  stop names and IDs through the service-wide catalog, then sends only the
+  selected stop IDs to TriMet. It does not geocode addresses or enter the
+  same-route Nearby directions/map flow.
+- TriMet's current Trip Planner service returned `text/xml` with namespace-aware
+  response XML in live checks. A real browser-origin `fetch` completed
+  successfully with HTTP 200; no external XML parser or dependency was needed.
+  The response may contain a single or multiple `itinerary` and `leg` elements,
+  walking legs without route details, and transit legs with route, direction,
+  stop ID/sequence, time, duration and distance fields. The client preserves
+  these fields and identifies incomplete itinerary data.
+- The service documents XML as its only response format and `MaxIntineraries`
+  (documented spelling) as at most six options. It can return HTTP 200 with
+  `success="false"` and a coded `<error>` for an unrecognized stop. The planner
+  prevents invalid and identical catalog stop selections locally and exposes
+  service, network, retry, empty-result and partial-data states.
+- Focused tests cover single/multiple itineraries, walking/transit and transfer
+  leg details, name-based deep links, invalid/identical stops, empty results,
+  partial data and retries. The route-specific Nearby directions, selected-trip
+  times, walking access and map components were not changed.
 
 ### 8. Search homepage — pending
 
