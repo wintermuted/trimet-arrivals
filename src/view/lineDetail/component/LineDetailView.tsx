@@ -11,7 +11,7 @@ import RouteListItem from "../../../component/route/RouteListItem";
 import { maxLightRail } from "../../../data/trimet/schedules/maxLightRail";
 import RouteBookmarkButtonContainer from "../../bookmarks/container/RouteBookmarkButtonContainer";
 import Loading from "../../loading/Loading";
-import { AlertsCard } from "./AlertsCard";
+import RouteAlerts from "../../nearbyRouteDetail/components/RouteAlerts";
 import "./LineDetailView.scss";
 import { MapCard } from "./MapCard";
 import { ScheduleCard } from "./ScheduleCard";
@@ -23,10 +23,23 @@ interface Props {
   loadRouteData: (id: number) => {};
 }
 
+interface RouteAlertsState {
+  routeId: number;
+  alerts: Alert[] | undefined;
+  loading: boolean;
+  error: boolean;
+}
+
 export default function LinesViewComponent(props: Props) {
   const { id } = props;
   const [route, setRouteData] = useState<TrimetRoute>(undefined);
-  const [alertsData, setAlertsData] = useState<Alert[]>(undefined);
+  const [routeAlertsState, setRouteAlertsState] = useState<RouteAlertsState>({
+    routeId: id,
+    alerts: undefined,
+    loading: true,
+    error: false
+  });
+  const [alertRefresh, setAlertRefresh] = useState(0);
   const [routeError, setRouteError] = useState<string>(undefined);
 
   useEffect(() => {
@@ -47,14 +60,47 @@ export default function LinesViewComponent(props: Props) {
         setRouteError("Unable to load this route. Please try again.");
       }
     });
-
-    getAlertsByRouteId(id).then((result: AlertsData) => {
-      if (active) {
-        setAlertsData(result.alert);
-      }
-    });
     return () => { active = false; };
   }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    setRouteAlertsState(previous => ({
+      routeId: id,
+      alerts: previous.routeId === id ? previous.alerts : undefined,
+      loading: true,
+      error: false
+    }));
+    getAlertsByRouteId(id)
+      .then((result: AlertsData) => {
+        if (!result || !Array.isArray(result.alert)) {
+          throw new Error("Invalid route alerts response");
+        }
+        if (active) {
+          setRouteAlertsState({
+            routeId: id,
+            alerts: result.alert,
+            loading: false,
+            error: false
+          });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setRouteAlertsState(previous => ({
+            routeId: id,
+            alerts: previous.routeId === id ? previous.alerts : undefined,
+            loading: false,
+            error: true
+          }));
+        }
+      });
+    return () => { active = false; };
+  }, [id, alertRefresh]);
+
+  const currentRouteAlerts = routeAlertsState.routeId === id
+    ? routeAlertsState
+    : { alerts: undefined, loading: true, error: false };
 
   if (routeError) {
     return <p role="alert">{routeError}</p>;
@@ -81,10 +127,16 @@ export default function LinesViewComponent(props: Props) {
           <br />
           <MapCard />
           <br />
-          <AlertsCard alertsData={alertsData} />
+          <RouteAlerts
+            id={id}
+            alerts={currentRouteAlerts.alerts}
+            loading={currentRouteAlerts.loading}
+            error={currentRouteAlerts.error}
+            onRetry={() => setAlertRefresh(value => value + 1)}
+          />
         </div>
         <div className="transit-column transit-column-9">
-          <StopsCard route={route} alertsData={alertsData} />
+          <StopsCard route={route} alertsData={currentRouteAlerts.alerts} />
         </div>
       </div>
     </div>
