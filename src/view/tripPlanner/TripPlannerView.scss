@@ -1,0 +1,206 @@
+.transit-planner {
+  max-width: 62rem;
+  margin-inline: auto;
+  padding: var(--wm-space-4);
+}
+
+.transit-planner-header {
+  margin-block-end: var(--wm-space-4);
+
+  h2 {
+    margin: 0 0 var(--wm-space-2);
+  }
+
+  p {
+    max-width: 65ch;
+    margin: 0;
+    color: var(--wm-color-text-muted);
+  }
+}
+
+.transit-planner-form {
+  display: grid;
+  gap: var(--wm-space-3);
+  max-width: 38rem;
+  margin-block-end: var(--wm-space-5);
+
+  input[type="search"] {
+    width: 100%;
+  }
+
+  > .wm-btn {
+    justify-self: start;
+  }
+}
+
+.transit-planner-selected-stop,
+.transit-planner-field-message,
+.transit-planner-message,
+.transit-planner-partial {
+  margin-block: var(--wm-space-2);
+}
+
+.transit-planner-selected-stop {
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+}
+
+.transit-planner-stop-matches {
+  display: grid;
+  max-height: 18rem;
+  margin: var(--wm-space-2) 0 0;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-xs);
+  background: var(--wm-color-surface);
+  list-style: none;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--wm-space-3);
+    width: 100%;
+    min-height: var(--wm-control-height);
+    padding: var(--wm-space-2) var(--wm-space-3);
+    border: 0;
+    background: transparent;
+    color: var(--wm-color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &[aria-pressed="true"] {
+      background: var(--wm-color-surface-muted);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--wm-color-accent);
+      outline-offset: -2px;
+    }
+
+    small {
+      flex: 0 0 auto;
+      color: var(--wm-color-text-muted);
+    }
+  }
+}
+
+.transit-planner-no-matches {
+  padding: var(--wm-space-3);
+  color: var(--wm-color-text-muted);
+}
+
+.transit-planner-options {
+  display: grid;
+  gap: var(--wm-space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-block-end: var(--wm-space-2);
+    font-weight: 600;
+  }
+
+  label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wm-space-2);
+    min-height: var(--wm-control-height);
+    padding: var(--wm-space-2);
+    border: 1px solid var(--wm-color-border);
+    border-radius: var(--wm-radius-xs);
+    cursor: pointer;
+
+    &:focus-within {
+      outline: 2px solid var(--wm-color-accent);
+      outline-offset: 2px;
+    }
+
+    input[type="radio"] {
+      flex: 0 0 auto;
+      width: 1.125rem;
+      height: 1.125rem;
+      margin: var(--wm-space-1) 0 0;
+      accent-color: var(--wm-color-accent);
+    }
+  }
+}
+
+.transit-planner-results {
+  display: grid;
+  gap: var(--wm-space-4);
+  max-width: 48rem;
+}
+
+.transit-planner-summary {
+  padding-block-end: var(--wm-space-3);
+  border-bottom: 1px solid var(--wm-color-border);
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p {
+    margin-block-start: var(--wm-space-1);
+    color: var(--wm-color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.transit-planner-itinerary-detail ol {
+  display: grid;
+  gap: var(--wm-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transit-planner-leg {
+  padding-block: var(--wm-space-2);
+
+  p {
+    margin: var(--wm-space-1) 0 0;
+    overflow-wrap: anywhere;
+  }
+
+  .transit-planner-leg-time,
+  .transit-planner-leg-distance {
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.transit-planner-transfer {
+  padding-inline-start: var(--wm-space-3);
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.transit-planner-partial {
+  padding: var(--wm-space-3);
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-xs);
+  background: var(--wm-color-surface-muted);
+}
+
+@media (max-width: 40rem) {
+  .transit-planner {
+    padding: var(--wm-space-3);
+  }
+
+  .transit-planner-form > .wm-btn {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .transit-planner-options label {
+    align-items: flex-start;
+  }
+}
