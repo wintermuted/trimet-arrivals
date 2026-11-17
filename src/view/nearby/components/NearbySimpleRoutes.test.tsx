@@ -147,6 +147,39 @@ describe("NearbySimpleRoutes", () => {
     expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("54");
   });
 
+  it("omits a route number prefix from the route name", async () => {
+    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    const prefixedStops = {
+      ...nearbyStops,
+      location: nearbyStops.location.map((nearbyStop) => ({
+        ...nearbyStop,
+        route: [{ ...route, desc: "54-Beaverton" }],
+      })),
+    };
+
+    await act(async () =>
+      root.render(
+        <MemoryRouter>
+          <NearbySimpleRoutes
+            nearbyStops={prefixedStops}
+            currentLocation={[0, 0]}
+            radiusSize={1000}
+            handleSimpleRoutesOpened={jest.fn()}
+            handleRadiusSelectionChange={jest.fn()}
+            routeCount={1}
+            stopCount={2}
+          />
+        </MemoryRouter>
+      )
+    );
+
+    const heading = container.querySelector(".transit-simple-route-heading");
+    expect(heading.querySelector("strong")?.textContent).toBe("54");
+    expect(heading.querySelector("span[title]")?.textContent).toBe(
+      "Beaverton"
+    );
+  });
+
   it("labels walking failures and retries without silently treating straight-line distances as walking", async () => {
     jest.mocked(getArrivals).mockResolvedValue(response([]));
     jest.mocked(getWalkingEstimates)
