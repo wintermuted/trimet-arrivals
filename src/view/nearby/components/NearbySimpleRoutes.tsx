@@ -27,7 +27,6 @@ import { WalkingDistance } from "./common/WalkingDistance";
 import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
-import { SearchRadiusSelection } from "./SearchRadiusSelection";
 import NearbyRouteInfo from "./NearbyRouteInfo";
 import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
 
@@ -426,11 +425,6 @@ export default function NearbySimpleRoutes({
     )}
     <div hidden={infoRouteId !== undefined || invalidRoute}>
     <div id="nearby-view-routes" className="scrollarea">
-      <SearchRadiusSelection
-        radiusSize={radiusSize}
-        handleRadiusSelectionChange={handleRadiusSelectionChange}
-      />
-      <br />
       <NearbySubNav routeCount={routeCount} stopCount={stopCount} />
       <br />
       {walkingEnabled && walking.status === "loading" && (

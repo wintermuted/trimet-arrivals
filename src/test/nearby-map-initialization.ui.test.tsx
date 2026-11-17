@@ -158,7 +158,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
   }
 
   function button(label: string) {
-    return Array.from(container.querySelectorAll("button")).find(item => item.textContent.includes(label));
+    return Array.from(container.querySelectorAll("button")).find(item =>
+      item.textContent.includes(label) ||
+      item.getAttribute("aria-label")?.includes(label) ||
+      item.title.includes(label)
+    );
   }
 
   it("searches the map center, moves a dropped pin, and returns to a fresh device location", async () => {
@@ -166,9 +170,9 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => finishMapLoading());
     await act(async () => button("Search this area").click());
     expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 1, latitude: 2 } }, 1000);
-    expect(container.textContent).toContain("selected map center");
+    expect(container.textContent).toContain("Map center");
 
-    await act(async () => button("Drop pin").click());
+    await act(async () => button("Drop a pin").click());
     expect(marker.setLngLat).toHaveBeenCalledWith([1, 2]);
     const dragEnd = marker.on.mock.calls.find(([event]) => event === "dragend")[1];
     await act(async () => dragEnd());
@@ -179,7 +183,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => button("Find near me").click());
     expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 5, latitude: 6 } }, 1000);
     expect(map.flyTo).toHaveBeenCalledWith(expect.objectContaining({ center: [5, 6] }));
-    expect(container.textContent).toContain("Searching near your location");
+    expect(container.textContent).toContain("Near me");
   });
 
   it("keeps the map usable when location is denied and retries location", async () => {
@@ -204,7 +208,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => button("Search this area").click());
     await act(async () => resolveLocation({ coords: { longitude: 8, latitude: 9 } }));
     expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 1, latitude: 2 } }, 1000);
-    expect(container.textContent).toContain("selected map center");
+    expect(container.textContent).toContain("Map center");
   });
 
   it("retries a failed stop search without changing its location", async () => {

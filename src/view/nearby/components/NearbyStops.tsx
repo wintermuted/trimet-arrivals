@@ -22,7 +22,6 @@ import useWalkingEstimates from "../util/useWalkingEstimates";
 import NearbySubNav from "./common/NearbySubNav";
 import { WalkingDistance } from "./common/WalkingDistance";
 import "./NearbyViewComponent.scss";
-import { SearchRadiusSelection } from "./SearchRadiusSelection";
 
 function getRouteDirections(route: TrimetRoute, stop: StopLocation) {
   return route.dir.map(direction => (
@@ -97,11 +96,6 @@ export default function NearbyStops({
 
   return (
     <div className="stops-wrapper scrollarea">
-      <SearchRadiusSelection
-        radiusSize={radiusSize}
-        handleRadiusSelectionChange={handleRadiusSelectionChange}
-      />
-      <br />
       <NearbySubNav routeCount={routeCount} stopCount={stopCount} />
       <br />
       {!walkingEnabled && (

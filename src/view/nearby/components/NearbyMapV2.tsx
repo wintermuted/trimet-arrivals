@@ -1,5 +1,7 @@
 import React, { useEffect } from "react";
 import { Button } from "@wintermuted/ui-theme/react";
+import FontAwesome from "react-fontawesome";
+import { SearchRadiusSelection } from "./SearchRadiusSelection";
 
 export type LatLngCoords = number[];
 
@@ -10,6 +12,8 @@ interface Props {
   onSearchArea: () => void;
   onDropPin: () => void;
   onFindMe: () => void;
+  radiusSize: number;
+  onRadiusChange: React.ChangeEventHandler<HTMLSelectElement>;
   isLocating: boolean;
   searchMode: "none" | "device" | "area" | "pin";
 }
@@ -21,6 +25,8 @@ function NearbyMapV2({
   onSearchArea,
   onDropPin,
   onFindMe,
+  radiusSize,
+  onRadiusChange,
   isLocating,
   searchMode
 }: Props) {
@@ -44,16 +50,29 @@ function NearbyMapV2({
     <div className="transit-nearby-map">
       {mapBoxMap}
       <div className="sidebar transit-nearby-map-controls">
-        <span role="status">
-          {searchMode === "pin" ? "Searching from a dropped pin. Drag it to move the search." :
-            searchMode === "area" ? "Searching from the selected map center." :
-              searchMode === "device" ? "Searching near your location." : "Move the map to choose a search area."}
+        <span className="transit-map-location-status" role="status">
+          <FontAwesome
+            name={searchMode === "pin" ? "map-marker" : searchMode === "device" ? "location-arrow" : "map"}
+            aria-hidden="true"
+          />
+          {searchMode === "pin" ? "Dropped pin" :
+            searchMode === "area" ? "Map center" :
+              searchMode === "device" ? "Near me" : "Choose area"}
         </span>
         <div className="transit-nearby-map-actions">
-          <Button type="button" size="sm" onClick={onSearchArea}>Search this area</Button>
-          <Button type="button" size="sm" onClick={onDropPin}>Drop pin at map center</Button>
-          <Button type="button" size="sm" onClick={onFindMe} disabled={isLocating}>
-            {isLocating ? "Finding location…" : "Find near me"}
+          <SearchRadiusSelection
+            compact
+            radiusSize={radiusSize}
+            handleRadiusSelectionChange={onRadiusChange}
+          />
+          <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onSearchArea} title="Search this area" aria-label="Search this area">
+            <FontAwesome name="search" aria-hidden="true" />
+          </Button>
+          <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onDropPin} title="Drop a pin at the map center" aria-label="Drop a pin at the map center">
+            <FontAwesome name="map-marker" aria-hidden="true" />
+          </Button>
+          <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onFindMe} disabled={isLocating} title="Find near me" aria-label={isLocating ? "Finding your location" : "Find near me"}>
+            <FontAwesome name={isLocating ? "spinner" : "location-arrow"} spin={isLocating} aria-hidden="true" />
           </Button>
         </div>
       </div>
