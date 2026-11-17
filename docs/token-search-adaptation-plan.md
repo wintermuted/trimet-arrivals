@@ -5,8 +5,8 @@
 Adapt the useful functionality from the older Token search work to the merged
 Wintermuted app, one coherent feature PR at a time. Port behavior and domain
 logic selectively; do not merge the older branch or reintroduce its Bootstrap UI.
-The first three increments, including location and map controls in #967, are
-merged. This increment completes the next roadmap item: bookmarks and groups.
+The first four increments, including bookmarks and groups in #968, are merged.
+This increment completes the next roadmap item: alerts and time displays.
 
 - Cover all seven previously identified feature areas in separate increments.
 - Preserve existing stop bookmarks and add route/group bookmarks without data
@@ -20,26 +20,27 @@ merged. This increment completes the next roadmap item: bookmarks and groups.
 
 ## Progress and integration strategy
 
-The following status reflects merged `master` at `8dd1742` after
+The following status reflects merged `master` at `eb1b2e2` after
 [#964](https://github.com/wintermuted/trimet-arrivals/pull/964),
 [#965](https://github.com/wintermuted/trimet-arrivals/pull/965), and
-[#967](https://github.com/wintermuted/trimet-arrivals/pull/967):
+[#967](https://github.com/wintermuted/trimet-arrivals/pull/967), and
+[#968](https://github.com/wintermuted/trimet-arrivals/pull/968):
 
 | Increment | Status | Current scope |
 | --- | --- | --- |
 | Selected-departure predictions | Implemented | Selected trips drive downstream stop predictions, with exact-trip matching, bounded requests and unavailable/error states. |
 | Richer Nearby route lists | Implemented | Grouped routes and directions, filters, multi-stop information, sorting and route navigation are available. |
 | Location and map controls | Implemented | Dropped-pin and search-this-area flows are integrated with the existing location, radius and map controls. |
-| Bookmarks and groups | Implemented in this increment | Existing stop bookmarks/sections are preserved; route bookmarks and route membership in mixed stop/route sections use separate versioned storage. |
-| Alerts and time displays | Partially implemented | Alert APIs and existing displays are available; user time-display preferences and remaining scoped behavior need review. |
+| Bookmarks and groups | Implemented | Existing stop bookmarks/sections are preserved; route bookmarks and route membership in mixed stop/route sections use separate versioned storage. |
+| Alerts and time displays | Implemented in this increment | System, route and stop alerts are scoped and expose refresh, empty and error states; persisted 12/24-hour and timezone preferences preserve the prior defaults. |
 | Service-wide stop catalog | Pending | The destination picker searches route-backed choices; a verified, deduplicated service-wide catalog remains. |
 | General stop-to-stop trip planner | Pending | The existing route-specific destination and trip views are not a transfer-capable general planner. |
 | Search homepage | Pending | `/` still opens Nearby; a planner-backed search homepage remains. |
 
-These statuses summarize the merged location-controls increment and the
-bookmarks implementation in this PR. Before each subsequent increment, verify
-the current behavior and remaining acceptance criteria rather than assuming
-either completeness or absence.
+These statuses summarize the merged location-controls and bookmarks increments
+and the alerts/time-display implementation in this PR. Before each subsequent
+increment, verify the current behavior and remaining acceptance criteria rather
+than assuming either completeness or absence.
 
 Work merged alongside increment 2 goes beyond the original plan:
 
@@ -157,21 +158,29 @@ data and controls while adding the missing route/group capabilities.
   records. Exercise empty, duplicate, malformed and unavailable-storage cases,
   plus existing bookmark section controls.
 
-### 5. Alerts and time displays — partially implemented
+### 5. Alerts and time displays — implemented
 
-System, route and stop alert APIs and some existing alert displays are present;
-stop-departure status indicators were also improved in #965. Inspect their
-current scope and gaps before adding behavior or time-display preferences.
+System, route and stop alert APIs and some existing alert displays were already
+present; stop-departure status indicators were also improved in #965. This
+increment completed the remaining scoped alert states and time preferences.
 
-- Adapt meaningful older system/route/stop alerts, countdowns and time-display
-  preferences by extending existing alerts APIs, components and time
-  formatting. Keep current defaults until the user chooses a preference; keep
-  time zones and estimated/scheduled labels explicit.
-- Reuse shared alert/disclosure components and existing API refresh/error
-  handling. Do not import the older Redux theme system or duplicate alerts.
-- Acceptance: displayed alerts are correctly scoped and accessible, time
-  preferences persist without changing unrelated storage, and daylight-saving,
-  date-boundary, stale-data and empty/error cases are covered.
+- Added route/stop scope filtering and separated system alerts from other
+  alerts. Global, route and stop alert views now offer refresh, distinct empty
+  and error states, and retain last-received alerts after refresh failures.
+  Route alert state is keyed per route so loading another route cannot replace
+  cached alerts for a different route.
+- Added shared 12/24-hour and timezone settings. The default remains 12-hour
+  format and each existing view's current timezone (device local time on
+  general arrival/alert views; Pacific time on trip-direction predictions)
+  until the user changes a preference. Preferences use separate `TIME_FORMAT`
+  and `TIMEZONE` storage keys, leaving existing bookmarks and other app data
+  untouched.
+- Displayed times keep estimated/scheduled labels, while trip directions
+  continue to show their active timezone. Date labels follow the selected
+  timezone, including DST and date-boundary changes.
+- Acceptance: focused tests cover scoped alerts, separate system/route/stop
+  feeds, route-cache preservation, empty/error/stale alert states, preference
+  persistence, DST transitions, and date boundaries.
 
 ### 6. Service-wide stop catalog — pending
 

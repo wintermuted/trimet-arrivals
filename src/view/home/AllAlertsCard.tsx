@@ -1,15 +1,15 @@
 import {
   Accordion,
   Badge,
+  Button,
   Card,
   CardHeader,
   Table
 } from "@wintermuted/ui-theme/react";
-import { isEmpty } from "lodash";
-import moment from "moment";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Alert } from "../../api/trimet/interfaces/alertsData";
+import { useTimeDisplay } from "../../component/time/TimeDisplay";
 import Loading from "../loading/Loading";
 
 function getStopClosureTable(locations) {
@@ -74,9 +74,9 @@ function getImpactedRoutes(routes) {
   });
 }
 
-function getHeader(alert) {
-  const startDate = moment(alert.begin).format("MM-DD-YY");
-  const endDate = alert.end ? moment(alert.end).format("MM-DD-YY") : undefined;
+function getHeader(alert, formatDate) {
+  const startDate = formatDate(alert.begin);
+  const endDate = alert.end ? formatDate(alert.end) : undefined;
 
   return (
     <>
@@ -86,16 +86,47 @@ function getHeader(alert) {
 }
 
 interface Props {
-  alertsData: Alert[];
+  alertsData: Alert[] | undefined;
+  loading: boolean;
+  error: boolean;
+  onRefresh: () => void;
 }
 
-function getAlertsAccordion(alertsData: Alert[]) {
-  if (isEmpty(alertsData)) {
+function getAlertsAccordion(
+  { alertsData, loading, error, onRefresh }: Props,
+  formatDate: (timestamp: number) => string
+) {
+  if (loading && !alertsData) {
     return <Loading />;
+  }
+  if (!alertsData?.length) {
+    return (
+      <>
+        {error && (
+          <p role="alert">
+            {alertsData !== undefined
+              ? "Could not refresh alerts. Showing the last received alerts."
+              : "Could not load alerts. Try again."}
+          </p>
+        )}
+        {!error && <p role="status">No route or stop alerts right now.</p>}
+        <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
+          {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
+        </Button>
+      </>
+    );
   }
 
   return (
     <div>
+      {error && (
+        <p role="alert">
+          Could not refresh alerts. Showing the last received alerts.
+        </p>
+      )}
+      <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
+        {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
+      </Button>
       {alertsData &&
         alertsData.map(alert => {
           return (
@@ -109,7 +140,7 @@ function getAlertsAccordion(alertsData: Alert[]) {
                   <span>
                     {alert.id} - {alert.header_text}
                   </span>
-                  <small>{getHeader(alert)}</small>
+                  <small>{getHeader(alert, formatDate)}</small>
                 </span>
               }
             >
@@ -124,11 +155,12 @@ function getAlertsAccordion(alertsData: Alert[]) {
   );
 }
 
-function AllAlertsCard({ alertsData }: Props) {
+function AllAlertsCard(props: Props) {
+  const { formatDate } = useTimeDisplay();
   return (
     <Card>
       <CardHeader>Route & Stop Alerts</CardHeader>
-      {getAlertsAccordion(alertsData)}
+      {getAlertsAccordion(props, formatDate)}
     </Card>
   );
 }

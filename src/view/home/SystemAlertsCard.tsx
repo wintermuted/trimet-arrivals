@@ -1,52 +1,56 @@
-import { Alert, Card, CardHeader } from "@wintermuted/ui-theme/react";
-import { isEmpty } from "lodash";
+import { Alert, Button, Card, CardHeader } from "@wintermuted/ui-theme/react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Alert as IAlert } from "../../api/trimet/interfaces/alertsData";
 import Loading from "../loading/Loading";
 
 interface Props {
-  systemAlertsData: IAlert[];
+  systemAlertsData: IAlert[] | undefined;
+  loading: boolean;
+  error: boolean;
+  onRefresh: () => void;
 }
 
-function getSystemAlerts(systemAlertsData: IAlert[]) {
-  if (isEmpty(systemAlertsData)) {
+function getSystemAlerts({ systemAlertsData, loading, error, onRefresh }: Props) {
+  if (loading && !systemAlertsData) {
     return <Loading />;
   }
 
-  return systemAlertsData.map(alert => {
-    return (
-      <Alert key={alert.id} tone="warning">
-        <h3>{alert.header_text}</h3>
-        <p style={{ marginBottom: 0 }}>
-          <a href={alert.info_link_url}>More Info</a>
+  return (
+    <>
+      {error && (
+        <p role="alert">
+          {systemAlertsData
+            ? "Could not refresh system alerts. Showing the last received alerts."
+            : "Could not load system alerts. Try again."}
         </p>
-      </Alert>
-    );
-  });
-
-  // <ListGroup className="list-group-flush">
-  //   {systemAlertsData &&
-  //     systemAlertsData.map(alert => {
-  //       return (
-  //         <ListGroupItem key={alert.id}>
-  //           <small>
-  //             {alert.header_text} - {alert.desc}
-  //           </small>
-  //         </ListGroupItem>
-  //       );
-  //     })}
-  // </ListGroup>
+      )}
+      {systemAlertsData?.length ? systemAlertsData.map(alert => (
+        <Alert key={alert.id} tone="warning">
+          <h3>{alert.header_text}</h3>
+          {alert.desc && <p>{alert.desc}</p>}
+          {alert.info_link_url && (
+            <p style={{ marginBottom: 0 }}>
+              <a href={alert.info_link_url}>More Info</a>
+            </p>
+          )}
+        </Alert>
+      )) : !error ? <p role="status">No system alerts right now.</p> : null}
+      <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
+        {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
+      </Button>
+    </>
+  );
 }
 
-export function SystemAlertsCard({ systemAlertsData }: Props) {
+export function SystemAlertsCard(props: Props) {
   return (
     <Card>
       <CardHeader as="h5">
         <FontAwesome name="bell" />
         System Alerts
       </CardHeader>
-      {getSystemAlerts(systemAlertsData)}
+      {getSystemAlerts(props)}
     </Card>
   );
 }

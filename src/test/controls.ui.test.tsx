@@ -231,7 +231,10 @@ describe("Wintermuted control integration", () => {
         )
       );
     render();
-    expect(container.querySelector("select")).toBeNull();
+    expect(container.querySelector("footer select")).toBeNull();
+    expect(
+      container.querySelectorAll(".transit-time-settings select")
+    ).toHaveLength(2);
     const button = container.querySelector<HTMLButtonElement>(
       'footer button[aria-label="Toggle dark mode"]'
     );

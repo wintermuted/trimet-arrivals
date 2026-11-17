@@ -13,7 +13,8 @@ import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
 import { RouteDirectionStop } from "../../../../api/trimet/interfaces/routes";
 import { StopData, TrimetRoute } from "../../../../api/trimet/interfaces/types";
 import { getNearbyStops } from "../../../../api/trimet/stops";
-import { dayFormat, getMatchingStopTime, reportedTime, StopTime, timeFormat } from "../../util/tripTimes";
+import { getMatchingStopTime, reportedTime, StopTime } from "../../util/tripTimes";
+import { useTimeDisplay } from "../../../../component/time/TimeDisplay";
 
 interface StopsOnRouteParams {
   remainingStopsOnRoute: RouteDirectionStop[];
@@ -59,6 +60,7 @@ function RouteAtStop({ stopData }: { stopData: StopData }) {
 }
 
 function StopOnRoute({ routeDirectionStop, prediction, predictionLabel, stale }: StopOnRouteParams) {
+  const { formatTime, formatDay } = useTimeDisplay();
   const [stopData, setStopData] = useState<StopData>(null);
 
   useEffect(() => {
@@ -88,8 +90,12 @@ function StopOnRoute({ routeDirectionStop, prediction, predictionLabel, stale }:
       </small>
       <div className="transit-stop-prediction">
         {prediction ? <>
-          <time dateTime={new Date(prediction.at).toISOString()}>{timeFormat.format(prediction.at)}</time>
-          {dayFormat.format(prediction.at) !== dayFormat.format(Date.now()) && ` ${dayFormat.format(prediction.at)}`}
+          <time dateTime={new Date(prediction.at).toISOString()}>
+            {formatTime(prediction.at, "America/Los_Angeles")}
+          </time>
+          {formatDay(prediction.at, "America/Los_Angeles") !==
+            formatDay(Date.now(), "America/Los_Angeles") &&
+            ` ${formatDay(prediction.at, "America/Los_Angeles")}`}
           {" "}{prediction.kind}{stale && " · Last received"}
         </> : predictionLabel}
       </div>
@@ -99,6 +105,7 @@ function StopOnRoute({ routeDirectionStop, prediction, predictionLabel, stale }:
 }
 
 export function StopsOnRoute({ remainingStopsOnRoute, selectedArrival, repeatedStopIds = [] }: StopsOnRouteParams) {
+  const { timezone } = useTimeDisplay();
   const [retry, setRetry] = useState(0);
   const [state, setState] = useState<PredictionsState>();
   const ids = Array.from(new Set(remainingStopsOnRoute
@@ -170,7 +177,10 @@ export function StopsOnRoute({ remainingStopsOnRoute, selectedArrival, repeatedS
       title={<><FontAwesome name="map-marker" aria-hidden="true" /> Stops</>}
     >
       {canFetch && <div className="transit-stop-prediction-status">
-        <span className="transit-trip-note">Pacific time · Updates every 30 seconds</span>
+        <span className="transit-trip-note">
+          {timezone === "utc" ? "UTC" : timezone === "local" ? "Device local time" : "Pacific time"}
+          {" · "}Updates every 30 seconds
+        </span>
         <Button variant="secondary" onClick={() => setRetry(value => value + 1)}>
           {!current || current.loading ? "Retry" : hasError ? "Try again" : "Refresh"}
         </Button>

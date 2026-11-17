@@ -2,6 +2,7 @@ import { Button, Nav } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useId, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import TimeDisplaySettings from "../../../component/time/TimeDisplaySettings";
 import "./MainNavigationMenu.scss";
 
 interface Props {
@@ -102,6 +103,7 @@ export default function MainNavigationMenu(props: Props) {
               Bookmarks
             </NavLink>
           </Nav>
+          <TimeDisplaySettings />
         </div>
       </div>
     </header>

@@ -1,6 +1,7 @@
 import React from "react";
 import { Alert } from "../../../api/trimet/interfaces/alertsData";
 import { TrimetRoute } from "../../../api/trimet/interfaces/routes";
+import { AlertRequestState } from "../../../store/reducers/data/alertDataReducer";
 import RouteIndicator from "../../../component/route/RouteIndicator";
 import { getRouteIndicatorClassName } from "../../../component/route/RouteListItem";
 import "./NearbyRouteDetail.scss";
@@ -11,8 +12,10 @@ interface Props {
   id: number;
   loadRouteData: (id: number) => {};
   loadAlertData: (id: number) => {};
+  retryAlertData: (id: number) => {};
   route: TrimetRoute;
   alerts: Alert[];
+  alertRequest: AlertRequestState;
 }
 
 export default class NearbyRouteDetail extends React.Component<Props> {
@@ -23,8 +26,15 @@ export default class NearbyRouteDetail extends React.Component<Props> {
     loadAlertData(id);
   }
 
+  public componentDidUpdate(previousProps: Props): void {
+    if (previousProps.id !== this.props.id) {
+      this.props.loadRouteData(this.props.id);
+      this.props.loadAlertData(this.props.id);
+    }
+  }
+
   public render() {
-    const { route, id, alerts } = this.props;
+    const { route, id, alerts, alertRequest, retryAlertData } = this.props;
 
     if (!route) {
       return <div>Loading</div>;
@@ -43,7 +53,13 @@ export default class NearbyRouteDetail extends React.Component<Props> {
             verbose={true}
           />
         </div>
-        <RouteAlerts id={id} alerts={alerts} />
+        <RouteAlerts
+          id={id}
+          alerts={alerts}
+          loading={alertRequest?.loading}
+          error={alertRequest?.error}
+          onRetry={() => retryAlertData(id)}
+        />
         <RouteDirections route={route} />
       </div>
     );
