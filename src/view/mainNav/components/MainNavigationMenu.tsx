@@ -1,8 +1,9 @@
+// tslint:disable-next-line:no-submodule-imports
 import { Button, Nav } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useId, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import TimeDisplaySettings from "../../../component/time/TimeDisplaySettings";
+import { Link, useLocation } from "react-router-dom";
+import TimeDisplayMenu from "../../../component/time/TimeDisplayMenu";
 import "./MainNavigationMenu.scss";
 
 interface Props {
@@ -20,6 +21,8 @@ export default function MainNavigationMenu(props: Props) {
     pathname === "/nearby" ||
     pathname.startsWith("/nearby/");
   const linesActive = pathname === "/lines" || pathname.startsWith("/lines/");
+  const bookmarksActive =
+    pathname === "/bookmarks" || pathname.startsWith("/bookmarks/");
 
   useEffect(() => setMenuOpen(false), [pathname]);
 
@@ -27,15 +30,30 @@ export default function MainNavigationMenu(props: Props) {
     setMenuOpen(false);
   }
 
+  function toggleMenu() {
+    setMenuOpen((open) => !open);
+  }
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    const timeMenu =
+      event.currentTarget.querySelector<HTMLDetailsElement>(
+        ".transit-time-menu",
+      );
+    if (event.key === "Escape" && timeMenu?.open) {
+      timeMenu.open = false;
+      timeMenu.querySelector("summary")?.focus();
+      return;
+    }
+    if (event.key === "Escape" && menuOpen) {
+      closeMenu();
+      menuButton.current?.focus();
+    }
+  }
+
   return (
     <header
       className="wm-docs-topbar transit-app-header"
-      onKeyDown={event => {
-        if (event.key === "Escape" && menuOpen) {
-          closeMenu();
-          menuButton.current?.focus();
-        }
-      }}
+      onKeyDown={handleKeyDown}
     >
       <div className="wm-docs-topbar-inner transit-header-inner">
         <Link
@@ -57,10 +75,12 @@ export default function MainNavigationMenu(props: Props) {
           aria-label={menuOpen ? "Close navigation" : "Open navigation"}
           aria-expanded={menuOpen}
           aria-controls={menuId}
-          onClick={() => setMenuOpen(open => !open)}
+          onClick={toggleMenu}
         >
           <FontAwesome name={menuOpen ? "times" : "bars"} aria-hidden="true" />
-          {menuOpen ? "Close" : "Menu"}
+          <span className="transit-nav-toggle-label">
+            {menuOpen ? "Close" : "Menu"}
+          </span>
         </Button>
         <div
           id={menuId}
@@ -78,7 +98,7 @@ export default function MainNavigationMenu(props: Props) {
               aria-current={homeActive ? "page" : undefined}
               onClick={closeMenu}
             >
-              <FontAwesome name="home" fixedWidth aria-hidden="true" />
+              <FontAwesome name="home" fixedWidth={true} aria-hidden="true" />
               Home
             </Link>
             <Link
@@ -89,22 +109,27 @@ export default function MainNavigationMenu(props: Props) {
               aria-current={linesActive ? "page" : undefined}
               onClick={closeMenu}
             >
-              <FontAwesome name="train" fixedWidth aria-hidden="true" />
+              <FontAwesome name="train" fixedWidth={true} aria-hidden="true" />
               Lines
             </Link>
-            <NavLink
+            <Link
               to="/bookmarks"
-              className={({ isActive }) =>
-                `wm-docs-topbar-link-devdocs${isActive ? " is-active" : ""}`
-              }
+              className={`wm-docs-topbar-link-devdocs${
+                bookmarksActive ? " is-active" : ""
+              }`}
+              aria-current={bookmarksActive ? "page" : undefined}
               onClick={closeMenu}
             >
-              <FontAwesome name="bookmark" fixedWidth aria-hidden="true" />
+              <FontAwesome
+                name="bookmark"
+                fixedWidth={true}
+                aria-hidden="true"
+              />
               Bookmarks
-            </NavLink>
+            </Link>
           </Nav>
-          <TimeDisplaySettings />
         </div>
+        <TimeDisplayMenu />
       </div>
     </header>
   );
