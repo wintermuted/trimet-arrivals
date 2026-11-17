@@ -34,6 +34,13 @@ interface MapCardParams {
   coordinates: number[];
 }
 
+interface StopAlertsState {
+  locationId: number;
+  alerts: Alert[] | undefined;
+  loading: boolean;
+  error: boolean;
+}
+
 function MapCard({ coordinates }: MapCardParams) {
   return (
     <Card>
@@ -50,18 +57,55 @@ function MapCard({ coordinates }: MapCardParams) {
 export default function StopLocationView(props: Props) {
   const { onBookmarkClick, stopIsBookmarked, locationId } = props;
   const [arrivalData, setArrivalData] = useState<ArrivalData>(undefined);
-  const [alertsData, setAlertsData] = useState<Alert[]>(undefined);
+  const [alertsState, setAlertsState] = useState<StopAlertsState>({
+    locationId,
+    alerts: undefined,
+    loading: true,
+    error: false
+  });
+  const [alertRefresh, setAlertRefresh] = useState(0);
 
   useEffect(() => {
     const locIDs = locationId.toString(10);
     getArrivals(locIDs, 45).then(results => {
       setArrivalData(results);
     });
+  }, [locationId]);
 
-    getAlertsByLocationId(locationId).then((result: AlertsData) => {
-      setAlertsData(result.alert);
-    });
-  }, []);
+  useEffect(() => {
+    let active = true;
+    setAlertsState(previous => ({
+      locationId,
+      alerts: previous.locationId === locationId ? previous.alerts : undefined,
+      loading: true,
+      error: false
+    }));
+    getAlertsByLocationId(locationId)
+      .then((result: AlertsData) => {
+        if (!result || !Array.isArray(result.alert)) {
+          throw new Error("Invalid stop alerts response");
+        }
+        if (active) {
+          setAlertsState({ locationId, alerts: result.alert, loading: false, error: false });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAlertsState(previous => ({
+            locationId,
+            alerts: previous.locationId === locationId ? previous.alerts : undefined,
+            loading: false,
+            error: true
+          }));
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [locationId, alertRefresh]);
+  const currentAlertsState = alertsState.locationId === locationId
+    ? alertsState
+    : { alerts: undefined, loading: true, error: false };
 
   if (!arrivalData) {
     return <Loading />;
@@ -88,7 +132,13 @@ export default function StopLocationView(props: Props) {
         <div className="transit-column transit-column-3">
           <LocationInfoPane arrivalData={arrivalData} />
           <br />
-          <AlertsCard alertsData={alertsData} />
+          <AlertsCard
+            alertsData={currentAlertsState.alerts}
+            stopId={locationId}
+            loading={currentAlertsState.loading}
+            error={currentAlertsState.error}
+            onRefresh={() => setAlertRefresh(value => value + 1)}
+          />
         </div>
         <div className="transit-column transit-column-9">
           <StopLocationArrivalsTableNav

@@ -13,8 +13,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
+import { useTimeDisplay } from "../../../component/time/TimeDisplay";
 import {
-  getFormattedTime,
   getNormalizedTimeDifference
 } from "../util/timeUtils";
 import { getNormalizedDistanceFromFeet } from "../util/turfUtils";
@@ -33,6 +33,7 @@ function BooleanBadge({ status }: BooleanBadgeParams) {
 }
 
 export function StopArrivalDetail() {
+  const { formatTime } = useTimeDisplay();
   const { id } = useParams();
   const [data, setData] = useState<ArrivalData>(null);
 
@@ -54,8 +55,8 @@ export function StopArrivalDetail() {
     (arrival: Arrival) => arrival.id
   ) as Arrival;
 
-  const estimatedTime = getFormattedTime(foundArrival.estimated);
-  const scheduledTime = getFormattedTime(foundArrival.scheduled);
+  const estimatedTime = formatTime(foundArrival.estimated);
+  const scheduledTime = formatTime(foundArrival.scheduled);
   const now = moment();
   const timeDiff = getNormalizedTimeDifference(foundArrival.estimated, now);
 
@@ -69,7 +70,7 @@ export function StopArrivalDetail() {
           <CardText>{foundArrival.status}</CardText>
           <CardText>
             <Badge tone="info">{timeDiff}</Badge>
-            {estimatedTime} / {scheduledTime}
+            Estimated: {estimatedTime} / Scheduled: {scheduledTime}
           </CardText>
         </CardBody>
       </Card>

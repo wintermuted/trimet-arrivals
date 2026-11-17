@@ -24,6 +24,6 @@ export async function getAlertsByLocationId(id: number): Promise<AlertsData> {
   return getTrimetData<AlertsData>(request);
 }
 
-export async function getSytemAlerts(): Promise<AlertsData> {
+export async function getSystemAlerts(): Promise<AlertsData> {
   return getTrimetData<AlertsData>(`${ALERTS_BASE_URL}json/true/${API}`);
 }

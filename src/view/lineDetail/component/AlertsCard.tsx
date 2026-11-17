@@ -1,5 +1,6 @@
 import {
   Badge,
+  Button,
   Card,
   CardBody,
   CardFooter,
@@ -7,12 +8,12 @@ import {
   CardText,
   CardTitle
 } from "@wintermuted/ui-theme/react";
-import { isEmpty } from "lodash";
-import moment from "moment";
 import React from "react";
+import { getAlertsForStop } from "../../../api/trimet/alertScopes";
 import { Alert } from "../../../api/trimet/interfaces/alertsData";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import RouteIndicator from "../../../component/route/RouteIndicator";
+import { useTimeDisplay } from "../../../component/time/TimeDisplay";
 import Loading from "../../loading/Loading";
 
 function getLink(alert: Alert) {
@@ -42,9 +43,12 @@ function getHeader(alert: Alert) {
   );
 }
 
-function getDates(alert: Alert) {
-  const startDate = moment(alert.begin).format("MM/DD/YY");
-  const endDate = alert.end ? moment(alert.end).format("MM/DD/YY") : undefined;
+function getDates(
+  alert: Alert,
+  formatDate: (timestamp: number) => string
+) {
+  const startDate = formatDate(alert.begin);
+  const endDate = alert.end ? formatDate(alert.end) : undefined;
 
   if (endDate) {
     return (
@@ -57,67 +61,82 @@ function getDates(alert: Alert) {
   return <>Starting: {startDate}</>;
 }
 
-function getAlertsContent(alertsData: Alert[]) {
-  if (isEmpty(alertsData)) {
+interface AlertsCardParams {
+  alertsData: Alert[] | undefined;
+  stopId: number;
+  loading: boolean;
+  error: boolean;
+  onRefresh: () => void;
+}
+
+function getAlertsContent(
+  { alertsData, stopId, loading, error, onRefresh }: AlertsCardParams,
+  formatDate: (timestamp: number) => string
+) {
+  const scopedAlerts = getAlertsForStop(alertsData || [], stopId);
+  if (loading && !alertsData) {
     return <Loading />;
   }
 
-  return alertsData.map((alert: Alert) => {
-    return (
-      <Card
-        key={alert.id}
-        style={{
-          background: "var(--wm-color-warning-soft)",
-          marginBottom: ".25rem"
-        }}
-      >
-        <CardHeader>{getHeader(alert)}</CardHeader>
-        <CardBody>
-          <CardText>{alert.desc}</CardText>
-          {getLink(alert)}
-        </CardBody>
-        {alert.route && (
+  return (
+    <>
+      {error && (
+        <p role="alert">
+          {alertsData !== undefined
+            ? "Could not refresh alerts. Showing the last received alerts."
+            : "Could not load alerts for this stop. Try again."}
+        </p>
+      )}
+      {scopedAlerts.length ? scopedAlerts.map((alert: Alert) => (
+        <Card
+          key={alert.id}
+          style={{
+            background: "var(--wm-color-warning-soft)",
+            marginBottom: ".25rem"
+          }}
+        >
+          <CardHeader>{getHeader(alert)}</CardHeader>
           <CardBody>
-            <CardTitle>Impacted Routes</CardTitle>
-            {alert.route &&
-              alert.route.map((route: TrimetRoute) => {
-                return (
-                  <RouteIndicator key={route.route} routeId={route.route} />
-                );
-              })}
+            <CardText>{alert.desc}</CardText>
+            {getLink(alert)}
           </CardBody>
-        )}
-        {alert.location && (
-          <CardBody>
-            <CardTitle>Impacted Stops</CardTitle>
-            {alert.location &&
-              alert.location.map(location => {
-                return (
-                  <span key={location.id}>
-                    <Badge tone="info">{location.id}</Badge>
-                    {location.desc} - {location.dir}
-                  </span>
-                );
-              })}
-          </CardBody>
-        )}
-        <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
-          {getDates(alert)}
-        </CardFooter>
-      </Card>
-    );
-  });
+          {alert.route && (
+            <CardBody>
+              <CardTitle>Impacted Routes</CardTitle>
+              {alert.route.map((route: TrimetRoute) => (
+                <RouteIndicator key={route.route} routeId={route.route} />
+              ))}
+            </CardBody>
+          )}
+          {alert.location && (
+            <CardBody>
+              <CardTitle>Impacted Stops</CardTitle>
+              {alert.location.map(location => (
+                <span key={location.id}>
+                  <Badge tone="info">{location.id}</Badge>
+                  {location.desc} - {location.dir}
+                </span>
+              ))}
+            </CardBody>
+          )}
+          <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
+            {getDates(alert, formatDate)}
+          </CardFooter>
+        </Card>
+      )) : !error ? <p role="status">No active alerts for this stop.</p> : null}
+      <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
+        {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
+      </Button>
+    </>
+  );
 }
 
-interface AlertsCardParams {
-  alertsData: Alert[];
-}
-
-export function AlertsCard({ alertsData }: AlertsCardParams) {
+export function AlertsCard(props: AlertsCardParams) {
+  const { formatDate } = useTimeDisplay();
   return (
     <div>
       <h5>Alerts</h5>
-      <div>{getAlertsContent(alertsData)}</div>
+      <div>{getAlertsContent(props, formatDate)}</div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import OnTimeIndicator from "../../../component/arrivalIndicator/OnTimeIndicator";
 import TimeToArrivalIndicator from "../../../component/arrivalIndicator/TimeToArrivalIndicator";
 import RouteIndicator from "../../../component/route/RouteIndicator";
+import { useTimeDisplay } from "../../../component/time/TimeDisplay";
 import { getDistanceUntilArrival } from "../util";
 import "./Arrivals.css";
 
@@ -18,54 +19,42 @@ interface Props {
   route: TrimetRoute;
 }
 
-export default class ArrivalRow extends React.Component<Props> {
-  public static getEstimatedScheduledTime(
-    scheduled: Moment,
-    estimated: Moment
-  ) {
-    const scheduledTime = scheduled.format("h:mm:ss a");
-    const estimatedTime = estimated.format("h:mm:ss a");
+export default function ArrivalRow({
+  scheduled,
+  estimated,
+  feet,
+  routeId,
+  shortSign,
+  now,
+  route
+}: Props) {
+  const { formatTime } = useTimeDisplay();
+  const scheduledMoment = moment(scheduled);
+  const estimatedMoment = moment(estimated);
+  const distance = getDistanceUntilArrival(feet);
 
-    return `${estimatedTime} / ${scheduledTime}`;
-  }
-
-  public render() {
-    const {
-      scheduled,
-      estimated,
-      feet,
-      routeId,
-      shortSign,
-      now,
-      route
-    } = this.props;
-    const scheduledMoment = moment(scheduled);
-    const estimatedMoment = moment(estimated);
-    const distance = getDistanceUntilArrival(feet);
-
-    return (
-      <tr>
-        <td className="route-indicator-column">
-          <RouteIndicator routeId={routeId} route={route} />
-        </td>
-        <td className="short-sign">{shortSign}</td>
-        <td>
-          <TimeToArrivalIndicator estimated={estimatedMoment} now={now} />
-        </td>
-        <td>
-          <OnTimeIndicator
-            scheduled={scheduledMoment}
-            estimated={estimatedMoment}
-          />
-        </td>
-        <td className="estimated-scheduled-time">
-          {ArrivalRow.getEstimatedScheduledTime(
-            scheduledMoment,
-            estimatedMoment
-          )}
-        </td>
-        <td className="distance-in-miles">{Math.round(distance)} miles</td>
-      </tr>
-    );
-  }
+  return (
+    <tr>
+      <td className="route-indicator-column">
+        <RouteIndicator routeId={routeId} route={route} />
+      </td>
+      <td className="short-sign">{shortSign}</td>
+      <td>
+        <TimeToArrivalIndicator estimated={estimatedMoment} now={now} />
+      </td>
+      <td>
+        <OnTimeIndicator
+          scheduled={scheduledMoment}
+          estimated={estimatedMoment}
+        />
+      </td>
+      <td className="estimated-scheduled-time">
+        <small>Estimated / Scheduled</small>
+        <br />
+        {formatTime(estimated, undefined, true)} /{" "}
+        {formatTime(scheduled, undefined, true)}
+      </td>
+      <td className="distance-in-miles">{Math.round(distance)} miles</td>
+    </tr>
+  );
 }

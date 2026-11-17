@@ -48,6 +48,43 @@
   font-weight: 500;
 }
 
+.transit-time-settings {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: var(--wm-space-2);
+  margin: 0 0 0 auto;
+  padding: var(--wm-space-1) var(--wm-space-2);
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-base);
+}
+
+.transit-time-settings legend {
+  grid-column: 1 / -1;
+  padding-inline: var(--wm-space-1);
+  color: var(--wm-color-text-muted);
+  font-size: 0.75rem;
+}
+
+.transit-time-settings label,
+.transit-time-settings small {
+  color: var(--wm-color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.transit-time-settings small {
+  grid-column: 1 / -1;
+}
+
+.transit-time-settings select {
+  min-height: var(--wm-control-height);
+  max-width: 14rem;
+  color: var(--wm-color-text);
+  background: var(--wm-color-surface);
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-xs);
+}
+
 @media (max-width: 48rem) {
   .transit-header-inner {
     flex-wrap: wrap;
@@ -82,5 +119,10 @@
 
   .transit-primary-nav a {
     justify-content: flex-start;
+  }
+
+  .transit-time-settings {
+    flex-wrap: wrap;
+    margin-inline-start: 0;
   }
 }

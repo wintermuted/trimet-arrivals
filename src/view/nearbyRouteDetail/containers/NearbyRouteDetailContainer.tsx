@@ -2,7 +2,10 @@ import { connect } from "react-redux";
 import { loadRouteAlertDataRequest } from "../../../store/action/alertActions";
 import { loadRouteDataRequest } from "../../../store/action/routeActions";
 import { RootState } from "../../../store/reducers";
-import { alertSelector } from "../../../store/selectors/alertSelectors";
+import {
+  alertRequestSelector,
+  alertSelector
+} from "../../../store/selectors/alertSelectors";
 import { routeSelector } from "../../../store/selectors/data/routeDataSelectors";
 import NearbyRouteDetail from "../components/NearbyRouteDetail";
 
@@ -16,6 +19,7 @@ const mapStateToProps = (state: RootState, props: Props) => {
   return {
     ...props,
     alerts: alertSelector(state, id),
+    alertRequest: alertRequestSelector(state, id),
     route: routeSelector(state, id)
   };
 };
@@ -26,6 +30,9 @@ const mapDispatchToProps = dispatch => {
       dispatch(loadRouteDataRequest(id));
     },
     loadAlertData(id: number) {
+      dispatch(loadRouteAlertDataRequest(id));
+    },
+    retryAlertData(id: number) {
       dispatch(loadRouteAlertDataRequest(id));
     }
   };

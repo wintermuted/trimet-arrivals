@@ -5,7 +5,7 @@ import React, { useId, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
-import { getFormattedTime } from "../util/timeUtils";
+import { useTimeDisplay } from "../../../component/time/TimeDisplay";
 import ArrivalListItem from "./common/ArrivalListItem";
 import "./NearbyRoutes.scss";
 
@@ -76,13 +76,13 @@ export function ArrivalList({ data, selectedRoutes = [] }: ArrivalsTableParams &
   );
 }
 
-function getArrivalRows(data: ArrivalData) {
+function getArrivalRows(data: ArrivalData, formatTime: (timestamp: number) => string) {
   const sortedArrivals = sortArrivalsByEstimated(data.arrival);
   return map(sortedArrivals, (arrival: Arrival) => {
     const estimatedTime = arrival.estimated
-      ? getFormattedTime(arrival.estimated)
+      ? formatTime(arrival.estimated)
       : "No estimation";
-    const scheduledTime = getFormattedTime(arrival.scheduled);
+    const scheduledTime = formatTime(arrival.scheduled);
 
     return (
       <tr key={arrival.id}>
@@ -101,6 +101,7 @@ function getArrivalRows(data: ArrivalData) {
 }
 
 function ArrivalsTable({ data }: ArrivalsTableParams) {
+  const { formatTime } = useTimeDisplay();
   return (
     <Table responsive={true}>
       <thead>
@@ -110,7 +111,7 @@ function ArrivalsTable({ data }: ArrivalsTableParams) {
           <th>Scheduled</th>
         </tr>
       </thead>
-      <tbody>{getArrivalRows(data)}</tbody>
+      <tbody>{getArrivalRows(data, formatTime)}</tbody>
     </Table>
   );
 }

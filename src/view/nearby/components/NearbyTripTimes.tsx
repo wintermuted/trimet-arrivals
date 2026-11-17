@@ -4,14 +4,18 @@ import { Link } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
-import { dayFormat, getTripTimes, StopTime, timeFormat, TripTime } from "../util/tripTimes";
+import { getTripTimes, StopTime, TripTime } from "../util/tripTimes";
 import { TopNavBar } from "./common/TopNavBar";
+import { useTimeDisplay } from "../../../component/time/TimeDisplay";
 
 function TripStopTime({ time, today }: { time: StopTime; today: string }) {
-  const day = dayFormat.format(time.at);
+  const { formatTime, formatDay } = useTimeDisplay();
+  const day = formatDay(time.at, "America/Los_Angeles");
   return (
     <>
-      <time dateTime={new Date(time.at).toISOString()}>{timeFormat.format(time.at)}</time>
+      <time dateTime={new Date(time.at).toISOString()}>
+        {formatTime(time.at, "America/Los_Angeles")}
+      </time>
       {day !== today && <small>{day}</small>}
       <small>{time.kind}</small>
     </>
@@ -38,6 +42,7 @@ export default function NearbyTripTimes({
   inline?: boolean;
   selectedTrip?: { departureId: string; tripId?: string };
 }) {
+  const { formatTime, formatDay, timezone } = useTimeDisplay();
   const from = origin.locid;
   const to = destination.locid;
   const key = `${routeId}-${direction}-${from}-${to}`;
@@ -90,7 +95,12 @@ export default function NearbyTripTimes({
     (!selectedTrip.tripId || trip.tripId === selectedTrip.tripId)
   );
   const visibleTrips = selectedTrip ? selected ? [selected] : [] : trips;
-  const today = dayFormat.format(Date.now());
+  const today = formatDay(Date.now(), "America/Los_Angeles");
+  const timezoneLabel = timezone === "utc"
+    ? "UTC"
+    : timezone === "local"
+      ? "device local time"
+      : "Pacific";
   const loading = !current || current.loading;
 
   function tripUrl(trip: TripTime) {
@@ -138,8 +148,8 @@ export default function NearbyTripTimes({
       <div className="transit-trip-refresh">
         <p className="transit-trip-note">
           {data
-            ? `Updated ${timeFormat.format(Number(data.queryTime))} Pacific`
-            : "Times in Portland (Pacific)"}
+            ? `Updated ${formatTime(Number(data.queryTime), "America/Los_Angeles")} ${timezoneLabel}`
+            : `Times in ${timezoneLabel}`}
         </p>
         <Button
           variant="secondary"
@@ -176,7 +186,7 @@ export default function NearbyTripTimes({
                         <Link
                           className="transit-trip-link"
                           to={tripUrl(trip)}
-                          aria-label={`View trip departing at ${timeFormat.format(trip.departure.at)} from ${origin.desc} to ${destination.desc}`}
+                          aria-label={`View trip departing at ${formatTime(trip.departure.at, "America/Los_Angeles")} ${timezoneLabel} from ${origin.desc} to ${destination.desc}`}
                         >
                           <TripStopTime time={trip.departure} today={today} />
                           <small className="transit-trip-action">View trip</small>

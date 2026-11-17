@@ -4,10 +4,10 @@ import {
   ListItem
 } from "@wintermuted/ui-theme/react";
 import { map } from "lodash";
-import moment from "moment";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
+import { useTimeDisplay } from "../../../../component/time/TimeDisplay";
 import TimeDiffBadge from "./TimeDiffBadge";
 
 interface DeparturesCardParams {
@@ -17,6 +17,7 @@ interface DeparturesCardParams {
 }
 
 export function DeparturesCard({ filteredArrivals, selectedArrival, onSelect }: DeparturesCardParams) {
+  const { formatTime } = useTimeDisplay();
   return (
     <Accordion
       open
@@ -28,8 +29,8 @@ export function DeparturesCard({ filteredArrivals, selectedArrival, onSelect }: 
           const estimatedArrivalTime = arrival.estimated;
           const scheduledArrivalTime = arrival.scheduled;
           const selected = arrival === selectedArrival;
-          const estimatedTime = moment(estimatedArrivalTime).format("h:mm a");
-          const scheduledTime = moment(scheduledArrivalTime).format("h:mm a");
+          const estimatedTime = formatTime(estimatedArrivalTime);
+          const scheduledTime = formatTime(scheduledArrivalTime);
           const arrivalTime = estimatedArrivalTime
             ? estimatedTime
             : scheduledTime;
@@ -55,7 +56,9 @@ export function DeparturesCard({ filteredArrivals, selectedArrival, onSelect }: 
                     scheduledArrivalTime={scheduledArrivalTime}
                   />
                 </span>
-                <small>{arrivalTime}</small>
+                <small>
+                  {estimatedArrivalTime ? "Estimated" : "Scheduled"}: {arrivalTime}
+                </small>
               </button>
             </ListItem>
           );

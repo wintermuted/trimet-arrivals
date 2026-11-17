@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import "./App.css";
 import AppFooter from "./component/footer/AppFooter";
 import { FeatureFlagsProvider } from "./component/feature-flags/FeatureFlags";
+import { TimeDisplayProvider } from "./component/time/TimeDisplay";
 import RootAppRoutes from "./routes/RootAppRoutes";
 import appStore from "./store/store";
 
@@ -15,10 +16,12 @@ export default class App extends React.Component {
       <ThemeProvider>
         <Provider store={store}>
           <FeatureFlagsProvider>
-            <div className="transit-app-shell">
-              <RootAppRoutes />
-              <AppFooter />
-            </div>
+            <TimeDisplayProvider>
+              <div className="transit-app-shell">
+                <RootAppRoutes />
+                <AppFooter />
+              </div>
+            </TimeDisplayProvider>
           </FeatureFlagsProvider>
         </Provider>
       </ThemeProvider>

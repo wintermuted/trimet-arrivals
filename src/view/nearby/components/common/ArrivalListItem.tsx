@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
-import { getFormattedTime } from "../../util/timeUtils";
+import { useTimeDisplay } from "../../../../component/time/TimeDisplay";
 import TimeDiffBadge from "./TimeDiffBadge";
 import "./SimpleArrivalListItem.scss";
 
@@ -11,9 +11,10 @@ interface ArrivalListItemParams {
 }
 
 function ArrivalListItem({ id, arrival }: ArrivalListItemParams) {
+  const { formatTime } = useTimeDisplay();
   const estimatedArrivalTime = arrival.estimated;
   const scheduledArrivalTime = arrival.scheduled;
-  const scheduledTime = getFormattedTime(scheduledArrivalTime);
+  const scheduledTime = formatTime(scheduledArrivalTime);
 
   return (
     <li>
@@ -31,7 +32,7 @@ function ArrivalListItem({ id, arrival }: ArrivalListItemParams) {
           />
           <span className="transit-stop-arrival-clock-times">
             {estimatedArrivalTime ? (
-              <small>Estimated: {getFormattedTime(estimatedArrivalTime)}</small>
+              <small>Estimated: {formatTime(estimatedArrivalTime)}</small>
             ) : null}
             <small>Scheduled: {scheduledTime}</small>
           </span>
