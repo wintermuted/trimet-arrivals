@@ -57,6 +57,13 @@ function stopDistance(stop: RouteStop, walking: boolean) {
     : stop.distanceMiles ?? Infinity;
 }
 
+function getRouteName(route: TrimetRoute): string {
+  const prefix = `${route.route}-`;
+  return route.desc.startsWith(prefix)
+    ? route.desc.slice(prefix.length).trimStart()
+    : route.desc;
+}
+
 export interface RouteStructure {
   key: string;
   route: TrimetRoute;
@@ -352,6 +359,7 @@ export default function NearbySimpleRoutes({
         )
       ),
       route: directions[0].route,
+      routeName: getRouteName(directions[0].route),
     }))
     .sort((a, b) => {
       if (sortBy === "route") {
@@ -541,7 +549,7 @@ export default function NearbySimpleRoutes({
               role="group"
               aria-label="Nearby route arrivals"
             >
-              {displayRoutes.map(({ route, directions }) => (
+              {displayRoutes.map(({ route, routeName, directions }) => (
                 <div key={route.route} className="transit-simple-route">
                   <details
                     className="transit-simple-route-group"
@@ -555,7 +563,7 @@ export default function NearbySimpleRoutes({
                     >
                       <FontAwesome name="caret-right" aria-hidden="true" />
                       <strong>{route.route}</strong>
-                      <span>{route.desc}</span>
+                      <span title={routeName}>{routeName}</span>
                     </summary>
                     {directions.map((direction) => (
                       <details

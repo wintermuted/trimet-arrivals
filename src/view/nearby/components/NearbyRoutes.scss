@@ -738,7 +738,7 @@
 
 .transit-simple-route-heading {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--wm-space-2);
   min-width: 0;
@@ -752,11 +752,14 @@
   }
 
   > span {
+    flex: 1 1 0;
     min-width: 0;
+    overflow: hidden;
     color: var(--wm-color-text-muted);
     font-size: 0.875rem;
     font-weight: 400;
-    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
