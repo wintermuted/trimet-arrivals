@@ -9,6 +9,7 @@ import {
 import { getRouteById } from "../../../api/trimet/routeConfig";
 import RouteListItem from "../../../component/route/RouteListItem";
 import { maxLightRail } from "../../../data/trimet/schedules/maxLightRail";
+import RouteBookmarkButtonContainer from "../../bookmarks/container/RouteBookmarkButtonContainer";
 import Loading from "../../loading/Loading";
 import { AlertsCard } from "./AlertsCard";
 import "./LineDetailView.scss";
@@ -48,6 +49,7 @@ export default function LinesViewComponent(props: Props) {
       <div className="transit-columns">
         <div className="transit-column">
           <RouteListItem route={route} />
+          <RouteBookmarkButtonContainer route={route} />
         </div>
       </div>
       <br />

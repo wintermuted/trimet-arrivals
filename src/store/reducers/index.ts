@@ -16,6 +16,9 @@ import arrivalsDataReducer, {
 import routeDataReducer, {
   RouteDataReducerState
 } from "./data/routeDataReducer";
+import routeBookmarksReducer, {
+  RouteBookmarksReducerState
+} from "./routeBookmarksReducer";
 import nearbyViewReducer, { NearbyReducerState } from "./nearbyViewReducer";
 import stopsReducer, { StopsReducerState } from "./stopsReducer";
 import nearbyRoutesDataReducer, {
@@ -37,6 +40,7 @@ export interface RootState {
   currentLocationReducer: CurrentLocationReducerState;
   nearbyReducer: NearbyReducerState;
   routeDataReducer: RouteDataReducerState;
+  routeBookmarksReducer: RouteBookmarksReducerState;
   nearbyRoutesDataReducer: NearbyRoutesDataReducerState;
   nearbyRoutesViewReducer: NearbyRoutesViewReducerState;
 }
@@ -52,6 +56,7 @@ const app = combineReducers<RootState>({
   nearbyRoutesViewReducer,
   nearbyViewReducer,
   routeDataReducer,
+  routeBookmarksReducer,
   stopsReducer,
   viewReducer
 } as any);

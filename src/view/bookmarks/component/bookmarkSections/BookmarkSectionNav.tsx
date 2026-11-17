@@ -1,5 +1,6 @@
 import React from "react";
 import BookmarksInSectionSelectorContainer from "../../container/BookmarksInSectionSelectorContainer";
+import RouteBookmarksInSectionSelectorContainer from "../../container/RouteBookmarksInSectionSelectorContainer";
 import "./BookmarkSectionNav.css";
 import BookmarkSectionNameControl from "./sectionName/BookmarkSectionNameControl";
 
@@ -31,9 +32,14 @@ export const BookmarkSectionNav = ({
       />
       <div>
         {editMode && (
-          <BookmarksInSectionSelectorContainer
-            bookmarkSectionId={bookmarkSectionId}
-          />
+          <>
+            <BookmarksInSectionSelectorContainer
+              bookmarkSectionId={bookmarkSectionId}
+            />
+            <RouteBookmarksInSectionSelectorContainer
+              bookmarkSectionId={bookmarkSectionId}
+            />
+          </>
         )}
       </div>
     </div>

@@ -9,14 +9,22 @@ import {
   updateStoredBookmarkSectionName
 } from "../../api/localstorage/bookmarkSections";
 import {
+  addStoredRouteToBookmarkGroup,
+  removeStoredRouteBookmarkGroup,
+  removeStoredRouteFromBookmarkGroup
+} from "../../api/localstorage/routeBookmarkGroups";
+import {
   CREATE_BOOKMARK_SECTION,
   REMOVE_ALL_BOOKMARKS_FROM_SECTION,
   REMOVE_BOOKMARK_FROM_SECTION,
   REMOVE_BOOKMARK_SECTION,
   UPDATE_BOOKMARK_SECTION_NAME,
   UPDATE_BOOKMARK_SECTION_NAME_INPUT,
-  UPDATE_BOOKMARKS_SECTION_CONTENTS
+  UPDATE_BOOKMARKS_SECTION_CONTENTS,
+  LOAD_ROUTE_BOOKMARK_GROUPS_COMPLETE,
+  ROUTE_BOOKMARK_GROUPS_UPDATED
 } from "../constants/bookmarkSections";
+import { ROUTE_BOOKMARK_GROUPS_FAILED } from "../constants/routeBookmarks";
 import { buildBookmarkSection, getBookmarkName, getNextId } from "./util";
 
 interface UpdateSectionInputAction {
@@ -55,14 +63,26 @@ export function* removeBookmarkSection(action) {
   const bookmarkSectionId = action.payload.bookmarkSectionId;
 
   try {
+    const routeBookmarkGroups = yield call(
+      removeStoredRouteBookmarkGroup,
+      bookmarkSectionId
+    );
     yield put({
       payload: { bookmarkSectionId },
       type: REMOVE_BOOKMARK_SECTION
     });
-
     yield call(removeStoredBookmarkSection, bookmarkSectionId);
+    yield put({
+      payload: { routeBookmarkGroups },
+      type: ROUTE_BOOKMARK_GROUPS_UPDATED
+    });
   } catch (e) {
-    yield put({ type: "API_ERROR", error: e });
+    yield put({
+      payload: {
+        error: e instanceof Error ? e.message : "Route group could not be saved."
+      },
+      type: ROUTE_BOOKMARK_GROUPS_FAILED
+    });
   }
 }
 
@@ -93,6 +113,50 @@ export function* removeBookmarkFromSection(action) {
     yield call(removeStoredBookmarkFromSection, bookmarkSectionId, stopId);
   } catch (e) {
     yield put({ type: "API_ERROR", error: e });
+  }
+}
+
+export function* updateSelectedRouteBookmarkSection(action) {
+  const { bookmarkSectionId, routeId } = action.payload;
+  try {
+    const routeBookmarkGroups = yield call(
+      addStoredRouteToBookmarkGroup,
+      bookmarkSectionId,
+      routeId
+    );
+    yield put({
+      payload: { routeBookmarkGroups },
+      type: ROUTE_BOOKMARK_GROUPS_UPDATED
+    });
+  } catch (e) {
+    yield put({
+      payload: {
+        error: e instanceof Error ? e.message : "Route group could not be saved."
+      },
+      type: ROUTE_BOOKMARK_GROUPS_FAILED
+    });
+  }
+}
+
+export function* removeRouteBookmarkFromSection(action) {
+  const { bookmarkSectionId, routeId } = action.payload;
+  try {
+    const routeBookmarkGroups = yield call(
+      removeStoredRouteFromBookmarkGroup,
+      bookmarkSectionId,
+      routeId
+    );
+    yield put({
+      payload: { routeBookmarkGroups },
+      type: ROUTE_BOOKMARK_GROUPS_UPDATED
+    });
+  } catch (e) {
+    yield put({
+      payload: {
+        error: e instanceof Error ? e.message : "Route group could not be saved."
+      },
+      type: ROUTE_BOOKMARK_GROUPS_FAILED
+    });
   }
 }
 

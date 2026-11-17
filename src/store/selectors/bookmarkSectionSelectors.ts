@@ -6,6 +6,7 @@ import {
   BookmarkSectionsProps
 } from "../reducers/bookmarkSectionReducer";
 import { selectBookmarks } from "./bookmarkSelectors";
+import { routeBookmarksSelector } from "./routeBookmarkSelectors";
 
 const selectSectionName = (state: RootState) => {
   return state.bookmarkSectionReducer.bookmarkInputSectionName;
@@ -14,6 +15,9 @@ const selectSectionName = (state: RootState) => {
 const selectSections = (state: RootState) => {
   return state.bookmarkSectionReducer.bookmarkSections;
 };
+
+const selectRouteBookmarkGroups = (state: RootState) =>
+  state.bookmarkSectionReducer.routeBookmarkGroups;
 
 const selectSectionById = (state: RootState, id: number) => {
   return state.bookmarkSectionReducer.bookmarkSections[id];
@@ -41,4 +45,14 @@ export const bookmarksInSectionSelector = createSelector(
       return bookmarks[stopId];
     });
   }
+);
+
+export const routeBookmarksInSectionSelector = createSelector(
+  [
+    selectRouteBookmarkGroups,
+    routeBookmarksSelector,
+    (_state: RootState, id: number) => id
+  ],
+  (groups, bookmarks, id) =>
+    (groups[id] || []).map(routeId => bookmarks[routeId]).filter(Boolean)
 );

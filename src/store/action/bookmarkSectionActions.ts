@@ -2,9 +2,11 @@ import { StopLocation } from "../../api/trimet/interfaces/types";
 import {
   BOOKMARK_SECTION_NAME_UPDATE_REQUEST,
   BOOKMARK_SECTION_SELECT_REQUEST,
+  ADD_ROUTE_TO_BOOKMARK_SECTION_REQUEST,
   CREATE_BOOKMARK_SECTION_REQUEST,
   REMOVE_ALL_BOOKMARKS_IN_SECTION_REQUEST,
   REMOVE_BOOKMARK_FROM_SECTION_REQUEST,
+  REMOVE_ROUTE_FROM_BOOKMARK_SECTION_REQUEST,
   REMOVE_BOOKMARK_SECTION_REQUEST,
   UPDATE_BOOKMARK_SECTION_NAME_REQUEST
 } from "../constants/bookmarkSections";
@@ -45,6 +47,22 @@ export const addBookmarkToBookmarkSectionRequest = (
 ) => ({
   payload: { selectedBookmarkSection, stopId },
   type: BOOKMARK_SECTION_SELECT_REQUEST
+});
+
+export const addRouteToBookmarkSectionRequest = (
+  bookmarkSectionId: number,
+  routeId: number
+) => ({
+  payload: { bookmarkSectionId, routeId },
+  type: ADD_ROUTE_TO_BOOKMARK_SECTION_REQUEST
+});
+
+export const removeRouteFromBookmarkSectionRequest = (
+  bookmarkSectionId: number,
+  routeId: number
+) => ({
+  payload: { bookmarkSectionId, routeId },
+  type: REMOVE_ROUTE_FROM_BOOKMARK_SECTION_REQUEST
 });
 
 export const removeAllBookmarksInSectionRequest = (

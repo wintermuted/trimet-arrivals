@@ -17,9 +17,11 @@ import {
 import {
   BOOKMARK_SECTION_NAME_UPDATE_REQUEST,
   BOOKMARK_SECTION_SELECT_REQUEST,
+  ADD_ROUTE_TO_BOOKMARK_SECTION_REQUEST,
   CREATE_BOOKMARK_SECTION_REQUEST,
   REMOVE_ALL_BOOKMARKS_IN_SECTION_REQUEST,
   REMOVE_BOOKMARK_FROM_SECTION_REQUEST,
+  REMOVE_ROUTE_FROM_BOOKMARK_SECTION_REQUEST,
   REMOVE_BOOKMARK_SECTION_REQUEST,
   UPDATE_BOOKMARK_SECTION_NAME_REQUEST
 } from "../constants/bookmarkSections";
@@ -31,10 +33,20 @@ import {
   removeAllBookmarksInSection,
   removeBookmarkFromSection,
   removeBookmarkSection,
+  removeRouteBookmarkFromSection,
   updateBookmarkSectionName,
   updateSectionInputName,
-  updateSelectedBookmarkSection
+  updateSelectedBookmarkSection,
+  updateSelectedRouteBookmarkSection
 } from "./bookmarkSectionSagas";
+import {
+  REMOVE_ROUTE_BOOKMARK_REQUEST,
+  STORE_ROUTE_BOOKMARK_REQUEST
+} from "../constants/routeBookmarks";
+import {
+  removeRouteBookmark,
+  storeRouteBookmark
+} from "./routeBookmarkSagas";
 import { loadAllRouteData, loadRouteDataById } from "./routeSagas";
 import { loadStopData, updateNearbyActiveView } from "./stopSagas";
 import { changeView, initialLoad } from "./viewSagas";
@@ -63,6 +75,14 @@ export function* rootSaga() {
     removeBookmarkFromSection
   );
   yield takeEvery(
+    ADD_ROUTE_TO_BOOKMARK_SECTION_REQUEST,
+    updateSelectedRouteBookmarkSection
+  );
+  yield takeEvery(
+    REMOVE_ROUTE_FROM_BOOKMARK_SECTION_REQUEST,
+    removeRouteBookmarkFromSection
+  );
+  yield takeEvery(
     REMOVE_ALL_BOOKMARKS_IN_SECTION_REQUEST,
     removeAllBookmarksInSection
   );
@@ -77,4 +97,6 @@ export function* rootSaga() {
   // @ts-ignore
   yield takeEvery(LOAD_ROUTE_ALERT_DATA_REQUEST, loadRouteAlertData);
   yield takeEvery(LOAD_ALL_ROUTES_DATA_REQUEST, loadAllRouteData);
+  yield takeEvery(STORE_ROUTE_BOOKMARK_REQUEST, storeRouteBookmark);
+  yield takeEvery(REMOVE_ROUTE_BOOKMARK_REQUEST, removeRouteBookmark);
 }
