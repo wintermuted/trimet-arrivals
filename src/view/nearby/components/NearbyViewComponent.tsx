@@ -471,6 +471,8 @@ export default function NearbyViewComponent() {
               onSearchArea={() => searchMapCenter("area")}
               onDropPin={() => searchMapCenter("pin")}
               onFindMe={() => void locate()}
+              radiusSize={radiusSize}
+              onRadiusChange={handleRadiusSelectionChange}
               isLocating={isLocating}
               searchMode={searchMode}
             />

@@ -14,7 +14,6 @@ import RouteIndicator from "../../../component/route/RouteIndicator";
 import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
-import { SearchRadiusSelection } from "./SearchRadiusSelection";
 
 interface RouteDirection {
   key: string;
@@ -151,11 +150,6 @@ export default function NearbyRoutes({
 
   return (
     <div id="nearby-view-routes" className="scrollarea">
-      <SearchRadiusSelection
-        radiusSize={radiusSize}
-        handleRadiusSelectionChange={handleRadiusSelectionChange}
-      />
-      <br />
       <NearbySubNav routeCount={routeCount} stopCount={stopCount} />
       <br />
       <div className="transit-route-controls">

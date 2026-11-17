@@ -17,6 +17,7 @@ it("resizes the map when its available panel changes and disposes it on unmount"
   const mapContainerRef = createRef<HTMLDivElement>();
   const resize = jest.fn();
   const remove = jest.fn();
+  const onRadiusChange = jest.fn();
   const initializeMap = jest.fn(() => {
     expect(mapContainerRef.current).not.toBeNull();
   });
@@ -31,6 +32,8 @@ it("resizes the map when its available panel changes and disposes it on unmount"
           onSearchArea={jest.fn()}
           onDropPin={jest.fn()}
           onFindMe={jest.fn()}
+          radiusSize={1000}
+          onRadiusChange={onRadiusChange}
           isLocating={false}
           searchMode="device"
         />
@@ -38,10 +41,17 @@ it("resizes the map when its available panel changes and disposes it on unmount"
     );
     expect(initializeMap).toHaveBeenCalledTimes(1);
     expect(observe).toHaveBeenCalledWith(mapContainerRef.current);
-    const metadata = container.querySelector(".sidebar");
-    expect(mapContainerRef.current.nextElementSibling).toBe(metadata);
-    expect(metadata.textContent).toContain("Searching near your location.");
-    expect(metadata.textContent).not.toContain("Longitude");
+    const toolbar = container.querySelector(".transit-nearby-map-controls");
+    expect(mapContainerRef.current.nextElementSibling).toBe(toolbar);
+    expect(toolbar.textContent).toContain("Near me");
+    const radius = container.querySelector<HTMLSelectElement>('[aria-label="Search radius"]');
+    expect(radius.value).toBe("1000");
+    act(() => {
+      radius.value = "500";
+      radius.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(onRadiusChange).toHaveBeenCalledTimes(1);
+    expect(toolbar.querySelectorAll(".transit-map-control-button")).toHaveLength(3);
     act(() => notifyResize());
     expect(resize).toHaveBeenCalledTimes(1);
     act(() => root.render(null));
