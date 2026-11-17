@@ -8,8 +8,11 @@ import {
   REMOVE_BOOKMARK_SECTION,
   UPDATE_BOOKMARK_SECTION_NAME,
   UPDATE_BOOKMARK_SECTION_NAME_INPUT,
-  UPDATE_BOOKMARKS_SECTION_CONTENTS
+  UPDATE_BOOKMARKS_SECTION_CONTENTS,
+  LOAD_ROUTE_BOOKMARK_GROUPS_COMPLETE,
+  ROUTE_BOOKMARK_GROUPS_UPDATED
 } from "../constants/bookmarkSections";
+import { RouteBookmarkGroups } from "../../api/localstorage/routeBookmarkGroups";
 
 export interface BookmarkSectionProps {
   name: string;
@@ -24,6 +27,7 @@ export interface BookmarkSectionsProps {
 export interface BookmarkSectionReducerState {
   bookmarkInputSectionName: string;
   bookmarkSections: BookmarkSectionsProps;
+  routeBookmarkGroups: RouteBookmarkGroups;
 }
 
 interface Action {
@@ -36,13 +40,16 @@ interface Action {
     bookmarkSection?: BookmarkSectionProps;
     bookmarkSectionId?: number;
     bookmarkSections?: any;
+    routeBookmarkGroups?: RouteBookmarkGroups;
     stopId?: number;
+    routeId?: number;
   };
 }
 
 const InitialState = {
   bookmarkInputSectionName: "",
-  bookmarkSections: {}
+  bookmarkSections: {},
+  routeBookmarkGroups: {}
 };
 
 function updateNewBookmarkSectionName(
@@ -182,6 +189,16 @@ function removeAllBookmarksInSection(
   };
 }
 
+function loadRouteBookmarkGroups(
+  state: BookmarkSectionReducerState,
+  action: Action
+) {
+  return {
+    ...state,
+    routeBookmarkGroups: { ...action.payload.routeBookmarkGroups }
+  };
+}
+
 function updateBookmarkSectionName(state: BookmarkSectionReducerState, action) {
   const { bookmarkSections } = state;
   const { bookmarkSectionId, bookmarkSectionName } = action.payload;
@@ -215,6 +232,9 @@ const bookmarkSectionReducer = (state = InitialState, action: Action) => {
       return removeBookmarkFromSection(state, action);
     case REMOVE_ALL_BOOKMARKS_FROM_SECTION:
       return removeAllBookmarksInSection(state, action);
+    case LOAD_ROUTE_BOOKMARK_GROUPS_COMPLETE:
+    case ROUTE_BOOKMARK_GROUPS_UPDATED:
+      return loadRouteBookmarkGroups(state, action);
     case UPDATE_BOOKMARK_SECTION_NAME:
       return updateBookmarkSectionName(state, action);
     default:

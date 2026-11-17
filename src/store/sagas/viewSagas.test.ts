@@ -2,9 +2,13 @@
 import { call, put } from "redux-saga/effects";
 import { fetchStoredBookmarks } from "../../api/localstorage/bookmarks.localstorage";
 import { fetchStoredBookmarkSections } from "../../api/localstorage/bookmarkSections";
+import { fetchStoredRouteBookmarks } from "../../api/localstorage/routeBookmarks";
+import { fetchStoredRouteBookmarkGroups } from "../../api/localstorage/routeBookmarkGroups";
 // tslint:enable:no-submodule-imports
 import { CHANGE_VIEW, LOAD_BOOKMARKS_COMPLETE } from "../constants";
 import { LOAD_BOOKMARK_SECTIONS_COMPLETE } from "../constants/bookmarkSections";
+import { LOAD_ROUTE_BOOKMARK_GROUPS_COMPLETE } from "../constants/bookmarkSections";
+import { LOAD_ROUTE_BOOKMARKS_COMPLETE } from "../constants/routeBookmarks";
 import { changeView, initialLoad } from "./viewSagas";
 
 describe("viewSagas", () => {
@@ -40,6 +44,15 @@ describe("viewSagas", () => {
       );
     });
 
+    it("fetches locally stored route bookmarks and groups", () => {
+      expect(initialLoadGenerator.next().value).toEqual(
+        call(fetchStoredRouteBookmarks)
+      );
+      expect(initialLoadGenerator.next().value).toEqual(
+        call(fetchStoredRouteBookmarkGroups)
+      );
+    });
+
     it("dispatches an event indicating that the loading of bookmarks has completed", () => {
       expect(initialLoadGenerator.next().value).toEqual(
         put({
@@ -54,6 +67,21 @@ describe("viewSagas", () => {
         put({
           payload: { bookmarkSections: undefined },
           type: LOAD_BOOKMARK_SECTIONS_COMPLETE
+        })
+      );
+    });
+
+    it("dispatches the loaded route bookmarks and group membership", () => {
+      expect(initialLoadGenerator.next().value).toEqual(
+        put({
+          payload: { bookmarks: {} },
+          type: LOAD_ROUTE_BOOKMARKS_COMPLETE
+        })
+      );
+      expect(initialLoadGenerator.next().value).toEqual(
+        put({
+          payload: { routeBookmarkGroups: {} },
+          type: LOAD_ROUTE_BOOKMARK_GROUPS_COMPLETE
         })
       );
     });

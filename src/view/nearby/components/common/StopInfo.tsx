@@ -37,7 +37,7 @@ function StopInfo({ stopLocation, arrivalRoutes, selectedRoutes, onToggleRoute }
 
   const routeNames = new Map<number, string>((routes || []).map((route) => [route.route, route.desc]));
   const routeNumbers = Array.from(new Set([
-    ...routeNames.keys(), ...arrivalRoutes, ...selectedRoutes
+    ...Array.from(routeNames.keys()), ...arrivalRoutes, ...selectedRoutes
   ])).sort((a, b) => a - b);
 
   return (

@@ -4,6 +4,7 @@ import {
   WalkingEstimate,
   WalkingStop,
 } from "../../../api/mapbox/walking";
+import { StopLocation } from "../../../api/trimet/interfaces/types";
 
 interface State {
   key: string;
@@ -14,7 +15,7 @@ interface State {
 
 export default function useWalkingEstimates(
   origin: number[],
-  stops: WalkingStop[],
+  stops: Array<Pick<StopLocation, "lat" | "lng" | "locid">>,
   enabled: boolean
 ) {
   const key = JSON.stringify({
@@ -33,10 +34,26 @@ export default function useWalkingEstimates(
       setState({ estimates: new Map(), key, status: "off" });
       return;
     }
-    const input: { origin: number[]; stops: WalkingStop[] } = JSON.parse(key);
+    const input: {
+      origin: number[];
+      stops: Array<Pick<StopLocation, "lat" | "lng" | "locid">>;
+    } = JSON.parse(key);
+    const validStops: WalkingStop[] = [];
+    for (const stop of input.stops) {
+      if (typeof stop.locid !== "number" || !Number.isSafeInteger(stop.locid) || stop.locid <= 0) {
+        setState({
+          error: "Walking estimates require valid current-location and stop coordinates.",
+          estimates: new Map(),
+          key,
+          status: "error"
+        });
+        return;
+      }
+      validStops.push({ lat: stop.lat, lng: stop.lng, locid: stop.locid });
+    }
     const request = new AbortController();
     setState({ estimates: new Map(), key, status: "loading" });
-    getWalkingEstimates(input.origin, input.stops, request.signal)
+    getWalkingEstimates(input.origin, validStops, request.signal)
       .then((estimates) => {
         if (!request.signal.aborted)
           setState({ estimates, key, status: "ready" });

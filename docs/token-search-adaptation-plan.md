@@ -5,9 +5,8 @@
 Adapt the useful functionality from the older Token search work to the merged
 Wintermuted app, one coherent feature PR at a time. Port behavior and domain
 logic selectively; do not merge the older branch or reintroduce its Bootstrap UI.
-The first two increments have been merged, with additional route, stop, map and
-walking improvements. The next increment should address remaining location
-controls rather than replace those improvements.
+The first three increments, including location and map controls in #967, are
+merged. This increment completes the next roadmap item: bookmarks and groups.
 
 - Cover all seven previously identified feature areas in separate increments.
 - Preserve existing stop bookmarks and add route/group bookmarks without data
@@ -21,24 +20,26 @@ controls rather than replace those improvements.
 
 ## Progress and integration strategy
 
-The following status reflects merged `master` at `362435d` after
-[#964](https://github.com/wintermuted/trimet-arrivals/pull/964) and
-[#965](https://github.com/wintermuted/trimet-arrivals/pull/965):
+The following status reflects merged `master` at `8dd1742` after
+[#964](https://github.com/wintermuted/trimet-arrivals/pull/964),
+[#965](https://github.com/wintermuted/trimet-arrivals/pull/965), and
+[#967](https://github.com/wintermuted/trimet-arrivals/pull/967):
 
 | Increment | Status | Current scope |
 | --- | --- | --- |
 | Selected-departure predictions | Implemented | Selected trips drive downstream stop predictions, with exact-trip matching, bounded requests and unavailable/error states. |
 | Richer Nearby route lists | Implemented | Grouped routes and directions, filters, multi-stop information, sorting and route navigation are available. |
-| Location and map controls | Partially implemented | Radius and route/stop map interactions exist; dropped-pin and search-this-area flows remain to be investigated and implemented. |
-| Bookmarks and groups | Partially implemented | Stop bookmarks and editable sections exist; route/group bookmarks remain. |
+| Location and map controls | Implemented | Dropped-pin and search-this-area flows are integrated with the existing location, radius and map controls. |
+| Bookmarks and groups | Implemented in this increment | Existing stop bookmarks/sections are preserved; route bookmarks and route membership in mixed stop/route sections use separate versioned storage. |
 | Alerts and time displays | Partially implemented | Alert APIs and existing displays are available; user time-display preferences and remaining scoped behavior need review. |
 | Service-wide stop catalog | Pending | The destination picker searches route-backed choices; a verified, deduplicated service-wide catalog remains. |
 | General stop-to-stop trip planner | Pending | The existing route-specific destination and trip views are not a transfer-capable general planner. |
 | Search homepage | Pending | `/` still opens Nearby; a planner-backed search homepage remains. |
 
-These are code-inspection results, not a fresh runtime or full acceptance
-validation. Before each subsequent increment, verify the current behavior and
-remaining acceptance criteria rather than assuming either completeness or absence.
+These statuses summarize the merged location-controls increment and the
+bookmarks implementation in this PR. Before each subsequent increment, verify
+the current behavior and remaining acceptance criteria rather than assuming
+either completeness or absence.
 
 Work merged alongside increment 2 goes beyond the original plan:
 
@@ -114,15 +115,15 @@ Retain the following acceptance criteria when building on those flows.
   sorting and navigation work for missing arrivals, multiple directions and
   mobile/keyboard use without regressing existing Nearby behavior.
 
-### 3. Location and map controls — next, partially implemented
+### 3. Location and map controls — implemented
+
+Merged in [#967](https://github.com/wintermuted/trimet-arrivals/pull/967).
 
 - Audit the current radius, location, map and walking flows against the original
   feature behavior and acceptance criteria. Preserve existing route details,
   destination selection, stop markers, walking access and deep links.
-- Adapt the remaining useful dropped-pin and search-this-area behaviors, and
-  address any verified gaps in find-near-me, radius and out-of-service-area
-  handling. Reuse existing geolocation, `directionsSelection.ts`, marker and
-  map lifecycle mechanisms; do not duplicate controls already present.
+- Add dropped-pin and search-this-area behavior, reusing existing geolocation,
+  `directionsSelection.ts`, marker and map lifecycle mechanisms.
 - Keep permission-denied and unavailable-location states actionable; changing
   the search location must update the list, radius and map consistently.
   Avoid exposing precise user location in screenshots or new persistent state.
@@ -132,14 +133,20 @@ Retain the following acceptance criteria when building on those flows.
   location work across theme changes, navigation, permission failures and
   unmount/remount without lost route lines or leaked markers/listeners.
 
-### 4. Bookmarks and groups — partially implemented
+### 4. Bookmarks and groups — implemented
+
+This increment keeps legacy stop records and section storage independent from
+versioned route bookmark records and route-to-section membership. It adds route
+bookmark controls to route detail, route navigation/removal in Bookmarks, and
+route organization within existing mixed stop/route sections.
 
 Stop bookmarks and editable stop sections already exist. Preserve their current
 data and controls while adding the missing route/group capabilities.
 
 - Preserve the current `BOOKMARKS` stop-record schema and existing sections.
-  Add versioned, separate route/group storage or a validated compatibility
-  layer; never reuse `BOOKMARKS` for the older incompatible route shape.
+  Store route details and route-to-section membership separately in
+  `ROUTE_BOOKMARKS_V1` and `ROUTE_BOOKMARK_GROUPS_V1`; never reuse `BOOKMARKS`
+  or add route metadata to legacy `BOOKMARK_SECTIONS`.
 - Adapt route bookmarking, groups and the older bookmark views to Wintermuted
   controls. Preserve existing saved stops and sections; support adding,
   removing, organizing and navigating route/stop entries without silent loss.
