@@ -2,10 +2,12 @@ import {
   LOAD_ROUTE_BOOKMARKS_COMPLETE,
   ROUTE_BOOKMARKS_FAILED,
   ROUTE_BOOKMARK_GROUPS_FAILED,
-  ROUTE_BOOKMARK_GROUPS_UPDATED,
   ROUTE_BOOKMARKS_UPDATED,
 } from "../constants/routeBookmarks";
-import { LOAD_ROUTE_BOOKMARK_GROUPS_COMPLETE } from "../constants/bookmarkSections";
+import {
+  LOAD_ROUTE_BOOKMARK_GROUPS_COMPLETE,
+  ROUTE_BOOKMARK_GROUPS_UPDATED
+} from "../constants/bookmarkSections";
 import { RouteBookmarks } from "../../api/localstorage/routeBookmarks";
 
 export interface RouteBookmarksReducerState {
