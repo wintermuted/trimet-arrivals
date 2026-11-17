@@ -136,6 +136,17 @@
   overflow-wrap: anywhere;
 }
 
+.transit-nearby-map-controls {
+  padding: var(--wm-space-2) var(--wm-space-4);
+}
+
+.transit-nearby-map-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wm-space-2);
+  margin-top: var(--wm-space-2);
+}
+
 .transit-nearby-map-canvas {
   position: relative;
   flex: 1;

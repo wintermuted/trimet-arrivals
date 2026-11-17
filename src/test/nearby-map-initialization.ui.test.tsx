@@ -1,17 +1,17 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import geoLocateCurrentPosition from "../api/geolocation/geoLocateCurrentPosition";
+import { MemoryRouter, Route, Routes, useOutletContext } from "react-router-dom";
+import getCurrentPosition from "../api/geolocation/getCurrentPosition";
 import { getNearbyStops } from "../api/trimet/stops";
 import { getArrivals } from "../api/trimet/arrivals";
 import { getRouteById } from "../api/trimet/routeConfig";
 import { StopData } from "../api/trimet/interfaces/types";
 import { FeatureFlagsProvider } from "../component/feature-flags/FeatureFlags";
-import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent } from "../view/nearby/components/NearbyViewComponent";
+import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent, NearbyViewComponentOutletContextProps } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 
-jest.mock("../api/geolocation/geoLocateCurrentPosition");
+jest.mock("../api/geolocation/getCurrentPosition");
 jest.mock("../api/trimet/stops");
 jest.mock("../api/trimet/arrivals");
 jest.mock("../api/trimet/routeConfig");
@@ -37,7 +37,7 @@ jest.mock("../view/nearby/util/mapbox/stopLocationMarker.util", () => ({
 }));
 jest.mock("mapbox-gl", () => ({
   __esModule: true,
-  default: { accessToken: "pk.synthetic-test-token" },
+  default: { accessToken: "pk.synthetic-test-token", Marker: jest.fn() },
 }));
 
 const stops: StopData = {
@@ -64,16 +64,28 @@ const stops: StopData = {
 describe("Nearby map initialization independently of the sidebar", () => {
   let container: HTMLDivElement;
   let root: Root;
-  const map = { on: jest.fn(), remove: jest.fn(), resize: jest.fn(), flyTo: jest.fn() };
+  const map = {
+    on: jest.fn(), remove: jest.fn(), resize: jest.fn(), flyTo: jest.fn(),
+    getCenter: jest.fn(() => ({ lng: 1, lat: 2 })), setZoom: jest.fn()
+  };
+  const marker = {
+    setLngLat: jest.fn(), addTo: jest.fn(), getLngLat: jest.fn(() => ({ lng: 3, lat: 4 })),
+    on: jest.fn(), off: jest.fn(), remove: jest.fn()
+  };
   const previousResizeObserver = global.ResizeObserver;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    map.getCenter.mockReturnValue({ lng: 1, lat: 2 });
+    marker.getLngLat.mockReturnValue({ lng: 3, lat: 4 });
+    marker.setLngLat.mockReturnValue(marker);
+    marker.addTo.mockReturnValue(marker);
+    jest.requireMock("mapbox-gl").default.Marker.mockImplementation(() => marker);
     global.ResizeObserver = jest.fn().mockImplementation(() => ({
       disconnect: jest.fn(),
       observe: jest.fn(),
     }));
-    jest.mocked(geoLocateCurrentPosition).mockResolvedValue({
+    jest.mocked(getCurrentPosition).mockResolvedValue({
       coords: {
         accuracy: 1,
         altitude: null,
@@ -144,6 +156,107 @@ describe("Nearby map initialization independently of the sidebar", () => {
     const listeners = map.on.mock.calls.filter(([event]) => event === "load");
     act(() => listeners[listeners.length - 1][1]());
   }
+
+  function button(label: string) {
+    return Array.from(container.querySelectorAll("button")).find(item => item.textContent.includes(label));
+  }
+
+  it("searches the map center, moves a dropped pin, and returns to a fresh device location", async () => {
+    await render("/nearby/stops");
+    await act(async () => finishMapLoading());
+    await act(async () => button("Search this area").click());
+    expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 1, latitude: 2 } }, 1000);
+    expect(container.textContent).toContain("selected map center");
+
+    await act(async () => button("Drop pin").click());
+    expect(marker.setLngLat).toHaveBeenCalledWith([1, 2]);
+    const dragEnd = marker.on.mock.calls.find(([event]) => event === "dragend")[1];
+    await act(async () => dragEnd());
+    expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 3, latitude: 4 } }, 1000);
+    expect(marker.remove).toHaveBeenCalled();
+
+    jest.mocked(getCurrentPosition).mockResolvedValueOnce({ coords: { latitude: 6, longitude: 5 } });
+    await act(async () => button("Find near me").click());
+    expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 5, latitude: 6 } }, 1000);
+    expect(map.flyTo).toHaveBeenCalledWith(expect.objectContaining({ center: [5, 6] }));
+    expect(container.textContent).toContain("Searching near your location");
+  });
+
+  it("keeps the map usable when location is denied and retries location", async () => {
+    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    await render("/nearby/stops");
+    expect(container.textContent).toContain("Location unavailable");
+    expect(getNearbyStops).not.toHaveBeenCalled();
+    await act(async () => finishMapLoading());
+    await act(async () => button("Search this area").click());
+    expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 1, latitude: 2 } }, 1000);
+    expect(container.textContent).not.toContain("Location unavailable");
+    await act(async () => button("Find near me").click());
+    expect(getNearbyStops).toHaveBeenLastCalledWith(expect.objectContaining({ coords: expect.objectContaining({ longitude: 0, latitude: 0 }) }), 1000);
+  });
+
+  it("does not let a late device location replace a newer map search", async () => {
+    let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
+    await render("/nearby/stops");
+    await act(async () => finishMapLoading());
+    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    await act(async () => button("Find near me").click());
+    await act(async () => button("Search this area").click());
+    await act(async () => resolveLocation({ coords: { longitude: 8, latitude: 9 } }));
+    expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 1, latitude: 2 } }, 1000);
+    expect(container.textContent).toContain("selected map center");
+  });
+
+  it("retries a failed stop search without changing its location", async () => {
+    await render("/nearby/stops");
+    await act(async () => finishMapLoading());
+    jest.mocked(getNearbyStops).mockRejectedValueOnce(new Error("network"));
+    await act(async () => button("Search this area").click());
+    expect(container.textContent).toContain("Nearby stops could not be loaded");
+    await act(async () => button("Retry").click());
+    expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 1, latitude: 2 } }, 1000);
+    expect(container.textContent).toContain("Sidebar ready");
+  });
+
+  it("ignores an older search response after changing the radius", async () => {
+    let resolveOlder: (value: StopData) => void;
+    function RadiusControl() {
+      const { handleRadiusSelectionChange } = useOutletContext<NearbyViewComponentOutletContextProps>();
+      return <select aria-label="Test radius" onChange={handleRadiusSelectionChange}><option value="1000">1000</option><option value="500">500</option></select>;
+    }
+    await act(async () => root.render(
+      <FeatureFlagsProvider><MemoryRouter initialEntries={["/nearby/stops"]}><Routes>
+        <Route path="/nearby" element={<NearbyViewComponent />}><Route path="*" element={<RadiusControl />} /></Route>
+      </Routes></MemoryRouter></FeatureFlagsProvider>
+    ));
+    await act(async () => finishMapLoading());
+    jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveOlder = resolve; }));
+    const select = container.querySelector<HTMLSelectElement>('[aria-label="Test radius"]');
+    await act(async () => {
+      select.value = "500";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await act(async () => button("Search this area").click());
+    expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 1, latitude: 2 } }, 500);
+    await act(async () => resolveOlder({ ...stops, location: [] }));
+    expect(setNearbyStops).toHaveBeenLastCalledWith(map, { 101: stops.location[0] }, ["56"], expect.any(Function));
+  });
+
+  it("restores route details and their map overlay after searching another area", async () => {
+    await act(async () => root.render(
+      <FeatureFlagsProvider><MemoryRouter initialEntries={["/nearby/simple-routes?route=56"]}><Routes>
+        <Route path="/nearby" element={<NearbyViewComponent />}>
+          <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
+        </Route>
+      </Routes></MemoryRouter></FeatureFlagsProvider>
+    ));
+    await act(async () => finishMapLoading());
+    const cleanup = jest.mocked(showRouteInfo).mock.results[0].value;
+    await act(async () => button("Search this area").click());
+    expect(cleanup).toHaveBeenCalled();
+    expect(container.querySelector('[aria-label="Route 56 details"]')).not.toBeNull();
+    expect(showRouteInfo).toHaveBeenCalledTimes(2);
+  });
 
   it.each(["/nearby/stops", "/nearby/stops/101", "/nearby/simple-routes"])(
     "loads markers on a fresh %s before mounting its sidebar",

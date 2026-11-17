@@ -1,25 +1,29 @@
 import React, { useEffect } from "react";
+import { Button } from "@wintermuted/ui-theme/react";
 
 export type LatLngCoords = number[];
 
 interface Props {
-  zoom: number;
   mapRef: any;
   mapContainerRef: any;
-  currentLocation: LatLngCoords;
   initializeMap: () => void;
+  onSearchArea: () => void;
+  onDropPin: () => void;
+  onFindMe: () => void;
+  isLocating: boolean;
+  searchMode: "none" | "device" | "area" | "pin";
 }
 
 function NearbyMapV2({
-  zoom,
-  currentLocation,
   initializeMap,
   mapContainerRef,
-  mapRef
+  mapRef,
+  onSearchArea,
+  onDropPin,
+  onFindMe,
+  isLocating,
+  searchMode
 }: Props) {
-  const lng = currentLocation[0];
-  const lat = currentLocation[1];
-
   // Initialize Map
   useEffect(() => {
     initializeMap();
@@ -39,8 +43,19 @@ function NearbyMapV2({
   return (
     <div className="transit-nearby-map">
       {mapBoxMap}
-      <div className="sidebar">
-        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+      <div className="sidebar transit-nearby-map-controls">
+        <span role="status">
+          {searchMode === "pin" ? "Searching from a dropped pin. Drag it to move the search." :
+            searchMode === "area" ? "Searching from the selected map center." :
+              searchMode === "device" ? "Searching near your location." : "Move the map to choose a search area."}
+        </span>
+        <div className="transit-nearby-map-actions">
+          <Button type="button" size="sm" onClick={onSearchArea}>Search this area</Button>
+          <Button type="button" size="sm" onClick={onDropPin}>Drop pin at map center</Button>
+          <Button type="button" size="sm" onClick={onFindMe} disabled={isLocating}>
+            {isLocating ? "Finding location…" : "Find near me"}
+          </Button>
+        </div>
       </div>
     </div>
   );
