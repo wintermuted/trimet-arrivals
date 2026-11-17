@@ -25,11 +25,14 @@ it("resizes the map when its available panel changes and disposes it on unmount"
     act(() =>
       root.render(
         <NearbyMapV2
-          zoom={12}
-          currentLocation={[0, 0]}
           mapRef={{ current: { resize, remove } }}
           mapContainerRef={mapContainerRef}
           initializeMap={initializeMap}
+          onSearchArea={jest.fn()}
+          onDropPin={jest.fn()}
+          onFindMe={jest.fn()}
+          isLocating={false}
+          searchMode="device"
         />
       )
     );
@@ -37,7 +40,8 @@ it("resizes the map when its available panel changes and disposes it on unmount"
     expect(observe).toHaveBeenCalledWith(mapContainerRef.current);
     const metadata = container.querySelector(".sidebar");
     expect(mapContainerRef.current.nextElementSibling).toBe(metadata);
-    expect(metadata.textContent).toBe("Longitude: 0 | Latitude: 0 | Zoom: 12");
+    expect(metadata.textContent).toContain("Searching near your location.");
+    expect(metadata.textContent).not.toContain("Longitude");
     act(() => notifyResize());
     expect(resize).toHaveBeenCalledTimes(1);
     act(() => root.render(null));

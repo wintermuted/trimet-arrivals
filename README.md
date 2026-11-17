@@ -74,9 +74,17 @@ ranks whole routes by their earliest reported
 arrival, nearest stop, or route number without separating their directions.
 
 Nearby discovers candidates within the selected **straight-line radius**, not a
-walking catchment. Distances are explicitly labeled straight-line until you
+walking catchment. Nearby requests your device location when opened; if it is
+unavailable or permission is denied, use the map to search instead or retry
+after changing browser permissions. Move the map and choose **Search this area**
+to search its center, or **Drop pin at map center** and drag the pin to move
+the search. Both use the selected radius. **Find near me** requests a fresh
+device location. The selected location stays in memory only. An empty result
+can mean the selected location is outside TriMet's service area.
+
+Distances are explicitly labeled straight-line until you
 enable **Walking estimates** in **Feature flags**, opened from the footer menu.
-Opting in sends the current location snapshot and exact stop coordinates to
+Opting in sends the selected search location and exact stop coordinates to
 Mapbox. Feature flags apply immediately across the app in the current tab, stay
 in memory only, and reset to off on reload. Turning walking estimates off
 aborts requests, removes the walking overlay and clears
@@ -90,7 +98,7 @@ estimates are unavailable; failures provide manual retry, with no automatic
 retry loop. Selecting a boarding stop shows its walking distance/time and a
 dashed green walking path, independently of the bus route.
 The general Nearby stop view (`/nearby/stops/:id`) uses the same feature flag,
-current-location snapshot, walking estimates and map path. Changing stops or
+selected search location, walking estimates and map path. Changing stops or
 turning the flag off removes the previous path; stop-data failures offer retry
 and never reuse a previous stop's location. Its full-row departure links keep
 route/destination labels on the left and relative, estimated and scheduled
@@ -107,8 +115,8 @@ unreliable, not proof of accessibility. HTTP access/rate-limit errors are shown
 without exposing request URLs. Walking estimates depend on GPS, map coverage
 and routing preferences; they are neither exact distance guarantees nor
 wheelchair-accessibility guidance. There is no continuous GPS tracking: refresh
-walking estimates reuses the current location snapshot; reopen Nearby to obtain
-a new location. Stops outside the radial discovery area are not evaluated.
+walking estimates reuses the selected search location; use **Find near me** to
+obtain a new device location. Stops outside the radial discovery area are not evaluated.
 
 Nearby stop markers are initialized when the map finishes loading, independently
 of the sidebar view. Full refreshes and direct links to Nearby Stops therefore

@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
 import { useLocation, useNavigate } from "react-router-dom";
-import geoLocateCurrentPosition from "../../../api/geolocation/geoLocateCurrentPosition";
+import getCurrentPosition from "../../../api/geolocation/getCurrentPosition";
 import {
   Location,
   StopData,
@@ -24,12 +24,8 @@ import {
 import { setMapZoom } from "../util/mapbox/mapZoom";
 import NearbyMapV2 from "./NearbyMapV2";
 import "./NearbyViewComponent.scss";
-import {
-  initializeCurrentLocationMarker,
-  setCurrentLocationMarker
-} from "../util/mapbox/currentLocation";
+import { setCurrentLocationMarker } from "../util/mapbox/currentLocation";
 import { initializeMap } from "../util/mapbox/initializeMap";
-import { removeRoutes } from "../util/mapbox/routeLines";
 import {
   highlightNearbyStop,
   removeCurrentLocationMarkers,
@@ -54,6 +50,7 @@ import { highlightRouteInfoStop, showRouteInfo } from "../util/mapbox/routeInfo"
 import { stopDetailUrl } from "../util/stopNavigation";
 
 const DEFAULT_RADIUS = 1000;
+const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
 
 export interface NearbyViewComponentOutletContextProps {
   currentLocation: number[];
@@ -235,6 +232,12 @@ export default function NearbyViewComponent() {
     Dictionary<TrimetRoute[]>
   >(undefined);
   const [userLocation, setUserLocation] = useState<Location>(undefined);
+  const [mapCenter, setMapCenter] = useState<[number, number]>();
+  const [searchMode, setSearchMode] = useState<"none" | "device" | "area" | "pin">("none");
+  const [locationError, setLocationError] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const locationRequestRef = useRef(0);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [nearbyDataError, setNearbyDataError] = useState(false);
   const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
@@ -252,70 +255,46 @@ export default function NearbyViewComponent() {
 
   const nearbyRouteIds = nearbyRoutes && getNearbyRouteIds(nearbyRoutes);
   const stopLocations = nearbyStops && getStopLocations(nearbyStops);
-  const showMap = currentLocation && nearbyRouteIds && stopLocations;
-
-  async function fetchInitialData(location) {
-    setNearbyDataError(false);
-    setIsNearbyDataLoading(true);
+  const locate = useCallback(async () => {
+    const request = ++locationRequestRef.current;
+    setIsLocating(true);
+    setLocationError(false);
     try {
-      const stopData: StopData = await getNearbyStops(location, radiusSize);
-      const routes = processRoutes(stopData);
-      setNearbyStopData(stopData);
-      setNearbyRoutesData(routes);
+      const position = await getCurrentPosition();
+      if (request !== locationRequestRef.current) return;
+      setUserLocation(position);
+      setSearchMode("device");
+      setMapCenter(center => center ?? [position.coords.longitude, position.coords.latitude]);
+      mapRef.current?.flyTo({ center: [position.coords.longitude, position.coords.latitude], essential: true });
     } catch {
-      setNearbyDataError(true);
+      if (request !== locationRequestRef.current) return;
+      setLocationError(true);
+      setMapCenter(center => center ?? SERVICE_AREA_CENTER);
     } finally {
-      setIsNearbyDataLoading(false);
-    }
-  }
-
-  // Initial Load
-  useEffect(() => {
-    if (userLocation) {
-      fetchInitialData(userLocation);
-    } else {
-      geoLocateCurrentPosition().then((location: Location) => {
-        setUserLocation(location);
-        fetchInitialData(location);
-      });
+      if (request === locationRequestRef.current) setIsLocating(false);
     }
   }, []);
 
-  // Radius Size Change
   useEffect(() => {
-    if (!mapRef.current) {
-      return;
-    }
-    console.log("radius size change", radiusSize);
-    setMapZoom(mapRef, radiusSize, setZoom);
+    void locate();
+    return () => { locationRequestRef.current += 1; };
+  }, [locate]);
+
+  useEffect(() => {
+    if (!userLocation) return;
     setNearbyDataError(false);
     setIsNearbyDataLoading(true);
-
+    setNearbyStopData(undefined);
+    setNearbyRoutesData(undefined);
     let active = true;
     getNearbyStops(userLocation, radiusSize)
       .then((stopData: StopData) => {
-        if (!active) {
-          return;
-        }
-        const routes = processRoutes(stopData);
-        const updatedRouteIds = getNearbyRouteIds(routes);
-        const updatedStopLocations = getStopLocations(stopData);
-
-        removeStopLocationLayers(mapRef.current);
-        removeCurrentLocationMarkers(mapRef.current);
-        removeRoutes(mapRef.current, Object.keys(updatedRouteIds));
-
-        setNearbyStopData(stopData);
-        setNearbyRoutesData(routes);
-        setNearbyDataError(false);
+        if (!active) return;
+        if (!stopData || "error" in stopData) throw new Error("Nearby stop lookup failed.");
+        const normalized = { ...stopData, location: stopData.location ?? [] };
+        setNearbyStopData(normalized);
+        setNearbyRoutesData(processRoutes(normalized));
         setIsNearbyDataLoading(false);
-        setNearbyStops(
-          mapRef.current,
-          updatedStopLocations,
-          Object.keys(updatedRouteIds),
-          handleStopMarkerClick
-        );
-        setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
       })
       .catch(() => {
         if (active) {
@@ -327,40 +306,63 @@ export default function NearbyViewComponent() {
     return () => {
       active = false;
     };
-  }, [radiusSize]);
+  }, [userLocation, radiusSize, retryCount]);
+
+  useEffect(() => {
+    if (!isMapLoaded || !mapRef.current) return;
+    removeStopLocationLayers(mapRef.current);
+    if (stopLocations && nearbyRouteIds) {
+      setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
+    }
+  }, [isMapLoaded, nearbyStops, nearbyRoutes]);
+
+  useEffect(() => {
+    if (!isMapLoaded || !mapRef.current) return;
+    removeCurrentLocationMarkers(mapRef.current);
+    if (userLocation) {
+      setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
+    }
+  }, [isMapLoaded, userLocation, radiusSize]);
+
+  useEffect(() => {
+    if (!isMapLoaded || !mapRef.current || !userLocation || searchMode !== "pin") return;
+    const marker = new mapboxgl.Marker({ draggable: true })
+      .setLngLat([lng, lat])
+      .addTo(mapRef.current);
+    const onDragEnd = () => {
+      const point = marker.getLngLat();
+      setUserLocation({ coords: { longitude: point.lng, latitude: point.lat } });
+    };
+    marker.on("dragend", onDragEnd);
+    return () => { marker.off("dragend", onDragEnd); marker.remove(); };
+  }, [isMapLoaded, userLocation, searchMode]);
 
   function initializeMapboxMap() {
-    console.log("initialize map", lng, lat, zoom);
-    mapRef.current = initializeMap(lng, lat, mapContainerRef, zoom);
+    mapRef.current = initializeMap(mapCenter[0], mapCenter[1], mapContainerRef, zoom);
     setWalkingAccessToken(mapboxgl.accessToken);
-    mapRef.current = initializeCurrentLocationMarker(
-      mapRef.current,
-      lng,
-      lat,
-      radiusSize
-    );
-
     mapRef.current.on("load", () => {
-      console.info("effect: initialize map markers and routes");
-      mapRef.current = setNearbyStops(
-        mapRef.current,
-        stopLocations,
-        Object.keys(nearbyRouteIds),
-        handleStopMarkerClick
-      );
       setIsMapLoaded(true);
     });
   }
 
   function handleRadiusSelectionChange(e) {
-    console.log("handle radius selection change", e.target.value);
-    setRadiusSize(e.target.value);
+    const radius = Number(e.target.value);
+    setRadiusSize(radius);
+    if (mapRef.current) setMapZoom(mapRef, radius, setZoom);
   }
 
   function handleNearbyDataRetry() {
-    if (userLocation) {
-      void fetchInitialData(userLocation);
-    }
+    setRetryCount(value => value + 1);
+  }
+
+  function searchMapCenter(mode: "area" | "pin") {
+    if (!mapRef.current) return;
+    const center = mapRef.current.getCenter();
+    locationRequestRef.current += 1;
+    setIsLocating(false);
+    setLocationError(false);
+    setSearchMode(mode);
+    setUserLocation({ coords: { longitude: center.lng, latitude: center.lat } });
   }
 
   function handleStopMarkerClick(data: any) {
@@ -402,13 +404,9 @@ export default function NearbyViewComponent() {
 
   function handleSimpleRoutesOpened() {
     console.info("simple routes opened");
+    if (!mapRef.current || !stopLocations || !nearbyRouteIds) return;
     mapRef.current = removeStopLocationLayers(mapRef.current);
-    mapRef.current = setNearbyStops(
-      mapRef.current,
-      stopLocations,
-      Object.keys(nearbyRouteIds),
-      handleStopMarkerClick
-    );
+    mapRef.current = setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     flyToCenter(lng, lat);
   }
 
@@ -439,6 +437,12 @@ export default function NearbyViewComponent() {
           aria-label="Nearby transit"
           tabIndex={0}
         >
+          {locationError && (
+            <div role="alert" className="transit-route-list-message">
+              <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>
+              <Button type="button" size="sm" onClick={() => void locate()}>Try my location again</Button>
+            </div>
+          )}
           {nearbyDataError ? (
             <div role="alert" className="transit-route-list-message">
               <p>Nearby stops could not be loaded.</p>
@@ -450,20 +454,25 @@ export default function NearbyViewComponent() {
                 Retry
               </Button>
             </div>
-          ) : isNearbyDataLoading && !nearbyStops ? (
+          ) : isLocating && !userLocation ? (
+            <p role="status">Finding your location…</p>
+          ) : isNearbyDataLoading ? (
             <p role="status">Loading nearby stops…</p>
-          ) : isMapLoaded ? (
+          ) : isMapLoaded && nearbyStops ? (
             <Outlet context={context} />
           ) : null}
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
-          {showMap && (
+          {mapCenter && (
             <NearbyMapV2
               initializeMap={initializeMapboxMap}
-              zoom={zoom}
               mapRef={mapRef}
               mapContainerRef={mapContainerRef}
-              currentLocation={currentLocation}
+              onSearchArea={() => searchMapCenter("area")}
+              onDropPin={() => searchMapCenter("pin")}
+              onFindMe={() => void locate()}
+              isLocating={isLocating}
+              searchMode={searchMode}
             />
           )}
         </div>
