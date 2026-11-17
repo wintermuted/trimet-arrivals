@@ -35,6 +35,8 @@ describe("Wintermuted route navigation", () => {
     ["/nearby/simple-routes/54", "/"],
     ["/lines/bus", "/lines/all"],
     ["/lines/54", "/lines/all"],
+    ["/stops", "/stops"],
+    ["/stop/123", "/stops"],
   ])("highlights the primary section for %s", (path, activeHref) => {
     render(
       path,
@@ -58,6 +60,7 @@ describe("Wintermuted route navigation", () => {
     );
     expect(links.map((link) => link.textContent.trim())).toEqual([
       "Home",
+      "Stops",
       "Lines",
       "Bookmarks",
     ]);

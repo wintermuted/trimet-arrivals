@@ -33,14 +33,14 @@ The following status reflects merged `master` at `eb1b2e2` after
 | Location and map controls | Implemented | Dropped-pin and search-this-area flows are integrated with the existing location, radius and map controls. |
 | Bookmarks and groups | Implemented | Existing stop bookmarks/sections are preserved; route bookmarks and route membership in mixed stop/route sections use separate versioned storage. |
 | Alerts and time displays | Implemented in this increment | System, route and stop alerts are scoped and expose refresh, empty and error states; persisted 12/24-hour and timezone preferences preserve the prior defaults. |
-| Service-wide stop catalog | Pending | The destination picker searches route-backed choices; a verified, deduplicated service-wide catalog remains. |
+| Service-wide stop catalog | Implemented in this increment | Searchable, deduplicated stop names and IDs are available from the Stops navigation without geolocation; missing route-direction data is surfaced. |
 | General stop-to-stop trip planner | Pending | The existing route-specific destination and trip views are not a transfer-capable general planner. |
 | Search homepage | Pending | `/` still opens Nearby; a planner-backed search homepage remains. |
 
-These statuses summarize the merged location-controls and bookmarks increments
-and the alerts/time-display implementation in this PR. Before each subsequent
-increment, verify the current behavior and remaining acceptance criteria rather
-than assuming either completeness or absence.
+These statuses summarize the merged location-controls, bookmarks and
+alerts/time-display increments, plus the service-wide catalog implemented here.
+Before each subsequent increment, verify the current behavior and remaining
+acceptance criteria rather than assuming either completeness or absence.
 
 Work merged alongside increment 2 goes beyond the original plan:
 
@@ -182,24 +182,53 @@ increment completed the remaining scoped alert states and time preferences.
   feeds, route-cache preservation, empty/error/stale alert states, preference
   persistence, DST transitions, and date boundaries.
 
-### 6. Service-wide stop catalog — pending
+### 6. Service-wide stop catalog — implemented
 
-The existing destination picker searches route-backed choices. Its presence does
-not establish a complete, deduplicated service-wide catalog or its freshness.
+The new `/stops` directory complements the route-specific destination picker.
+It uses `getAllRoutes()` to build a searchable catalog without requiring
+geolocation; it does not change the homepage, Nearby flows or trip planning.
 
-- Build a searchable, deduplicated stop catalog from a supported authoritative
-  TriMet source. Investigate using the existing `getAllRoutes()` routeConfig
-  call, which requests stops for all route directions, and verify actual
-  completeness, service-area coverage, payload size and freshness; use an
-  authoritative GTFS dataset or another documented API only if needed.
-- Do not use the older `useTrimetStops` 5,000-foot downtown query as a
-  service-wide catalog. Index stop names and IDs, retain distinct platforms,
-  bound memory/network usage, and provide useful loading, empty and failure
-  states without requiring geolocation.
-- Acceptance: representative central and outlying service-area stops can be
-  found by name and ID, duplicate route references do not duplicate results,
-  and failure or incomplete data is surfaced rather than silently presented
-  as complete. Document the selected source's actual coverage limitations.
+- Deduplicate by stop ID while preserving different platform IDs, and search
+  names, source-name aliases and IDs. Load once on entry, refresh explicitly,
+  keep only distinct stop records in memory, and cap rendered matches at 100.
+- Expose loading, no-match, failure/retry and incomplete-source states. Link
+  results to the existing stop detail flow.
+- Acceptance verified against live RouteConfig: representative central and
+  outlying stops were found by name and ID; repeated route references produced
+  one result per stop ID; missing route-direction stop lists were identified
+  rather than silently presented as complete.
+
+#### Source verification and coverage
+
+The directory uses the documented TriMet RouteConfig request for all routes,
+both directions and their stops:
+`/ws/V1/routeConfig/json/true/dir/true/stops/true/appID/{appID}`. TriMet's
+documentation says omitting a route filter returns every route, and `stops`
+includes each direction's stop list. The service is described as reporting
+routes from the active schedule. Results are deduplicated by `locid`, so
+repeated route references do not create duplicate stops, while platforms with
+different IDs remain distinct.
+
+A live request on 2026-11-17 returned 82 routes, 161 directions, 7,685 valid
+route-stop references and 5,939 distinct stop IDs in 1,042,845 response bytes.
+Observed examples included Pioneer Courthouse/SW 6th Ave MAX Stn (7777),
+Gresham City Hall MAX Station (8356), Oregon City Transit Center (8761),
+Wilsonville WES Station (13070), N Vancouver & Ivy (6000), and the western
+edge stop 19th & B St (146). The returned stop coordinates ranged from
+45.285216 to 45.637726 latitude and -123.115448 to -122.333048 longitude.
+These are observed bounds, not a promised service boundary or an exhaustive
+inventory of every physical stop.
+
+The same response omitted stop lists for both Portland Aerial Tram directions
+(route 208), so the directory identifies this response as partial and lists
+those route directions. RouteConfig does not provide a complete-catalog flag.
+The response had no source-update timestamp, Cache-Control, Last-Modified or
+ETag header; its HTTP Date only identifies response time, not when the schedule
+data was updated. Freshness therefore cannot be independently guaranteed.
+The browser fetches once per tab session and reuses that in-memory catalog until
+the user explicitly refreshes; a failed fetch is retried on the next attempt.
+It retains distinct stop records after indexing and caps rendered search
+results at 100.
 
 ### 7. General stop-to-stop trip planner — pending
 

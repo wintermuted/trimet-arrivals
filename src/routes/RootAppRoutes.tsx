@@ -27,6 +27,7 @@ import NearbyView, {
   NearbyStopsComponent
 } from "../view/nearby/components/NearbyViewComponent";
 import StopLocationViewContainer from "../view/stop/container/StopLocationViewContainer";
+import StopCatalogView from "../view/stops/StopCatalogView";
 
 function StopLocationViewRouter() {
   const { id } = useParams();
@@ -47,6 +48,7 @@ export default function RootAppRoutes() {
       <main className="main-view" tabIndex={0}>
         <Routes>
           <Route path="/" element={<Navigate to="/nearby" replace />} />
+          <Route path="stops" element={<StopCatalogView />} />
           <Route path="nearby" element={<NearbyView />}>
             <Route path="" element={<Navigate to="simple-routes" />} />
             <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />

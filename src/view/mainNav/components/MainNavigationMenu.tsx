@@ -21,6 +21,10 @@ export default function MainNavigationMenu(props: Props) {
     pathname === "/nearby" ||
     pathname.startsWith("/nearby/");
   const linesActive = pathname === "/lines" || pathname.startsWith("/lines/");
+  const stopsActive =
+    pathname === "/stops" ||
+    pathname === "/stop" ||
+    pathname.startsWith("/stop/");
   const bookmarksActive =
     pathname === "/bookmarks" || pathname.startsWith("/bookmarks/");
 
@@ -100,6 +104,21 @@ export default function MainNavigationMenu(props: Props) {
             >
               <FontAwesome name="home" fixedWidth={true} aria-hidden="true" />
               Home
+            </Link>
+            <Link
+              to="/stops"
+              className={`wm-docs-topbar-link-devdocs${
+                stopsActive ? " is-active" : ""
+              }`}
+              aria-current={stopsActive ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              <FontAwesome
+                name="map-marker"
+                fixedWidth={true}
+                aria-hidden="true"
+              />
+              Stops
             </Link>
             <Link
               to="/lines/all"

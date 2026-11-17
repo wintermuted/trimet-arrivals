@@ -26,6 +26,7 @@ export interface TrimetRoute {
 
 export interface RouteDataResultSet {
   route: TrimetRoute[];
+  errorMessage?: string;
 }
 
 export interface RouteData {

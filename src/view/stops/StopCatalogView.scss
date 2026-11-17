@@ -1,0 +1,104 @@
+.transit-stop-catalog {
+  max-width: 62rem;
+  margin-inline: auto;
+  padding: var(--wm-space-4);
+}
+
+.transit-stop-catalog-header,
+.transit-stop-catalog-results-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-3);
+}
+
+.transit-stop-catalog-header h2,
+.transit-stop-catalog-results-heading h3 {
+  margin: 0;
+}
+
+.transit-stop-catalog-search {
+  display: grid;
+  gap: var(--wm-space-2);
+  max-width: 38rem;
+  margin-block: var(--wm-space-4);
+  color: var(--wm-color-text);
+  font-weight: 600;
+}
+
+.transit-stop-catalog-search input {
+  width: 100%;
+}
+
+.transit-stop-catalog-state,
+.transit-stop-catalog-warning {
+  margin-block: var(--wm-space-3);
+}
+
+.transit-stop-catalog-warning {
+  padding: var(--wm-space-3);
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-xs);
+  background: var(--wm-color-surface-muted);
+}
+
+.transit-stop-catalog-results {
+  display: grid;
+  gap: var(--wm-space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.transit-stop-catalog-results a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-3);
+  min-height: var(--wm-control-height);
+  padding: var(--wm-space-2) var(--wm-space-3);
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-xs);
+  background: var(--wm-color-surface);
+  color: var(--wm-color-text);
+  text-decoration: none;
+}
+
+.transit-stop-catalog-results a:hover {
+  background: var(--wm-color-surface-muted);
+}
+
+.transit-stop-catalog-results a:focus-visible,
+.transit-stop-catalog-summary:focus-visible {
+  outline: 2px solid var(--wm-color-accent);
+  outline-offset: 2px;
+}
+
+.transit-stop-catalog-results small,
+.transit-stop-catalog-freshness,
+.transit-stop-catalog-about {
+  color: var(--wm-color-text-muted);
+}
+
+.transit-stop-catalog-about {
+  margin-block-start: var(--wm-space-5);
+}
+
+.transit-stop-catalog-about summary {
+  min-height: var(--wm-control-height);
+  cursor: pointer;
+}
+
+.transit-stop-catalog-about p {
+  max-width: 62rem;
+}
+
+@media (max-width: 40rem) {
+  .transit-stop-catalog {
+    padding: var(--wm-space-3);
+  }
+
+  .transit-stop-catalog-header {
+    align-items: flex-start;
+  }
+}
