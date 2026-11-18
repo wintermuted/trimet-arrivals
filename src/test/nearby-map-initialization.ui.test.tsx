@@ -458,6 +458,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(map.fitBounds).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ padding: 38 }));
     expect(container.querySelector("p.transit-planner-partial")).toBeNull();
     const [walkLeg, busLeg] = container.querySelectorAll<HTMLLIElement>(".transit-planner-leg");
+    const [start, end] = busLeg.querySelectorAll(".transit-planner-leg-stops .transit-planner-endpoint");
+    expect(start.textContent).toContain("Stop 101 (101)");
+    expect(end.textContent).toContain("Stop 202 (202)");
+    expect(start.querySelector('.transit-planner-endpoint-marker--from[aria-hidden="true"]')).not.toBeNull();
+    expect(end.querySelector('.transit-planner-endpoint-marker--to[aria-hidden="true"]')).not.toBeNull();
     const highlighted = "transit-planner-leg--highlighted";
     const highlightFilter = (trip: number, leg: number) => ["all",
       ["==", ["get", "trip"], trip], ["==", ["get", "legIndex"], leg], ["==", ["get", "walk"], false]
