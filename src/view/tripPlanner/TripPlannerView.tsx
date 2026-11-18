@@ -364,18 +364,59 @@ function ItineraryDetails({
   );
 }
 
-function itineraryLabel(itinerary: TripPlannerItinerary, index: number) {
-  const transfers = transferCount(itinerary);
-  return [
-    `Option ${index + 1}`,
-    itinerary.startTime && itinerary.endTime
-      ? `${itinerary.startTime} to ${itinerary.endTime}`
-      : undefined,
-    itinerary.duration !== undefined ? `${itinerary.duration} min` : undefined,
-    `${transfers} ${transfers === 1 ? "transfer" : "transfers"}`,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+function optionLegLabel(leg: TripPlannerLeg) {
+  const mode = leg.mode?.trim();
+  const name = leg.route?.name?.trim();
+  const number = leg.route?.number?.trim();
+  if (legIcon(mode) === faPersonWalking) return "Walk";
+  const maxLine = name?.match(/^(MAX \w+ Line)(?: to |$)/i);
+  if (maxLine) return maxLine[1];
+  if (mode?.toLowerCase() === "bus" && number && /^\d+$/.test(number) && !/^FX\b/i.test(name || "")) {
+    return `Bus ${number}`;
+  }
+  return name || [mode, number].filter(Boolean).join(" ") || "Leg details unavailable";
+}
+
+function TripOptionSummary({ itinerary, index, current, routeColors }: {
+  itinerary: TripPlannerItinerary;
+  index: number;
+  current: boolean;
+  routeColors?: PlannerRouteColors;
+}) {
+  const { startTime, endTime, duration, numberOfTransfers, legs } = itinerary;
+  const schedule = startTime && endTime ? `${startTime} to ${endTime}`
+    : startTime ? `Departs ${startTime}` : endTime ? `Arrives ${endTime}` : "Times unavailable";
+  return (
+    <>
+      <span className="transit-planner-option-timing">
+        <strong>{schedule}</strong>
+        <span className="transit-planner-option-duration">
+          {duration !== undefined ? `${duration} min` : "Duration unavailable"}
+        </span>
+      </span>
+      {legs.length > 0 ? (
+        <span className="transit-planner-option-route">
+          {legs.map((leg, legIndex) => (
+            <span className="transit-planner-option-step" key={legIndex}>
+              {legIndex > 0 && <>
+                <span className="wm-sr-only">Then </span>
+                <span className="transit-planner-option-chevron" aria-hidden="true">›</span>
+              </>}
+              <span className="transit-planner-option-leg">
+                <LegIcon leg={leg} routeColors={routeColors} />
+                <span>{optionLegLabel(leg)}</span>
+              </span>
+            </span>
+          ))}
+        </span>
+      ) : <span className="transit-planner-option-meta">Route details unavailable</span>}
+      <span className="transit-planner-option-meta">
+        Option {index + 1}
+        {numberOfTransfers !== undefined && ` · ${numberOfTransfers} ${numberOfTransfers === 1 ? "transfer" : "transfers"}`}
+        {current && " · Current trip"}
+      </span>
+    </>
+  );
 }
 
 function loadRecentTrips() {
@@ -1050,8 +1091,12 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
                           setEditingTrip(false);
                         }}
                       >
-                        {itineraryLabel(itinerary, index)}
-                        {selectedItinerary === index && <span>Current trip</span>}
+                        <TripOptionSummary
+                          itinerary={itinerary}
+                          index={index}
+                          current={selectedItinerary === index}
+                          routeColors={catalog?.plannerRouteColors}
+                        />
                       </button>
                     </li>
                   ))}

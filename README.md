@@ -85,6 +85,8 @@ Collapse **Plan a trip** without clearing your stops or results,
 or **Choose a trip** to hide the options without changing the selected trip.
 Trip options start unselected. Choose one to see its summary and directions,
 or use **Edit trip** in the header to switch options without clearing the current trip first.
+Each option shows its planned departure, arrival, duration, and the walking and
+transit legs in order, with mode icons in the map's route colors.
 The collapsible **Directions** section shows mode icons alongside written
 instructions, with dividers between each leg and a dotted line connecting each
 leg's start circle and destination pin.
