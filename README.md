@@ -64,6 +64,8 @@ stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
 The collapsible **Directions** section shows mode icons alongside written
 instructions, with dividers between each leg.
+In Nearby, hover a leg in the directions or on the map to highlight it in both
+places. Keyboard focus on a direction also highlights its path when available.
 Nearby draws available trip paths together. MAX, streetcar, and FX legs use
 their published line colors; regular bus legs stay blue. The selected trip
 has a thicker stroke and a light outline, while alternatives are muted.

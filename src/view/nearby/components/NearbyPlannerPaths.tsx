@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useMemo, useState } from "react";
-import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
+import { LngLatBounds, Map as MapboxMap, MapMouseEvent, Marker, Popup } from "mapbox-gl";
 import { TripPlannerItinerary } from "../../../api/trimet/tripplanner";
 import { loadPlannerPaths } from "../util/mapbox/plannerPaths";
 
@@ -9,6 +9,8 @@ const CASING = `${SOURCE}-selected-casing`;
 const ACTIVE = `${SOURCE}-selected`;
 const OTHER_WALK = `${OTHER}-walk`;
 const ACTIVE_WALK = `${ACTIVE}-walk`;
+const HIGHLIGHT = `${ACTIVE}-highlight`;
+const HIGHLIGHT_WALK = `${HIGHLIGHT}-walk`;
 
 function itineraryStops(itinerary: TripPlannerItinerary) {
   const stops = new Map<number, {
@@ -39,11 +41,13 @@ function itineraryStops(itinerary: TripPlannerItinerary) {
   return [...stops.values()];
 }
 
-export default function NearbyPlannerPaths({ map, itineraries, selected, walkingEnabled }: {
+export default function NearbyPlannerPaths({ map, itineraries, selected, walkingEnabled, highlightedLeg, onMapLeg }: {
   map?: MapboxMap;
   itineraries: TripPlannerItinerary[];
   selected: number;
   walkingEnabled: boolean;
+  highlightedLeg?: number;
+  onMapLeg: (leg?: number) => void;
 }) {
   const includeWalking = walkingEnabled && Boolean(map);
   const [loaded, setLoaded] = useState<{
@@ -55,6 +59,7 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
     ? loaded.paths : undefined;
   const [mapError, setMapError] = useState(false);
   const mapSelection = React.useRef(selected);
+  const mapHighlight = React.useRef(highlightedLeg);
   const applySelection = React.useRef<() => void>();
   const stopsByTrip = useMemo(() => itineraries.map(itineraryStops), [itineraries]);
   const selectedStops = stopsByTrip[selected];
@@ -119,8 +124,9 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
 
   useEffect(() => {
     mapSelection.current = selected;
+    mapHighlight.current = highlightedLeg;
     applySelection.current?.();
-  }, [selected]);
+  }, [selected, highlightedLeg]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -158,6 +164,14 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
           id: ACTIVE_WALK, source: SOURCE, type: "line", slot: "top", layout,
           paint: { "line-color": "#1559d1", "line-width": 4, "line-dasharray": [1, 2], "line-emissive-strength": 1 }
         });
+        map.addLayer({
+          id: HIGHLIGHT, source: SOURCE, type: "line", slot: "top", layout,
+          paint: { "line-color": ["get", "color"], "line-width": 8, "line-emissive-strength": 1 }
+        });
+        map.addLayer({
+          id: HIGHLIGHT_WALK, source: SOURCE, type: "line", slot: "top", layout,
+          paint: { "line-color": "#1559d1", "line-width": 7, "line-dasharray": [4 / 7, 8 / 7], "line-emissive-strength": 1 }
+        });
         updateSelection();
         setMapError(false);
       } catch {
@@ -176,10 +190,17 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
       filter(CASING, "==", false);
       filter(ACTIVE, "==", false);
       filter(ACTIVE_WALK, "==", true);
+      for (const [layer, walk] of [[HIGHLIGHT, false], [HIGHLIGHT_WALK, true]] as const) {
+        map.setFilter(layer, ["all",
+          ["==", ["get", "trip"], trip],
+          ["==", ["get", "legIndex"], mapHighlight.current ?? -1],
+          ["==", ["get", "walk"], walk]
+        ]);
+      }
     }
 
     function removeLayers() {
-      [ACTIVE_WALK, ACTIVE, CASING, OTHER_WALK, OTHER].forEach(id => {
+      [HIGHLIGHT_WALK, HIGHLIGHT, ACTIVE_WALK, ACTIVE, CASING, OTHER_WALK, OTHER].forEach(id => {
         if (map.getLayer(id)) map.removeLayer(id);
       });
       if (map.getSource(SOURCE)) map.removeSource(SOURCE);
@@ -194,6 +215,34 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
       removeLayers();
     };
   }, [map, result]);
+
+  useEffect(() => {
+    onMapLeg();
+    if (!map || !result?.data.features.length) return;
+    const move = ({ point }: MapMouseEvent) => {
+      const layers = [ACTIVE, ACTIVE_WALK].filter(id => map.getLayer(id));
+      if (!layers.length) return onMapLeg();
+      const features = map.queryRenderedFeatures(point, { layers });
+      let firstLeg: number | undefined;
+      for (const { properties } of features) {
+        const leg = properties?.legIndex;
+        if (properties?.trip === selected && Number.isInteger(leg) &&
+            (firstLeg === undefined || leg < firstLeg)) {
+          firstLeg = leg;
+        }
+      }
+      onMapLeg(firstLeg);
+    };
+    const leave = () => onMapLeg();
+    map.on("mousemove", move);
+    map.on("mouseout", leave);
+    map.on("dragstart", leave);
+    return () => {
+      map.off("mousemove", move);
+      map.off("mouseout", leave);
+      map.off("dragstart", leave);
+    };
+  }, [map, result, selected, onMapLeg]);
 
   useEffect(() => {
     if (!map || !result) return;

@@ -99,9 +99,15 @@ function legIcon(mode?: string) {
 function ItineraryDetails({
   itinerary,
   index,
+  highlight,
 }: {
   itinerary: TripPlannerItinerary;
   index: number;
+  highlight?: {
+    leg?: number;
+    onHover: (leg?: number) => void;
+    onFocus: (leg?: number) => void;
+  };
 }) {
   const [expanded, setExpanded] = useState(true);
   const directionsId = useId();
@@ -114,7 +120,13 @@ function ItineraryDetails({
           type="button"
           aria-controls={directionsId}
           aria-expanded={expanded}
-          onClick={() => setExpanded(previous => !previous)}
+          onClick={() => {
+            if (expanded) {
+              highlight?.onHover();
+              highlight?.onFocus();
+            }
+            setExpanded(!expanded);
+          }}
         >
           Directions
         </button>
@@ -136,7 +148,17 @@ function ItineraryDetails({
             }
 
             return (
-              <li className="transit-planner-leg" key={leg.id || `${index}-${legIndex}`}>
+              <li
+                className={`transit-planner-leg${highlight?.leg === legIndex ? " transit-planner-leg--highlighted" : ""}`}
+                key={leg.id || `${index}-${legIndex}`}
+                tabIndex={highlight ? 0 : undefined}
+                onPointerEnter={highlight ? event => {
+                  if (event.pointerType !== "touch") highlight.onHover(legIndex);
+                } : undefined}
+                onPointerLeave={highlight ? () => highlight.onHover() : undefined}
+                onFocus={highlight ? () => highlight.onFocus(legIndex) : undefined}
+                onBlur={highlight ? () => highlight.onFocus() : undefined}
+              >
                 {showTransfer && (
                   <div className="transit-planner-transfer">Transfer</div>
                 )}
@@ -208,7 +230,12 @@ function loadRecentTrips() {
 
 export default function TripPlannerView({ inSidebar = false, renderMapStatus }: {
   inSidebar?: boolean;
-  renderMapStatus?: (itineraries: TripPlannerItinerary[], selected: number) => React.ReactNode;
+  renderMapStatus?: (
+    itineraries: TripPlannerItinerary[],
+    selected: number,
+    highlightedLeg: number | undefined,
+    onMapLeg: (leg?: number) => void
+  ) => React.ReactNode;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from") || "";
@@ -221,6 +248,9 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   const [fromStop, setFromStop] = useState<StopCatalogStop>();
   const [toStop, setToStop] = useState<StopCatalogStop>();
   const [selectedItinerary, setSelectedItinerary] = useState(0);
+  const [hoveredLeg, setHoveredLeg] = useState<number>();
+  const [focusedLeg, setFocusedLeg] = useState<number>();
+  const [mapLeg, setMapLeg] = useState<number>();
   const [tripRetry, setTripRetry] = useState(0);
   const [tripState, setTripState] = useState<TripState>({ status: "idle" });
   const [validationError, setValidationError] = useState("");
@@ -426,6 +456,13 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
     tripState.status === "ready" ? tripState.response : undefined;
   const itineraries = response?.itineraries || [];
   const activeItinerary = itineraries[selectedItinerary];
+  const highlightedLeg = hoveredLeg ?? mapLeg ?? focusedLeg;
+
+  useEffect(() => {
+    setHoveredLeg(undefined);
+    setFocusedLeg(undefined);
+    setMapLeg(undefined);
+  }, [activeItinerary, selectedItinerary]);
 
   return (
     <section
@@ -558,7 +595,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
           className="transit-planner-results"
           aria-label="Trip options"
         >
-          {renderMapStatus?.(itineraries, selectedItinerary)}
+          {renderMapStatus?.(itineraries, selectedItinerary, highlightedLeg, setMapLeg)}
           {itineraries.length > 1 && (
             <fieldset className="transit-planner-options">
               <legend>Choose a trip</legend>
@@ -596,6 +633,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
           <ItineraryDetails
             itinerary={activeItinerary}
             index={selectedItinerary}
+            highlight={renderMapStatus ? { leg: highlightedLeg, onHover: setHoveredLeg, onFocus: setFocusedLeg } : undefined}
           />
         </section>
       )}

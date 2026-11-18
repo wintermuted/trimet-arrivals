@@ -165,6 +165,16 @@
     padding-block-start: var(--wm-space-3);
   }
 
+  &--highlighted {
+    background: var(--wm-color-surface-muted);
+    box-shadow: inset 0 0 0 1px var(--wm-color-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--wm-color-accent);
+    outline-offset: -2px;
+  }
+
   .transit-planner-leg-icon {
     width: 1.25em;
     height: 1em;
