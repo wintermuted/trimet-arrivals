@@ -953,6 +953,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
                 maxMenuHeight={240}
                 styles={{
                   control: base => ({ ...base, minHeight: "var(--wm-control-height)" }),
+                  menu: base => ({ ...base, fontSize: "0.875rem" }),
                   menuPortal: base => ({ ...base, zIndex: 5 })
                 }}
               />

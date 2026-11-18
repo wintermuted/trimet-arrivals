@@ -106,6 +106,7 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
       maxMenuHeight={240}
       styles={{
         control: base => ({ ...base, minHeight: "var(--wm-control-height)" }),
+        menu: base => ({ ...base, fontSize: "0.875rem" }),
         menuPortal: base => ({ ...base, zIndex: 5 })
       }}
     />
