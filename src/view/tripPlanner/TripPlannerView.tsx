@@ -1,5 +1,5 @@
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
-import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { recordRecentJourney } from "../../api/localstorage/recentJourneys";
 import {
@@ -168,7 +168,7 @@ function itineraryLabel(itinerary: TripPlannerItinerary, index: number) {
     .join(" · ");
 }
 
-export default function TripPlannerView() {
+export default function TripPlannerView({ inSidebar = false }: { inSidebar?: boolean }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from") || "";
   const toParam = searchParams.get("to") || "";
@@ -186,6 +186,8 @@ export default function TripPlannerView() {
   const [tripState, setTripState] = useState<TripState>({ status: "idle" });
   const [validationError, setValidationError] = useState("");
   const [historyUnavailable, setHistoryUnavailable] = useState(false);
+  const fromInput = useRef<HTMLInputElement>(null);
+  const toInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -350,6 +352,7 @@ export default function TripPlannerView() {
     const matches = isFrom ? fromMatches : toMatches;
     const label = isFrom ? "Boarding stop" : "Destination stop";
     const id = isFrom ? "planner-from" : "planner-to";
+    const inputRef = isFrom ? fromInput : toInput;
     const inputMatchesSelected =
       selected && search.toLowerCase() === stopLabel(selected).toLowerCase();
     const reference = isFrom ? fromParam : toParam;
@@ -365,12 +368,10 @@ export default function TripPlannerView() {
         <FieldGroup label={label} htmlFor={id}>
           <input
             id={id}
+            ref={inputRef}
             className="wm-input"
             type="search"
             autoComplete="off"
-            aria-autocomplete="list"
-            aria-controls={`${id}-matches`}
-            aria-expanded={Boolean(search && !inputMatchesSelected)}
             value={search}
             onChange={(event) => {
               const value = event.target.value;
@@ -423,7 +424,10 @@ export default function TripPlannerView() {
                 <button
                   type="button"
                   aria-pressed={selected?.locid === stop.locid}
-                  onClick={() => chooseStop(stop, field)}
+                  onClick={() => {
+                    chooseStop(stop, field);
+                    inputRef.current?.focus();
+                  }}
                 >
                   <span>{stop.desc}</span>
                   <small>Stop {stop.locid}</small>
@@ -448,7 +452,7 @@ export default function TripPlannerView() {
 
   return (
     <section
-      className="transit-planner"
+      className={`transit-planner${inSidebar ? " transit-planner--sidebar" : ""}`}
       aria-labelledby="transit-planner-title"
     >
       <header className="transit-planner-header">

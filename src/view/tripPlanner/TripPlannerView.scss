@@ -204,3 +204,17 @@
     align-items: flex-start;
   }
 }
+
+.transit-planner--sidebar {
+  padding: var(--wm-space-3) 0;
+  overflow-wrap: anywhere;
+
+  .transit-planner-form > .wm-btn {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .transit-planner-stop-matches {
+    max-height: 10rem;
+  }
+}
