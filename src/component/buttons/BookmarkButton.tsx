@@ -25,13 +25,16 @@ interface Props {
   stopLocation: StopLocation;
   onBookmarkClick: BookmarkClick;
   stopIsBookmarked: boolean;
+  showLabel?: boolean;
 }
 
 export default function BookmarkButton({
   onBookmarkClick,
   stopLocation,
-  stopIsBookmarked = false
+  stopIsBookmarked = false,
+  showLabel = false
 }: Props) {
+  const label = stopIsBookmarked ? "Remove stop bookmark" : "Bookmark this stop";
   const onClick =
     onBookmarkClick &&
     onBookmarkClick.bind(this, stopLocation, stopIsBookmarked);
@@ -41,11 +44,10 @@ export default function BookmarkButton({
       className="bookmark-button"
       variant="secondary"
       aria-pressed={stopIsBookmarked}
-      aria-label={
-        stopIsBookmarked ? "Remove stop bookmark" : "Bookmark this stop"
-      }
+      aria-label={label}
     >
       <BookmarkIcon stopIsBookmarked={stopIsBookmarked} />
+      {showLabel && <span>{label}</span>}
     </Button>
   );
 }

@@ -55,6 +55,9 @@
 }
 
 .transit-nearby-stop-plan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wm-space-2);
   margin-block: var(--wm-space-3);
 
   a {
