@@ -531,6 +531,35 @@ describe("TripPlannerView", () => {
     expect(container.textContent).toContain("Available leg information");
   });
 
+  it("suggests verified common places by alias in both stop pickers and plans with the stop ID", async () => {
+    const data = catalog();
+    data.stops.push({ ...data.stops[0], locid: 9650, desc: "Washington Square Transit Center" });
+    loadCatalog.mockResolvedValue(data);
+    await render("/planner?from=8356");
+
+    for (const id of ["planner-from", "planner-to"]) {
+      const input = container.querySelector<HTMLInputElement>(`#${id}`);
+      act(() => {
+        input.focus();
+        input.value = "Washington  Square Mall";
+        Simulate.change(input);
+      });
+      const menu = document.getElementById(input.getAttribute("aria-controls"));
+      expect(menu.textContent).toContain("Common places");
+      expect(menu.querySelectorAll('[role="option"]')).toHaveLength(1);
+      expect(menu.querySelector('[role="option"]').textContent).toBe("Washington Square Transit Center (9650)");
+      if (id === "planner-from") {
+        act(() => input.blur());
+      } else {
+        act(() => Simulate.keyDown(input, { key: "ArrowDown" }));
+        act(() => Simulate.keyDown(input, { key: "Enter" }));
+      }
+    }
+
+    await act(async () => Simulate.submit(container.querySelector("form")));
+    expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({ fromPlace: "8356", toPlace: "9650" }));
+  });
+
   it("groups both fields by published street prefixes and keeps other stops searchable", async () => {
     const data = catalog();
     data.stops.push({ ...data.stops[0], locid: 299, desc: "NE 42nd & Broadway" });
