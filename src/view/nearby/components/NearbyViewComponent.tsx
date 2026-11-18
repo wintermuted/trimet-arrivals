@@ -307,13 +307,14 @@ export default function NearbyViewComponent() {
   }, []);
 
   useEffect(() => {
-    if (fromHome) {
+    if (fromHome || isPlanner) {
+      setIsLocating(false);
       setMapCenter(center => center ?? SERVICE_AREA_CENTER);
     } else {
       void locate();
     }
     return () => { locationRequestRef.current += 1; };
-  }, [locate, fromHome]);
+  }, [locate, fromHome, isPlanner]);
 
   useEffect(() => {
     if (!userLocation) return;

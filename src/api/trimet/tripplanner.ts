@@ -1,9 +1,20 @@
 import { API_ID, BASE_URL } from "./constants";
 
-export interface TripPlannerOptions {
-  fromPlace: string;
-  toPlace: string;
+export type TripPlannerOptions = (
+  { fromPlace: string; fromCoord?: string } | { fromPlace?: string; fromCoord: string }
+) & (
+  { toPlace: string; toCoord?: string } | { toPlace?: string; toCoord: string }
+) & {
   signal?: AbortSignal;
+};
+
+export function parsePlannerCoordinates(value: string): [number, number] | undefined {
+  const parts = value.split(",").map(part => part.trim());
+  if (parts.length !== 2 || parts.some(part => !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(part))) {
+    return undefined;
+  }
+  const [lon, lat] = parts.map(Number);
+  if (Math.abs(lon) <= 180 && Math.abs(lat) <= 90) return [lon, lat];
 }
 
 export interface TripPlannerLocation {
@@ -195,11 +206,15 @@ export function parseTripPlannerResponse(xml: string): TripPlannerResponse {
 export async function planTrip({
   fromPlace,
   toPlace,
+  fromCoord,
+  toCoord,
   signal,
 }: TripPlannerOptions): Promise<TripPlannerResponse> {
   const url = new URL("V1/trips/tripplanner", BASE_URL);
-  url.searchParams.set("fromPlace", fromPlace);
-  url.searchParams.set("toPlace", toPlace);
+  if (fromPlace) url.searchParams.set("fromPlace", fromPlace);
+  if (toPlace) url.searchParams.set("toPlace", toPlace);
+  if (fromCoord) url.searchParams.set("fromCoord", fromCoord);
+  if (toCoord) url.searchParams.set("toCoord", toCoord);
   url.searchParams.set("format", "xml");
   url.searchParams.set("appID", API_ID);
   url.searchParams.set("maxIntineraries", "6");

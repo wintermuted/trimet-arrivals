@@ -1,4 +1,4 @@
-import { parseTripPlannerResponse } from "./tripplanner";
+import { parsePlannerCoordinates, parseTripPlannerResponse, planTrip } from "./tripplanner";
 
 const response = `<?xml version="1.0" encoding="UTF-8"?>
 <response success="true" xmlns="http://maps.trimet.org/maps/model/xml">
@@ -16,6 +16,28 @@ const response = `<?xml version="1.0" encoding="UTF-8"?>
 </response>`;
 
 describe("TriMet trip planner response", () => {
+  it("encodes mixed endpoints with the corresponding TriMet parameters", async () => {
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(response, { status: 200 }),
+    );
+    try {
+      await planTrip({ fromCoord: "-122.68,45.52", toPlace: "1001 SW 5th Ave" });
+      const { searchParams } = new URL(String(fetchMock.mock.calls[0][0]));
+      expect(searchParams.get("fromCoord")).toBe("-122.68,45.52");
+      expect(searchParams.has("fromPlace")).toBe(false);
+      expect(searchParams.get("toPlace")).toBe("1001 SW 5th Ave");
+      expect(searchParams.has("toCoord")).toBe(false);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("validates longitude, latitude before using a coordinate endpoint", () => {
+    expect(parsePlannerCoordinates(" -122.68 , 45.52 ")).toEqual([-122.68, 45.52]);
+    for (const invalid of ["45,-122", "181,45", "-122,", "0x12,45", "-122,45,2"]) {
+      expect(parsePlannerCoordinates(invalid)).toBeUndefined();
+    }
+  });
   it("normalizes multiple itineraries, legs, route details, stops, times and transfers", () => {
     const result = parseTripPlannerResponse(response);
 

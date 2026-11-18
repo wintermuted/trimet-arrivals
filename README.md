@@ -52,7 +52,16 @@ The Nearby sidebar switches between **Explore** (nearby routes and stops) and
 **Plan a trip** (`/nearby/planner`). The map stays in place. The sidebar planner
 uses the service-wide stop catalog and works without a nearby location or
 nearby results. Standalone `/planner` links still work; both planner views
-support `from` and `to` query parameters.
+support `from` and `to` stop links. Use **Other origin options** or
+**Other destination options** to enter a place, street address, or decimal
+coordinates (longitude, latitude). TriMet geocodes place names and addresses;
+try the street address without city or state if a full address is not recognized.
+Typed endpoints can be linked with `fromPlace`/`toPlace` or
+`fromCoord`/`toCoord`, including in combination with a stop. These inputs are
+visible in the link but are not added to Recent trips.
+**Use nearest stop to me** asks for device location and finds a public TriMet
+stop within one mile locally. The planner uses the selected stop ID, not the
+device coordinates, in requests, links, or Recent trips.
 Choose **Plan a trip to this stop** on a Nearby stop detail page to open the
 sidebar planner with that exact destination selected.
 Both stop pickers group stops by the Portland quadrant prefix in their
@@ -62,8 +71,8 @@ TriMet catalog.
 The searchable **Recent trips** dropdown in the sidebar reopens up to five successful stop pairs
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
-After a successful search, **Plan a trip** shows the boarding and destination
-stops. **Edit stops** in the header reopens the form; the last successful results stay visible
+After a successful search, **Plan a trip** shows the origin and destination.
+**Edit stops** or **Edit locations** in the header reopens the form; the last successful results stay visible
 and labeled until another search returns trips.
 Collapse **Plan a trip** without clearing your stops or results,
 or **Choose a trip** to hide the options without changing the selected trip.

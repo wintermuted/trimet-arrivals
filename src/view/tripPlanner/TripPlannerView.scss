@@ -29,6 +29,32 @@
   margin-block: var(--wm-space-2);
 }
 
+.transit-planner-location-field {
+  display: grid;
+  gap: var(--wm-space-2);
+
+  .wm-input {
+    inline-size: 100%;
+    min-inline-size: 0;
+    font-size: 1rem;
+  }
+}
+
+.transit-planner-location-toggle {
+  margin-block-start: var(--wm-space-2);
+}
+
+.transit-planner-endpoint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wm-space-2);
+}
+
+.transit-planner-endpoint-actions .wm-btn,
+.transit-planner-location-toggle {
+  min-block-size: 44px;
+}
+
 .transit-planner-select-hint {
   margin: 0;
   color: var(--wm-color-text-muted);
