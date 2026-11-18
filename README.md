@@ -53,6 +53,10 @@ The Nearby sidebar switches between **Explore** (nearby routes and stops) and
 uses the service-wide stop catalog and works without a nearby location or
 nearby results. Standalone `/planner` links still work; both planner views
 support `from` and `to` query parameters.
+Both stop pickers group stops by the Portland quadrant prefix in their
+published names. Stops without an unambiguous prefix appear in **Other stops**.
+The menus show a sample from each group; type a name or ID to search the full
+TriMet catalog.
 **Recent trips** in the sidebar reopens up to five successful stop pairs
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.

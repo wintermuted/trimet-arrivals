@@ -1,10 +1,9 @@
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
-import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { readRecentJourneys, recordRecentJourney } from "../../api/localstorage/recentJourneys";
 import {
   getStopCatalog,
-  searchStopCatalog,
   StopCatalog,
   StopCatalogStop,
 } from "../../api/trimet/stopCatalog";
@@ -14,9 +13,10 @@ import {
   TripPlannerLeg,
   TripPlannerResponse,
 } from "../../api/trimet/tripplanner";
+import PlannerStopSelect from "./PlannerStopSelect";
 import "./TripPlannerView.scss";
 
-const MAX_STOP_MATCHES = 10;
+const EMPTY_STOPS: StopCatalogStop[] = [];
 
 interface StopResolution {
   matches: StopCatalogStop[];
@@ -54,10 +54,6 @@ function resolveStopReference(
       stop.aliases.some((alias) => alias.toLowerCase() === query),
   );
   return { matches, stop: matches.length === 1 ? matches[0] : undefined };
-}
-
-function stopLabel(stop: StopCatalogStop): string {
-  return `${stop.desc} (${stop.locid})`;
 }
 
 function formatStop(location?: TripPlannerLeg["from"]): string {
@@ -188,8 +184,6 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
     loading: true,
   });
   const [catalogRetry, setCatalogRetry] = useState(0);
-  const [fromSearch, setFromSearch] = useState("");
-  const [toSearch, setToSearch] = useState("");
   const [fromStop, setFromStop] = useState<StopCatalogStop>();
   const [toStop, setToStop] = useState<StopCatalogStop>();
   const [selectedItinerary, setSelectedItinerary] = useState(0);
@@ -198,8 +192,6 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   const [validationError, setValidationError] = useState("");
   const [historyUnavailable, setHistoryUnavailable] = useState(false);
   const [recentTrips, setRecentTrips] = useState(() => inSidebar ? loadRecentTrips() : undefined);
-  const fromInput = useRef<HTMLInputElement>(null);
-  const toInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -241,8 +233,6 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
     const to = resolveStopReference(catalog.stops, toParam);
     setFromStop(from.stop);
     setToStop(to.stop);
-    setFromSearch(from.stop ? stopLabel(from.stop) : fromParam);
-    setToSearch(to.stop ? stopLabel(to.stop) : toParam);
     setValidationError("");
   }, [catalog, fromParam, toParam]);
 
@@ -310,24 +300,6 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
     return () => controller.abort();
   }, [catalog, fromParam, toParam, tripRetry, inSidebar]);
 
-  const fromMatches = useMemo(
-    () =>
-      catalog
-        ? searchStopCatalog(catalog.stops, fromSearch).slice(
-            0,
-            MAX_STOP_MATCHES,
-          )
-        : [],
-    [catalog, fromSearch],
-  );
-  const toMatches = useMemo(
-    () =>
-      catalog
-        ? searchStopCatalog(catalog.stops, toSearch).slice(0, MAX_STOP_MATCHES)
-        : [],
-    [catalog, toSearch],
-  );
-
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setValidationError("");
@@ -346,70 +318,40 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   }
 
   function chooseStop(
-    stop: StopCatalogStop,
+    stop: StopCatalogStop | null,
     field: "from" | "to",
   ) {
     if (field === "from") {
-      setFromStop(stop);
-      setFromSearch(stopLabel(stop));
+      setFromStop(stop ?? undefined);
     } else {
-      setToStop(stop);
-      setToSearch(stopLabel(stop));
+      setToStop(stop ?? undefined);
     }
+    setValidationError("");
   }
 
   function renderStopField(field: "from" | "to") {
     const isFrom = field === "from";
-    const search = isFrom ? fromSearch : toSearch;
     const selected = isFrom ? fromStop : toStop;
-    const matches = isFrom ? fromMatches : toMatches;
     const label = isFrom ? "Boarding stop" : "Destination stop";
     const id = isFrom ? "planner-from" : "planner-to";
-    const inputRef = isFrom ? fromInput : toInput;
-    const inputMatchesSelected =
-      selected && search.toLowerCase() === stopLabel(selected).toLowerCase();
     const reference = isFrom ? fromParam : toParam;
     const referenceResolution =
       catalog && reference
         ? resolveStopReference(catalog.stops, reference)
         : undefined;
-    const searchMatchesReference =
-      search.trim().toLowerCase() === reference.trim().toLowerCase();
 
     return (
       <div className="transit-planner-stop-field">
         <FieldGroup label={label} htmlFor={id}>
-          <input
+          <PlannerStopSelect
             id={id}
-            ref={inputRef}
-            className="wm-input"
-            type="search"
-            autoComplete="off"
-            value={search}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (isFrom) {
-                setFromSearch(value);
-                if (!selected || value !== stopLabel(selected)) {
-                  setFromStop(undefined);
-                }
-              } else {
-                setToSearch(value);
-                if (!selected || value !== stopLabel(selected)) {
-                  setToStop(undefined);
-                }
-              }
-              setValidationError("");
-            }}
+            stops={catalog?.stops ?? EMPTY_STOPS}
+            selected={selected}
+            loading={catalogState.loading}
+            onChange={stop => chooseStop(stop, field)}
           />
         </FieldGroup>
-        {selected && (
-          <p className="transit-planner-selected-stop" role="status">
-            Selected: {stopLabel(selected)}
-          </p>
-        )}
         {!selected &&
-          searchMatchesReference &&
           referenceResolution &&
           referenceResolution.matches.length > 1 && (
           <p className="transit-planner-field-message" role="alert">
@@ -418,7 +360,6 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
           </p>
         )}
         {!selected &&
-          searchMatchesReference &&
           referenceResolution &&
           referenceResolution.matches.length === 0 && (
             <p className="transit-planner-field-message" role="alert">
@@ -426,34 +367,6 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
               or ID and choose a result.
             </p>
           )}
-        {search && !inputMatchesSelected && (
-          <ul
-            id={`${id}-matches`}
-            className="transit-planner-stop-matches"
-            aria-label={`${label} search results`}
-          >
-            {matches.map((stop) => (
-              <li key={stop.locid}>
-                <button
-                  type="button"
-                  aria-pressed={selected?.locid === stop.locid}
-                  onClick={() => {
-                    chooseStop(stop, field);
-                    inputRef.current?.focus();
-                  }}
-                >
-                  <span>{stop.desc}</span>
-                  <small>Stop {stop.locid}</small>
-                </button>
-              </li>
-            ))}
-            {matches.length === 0 && (
-              <li className="transit-planner-no-matches" role="status">
-                No stops match. Search by a different name or stop ID.
-              </li>
-            )}
-          </ul>
-        )}
       </div>
     );
   }
@@ -535,6 +448,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
       <form className="transit-planner-form" onSubmit={submit}>
         {renderStopField("from")}
         {renderStopField("to")}
+        <p className="transit-planner-select-hint">Type a name or ID to search all stops.</p>
         {validationError && (
           <p className="transit-planner-message" role="alert">
             {validationError}

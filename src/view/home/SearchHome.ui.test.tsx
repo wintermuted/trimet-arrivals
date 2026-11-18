@@ -132,8 +132,9 @@ describe("Search homepage", () => {
       container.querySelectorAll('[aria-label="Matching stops"] li'),
     ).toHaveLength(2);
     await click('a[href="/planner?to=200"]');
+    act(() => container.querySelector<HTMLInputElement>("#planner-from").focus());
     type("#planner-from", "350");
-    await click("#planner-from-matches button");
+    await act(async () => document.querySelector<HTMLElement>('[role="option"]').click());
     await act(async () => Simulate.submit(container.querySelector("form")));
     expect(planTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "350", toPlace: "200" }),

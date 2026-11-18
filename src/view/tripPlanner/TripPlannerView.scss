@@ -24,23 +24,19 @@
   max-width: 38rem;
   margin-block-end: var(--wm-space-5);
 
-  input[type="search"] {
-    width: 100%;
-  }
-
   > .wm-btn {
     justify-self: start;
   }
 }
 
-.transit-planner-selected-stop,
 .transit-planner-field-message,
 .transit-planner-message,
 .transit-planner-partial {
   margin-block: var(--wm-space-2);
 }
 
-.transit-planner-selected-stop {
+.transit-planner-select-hint {
+  margin: 0;
   color: var(--wm-color-text-muted);
   font-size: 0.875rem;
 }
@@ -86,11 +82,6 @@
       color: var(--wm-color-text-muted);
     }
   }
-}
-
-.transit-planner-no-matches {
-  padding: var(--wm-space-3);
-  color: var(--wm-color-text-muted);
 }
 
 .transit-planner-options {
