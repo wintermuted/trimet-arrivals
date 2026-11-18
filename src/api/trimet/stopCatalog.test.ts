@@ -84,6 +84,7 @@ describe("stop catalog", () => {
       route: [
         { ...route(208, "Portland Aerial Tram", [shared]), type: "R" },
         { ...route(194, "Portland Streetcar - A Loop", [shared]), type: "R", routeColor: "539d3d" },
+        { ...route(203, "WES Commuter Rail", [shared]), type: "R", routeColor: "6E6E6E" },
         { ...route(90, "MAX Red Line", [shared]), type: "R", routeColor: "#e11a2b" },
         route(1, "Route 1", [shared, stop(101, "Transit Center")]),
         { ...route(2, "FX2-Division", [shared, shared]), routeColor: "AF4C9D" },
@@ -100,6 +101,7 @@ describe("stop catalog", () => {
       { id: 2, label: "FX2-Division", color: "#AF4C9D" },
       { id: 90, label: "MAX Red Line", color: "#e11a2b" },
       { id: 194, label: "Portland Streetcar - A Loop", color: "#539d3d" },
+      { id: 203, label: "WES Commuter Rail", color: "#6E6E6E" },
       { id: 208, label: "Portland Aerial Tram" },
     ]);
     expect(catalog.stops.find(item => item.locid === 101).routes).toEqual([{ id: 1, label: "Route 1" }]);

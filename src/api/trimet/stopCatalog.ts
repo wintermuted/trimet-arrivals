@@ -75,7 +75,7 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
     const mode = route && stopMode(route);
     let color: string | undefined;
     if (route && (mode === "Streetcar" ||
-        (mode === "Rail" && Boolean(ROUTE_DISPLAY[route.route])) ||
+        (mode === "Rail" && (route.route === 203 || Boolean(ROUTE_DISPLAY[route.route]))) ||
         /^\s*FX\s*\d+\b/i.test(route.desc))) {
       const hex = route.routeColor?.replace(/^#/, "");
       if (hex && /^[\da-f]{6}$/i.test(hex)) {
