@@ -247,7 +247,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => action.click());
 
     const [boarding, destination] = Array.from(container.querySelectorAll(".transit-planner-stop-select"));
-    expect(boarding.textContent).toContain("Search by stop name or ID");
+    expect(boarding.textContent).toContain("Search stops or common places");
     expect(destination.textContent).toContain("Shared platform name (8455)");
     expect(button("Find trips").disabled).toBe(true);
     expect(planTrip).not.toHaveBeenCalled();

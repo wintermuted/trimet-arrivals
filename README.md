@@ -68,6 +68,9 @@ Choose **Plan a trip to this stop** on a Nearby stop detail page to open the
 sidebar planner with that exact destination selected.
 Both stop pickers group stops by the Portland quadrant prefix in their
 published names. Stops without an unambiguous prefix appear in **Other stops**.
+**Common places** suggests verified stops for familiar destinations, including
+Washington Square Transit Center (the mall's transit stop, not its entrance),
+Washington Park MAX Station for the Oregon Zoo, and the airport MAX station.
 The menus show a sample from each group; type a name or ID to search the full
 TriMet catalog.
 The searchable **Recent trips** dropdown in the sidebar reopens up to five successful stop pairs
