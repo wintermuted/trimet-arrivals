@@ -13,3 +13,14 @@
   border-radius: 5px;
   margin-bottom: 10px;
 }
+
+.bookmark-shortcut-fields {
+  display: grid;
+  gap: var(--wm-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  margin-block-start: var(--wm-space-3);
+}
+
+.bookmark-shortcut-fields > * {
+  min-width: 0;
+}

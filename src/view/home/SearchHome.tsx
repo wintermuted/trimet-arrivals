@@ -2,6 +2,7 @@ import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { readAvailableBookmarkShortcuts, SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
 import { readRecentJourneys } from "../../api/localstorage/recentJourneys";
 import {
   getStopCatalog,
@@ -178,16 +179,31 @@ function RecentJourneys() {
 function BookmarkPreview() {
   const stops = useSelector(selectBookmarks);
   const routes = useSelector(routeBookmarksSelector);
-  const stopEntries = Object.entries(stops).slice(0, 3);
-  const routeEntries = Object.values(routes).slice(0, 3);
+  const shortcuts = readAvailableBookmarkShortcuts();
+  const quickLinks = SHORTCUTS.flatMap(({ key, kind, label }) => {
+    const id = shortcuts[key];
+    const bookmark = id === undefined ? undefined : (kind === "stop" ? stops : routes)[id];
+    return bookmark ? [{ key, kind, id, label, desc: bookmark.desc }] : [];
+  });
+  const pinnedStops = new Set(quickLinks.filter(link => link.kind === "stop").map(link => link.id));
+  const pinnedRoutes = new Set(quickLinks.filter(link => link.kind === "route").map(link => link.id));
+  const stopEntries = Object.entries(stops).filter(([id]) => !pinnedStops.has(Number(id))).slice(0, 3);
+  const routeEntries = Object.values(routes).filter(route => !pinnedRoutes.has(route.route)).slice(0, 3);
   return (
     <section
       className="transit-search-section"
       aria-labelledby="homepage-bookmarks"
     >
       <h3 id="homepage-bookmarks">Bookmarks</h3>
-      {stopEntries.length > 0 || routeEntries.length > 0 ? (
+      {quickLinks.length > 0 || stopEntries.length > 0 || routeEntries.length > 0 ? (
         <ul className="transit-search-list">
+          {quickLinks.map(({ key, kind, id, label, desc }) => (
+            <li key={key}>
+              <Link to={kind === "stop" ? `/stop/${id}` : `/lines/${id}`}>
+                <strong>{label}:</strong> {desc || (kind === "stop" ? "Stop" : "Transit route")} ({id})
+              </Link>
+            </li>
+          ))}
           {stopEntries.map(([id, stop]) => (
             <li key={`stop-${id}`}>
               <Link to={`/stop/${id}`}>

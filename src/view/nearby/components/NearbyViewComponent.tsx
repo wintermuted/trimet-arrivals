@@ -48,7 +48,7 @@ import NearbyDirections from "./NearbyDirections";
 import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
 import { highlightRouteInfoStop, showRouteInfo } from "../util/mapbox/routeInfo";
 import { stopDetailUrl } from "../util/stopNavigation";
-import TripPlannerView from "../../tripPlanner/TripPlannerView";
+import { ConnectedTripPlannerView } from "../../tripPlanner/TripPlannerView";
 import NearbyPlannerPaths from "./NearbyPlannerPaths";
 
 const DEFAULT_RADIUS = 1000;
@@ -80,7 +80,7 @@ export interface NearbyViewComponentOutletContextProps {
 export function NearbyTripPlannerComponent() {
   const { plannerMap, plannerFooter, walkingEnabled } = useOutletContext<NearbyViewComponentOutletContextProps>();
   return (
-    <TripPlannerView
+    <ConnectedTripPlannerView
       inSidebar
       directionsFooter={plannerFooter}
       renderMapStatus={(itineraries, selected, highlightedLeg, onMapLeg, routeColors, previewTrip) => (

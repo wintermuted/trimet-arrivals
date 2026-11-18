@@ -151,8 +151,12 @@ data and controls while adding the missing route/group capabilities.
 - Adapt route bookmarking, groups and the older bookmark views to Wintermuted
   controls. Preserve existing saved stops and sections; support adding,
   removing, organizing and navigating route/stop entries without silent loss.
-  Include default commute/location shortcuts only where their underlying data
-  and navigation are supported.
+  The Bookmarks page lets riders assign, replace, or clear Home and Work stops
+  and optional commute routes using existing bookmarks. `BOOKMARK_SHORTCUTS_V1`
+  stores only public stop and route IDs, not addresses or device coordinates.
+  Removing a bookmark clears its shortcuts. Missing bookmarks are not shown
+  as links, and assigned stops appear in both trip planners only when present
+  in the current stop catalog.
 - Acceptance: old stored stop data remains readable and editable across
   upgrades; new route/group entries survive reload and do not overwrite stop
   records. Exercise empty, duplicate, malformed and unavailable-storage cases,
@@ -264,7 +268,8 @@ general multi-route or transfer planner.
   destination in the general `/planner` by exact ID.
 - The homepage shows up to five recent journeys with available itineraries,
   stored on this device by directional stop-ID pair, previews existing stop
-  and route bookmarks, and presents the shared system and route/stop alerts.
+  and route bookmarks with assigned Home/Work shortcuts first, and presents
+  the shared system and route/stop alerts.
 - Search never requests location. The optional Portland map preview uses the
   shared map theme without device location; `/nearby` retains location and
   area search. `/homepage-backup` and existing deep links remain available.

@@ -30,7 +30,7 @@ import NearbyView, {
 } from "../view/nearby/components/NearbyViewComponent";
 import StopLocationViewContainer from "../view/stop/container/StopLocationViewContainer";
 import StopCatalogView from "../view/stops/StopCatalogView";
-import TripPlannerView from "../view/tripPlanner/TripPlannerView";
+import { ConnectedTripPlannerView } from "../view/tripPlanner/TripPlannerView";
 
 function StopLocationViewRouter() {
   const { id } = useParams();
@@ -52,7 +52,7 @@ export default function RootAppRoutes() {
         <Routes>
           <Route path="/" element={<SearchHome />} />
           <Route path="stops" element={<StopCatalogView />} />
-          <Route path="planner" element={<TripPlannerView />} />
+          <Route path="planner" element={<ConnectedTripPlannerView />} />
           <Route path="nearby" element={<NearbyView />}>
             <Route path="" element={<Navigate to="simple-routes" />} />
             <Route path="planner" element={<NearbyTripPlannerComponent />} />

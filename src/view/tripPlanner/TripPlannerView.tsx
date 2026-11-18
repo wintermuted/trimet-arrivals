@@ -5,8 +5,10 @@ import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import React, { FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";
+import { useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import geoLocateCurrentPosition from "../../api/geolocation/geoLocateCurrentPosition";
+import { readAvailableBookmarkShortcuts, SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
 import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
 import { PlannerRouteColors, plannerTransitColor } from "../../api/trimet/plannerRouteColors";
 import {
@@ -21,7 +23,8 @@ import {
   TripPlannerLeg,
   TripPlannerResponse,
 } from "../../api/trimet/tripplanner";
-import PlannerStopSelect from "./PlannerStopSelect";
+import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
+import PlannerStopSelect, { SavedPlannerStop } from "./PlannerStopSelect";
 import "./TripPlannerView.scss";
 
 const EMPTY_STOPS: StopCatalogStop[] = [];
@@ -427,9 +430,10 @@ function loadRecentTrips() {
   }
 }
 
-export default function TripPlannerView({ inSidebar = false, directionsFooter, renderMapStatus }: {
+interface TripPlannerProps {
   inSidebar?: boolean;
   directionsFooter?: HTMLDivElement;
+  savedStops?: SavedPlannerStop[];
   renderMapStatus?: (
     itineraries: TripPlannerItinerary[],
     selected: number,
@@ -438,7 +442,19 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     routeColors?: PlannerRouteColors,
     previewTrip?: number
   ) => React.ReactNode;
-}) {
+}
+
+export function ConnectedTripPlannerView(props: TripPlannerProps) {
+  const bookmarks = useSelector(selectBookmarks);
+  const shortcuts = readAvailableBookmarkShortcuts();
+  const savedStops = SHORTCUTS.flatMap(({ key, kind, label }) => {
+    const id = shortcuts[key];
+    return kind === "stop" && id !== undefined && bookmarks[id] ? [{ id, label }] : [];
+  });
+  return <TripPlannerView {...props} savedStops={savedStops} />;
+}
+
+export default function TripPlannerView({ inSidebar = false, directionsFooter, renderMapStatus, savedStops }: TripPlannerProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from") || "";
   const toParam = searchParams.get("to") || "";
@@ -765,6 +781,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
               <PlannerStopSelect
                 id={id}
                 stops={catalog?.stops ?? EMPTY_STOPS}
+                savedStops={savedStops}
                 selected={selected}
                 loading={catalogState.loading}
                 onChange={stop => {
