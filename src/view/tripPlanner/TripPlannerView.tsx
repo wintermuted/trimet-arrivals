@@ -1008,7 +1008,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
           </p>
           {locating && <p className="transit-planner-select-hint" role="status">Finding nearest stop…</p>}
           {(fromLocation === undefined || toLocation === undefined) &&
-            <p className="transit-planner-select-hint">Search by stop ID, stop name, or common place name.</p>}
+            <p className="transit-planner-select-hint">Search by stop ID, stop name, route name, or common place.</p>}
           {validationError && (
             <p className="transit-planner-message" role="alert">
               {validationError}

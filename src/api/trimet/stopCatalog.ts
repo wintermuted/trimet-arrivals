@@ -166,17 +166,20 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
 export function searchStopCatalog(
   stops: StopCatalogStop[],
   search: string,
+  { includeRouteNames = false } = {},
 ): StopCatalogStop[] {
   const query = search.trim().toLowerCase();
   if (!query) {
     return [];
   }
 
+  const searchRoutes = includeRouteNames && !/^\d+$/.test(query);
   return stops.filter(
     (stop) =>
       stop.locid.toString().includes(query) ||
       stop.desc.toLowerCase().includes(query) ||
-      stop.aliases.some((alias) => alias.toLowerCase().includes(query)),
+      stop.aliases.some((alias) => alias.toLowerCase().includes(query)) ||
+      (searchRoutes && stop.routes?.some(({ label }) => label.toLowerCase().includes(query))),
   );
 }
 
