@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { LngLatBounds, Map as MapboxMap, Marker } from "mapbox-gl";
+import React, { useEffect, useId, useMemo, useState } from "react";
+import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
 import { TripPlannerItinerary } from "../../../api/trimet/tripplanner";
 import { loadPlannerPaths } from "../util/mapbox/plannerPaths";
 
@@ -11,20 +11,29 @@ const OTHER_WALK = `${OTHER}-walk`;
 const ACTIVE_WALK = `${ACTIVE}-walk`;
 
 function itineraryStops(itinerary: TripPlannerItinerary) {
-  const stops = new Map<string, { point: [number, number]; labels: Set<string>; board: boolean; exit: boolean }>();
+  const stops = new Map<number, {
+    id: number;
+    name: string;
+    point: [number, number];
+    actions: Set<string>;
+    board: boolean;
+    exit: boolean;
+  }>();
   for (const leg of itinerary.legs) {
     if (leg.mode?.toLowerCase() === "walk") continue;
     for (const [action, stop] of [["board", leg.from], ["exit", leg.to]] as const) {
       if (!stop?.stopId || !Number.isFinite(stop.lon) || !Number.isFinite(stop.lat) ||
           Math.abs(stop.lon) > 180 || Math.abs(stop.lat) > 90) continue;
-      const key = String(stop.stopId);
-      if (!stops.has(key)) {
-        stops.set(key, { point: [stop.lon, stop.lat], labels: new Set(), board: false, exit: false });
+      if (!stops.has(stop.stopId)) {
+        stops.set(stop.stopId, {
+          id: stop.stopId, name: stop.description || `Stop ${stop.stopId}`,
+          point: [stop.lon, stop.lat], actions: new Set(), board: false, exit: false
+        });
       }
-      const marker = stops.get(key);
+      const marker = stops.get(stop.stopId);
       marker[action] = true;
       const route = leg.route?.name || leg.route?.number || leg.mode;
-      marker.labels.add(`${action === "board" ? "Board" : "Get off"}${route ? `: ${route} at ` : " at "}${stop.description || `stop ${stop.stopId}`}`);
+      marker.actions.add(`${action === "board" ? "Board" : "Get off"}${route ? `: ${route}` : ""}`);
     }
   }
   return [...stops.values()];
@@ -49,21 +58,64 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
   const applySelection = React.useRef<() => void>();
   const stopsByTrip = useMemo(() => itineraries.map(itineraryStops), [itineraries]);
   const selectedStops = stopsByTrip[selected];
+  const popupIdPrefix = useId();
 
   useEffect(() => {
     if (!map || !selectedStops?.length) return;
+    let activePopup: Popup | undefined;
     const markers = selectedStops.map(stop => {
-      const label = [...stop.labels].join("; ");
-      const element = document.createElement("div");
+      const element = document.createElement("button");
+      element.type = "button";
+      element.setAttribute("role", "button");
       element.className = "transit-planner-stop-marker";
-      element.setAttribute("role", "img");
-      element.setAttribute("aria-label", label);
-      element.title = label;
+      element.setAttribute("aria-label", [...stop.actions].map(action => `${action} at ${stop.name}`).join("; "));
+      element.setAttribute("aria-expanded", "false");
       element.textContent = stop.board && stop.exit ? "↕" : stop.board ? "↑" : "↓";
+      const content = document.createElement("div");
+      content.id = `${popupIdPrefix}-trip-stop-${stop.id}`;
+      const title = document.createElement("strong");
+      title.textContent = stop.name;
+      const id = document.createElement("small");
+      id.textContent = `Stop ID: ${stop.id}`;
+      const actions = document.createElement("ul");
+      stop.actions.forEach(action => {
+        const row = document.createElement("li");
+        row.textContent = action;
+        actions.appendChild(row);
+      });
+      content.append(title, id, actions);
+      const popup = new Popup({
+        className: "transit-planner-stop-popup", closeButton: false, focusAfterOpen: false, offset: 15,
+      }).setLngLat(stop.point).setDOMContent(content);
+      popup.on("close", () => {
+        element.setAttribute("aria-expanded", "false");
+        element.removeAttribute("aria-controls");
+        if (activePopup === popup) activePopup = undefined;
+      });
+      element.addEventListener("click", event => {
+        event.stopPropagation();
+        if (popup.isOpen()) {
+          popup.remove();
+          return;
+        }
+        activePopup?.remove();
+        activePopup = popup.addTo(map);
+        element.setAttribute("aria-expanded", "true");
+        element.setAttribute("aria-controls", content.id);
+      });
+      element.addEventListener("keydown", event => {
+        if (event.key === "Escape" && popup.isOpen()) {
+          event.stopPropagation();
+          popup.remove();
+        }
+      });
       return new Marker({ element }).setLngLat(stop.point).addTo(map);
     });
-    return () => markers.forEach(marker => marker.remove());
-  }, [map, selectedStops]);
+    return () => {
+      activePopup?.remove();
+      markers.forEach(marker => marker.remove());
+    };
+  }, [map, selectedStops, popupIdPrefix]);
 
   useEffect(() => {
     mapSelection.current = selected;

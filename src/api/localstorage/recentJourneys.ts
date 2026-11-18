@@ -6,7 +6,7 @@ interface JourneyStop {
   desc: string;
 }
 
-interface RecentJourney {
+export interface RecentJourney {
   from: JourneyStop;
   to: JourneyStop;
 }

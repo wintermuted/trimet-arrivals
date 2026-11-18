@@ -182,17 +182,19 @@ describe("TripPlannerView", () => {
     requestTrip.mockClear();
     await render("/nearby/planner", true);
     expect(requestTrip).not.toHaveBeenCalled();
-    const recent = container.querySelector<HTMLDetailsElement>(".transit-planner-recent");
-    expect(recent.querySelector("summary").textContent).toBe("Recent trips");
-    recent.open = true;
-    await act(async () => recent.querySelector("button").click());
+    const recent = container.querySelector<HTMLInputElement>("#planner-recent");
+    expect(container.querySelector('label[for="planner-recent"]').textContent).toBe("Recent trips");
+    act(() => recent.focus());
+    act(() => Simulate.keyDown(recent, { key: "ArrowDown" }));
+    expect(document.getElementById(recent.getAttribute("aria-controls")).querySelectorAll('[role="option"]')).toHaveLength(1);
+    await act(async () => Simulate.keyDown(recent, { key: "Enter" }));
     expect(requestTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "8356", toPlace: "7777" }),
     );
     const fields = container.querySelectorAll(".transit-planner-stop-select");
     expect(fields[0].textContent).toContain("8356");
     expect(fields[1].textContent).toContain("7777");
-    expect(recent.querySelectorAll("button")).toHaveLength(1);
+    expect(recent.getAttribute("aria-expanded")).toBe("false");
   });
 
   it.each(["malformed", "blocked"])("keeps sidebar planning usable when recent storage is %s", async (failure) => {
@@ -226,6 +228,13 @@ describe("TripPlannerView", () => {
     expect(container.textContent).toContain("Transfer");
     expect(container.textContent).toContain("Gresham Central Transit Center");
     expect(container.textContent).toContain("2.80 regular fare");
+    const legs = Array.from(container.querySelectorAll(".transit-planner-leg"));
+    expect(legs.map(leg => leg.querySelector('svg[aria-hidden="true"]').getAttribute("data-icon")))
+      .toEqual(["person-walking", "train-tram", "train"]);
+    await act(async () => container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]')[1].click());
+    const bus = container.querySelector(".transit-planner-leg");
+    expect(bus.querySelector("strong").textContent).toContain("Bus");
+    expect(bus.querySelector('svg[aria-hidden="true"]').getAttribute("data-icon")).toBe("bus");
   });
 
   it("rejects identical stop IDs without making a planner request", async () => {

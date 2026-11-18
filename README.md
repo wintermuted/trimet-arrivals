@@ -59,15 +59,17 @@ Both stop pickers group stops by the Portland quadrant prefix in their
 published names. Stops without an unambiguous prefix appear in **Other stops**.
 The menus show a sample from each group; type a name or ID to search the full
 TriMet catalog.
-**Recent trips** in the sidebar reopens up to five successful stop pairs
+The searchable **Recent trips** dropdown in the sidebar reopens up to five successful stop pairs
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
+Trip directions show mode icons alongside the written instructions.
 Nearby draws available trip paths together. MAX, streetcar, and FX legs use
 their published line colors; regular bus legs stay blue. The selected trip
 has a thicker stroke and a light outline, while alternatives are muted.
 The map uses published transit shapes matched to the
 itinerary's boarding and exit stops. Only boarding and exit stops for the
 selected option are marked while planning; Nearby markers return in Explore.
+Select a trip marker for its stop name, ID, and the routes to board or leave there.
 With **Walking estimates** enabled,
 Mapbox estimates the walking paths from TriMet's leg endpoints, including
 transfers. Dashed lines distinguish these paths from transit. Legs without
