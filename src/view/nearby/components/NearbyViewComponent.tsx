@@ -8,7 +8,7 @@ import { Dictionary, map, set, size } from "lodash";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
-import { useLocation, useNavigate } from "react-router-dom";
+import { matchPath, useLocation, useNavigate } from "react-router-dom";
 import getCurrentPosition from "../../../api/geolocation/getCurrentPosition";
 import {
   Location,
@@ -225,6 +225,10 @@ export default function NearbyViewComponent() {
   const mapRef = useRef<Map>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
+  const fromHome = isStopDetail &&
+    new URLSearchParams(location.search).getAll("referrer").length === 1 &&
+    new URLSearchParams(location.search).get("referrer") === "/";
   const [zoom, setZoom] = useState(16);
   const [radiusSize, setRadiusSize] = useState<number>(DEFAULT_RADIUS);
   const [nearbyStops, setNearbyStopData] = useState<StopData>(undefined);
@@ -276,9 +280,13 @@ export default function NearbyViewComponent() {
   }, []);
 
   useEffect(() => {
-    void locate();
+    if (fromHome) {
+      setMapCenter(center => center ?? SERVICE_AREA_CENTER);
+    } else {
+      void locate();
+    }
     return () => { locationRequestRef.current += 1; };
-  }, [locate]);
+  }, [locate, fromHome]);
 
   useEffect(() => {
     if (!userLocation) return;
@@ -380,10 +388,11 @@ export default function NearbyViewComponent() {
   }, []);
 
   const handleStopOpened = useCallback((stopLocation: ArrivalLocation) => {
+    if (!isMapLoaded || !mapRef.current) return;
     const cleanup = showStopDetailMarker(mapRef.current, stopLocation);
     flyToCenter(stopLocation.lng, stopLocation.lat);
     return cleanup;
-  }, [flyToCenter]);
+  }, [flyToCenter, isMapLoaded]);
 
   const handleDirectionsSelection = useCallback((
     selection: DirectionsSelection,
@@ -443,7 +452,9 @@ export default function NearbyViewComponent() {
               <Button type="button" size="sm" onClick={() => void locate()}>Try my location again</Button>
             </div>
           )}
-          {nearbyDataError ? (
+          {isStopDetail ? (
+            <Outlet context={context} />
+          ) : nearbyDataError ? (
             <div role="alert" className="transit-route-list-message">
               <p>Nearby stops could not be loaded.</p>
               <Button

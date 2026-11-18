@@ -15,7 +15,7 @@ export function stopBackUrl(search: string): string {
     try {
       const url = new URL(referrer, LOCAL_ORIGIN);
       if (url.origin === LOCAL_ORIGIN &&
-          (url.pathname === "/nearby" || url.pathname.startsWith("/nearby/"))) {
+          (url.pathname === "/" || url.pathname === "/nearby" || url.pathname.startsWith("/nearby/"))) {
         return `${url.pathname}${url.search}${url.hash}`;
       }
     } catch {

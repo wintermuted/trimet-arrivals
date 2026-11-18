@@ -49,7 +49,6 @@ export function NearbyStopsDetail({
 
   useEffect(() => {
     let active = true;
-    let removeMarker: void | (() => void);
     setState({ id });
     async function fetchData() {
       try {
@@ -62,7 +61,6 @@ export function NearbyStopsDetail({
           throw new Error("The requested stop was not reported.");
         }
         if (active) {
-          removeMarker = handleStopOpened(stopLocation);
           setState({ data: arrivals, id });
         }
       } catch {
@@ -73,9 +71,19 @@ export function NearbyStopsDetail({
     void fetchData();
     return () => {
       active = false;
-      if (removeMarker) removeMarker();
     };
-  }, [id, retry, handleStopOpened]);
+  }, [id, retry]);
+
+  useEffect(() => {
+    if (state.id !== id || !state.data) return;
+    const stop = state.data.location.find((location) => location.id === Number(id));
+    if (!stop) return;
+    try {
+      return handleStopOpened(stop);
+    } catch (error) {
+      console.error("Could not display the stop on the map.", error);
+    }
+  }, [id, state, handleStopOpened]);
 
   function retryStop() {
     setRetry((value) => value + 1);

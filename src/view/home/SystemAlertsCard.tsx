@@ -1,4 +1,4 @@
-import { Alert, Button, Card, CardHeader } from "@wintermuted/ui-theme/react";
+import { Alert, Button, Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Alert as IAlert } from "../../api/trimet/interfaces/alertsData";
@@ -50,7 +50,7 @@ export function SystemAlertsCard(props: Props) {
         <FontAwesome name="bell" />
         System Alerts
       </CardHeader>
-      {getSystemAlerts(props)}
+      <CardBody>{getSystemAlerts(props)}</CardBody>
     </Card>
   );
 }

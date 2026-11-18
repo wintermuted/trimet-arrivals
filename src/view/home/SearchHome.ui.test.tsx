@@ -126,7 +126,7 @@ describe("Search homepage", () => {
         .querySelector('[aria-label="Matching stops"] a')
         .getAttribute("href"),
     ).toBe("/planner?to=200");
-    expect(container.querySelector('a[href="/stop/8200"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/nearby/stops/8200?referrer=%2F"]')).not.toBeNull();
     type("#homepage-stop", "Central Station");
     expect(
       container.querySelectorAll('[aria-label="Matching stops"] li'),

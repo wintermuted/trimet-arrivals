@@ -262,7 +262,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(showRouteInfo).toHaveBeenCalledTimes(2);
   });
 
-  it.each(["/nearby/stops", "/nearby/stops/101", "/nearby/simple-routes"])(
+  it.each(["/nearby/stops", "/nearby/simple-routes"])(
     "loads markers on a fresh %s before mounting its sidebar",
     async (path) => {
       await render(path);
@@ -279,6 +279,56 @@ describe("Nearby map initialization independently of the sidebar", () => {
       expect(container.textContent).toContain("Sidebar ready");
     }
   );
+
+  it("opens a homepage stop outside the radius without location or a loaded map", async () => {
+    jest.mocked(getArrivals).mockResolvedValue({
+      arrival: [], detour: [], queryTime: "",
+      location: [{ desc: "Far stop", dir: "E", id: 8455, lat: 2, lng: 1, passengerCode: "E" }]
+    });
+    const showMarker = jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util").showStopDetailMarker;
+    await act(async () => root.render(
+      <FeatureFlagsProvider>
+        <MemoryRouter initialEntries={["/nearby/stops/8455?referrer=%2F"]}>
+          <Routes>
+            <Route path="/" element={<p>Home</p>} />
+            <Route path="/nearby" element={<NearbyViewComponent />}>
+              <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </FeatureFlagsProvider>
+    ));
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getArrivals).toHaveBeenCalledWith("8455", 90);
+    expect(container.textContent).toContain("Far stop");
+    expect(container.textContent).toContain("Departures");
+    expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe("/");
+    expect(showMarker).not.toHaveBeenCalled();
+    await act(async () => finishMapLoading());
+    expect(showMarker).toHaveBeenCalledWith(map, expect.objectContaining({ id: 8455 }));
+    expect(map.flyTo).toHaveBeenCalledWith(expect.objectContaining({ center: [1, 2] }));
+    expect(getArrivals).toHaveBeenCalledTimes(1);
+    await act(async () => container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').click());
+    expect(container.textContent).toContain("Home");
+  });
+
+  it("shows a direct stop when device location is denied", async () => {
+    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    jest.mocked(getArrivals).mockResolvedValue({
+      arrival: [], detour: [], queryTime: "",
+      location: [{ desc: "Far stop", dir: "E", id: 8455, lat: 2, lng: 1, passengerCode: "E" }]
+    });
+    await act(async () => root.render(
+      <FeatureFlagsProvider><MemoryRouter initialEntries={["/nearby/stops/8455"]}><Routes>
+        <Route path="/nearby" element={<NearbyViewComponent />}>
+          <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+        </Route>
+      </Routes></MemoryRouter></FeatureFlagsProvider>
+    ));
+    expect(container.textContent).toContain("Far stop");
+    expect(container.textContent).toContain("Location unavailable");
+    expect(container.textContent).toContain("Departures");
+  });
 
   it("recreates markers after a full remount without opening Nearby Routes", async () => {
     await render("/nearby/stops");
