@@ -191,10 +191,10 @@ describe("TripPlannerView", () => {
     expect(requestTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "8356", toPlace: "7777" }),
     );
-    const fields = container.querySelectorAll(".transit-planner-stop-select");
-    expect(fields[0].textContent).toContain("8356");
-    expect(fields[1].textContent).toContain("7777");
-    expect(recent.getAttribute("aria-expanded")).toBe("false");
+    const stops = container.querySelectorAll(".transit-planner-stop-summary dd");
+    expect(stops[0].textContent).toContain("8356");
+    expect(stops[1].textContent).toContain("7777");
+    expect(document.activeElement).toBe(container.querySelector("#transit-planner-title + .transit-planner-edit"));
   });
 
   it.each(["malformed", "blocked"])("keeps sidebar planning usable when recent storage is %s", async (failure) => {
@@ -206,6 +206,7 @@ describe("TripPlannerView", () => {
       });
     }
     await render("/nearby/planner?from=8356&to=7777", true);
+    act(() => container.querySelector<HTMLButtonElement>("#transit-planner-title + .transit-planner-edit").click());
     expect(container.textContent).toContain("Recent trips are unavailable on this device.");
     expect(container.textContent).toContain("Choose a trip");
     expect(container.querySelector(".transit-planner-recent")).toBeNull();
@@ -233,7 +234,7 @@ describe("TripPlannerView", () => {
     const legs = Array.from(container.querySelectorAll(".transit-planner-leg"));
     expect(legs.map(leg => leg.querySelector('svg[aria-hidden="true"]').getAttribute("data-icon")))
       .toEqual(["person-walking", "train-tram", "train"]);
-    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip").click());
+    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-results .transit-planner-edit").click());
     await act(async () => options()[1].click());
     const bus = container.querySelector(".transit-planner-leg");
     expect(bus.querySelector("strong").textContent).toContain("Bus");
@@ -255,7 +256,7 @@ describe("TripPlannerView", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(directions.hidden).toBe(true);
 
-    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip").click());
+    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-results .transit-planner-edit").click());
     const secondTrip = container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[1];
     await act(async () => secondTrip.click());
     expect(directions.hidden).toBe(true);
@@ -270,7 +271,7 @@ describe("TripPlannerView", () => {
     await render("/planner?from=8356&to=7777");
 
     const options = () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button");
-    const edit = () => container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip");
+    const edit = () => container.querySelector<HTMLButtonElement>(".transit-planner-results .transit-planner-edit");
     const toggle = Array.from(container.querySelectorAll<HTMLButtonElement>("h3 button"))
       .find(button => button.textContent.trim() === "Choose a trip");
     const panel = document.getElementById(toggle.getAttribute("aria-controls"));
@@ -280,16 +281,17 @@ describe("TripPlannerView", () => {
     expect(container.querySelector(".transit-planner-itinerary-detail")).toBeNull();
     await act(async () => options()[1].click());
     expect(panel.querySelector(".transit-planner-summary").textContent).toContain("55 min");
+    expect(toggle.closest("header")).toBe(edit().closest("header"));
+    expect(edit().getAttribute("aria-label")).toBe("Edit trip");
     expect(document.activeElement).toBe(edit());
     act(() => toggle.click());
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(panel.hidden).toBe(true);
     expect(container.querySelector('ol[aria-label="Itinerary 2 steps"]')).not.toBeNull();
 
-    act(() => toggle.click());
+    act(() => edit().click());
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(panel.hidden).toBe(false);
-    act(() => edit().click());
     expect(options()[1].getAttribute("aria-current")).toBe("true");
     expect(document.activeElement).toBe(options()[1]);
     expect(container.querySelector('ol[aria-label="Itinerary 2 steps"]')).not.toBeNull();
@@ -303,6 +305,13 @@ describe("TripPlannerView", () => {
 
     const toggle = container.querySelector<HTMLButtonElement>("#transit-planner-title button");
     const panel = document.getElementById(toggle.getAttribute("aria-controls"));
+    const edit = container.querySelector<HTMLButtonElement>("#transit-planner-title + .transit-planner-edit");
+    expect(toggle.closest("header")).toBe(edit.closest("header"));
+    expect(edit.getAttribute("aria-label")).toBe("Edit stops");
+    act(() => toggle.click());
+    expect(panel.hidden).toBe(true);
+    act(() => edit.click());
+    expect(document.activeElement).toBe(panel.querySelector("#planner-from"));
     const form = panel.querySelector("form");
     const initialText = form.textContent;
     expect(panel.hidden).toBe(false);
@@ -317,6 +326,47 @@ describe("TripPlannerView", () => {
     expect(panel.hidden).toBe(false);
     expect(panel.querySelector("form").textContent).toBe(initialText);
     expect(requestTrip).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the last successful stop pair and selected trip until an edited search returns trips", async () => {
+    const stops = catalog();
+    stops.stops.push({ ...stops.stops[0], locid: 299, desc: "NE 42nd & Broadway" });
+    loadCatalog.mockResolvedValue(stops);
+    let finishSearch: (response: TripPlannerResponse) => void;
+    requestTrip
+      .mockResolvedValueOnce(itineraryResponse())
+      .mockImplementationOnce(() => new Promise(resolve => { finishSearch = resolve; }))
+      .mockRejectedValueOnce(new Error("network error"))
+      .mockResolvedValueOnce(itineraryResponse());
+    await render("/nearby/planner?from=8356&to=7777", true);
+    const form = () => container.querySelector<HTMLFormElement>("form.transit-planner-form");
+    const details = () => container.querySelector('ol[aria-label="Itinerary 2 steps"]');
+    const submit = () => act(async () => Simulate.submit(form()));
+    act(() => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[1].click());
+    act(() => container.querySelector<HTMLButtonElement>("#transit-planner-title + .transit-planner-edit").click());
+    const destination = container.querySelector<HTMLInputElement>("#planner-to");
+    act(() => {
+      destination.focus();
+      destination.value = "299";
+      Simulate.change(destination);
+    });
+    act(() => Simulate.keyDown(destination, { key: "ArrowDown" }));
+    act(() => Simulate.keyDown(destination, { key: "Enter" }));
+    await submit();
+    expect(requestTrip).toHaveBeenLastCalledWith(expect.objectContaining({ fromPlace: "8356", toPlace: "299" }));
+    expect(container.textContent).toContain("Finding trips");
+    expect(details()).not.toBeNull();
+    expect(container.textContent).toMatch(/Showing results for .*7777/);
+    await act(async () => finishSearch(itineraryResponse({ itineraries: [] })));
+    expect(container.textContent).toContain("No trips were found");
+    expect(details()).not.toBeNull();
+    await submit();
+    expect(container.textContent).toContain("Could not load trip options");
+    expect(details()).not.toBeNull();
+    await submit();
+    expect(container.querySelector(".transit-planner-stop-summary").textContent).toContain("NE 42nd & Broadway (299)");
+    expect(details()).toBeNull();
+    expect(form()).toBeNull();
   });
 
   it("rejects identical stop IDs without making a planner request", async () => {

@@ -353,7 +353,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(Marker).not.toHaveBeenCalled();
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], -1], ["==", ["get", "walk"], false]]);
     const chooseTrip = async (index: number) => {
-      const edit = container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip");
+      const edit = container.querySelector<HTMLButtonElement>(".transit-planner-results .transit-planner-edit");
       if (edit) act(() => edit.click());
       await act(async () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[index].click());
     };
