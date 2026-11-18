@@ -71,6 +71,10 @@ Trip options start unselected. Choose one to see its summary and directions,
 or use **Edit trip** in the header to switch options without clearing the current trip first.
 The collapsible **Directions** section shows mode icons alongside written
 instructions, with dividers between each leg.
+After choosing a trip in Nearby, use **Get directions** at the bottom of the
+sidebar for ordered walking, boarding, and exit steps with TriMet's planned
+times. It does not track location or show live updates. **Back to planning**
+returns to the selected trip.
 In Nearby, hover a leg in the directions or on the map to highlight it in both
 places. Keyboard focus on a direction also highlights its path when available.
 Nearby draws available trip paths together. MAX, streetcar, and FX paths and

@@ -331,6 +331,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
           { mode: "Walk", partial: false, from: { lon: 0.01, lat: 0 }, to: { lon: 0.011, lat: 0.001 } },
           {
             mode: "Bus", partial: false, route: { internalNumber: id, number: String(id), name: `Test route ${id}` },
+            startTime: "11:58 PM", endTime: "12:11 AM", direction: "Eastbound",
             from: { stopId: origin.locid, description: origin.desc, lon: origin.lng, lat: origin.lat },
             to: { stopId: destination.locid, description: destination.desc, lon: destination.lng, lat: destination.lat }
           },
@@ -348,6 +349,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => finishMapLoading());
     expect(setNearbyStops).not.toHaveBeenCalled();
     expect(Marker).not.toHaveBeenCalled();
+    expect(button("Get directions")).toBeUndefined();
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], -1], ["==", ["get", "walk"], false]]);
     const chooseTrip = async (index: number) => {
       const edit = container.querySelector<HTMLButtonElement>(".transit-planner-results .transit-planner-edit");
@@ -355,6 +357,26 @@ describe("Nearby map initialization independently of the sidebar", () => {
       await act(async () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[index].click());
     };
     await chooseTrip(0);
+    const footer = container.querySelector(".transit-nearby-planner-footer");
+    const getDirections = button("Get directions");
+    expect(getDirections.parentElement).toBe(footer);
+    const canvas = container.querySelector(".transit-nearby-map-canvas");
+    act(() => getDirections.click());
+    const journey = container.querySelector('[aria-label="Journey directions"]');
+    expect(document.activeElement).toBe(journey.querySelector("h2"));
+    expect(journey.textContent).toContain("Planned times from TriMet, not live updates.");
+    const steps = journey.querySelectorAll("ol > li");
+    expect(steps[0].textContent).toContain("Start walking");
+    expect(steps[0].textContent).toContain("Time unavailable");
+    expect(steps[1].textContent).toContain("Board atStop 101 (101)11:58 PM");
+    expect(steps[1].textContent).toContain("Get off atStop 202 (202)12:11 AM");
+    expect(steps[1].textContent).toContain("Direction: Eastbound");
+    expect(container.querySelector(".transit-nearby-map-canvas")).toBe(canvas);
+    expect(map.removeSource).not.toHaveBeenCalled();
+    act(() => button("Back to planning").click());
+    expect(container.querySelector('[aria-label="Journey directions"]')).toBeNull();
+    expect(document.activeElement).toBe(button("Get directions"));
+    expect(container.querySelector(".transit-planner-summary").textContent).toContain("Option 1");
     const iconColors = () => Array.from(container.querySelectorAll<SVGElement>(".transit-planner-leg-icon"), icon => icon.style.color);
     expect(container.querySelector(".transit-planner-leg-icon--walk")).not.toBeNull();
     expect(iconColors()[1]).toBe("rgb(21, 89, 209)");
@@ -443,6 +465,12 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["all", ["!=", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
     await chooseTrip(2);
+    act(() => button("Get directions").click());
+    const transferSteps = container.querySelectorAll('[aria-label="Journey steps"] li');
+    expect(transferSteps).toHaveLength(3);
+    expect(transferSteps[1].textContent).toContain("Get off atStop 202 (202)");
+    expect(transferSteps[2].textContent).toContain("Board atStop 202 (202)");
+    act(() => button("Back to planning").click());
     const transferMarker: HTMLButtonElement = Marker.mock.calls.slice(-2)[0][0].element;
     transferMarker.click();
     const transferPopup = document.getElementById(transferMarker.getAttribute("aria-controls"));

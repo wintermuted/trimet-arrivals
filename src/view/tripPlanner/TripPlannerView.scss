@@ -260,6 +260,63 @@
   font-weight: 600;
 }
 
+.transit-journey-header {
+  margin-block-end: var(--wm-space-3);
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  p {
+    margin: var(--wm-space-1) 0 0;
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+  }
+}
+
+.transit-journey-steps {
+  margin: 0;
+  padding-inline-start: 1.5em;
+
+  > li::marker {
+    color: var(--wm-color-text-muted);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--wm-space-1);
+    margin: var(--wm-space-3) 0 0;
+  }
+
+  dt {
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  dd {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--wm-space-1) var(--wm-space-3);
+    margin: 0 0 var(--wm-space-2);
+    overflow-wrap: anywhere;
+  }
+
+  dd span {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 .transit-planner-partial {
   padding: var(--wm-space-3);
   border: 1px solid var(--wm-color-border);
