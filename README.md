@@ -62,7 +62,8 @@ TriMet catalog.
 The searchable **Recent trips** dropdown in the sidebar reopens up to five successful stop pairs
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
-Trip directions show mode icons alongside the written instructions.
+The collapsible **Directions** section shows mode icons alongside written
+instructions, with dividers between each leg.
 Nearby draws available trip paths together. MAX, streetcar, and FX legs use
 their published line colors; regular bus legs stay blue. The selected trip
 has a thicker stroke and a light outline, while alternatives are muted.

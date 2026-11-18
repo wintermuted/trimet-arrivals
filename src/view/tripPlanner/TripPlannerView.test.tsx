@@ -237,6 +237,31 @@ describe("TripPlannerView", () => {
     expect(bus.querySelector('svg[aria-hidden="true"]').getAttribute("data-icon")).toBe("bus");
   });
 
+  it("keeps directions collapsed when the selected itinerary changes", async () => {
+    await render("/planner?from=8356&to=7777");
+
+    const toggle = container.querySelector<HTMLButtonElement>("h3 button[aria-expanded]");
+    const directions = document.getElementById(toggle.getAttribute("aria-controls"));
+    expect(toggle.textContent.trim()).toBe("Directions");
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(directions.hidden).toBe(false);
+    expect(directions.querySelectorAll("ol > li.transit-planner-leg")).toHaveLength(3);
+
+    act(() => toggle.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(directions.hidden).toBe(true);
+
+    const secondTrip = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]')[1];
+    await act(async () => secondTrip.click());
+    expect(secondTrip.checked).toBe(true);
+    expect(directions.hidden).toBe(true);
+
+    act(() => toggle.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(directions.hidden).toBe(false);
+    expect(directions.querySelector('ol[aria-label="Itinerary 2 steps"]').textContent).toContain("Burnside/Stark");
+  });
+
   it("rejects identical stop IDs without making a planner request", async () => {
     await render("/planner?from=7777&to=7777");
 
