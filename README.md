@@ -73,6 +73,12 @@ Washington Square Transit Center (the mall's transit stop, not its entrance),
 Washington Park MAX Station for the Oregon Zoo, and the airport MAX station.
 The menus show a sample from each group; type a name or ID to search the full
 TriMet catalog.
+Assign a bookmarked stop to **Home** or **Work** on the Bookmarks page to put
+it in **Saved stops** in both planners. Optional bookmarked commute routes
+appear alongside those stops in the homepage's Bookmarks preview. Replace a
+shortcut by choosing another bookmark, or clear it with **Not set**. This
+feature saves public transit IDs in your browser, not addresses or device
+coordinates.
 The searchable **Recent trips** dropdown in the sidebar reopens up to five successful stop pairs
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.

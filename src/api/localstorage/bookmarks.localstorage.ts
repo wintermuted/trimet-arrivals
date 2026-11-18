@@ -1,5 +1,6 @@
 import { omit } from "lodash";
 import { StopLocation } from "../trimet/interfaces/types";
+import { removeShortcutsForBookmark } from "./bookmarkShortcuts";
 import { fetchLocalStorageItemByKey, updateStoredItemByKey } from "./util";
 
 export const BOOKMARKS = "BOOKMARKS";
@@ -30,4 +31,5 @@ export function removeStoredBookmark(locationId: number) {
   const updatedBookmarks = omit(bookmarks, locationId);
 
   updateBookmarks(updatedBookmarks);
+  removeShortcutsForBookmark("stop", locationId);
 }

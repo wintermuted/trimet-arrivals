@@ -4,6 +4,7 @@ import { StopLocation } from "../../../api/trimet/interfaces/types";
 import BookmarkSectionsContainer from "../container/BookmarkSectionsContainer";
 import BookmarkedStops from "./BookmarkedStops";
 import BookmarkedRoutesContainer from "../container/BookmarkedRoutesContainer";
+import BookmarkShortcutsEditor from "./BookmarkShortcutsEditor";
 import "./BookmarksViewComponent.css";
 
 interface Props {
@@ -25,6 +26,8 @@ export default function BookmarksViewComponent(props: Props) {
           <BookmarkedRoutesContainer />
         </div>
         <div className="transit-column">
+          <BookmarkShortcutsEditor />
+          <br />
           <BookmarkSectionsContainer />
         </div>
       </div>

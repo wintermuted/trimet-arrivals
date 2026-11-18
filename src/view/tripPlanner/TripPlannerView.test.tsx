@@ -13,6 +13,7 @@ import {
   TripPlannerResponse,
 } from "../../api/trimet/tripplanner";
 import TripPlannerView from "./TripPlannerView";
+import type { SavedPlannerStop } from "./PlannerStopSelect";
 
 jest.mock("../../api/trimet/stopCatalog", () => {
   const actual = jest.requireActual("../../api/trimet/stopCatalog");
@@ -165,7 +166,7 @@ describe("TripPlannerView", () => {
     container.remove();
   });
 
-  async function render(path: string, inSidebar = false) {
+  async function render(path: string, inSidebar = false, savedStops?: SavedPlannerStop[]) {
     function SearchLocation() {
       return <output data-test-id="query">{useLocation().search}</output>;
     }
@@ -174,7 +175,7 @@ describe("TripPlannerView", () => {
         <ThemeProvider>
           <MemoryRouter initialEntries={[path]}>
             <SearchLocation />
-            <TripPlannerView inSidebar={inSidebar} />
+            <TripPlannerView inSidebar={inSidebar} savedStops={savedStops} />
           </MemoryRouter>
         </ThemeProvider>,
       );
@@ -586,6 +587,7 @@ describe("TripPlannerView", () => {
         input.value = "Washington  Square Mall";
         Simulate.change(input);
       });
+
       const menu = document.getElementById(input.getAttribute("aria-controls"));
       expect(menu.textContent).toContain("Common places");
       expect(menu.querySelectorAll('[role="option"]')).toHaveLength(1);
@@ -600,6 +602,28 @@ describe("TripPlannerView", () => {
 
     await act(async () => Simulate.submit(container.querySelector("form")));
     expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({ fromPlace: "8356", toPlace: "9650" }));
+  });
+
+  it("suggests an assigned stop by role in both pickers without duplicating catalog entries", async () => {
+    await render("/planner", false, [
+      { id: 8356, label: "Home stop" },
+      { id: 8356, label: "Work stop" },
+      { id: 999999, label: "Missing stop" }
+    ]);
+
+    for (const id of ["planner-from", "planner-to"]) {
+      const input = container.querySelector<HTMLInputElement>(`#${id}`);
+      act(() => {
+        input.focus();
+        input.value = "home";
+        Simulate.change(input);
+      });
+      const menu = document.getElementById(input.getAttribute("aria-controls"));
+      expect(menu.textContent).toContain("Saved stops");
+      expect(menu.textContent).toContain("Home stop / Work stop:");
+      expect(menu.querySelectorAll('[role="option"]')).toHaveLength(1);
+      act(() => input.blur());
+    }
   });
 
   it("groups both fields by published street prefixes and keeps other stops searchable", async () => {

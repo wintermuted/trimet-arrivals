@@ -9,7 +9,8 @@ import { getSystemAlerts } from "../../api/trimet/alerts";
 import { getStopCatalog, StopCatalog } from "../../api/trimet/stopCatalog";
 import { planTrip } from "../../api/trimet/tripplanner";
 import reducers from "../../store/reducers";
-import TripPlannerView from "../tripPlanner/TripPlannerView";
+import { ConnectedTripPlannerView } from "../tripPlanner/TripPlannerView";
+import { BOOKMARK_SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
 import SearchHome from "./SearchHome";
 
 jest.mock("../nearby/util/mapbox/initializeMap", () => ({
@@ -88,7 +89,7 @@ describe("Search homepage", () => {
                 path="/planner"
                 element={
                   <>
-                    <TripPlannerView />
+                    <ConnectedTripPlannerView />
                     <Link to="/">Return home</Link>
                   </>
                 }
@@ -176,13 +177,18 @@ describe("Search homepage", () => {
         bookmarks: { 54: { route: 54, desc: "My route", type: "B" } },
       },
     });
+    localStorage.setItem(BOOKMARK_SHORTCUTS, JSON.stringify({
+      home_location: 200, work_location: 999, home_commute: 54
+    }));
     await render(store);
     expect(
       container.querySelector('a[href="/stop/200"]').textContent,
-    ).toContain("My stop");
+    ).toContain("Home stop: My stop");
     expect(
       container.querySelector('a[href="/lines/54"]').textContent,
-    ).toContain("My route");
+    ).toContain("Home commute: My route");
+    expect(container.querySelectorAll('a[href="/stop/200"]')).toHaveLength(1);
+    expect(container.querySelector('a[href="/stop/999"]')).toBeNull();
     expect(container.querySelector(".transit-search-map")).toBeNull();
     await click("button[aria-expanded=false]");
     expect(container.textContent).toContain("The map preview is unavailable");

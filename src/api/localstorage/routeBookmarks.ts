@@ -1,4 +1,5 @@
 import { TrimetRoute } from "../trimet/interfaces/routes";
+import { removeShortcutsForBookmark } from "./bookmarkShortcuts";
 
 export const ROUTE_BOOKMARKS = "ROUTE_BOOKMARKS_V1";
 const ROUTE_BOOKMARKS_VERSION = 1;
@@ -98,5 +99,6 @@ export function removeStoredRouteBookmark(routeId: number): RouteBookmarks {
   const routes = readStoredRouteBookmarks();
   delete routes[routeId];
   writeRouteBookmarks(routes);
+  removeShortcutsForBookmark("route", routeId);
   return routes;
 }

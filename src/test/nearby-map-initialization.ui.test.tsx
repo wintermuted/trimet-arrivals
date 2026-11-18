@@ -207,7 +207,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
           <MemoryRouter initialEntries={[path]}>
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
-                <Route path="planner" element={<NearbyTripPlannerComponent />} />
+                <Route path="planner" element={
+                  <Provider store={createStore(reducers)}>
+                    <NearbyTripPlannerComponent />
+                  </Provider>
+                } />
                 <Route path="stops/:id" element={<StopDetailWithStore />} />
                 <Route path="*" element={<p>Sidebar ready</p>} />
               </Route>
