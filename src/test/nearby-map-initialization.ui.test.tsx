@@ -258,6 +258,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     });
     const branded = {
       100: { desc: "MAX Blue Line", type: "R", routeColor: "1359AE" },
+      190: { desc: "MAX Yellow Line", type: "R", routeColor: "FFC52F" },
+      290: { desc: "MAX Orange Line", type: "R", routeColor: "D05F27" },
       194: { desc: "Portland Streetcar - A Loop", type: "R", routeColor: "D91965" },
       2: { desc: "FX2-Division", type: "B", routeColor: "61A60E" }
     };
@@ -284,7 +286,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     });
     jest.mocked(planTrip).mockResolvedValue({
       success: true, partial: false,
-      itineraries: [42, 100, 45, 194, 2].map((id, index) => ({
+      itineraries: [42, 100, 45, 194, 2, 190, 290].map((id, index) => ({
         id: String(id), duration: 15 + index, partial: false,
         legs: [
           { mode: "Walk", partial: false, from: { lon: 0.01, lat: 0 }, to: { lon: 0.011, lat: 0.001 } },
@@ -315,7 +317,9 @@ describe("Nearby map initialization independently of the sidebar", () => {
           }),
           expect.objectContaining({ properties: { trip: 1, walk: false, color: "#1359AE" } }),
           expect.objectContaining({ properties: { trip: 3, walk: false, color: "#D91965" } }),
-          expect.objectContaining({ properties: { trip: 4, walk: false, color: "#61A60E" } })
+          expect.objectContaining({ properties: { trip: 4, walk: false, color: "#61A60E" } }),
+          expect.objectContaining({ properties: { trip: 5, walk: false, color: "#FFC52F" } }),
+          expect.objectContaining({ properties: { trip: 6, walk: false, color: "#D05F27" } })
         ]
       })
     }));
