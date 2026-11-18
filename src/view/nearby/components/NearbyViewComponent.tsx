@@ -335,21 +335,21 @@ export default function NearbyViewComponent() {
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeStopLocationLayers(mapRef.current);
-    if (stopLocations && nearbyRouteIds) {
+    if (!isPlanner && stopLocations && nearbyRouteIds) {
       setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     }
-  }, [isMapLoaded, nearbyStops, nearbyRoutes]);
+  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeCurrentLocationMarkers(mapRef.current);
-    if (userLocation) {
+    if (!isPlanner && userLocation) {
       setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
     }
-  }, [isMapLoaded, userLocation, radiusSize]);
+  }, [isMapLoaded, userLocation, radiusSize, isPlanner]);
 
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || !userLocation || searchMode !== "pin") return;
+    if (!isMapLoaded || !mapRef.current || isPlanner || !userLocation || searchMode !== "pin") return;
     const marker = new mapboxgl.Marker({ draggable: true })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
@@ -359,7 +359,7 @@ export default function NearbyViewComponent() {
     };
     marker.on("dragend", onDragEnd);
     return () => { marker.off("dragend", onDragEnd); marker.remove(); };
-  }, [isMapLoaded, userLocation, searchMode]);
+  }, [isMapLoaded, userLocation, searchMode, isPlanner]);
 
   function initializeMapboxMap() {
     mapRef.current = initializeMap(mapCenter[0], mapCenter[1], mapContainerRef, zoom);

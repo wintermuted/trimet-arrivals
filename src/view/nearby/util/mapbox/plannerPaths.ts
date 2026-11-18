@@ -138,15 +138,11 @@ export async function loadPlannerPaths(
         return undefined;
       }
     }));
-    return {
-      total: legs.length,
-      hasWalk: itinerary.legs.some(leg => leg.mode?.toLowerCase() === "walk"),
-      paths: legs.filter((path): path is Feature<Path, TripProperties> => Boolean(path))
-    };
+    return legs.filter((path): path is Feature<Path, TripProperties> => Boolean(path));
   }));
   const data: FeatureCollection<Path, TripProperties> = {
     type: "FeatureCollection",
-    features: coverage.flatMap(trip => trip.paths)
+    features: coverage.flat()
   };
-  return { data, coverage };
+  return { data };
 }

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { LngLatBounds, Map as MapboxMap } from "mapbox-gl";
+import React, { useEffect, useMemo, useState } from "react";
+import { LngLatBounds, Map as MapboxMap, Marker } from "mapbox-gl";
 import { TripPlannerItinerary } from "../../../api/trimet/tripplanner";
 import { loadPlannerPaths } from "../util/mapbox/plannerPaths";
 
@@ -9,6 +9,26 @@ const CASING = `${SOURCE}-selected-casing`;
 const ACTIVE = `${SOURCE}-selected`;
 const OTHER_WALK = `${OTHER}-walk`;
 const ACTIVE_WALK = `${ACTIVE}-walk`;
+
+function itineraryStops(itinerary: TripPlannerItinerary) {
+  const stops = new Map<string, { point: [number, number]; labels: Set<string>; board: boolean; exit: boolean }>();
+  for (const leg of itinerary.legs) {
+    if (leg.mode?.toLowerCase() === "walk") continue;
+    for (const [action, stop] of [["board", leg.from], ["exit", leg.to]] as const) {
+      if (!stop?.stopId || !Number.isFinite(stop.lon) || !Number.isFinite(stop.lat) ||
+          Math.abs(stop.lon) > 180 || Math.abs(stop.lat) > 90) continue;
+      const key = String(stop.stopId);
+      if (!stops.has(key)) {
+        stops.set(key, { point: [stop.lon, stop.lat], labels: new Set(), board: false, exit: false });
+      }
+      const marker = stops.get(key);
+      marker[action] = true;
+      const route = leg.route?.name || leg.route?.number || leg.mode;
+      marker.labels.add(`${action === "board" ? "Board" : "Get off"}${route ? `: ${route} at ` : " at "}${stop.description || `stop ${stop.stopId}`}`);
+    }
+  }
+  return [...stops.values()];
+}
 
 export default function NearbyPlannerPaths({ map, itineraries, selected, walkingEnabled }: {
   map?: MapboxMap;
@@ -27,6 +47,23 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
   const [mapError, setMapError] = useState(false);
   const mapSelection = React.useRef(selected);
   const applySelection = React.useRef<() => void>();
+  const stopsByTrip = useMemo(() => itineraries.map(itineraryStops), [itineraries]);
+  const selectedStops = stopsByTrip[selected];
+
+  useEffect(() => {
+    if (!map || !selectedStops?.length) return;
+    const markers = selectedStops.map(stop => {
+      const label = [...stop.labels].join("; ");
+      const element = document.createElement("div");
+      element.className = "transit-planner-stop-marker";
+      element.setAttribute("role", "img");
+      element.setAttribute("aria-label", label);
+      element.title = label;
+      element.textContent = stop.board && stop.exit ? "↕" : stop.board ? "↑" : "↓";
+      return new Marker({ element }).setLngLat(stop.point).addTo(map);
+    });
+    return () => markers.forEach(marker => marker.remove());
+  }, [map, selectedStops]);
 
   useEffect(() => {
     mapSelection.current = selected;
@@ -44,7 +81,6 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
   useEffect(() => {
     if (!map || !result?.data.features.length) return;
     const { data } = result;
-    let fitted = false;
     function installLayers() {
       if (map.getSource(SOURCE)) return;
       try {
@@ -71,17 +107,6 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
           paint: { "line-color": "#1559d1", "line-width": 4, "line-dasharray": [1, 2], "line-emissive-strength": 1 }
         });
         updateSelection();
-        if (!fitted) {
-          const bounds = new LngLatBounds();
-          data.features.forEach(({ geometry }) => {
-            const lines = geometry.type === "LineString" ? [geometry.coordinates] : geometry.coordinates;
-            lines.forEach(line => line.forEach(([lng, lat]) => bounds.extend([lng, lat])));
-          });
-          const { clientWidth, clientHeight } = map.getContainer();
-          const padding = Math.floor(Math.min(44, clientWidth / 6, clientHeight / 6));
-          map.fitBounds(bounds, { padding, maxZoom: 16, duration: 0 });
-          fitted = true;
-        }
         setMapError(false);
       } catch {
         removeLayers();
@@ -118,26 +143,20 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
     };
   }, [map, result]);
 
-  let message: string;
-  if (!result) message = "Loading trip paths…";
-  else if (!result.data.features.length) message = "Trip paths are unavailable for these options.";
-  else if (mapError) message = "Trip paths could not be displayed on the map.";
-  else if (!map) message = "Waiting for the map to load…";
-  else {
-    const trip = result.coverage[selected];
-    const incomplete = result.coverage.some(({ paths, total }) => !total || paths.length < total);
-    message = !trip?.paths.length
-      ? "No path is available for the selected trip. Other available paths are shown in gray."
-      : `Selected trip in blue${itineraries.length > 1 ? "; other available paths in gray" : ""}.${incomplete ?
-        " Some legs aren't shown because their paths are unavailable." : ""}`;
-  }
-  const hasWalk = result?.coverage.some(trip => trip.hasWalk);
-  const showsWalk = result?.data.features.some(path => path.properties.walk) && map && !mapError;
-  return (
-    <p className="transit-planner-partial" role="status">
-      {message}
-      {showsWalk && " Dashed lines show walking paths estimated by Mapbox."}
-      {hasWalk && !walkingEnabled && " To show walking paths, enable walking estimates in Feature flags."}
-    </p>
-  );
+  useEffect(() => {
+    if (!map || !result) return;
+    const bounds = new LngLatBounds();
+    const points = stopsByTrip.flatMap(stops => stops.map(stop => stop.point));
+    result.data.features.forEach(({ geometry }) => {
+      const lines = geometry.type === "LineString" ? [geometry.coordinates] : geometry.coordinates;
+      lines.forEach(line => line.forEach(([lng, lat]) => points.push([lng, lat])));
+    });
+    if (!points.length) return;
+    points.forEach(point => bounds.extend(point));
+    const { clientWidth, clientHeight } = map.getContainer();
+    const padding = Math.floor(Math.min(44, clientWidth / 6, clientHeight / 6));
+    map.fitBounds(bounds, { padding, maxZoom: 16, duration: 0 });
+  }, [map, result, stopsByTrip]);
+
+  return mapError ? <small role="alert">Trip paths could not be displayed.</small> : null;
 }

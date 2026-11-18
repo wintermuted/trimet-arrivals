@@ -227,6 +227,19 @@
   width: 100%;
 }
 
+.transit-planner-stop-marker {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid #1559d1;
+  border-radius: 50%;
+  background: #f8fbff;
+  color: #1559d1;
+  font-weight: 700;
+  line-height: 1;
+}
+
 @media (max-width: 767px) {
   .transit-nearby-layout {
     grid-template-columns: minmax(0, 1fr);

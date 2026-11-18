@@ -58,10 +58,12 @@ stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
 Nearby draws available trip paths together: the selected option is blue and
 alternatives are gray. The map uses published transit shapes matched to the
-itinerary's boarding and exit stops. With **Walking estimates** enabled,
+itinerary's boarding and exit stops. Only boarding and exit stops for the
+selected option are marked while planning; Nearby markers return in Explore.
+With **Walking estimates** enabled,
 Mapbox estimates the walking paths from TriMet's leg endpoints, including
-transfers. Dashed lines distinguish these paths from transit, and the sidebar
-calls out missing legs rather than drawing a straight-line substitute.
+transfers. Dashed lines distinguish these paths from transit. Legs without
+usable path data are omitted rather than replaced with straight lines.
 Detail headers use an accessible back-caret link before the title rather than an
 outlined Back button.
 Departure rows support mouse and keyboard selection, with a highlight and caret
