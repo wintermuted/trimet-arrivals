@@ -29,8 +29,10 @@
   margin-block: var(--wm-space-2);
 }
 
-.transit-planner-location-field {
+.transit-planner-endpoint-row {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
   gap: var(--wm-space-2);
 
   .wm-input {
@@ -40,18 +42,25 @@
   }
 }
 
+.transit-planner-location-field {
+  display: grid;
+  justify-items: start;
+  gap: var(--wm-space-2);
+  margin-block-start: var(--wm-space-2);
+}
+
 .transit-planner-location-toggle {
   margin-block-start: var(--wm-space-2);
 }
 
-.transit-planner-endpoint-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--wm-space-2);
+.transit-planner-nearest-stop {
+  inline-size: 44px;
+  padding-inline: 0;
 }
 
-.transit-planner-endpoint-actions .wm-btn,
-.transit-planner-location-toggle {
+.transit-planner-nearest-stop,
+.transit-planner-mode-button,
+.transit-planner-swap {
   min-block-size: 44px;
 }
 
