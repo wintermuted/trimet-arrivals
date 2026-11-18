@@ -1,5 +1,7 @@
 import { Feature, FeatureCollection, LineString, MultiLineString, Position } from "geojson";
 import { getWalkingPath } from "../../../../api/mapbox/walking";
+import { ROUTE_DISPLAY } from "../../../../api/trimet/constants";
+import { TrimetRoute } from "../../../../api/trimet/interfaces/routes";
 import { getRouteById } from "../../../../api/trimet/routeConfig";
 import { TripPlannerItinerary } from "../../../../api/trimet/tripplanner";
 import { getDistance } from "../turfUtils";
@@ -7,8 +9,15 @@ import { getRouteGeometry } from "./routeLines";
 import { getSelectedRouteSegment } from "./routeSegment";
 
 type Path = LineString | MultiLineString;
-type TripProperties = { trip: number; walk: boolean };
+type TripProperties = { trip: number; walk: boolean; color?: string };
 const MAX_SNAP_MILES = 0.075;
+
+function legColor(route: TrimetRoute) {
+  const branded = (route.type === "R" && Boolean(ROUTE_DISPLAY[route.route])) ||
+    /^FX\s*\d+\b/i.test(route.desc);
+  const hex = route.routeColor?.replace(/^#/, "");
+  return branded && /^[\da-f]{6}$/i.test(hex) ? `#${hex}` : "#1559d1";
+}
 
 function connectedShape(lines: Position[][], origin: Position, destination: Position) {
   // The bundled shapes may contain repeated and unordered segments from many trips.
@@ -91,7 +100,7 @@ export async function loadPlannerPaths(
             return { ...path.feature, properties: { trip, walk: true } };
           }
         } catch {
-          // Keep the remaining legs and report partial coverage in the sidebar.
+          // Keep the remaining legs when walking routing is unavailable.
         }
         return;
       }
@@ -107,11 +116,12 @@ export async function loadPlannerPaths(
             const destinations = (direction.stop ?? []).filter(stop => stop.locid === to.stopId);
             return origins.flatMap(origin => destinations
               .filter(destination => origin.seq < destination.seq)
-              .map(destination => ({ direction: direction.dir, origin, destination })));
+              .map(destination => ({ direction: direction.dir, origin, destination, routeConfig })));
           })
         );
         if (matches.length !== 1 || signal.aborted) return;
-        const { direction, origin, destination } = matches[0];
+        const { direction, origin, destination, routeConfig } = matches[0];
+        const properties = { trip, walk: false, color: legColor(routeConfig) };
         const key = `${id}/${direction}`;
         if (!shapes.has(key)) shapes.set(key, getRouteGeometry(String(id), direction, signal));
         const shape = await shapes.get(key);
@@ -120,7 +130,7 @@ export async function loadPlannerPaths(
         if (shape.geometry.type === "MultiLineString") {
           const coordinates = connectedShape(shape.geometry.coordinates, originPoint, destinationPoint);
           if (!coordinates) return;
-          return { type: "Feature", geometry: { type: "LineString", coordinates }, properties: { trip, walk: false } };
+          return { type: "Feature", geometry: { type: "LineString", coordinates }, properties };
         }
         const { geometry } = getSelectedRouteSegment(shape, origin, destination);
         if (geometry.type !== "LineString") return;
@@ -132,9 +142,9 @@ export async function loadPlannerPaths(
           getDistance(b, destinationPoint) <= MAX_SNAP_MILES;
         if ((!matchesEndpoints(start, end) && !matchesEndpoints(end, start)) ||
             getDistance(start, end) === 0) return;
-        return { type: "Feature", geometry, properties: { trip, walk: false } };
+        return { type: "Feature", geometry, properties };
       } catch {
-        // A missing or unreadable shape contributes to the visible coverage notice.
+        // A missing or unreadable shape does not prevent other legs from rendering.
         return undefined;
       }
     }));

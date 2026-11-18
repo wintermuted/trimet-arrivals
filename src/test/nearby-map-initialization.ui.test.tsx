@@ -256,9 +256,15 @@ describe("Nearby map initialization independently of the sidebar", () => {
       incompleteRouteCount: 0, incompleteDirectionCount: 0,
       incompleteRouteNames: [], invalidStopCount: 0,
     });
+    const branded = {
+      100: { desc: "MAX Blue Line", type: "R", routeColor: "1359AE" },
+      194: { desc: "Portland Streetcar - A Loop", type: "R", routeColor: "D91965" },
+      2: { desc: "FX2-Division", type: "B", routeColor: "61A60E" }
+    };
     jest.mocked(getRouteById).mockImplementation(async id => ({
       route: [{
-        id, route: id, desc: "Test route", type: "bus", routeColor: "", routeSortOrder: id,
+        id, route: id, desc: "Test route", type: "B", routeColor: "4679AA", routeSortOrder: id,
+        ...branded[id],
         dir: [{ dir: 0, desc: "Eastbound", stop: [origin, destination] }]
       }]
     }));
@@ -278,7 +284,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     });
     jest.mocked(planTrip).mockResolvedValue({
       success: true, partial: false,
-      itineraries: [42, 43, 45].map((id, index) => ({
+      itineraries: [42, 100, 45, 194, 2].map((id, index) => ({
         id: String(id), duration: 15 + index, partial: false,
         legs: [
           { mode: "Walk", partial: false, from: { lon: 0.01, lat: 0 }, to: { lon: 0.011, lat: 0.001 } },
@@ -304,12 +310,18 @@ describe("Nearby map initialization independently of the sidebar", () => {
       data: expect.objectContaining({
         features: [
           expect.objectContaining({
-            properties: { trip: 0, walk: false },
+            properties: { trip: 0, walk: false, color: "#1559d1" },
             geometry: { type: "LineString", coordinates: [[0, 0], [0.005, 0.001], [0.01, 0]] }
           }),
-          expect.objectContaining({ properties: { trip: 1, walk: false } })
+          expect.objectContaining({ properties: { trip: 1, walk: false, color: "#1359AE" } }),
+          expect.objectContaining({ properties: { trip: 3, walk: false, color: "#D91965" } }),
+          expect.objectContaining({ properties: { trip: 4, walk: false, color: "#61A60E" } })
         ]
       })
+    }));
+    expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
+      id: "planner-itineraries-selected",
+      paint: expect.objectContaining({ "line-color": ["get", "color"], "line-width": 5 })
     }));
     expect(map.fitBounds).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ padding: 38 }));
     expect(container.querySelector("p.transit-planner-partial")).toBeNull();
@@ -317,8 +329,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => choices[1].click());
     expect(marker.remove).toHaveBeenCalledTimes(2);
     expect(Marker.mock.calls.slice(-2).map(([{ element }]) => element.getAttribute("aria-label"))).toEqual([
-      "Board: Test route 43 at Stop 101",
-      "Get off: Test route 43 at Stop 202"
+      "Board: Test route 100 at Stop 101",
+      "Get off: Test route 100 at Stop 202"
     ]);
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["all", ["!=", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);

@@ -88,7 +88,7 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
         const layout = { "line-cap": "round", "line-join": "round" } as const;
         map.addLayer({
           id: OTHER, source: SOURCE, type: "line", slot: "top", layout,
-          paint: { "line-color": "#667b92", "line-width": 3.5, "line-opacity": 0.85, "line-emissive-strength": 1 }
+          paint: { "line-color": ["get", "color"], "line-width": 3.5, "line-opacity": 0.6, "line-emissive-strength": 1 }
         });
         map.addLayer({
           id: OTHER_WALK, source: SOURCE, type: "line", slot: "top", layout,
@@ -100,7 +100,7 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
         });
         map.addLayer({
           id: ACTIVE, source: SOURCE, type: "line", slot: "top", layout,
-          paint: { "line-color": "#1559d1", "line-width": 5, "line-emissive-strength": 1 }
+          paint: { "line-color": ["get", "color"], "line-width": 5, "line-emissive-strength": 1 }
         });
         map.addLayer({
           id: ACTIVE_WALK, source: SOURCE, type: "line", slot: "top", layout,

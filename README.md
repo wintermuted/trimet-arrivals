@@ -56,8 +56,10 @@ support `from` and `to` query parameters.
 **Recent trips** in the sidebar reopens up to five successful stop pairs
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
-Nearby draws available trip paths together: the selected option is blue and
-alternatives are gray. The map uses published transit shapes matched to the
+Nearby draws available trip paths together. MAX, streetcar, and FX legs use
+their published line colors; regular bus legs stay blue. The selected trip
+has a thicker stroke and a light outline, while alternatives are muted.
+The map uses published transit shapes matched to the
 itinerary's boarding and exit stops. Only boarding and exit stops for the
 selected option are marked while planning; Nearby markers return in Explore.
 With **Walking estimates** enabled,
