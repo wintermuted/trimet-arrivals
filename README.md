@@ -86,7 +86,8 @@ or **Choose a trip** to hide the options without changing the selected trip.
 Trip options start unselected. Choose one to see its summary and directions,
 or use **Edit trip** in the header to switch options without clearing the current trip first.
 The collapsible **Directions** section shows mode icons alongside written
-instructions, with dividers between each leg.
+instructions, with dividers between each leg and a dotted line connecting each
+leg's start circle and destination pin.
 After choosing a trip in Nearby, use **Get directions** at the bottom of the
 sidebar for ordered walking, boarding, and exit steps with TriMet's planned
 times. It does not track location or show live updates. **Back to planning**

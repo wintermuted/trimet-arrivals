@@ -180,7 +180,7 @@
   }
 }
 
-.transit-planner--sidebar .transit-planner-endpoint-pair {
+.transit-planner-endpoint-pair--rail {
   --endpoint-rail-width: 1.75rem;
   --endpoint-row-gap: var(--wm-space-2);
   grid-template-columns: var(--endpoint-rail-width) minmax(0, 1fr);
@@ -203,7 +203,7 @@
   }
 }
 
-.transit-planner--sidebar .transit-planner-endpoint-pair--editing {
+.transit-planner-endpoint-pair--rail.transit-planner-endpoint-pair--editing {
   --endpoint-row-gap: var(--wm-space-3);
 }
 
@@ -335,13 +335,9 @@
   }
 
   .transit-planner-leg-stops {
-    display: grid;
+    --endpoint-rail-width: 1.5rem;
     font-size: 0.875rem;
     line-height: 1.4;
-
-    [aria-hidden] {
-      color: var(--wm-color-text-muted);
-    }
   }
 
   .transit-planner-leg-time,

@@ -330,10 +330,13 @@ function ItineraryDetails({
                   <strong>{legTitle(leg)}</strong>
                   {leg.direction && <span> · {leg.direction}</span>}
                 </div>
-                <p className="transit-planner-leg-stops">
-                  <span>{formatStop(leg.from)}</span>{" "}
-                  <span aria-hidden="true">↓</span>{" "}
-                  <span>{formatStop(leg.to)}</span>
+                <p className="transit-planner-leg-stops transit-planner-endpoint-pair transit-planner-endpoint-pair--rail">
+                  <span className="transit-planner-endpoint">
+                    <EndpointMarker field="from" />{formatStop(leg.from)}
+                  </span>{" "}
+                  <span className="transit-planner-endpoint">
+                    <EndpointMarker field="to" />{formatStop(leg.to)}
+                  </span>
                 </p>
                 {(leg.startTime || leg.endTime) && (
                   <p className="transit-planner-leg-time">
@@ -853,7 +856,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         },
       } : undefined}>
         {stopSummary ? (
-            <dl className="transit-planner-stop-summary transit-planner-endpoint-pair">
+            <dl className={`transit-planner-stop-summary transit-planner-endpoint-pair${inSidebar ? " transit-planner-endpoint-pair--rail" : ""}`}>
               <div className="transit-planner-endpoint">
                 <dt>{inSidebar && <EndpointMarker field="from" />}{stopSummary.from.kind === "stop" ? "Boarding stop" : "Origin"}</dt>
                 <dd>{endpointLabel(stopSummary.from, stopSummary.response.from)}</dd>
@@ -923,7 +926,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         )}
 
         <form className="transit-planner-form" onSubmit={submit}>
-          <div className="transit-planner-endpoint-pair transit-planner-endpoint-pair--editing">
+          <div className={`transit-planner-endpoint-pair transit-planner-endpoint-pair--editing${inSidebar ? " transit-planner-endpoint-pair--rail" : ""}`}>
             <div className="transit-planner-endpoint">
               {inSidebar && <EndpointMarker field="from" />}
               {renderStopField("from")}
