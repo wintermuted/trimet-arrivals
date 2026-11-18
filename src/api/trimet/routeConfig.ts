@@ -26,10 +26,10 @@ function getSubsequentRouteStopsUrl(
   return `${ROUTE_BASE_URL}json/true/route/${id}/dir/${direction}/stops/true/startSeq/${locId}/${API}`;
 }
 
-export async function getRouteById(id: number): Promise<RouteDataResultSet> {
+export async function getRouteById(id: number, signal?: AbortSignal): Promise<RouteDataResultSet> {
   const request = getRouteByIdUrl(id);
 
-  return getTrimetData<RouteDataResultSet>(request);
+  return getTrimetData<RouteDataResultSet>(request, signal);
 }
 
 export async function getRouteByIdAndDirection(

@@ -53,6 +53,11 @@ The Nearby sidebar switches between **Explore** (nearby routes and stops) and
 uses the service-wide stop catalog and works without a nearby location or
 nearby results. Standalone `/planner` links still work; both planner views
 support `from` and `to` query parameters.
+Nearby draws available trip paths together: the selected option is blue and
+alternatives are gray. The map uses published transit shapes matched to the
+itinerary's boarding and exit stops. Legs without a matching shape, including
+walking legs, are omitted and called out in the sidebar instead of drawing a
+straight-line substitute.
 Detail headers use an accessible back-caret link before the title rather than an
 outlined Back button.
 Departure rows support mouse and keyboard selection, with a highlight and caret

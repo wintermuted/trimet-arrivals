@@ -48,11 +48,14 @@ import NearbyDirections from "./NearbyDirections";
 import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
 import { highlightRouteInfoStop, showRouteInfo } from "../util/mapbox/routeInfo";
 import { stopDetailUrl } from "../util/stopNavigation";
+import TripPlannerView from "../../tripPlanner/TripPlannerView";
+import NearbyPlannerPaths from "./NearbyPlannerPaths";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
 
 export interface NearbyViewComponentOutletContextProps {
+  plannerMap?: Map;
   currentLocation: number[];
   nearbyRoutes: Dictionary<TrimetRoute[]>;
   nearbyStops: StopData;
@@ -71,6 +74,18 @@ export interface NearbyViewComponentOutletContextProps {
   handleWalkingRouteChanged: (feature: Feature<LineString>) => () => void;
   handleRouteInfoChanged: (route: DetailedRoute, onError: () => void) => () => void;
   handleRouteInfoStopHighlighted: (stopId?: number) => void;
+}
+
+export function NearbyTripPlannerComponent() {
+  const { plannerMap } = useOutletContext<NearbyViewComponentOutletContextProps>();
+  return (
+    <TripPlannerView
+      inSidebar
+      renderMapStatus={(itineraries, selected) => (
+        <NearbyPlannerPaths map={plannerMap} itineraries={itineraries} selected={selected} />
+      )}
+    />
+  );
 }
 
 export function NearbyStopDetailComponent() {
@@ -421,6 +436,7 @@ export default function NearbyViewComponent() {
   }
 
   const context: NearbyViewComponentOutletContextProps = {
+    plannerMap: isMapLoaded ? mapRef.current : undefined,
     currentLocation,
     nearbyRoutes,
     nearbyStops,
