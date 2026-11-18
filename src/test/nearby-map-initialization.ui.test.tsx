@@ -10,11 +10,19 @@ import { FeatureFlagsProvider } from "../component/feature-flags/FeatureFlags";
 import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent, NearbyViewComponentOutletContextProps } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
+import { getStopCatalog } from "../api/trimet/stopCatalog";
+import { planTrip } from "../api/trimet/tripplanner";
+import TripPlannerView from "../view/tripPlanner/TripPlannerView";
 
 jest.mock("../api/geolocation/getCurrentPosition");
 jest.mock("../api/trimet/stops");
 jest.mock("../api/trimet/arrivals");
 jest.mock("../api/trimet/routeConfig");
+jest.mock("../api/trimet/stopCatalog", () => ({
+  ...jest.requireActual("../api/trimet/stopCatalog"),
+  getStopCatalog: jest.fn(),
+}));
+jest.mock("../api/trimet/tripplanner");
 jest.mock("../api/mapbox/walking");
 jest.mock("../view/nearby/util/mapbox/routeInfo", () => ({
   highlightRouteInfoStop: jest.fn(),
@@ -143,6 +151,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
           <MemoryRouter initialEntries={[path]}>
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
+                <Route path="planner" element={<TripPlannerView inSidebar />} />
                 <Route path="*" element={<p>Sidebar ready</p>} />
               </Route>
             </Routes>
@@ -164,6 +173,40 @@ describe("Nearby map initialization independently of the sidebar", () => {
       item.title.includes(label)
     );
   }
+
+  it("plans a deep-linked trip without geolocation and switches views without replacing the map", async () => {
+    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    jest.mocked(getStopCatalog).mockResolvedValue({
+      stops: [101, 202].map(locid => ({
+        ...stops.location[0], locid, aliases: [], seq: 1, tp: false,
+      })),
+      routeCount: 1, directionCount: 1, stopReferenceCount: 2,
+      incompleteRouteCount: 0, incompleteDirectionCount: 0,
+      incompleteRouteNames: [], invalidStopCount: 0,
+    });
+    jest.mocked(planTrip).mockResolvedValue({
+      success: true, partial: false, itineraries: [],
+    });
+    await render("/nearby/planner?from=101&to=202");
+    const nav = container.querySelector('nav[aria-label="Nearby sidebar"]');
+    const [explore, planner] = Array.from(nav.querySelectorAll("a"));
+    const mapCanvas = container.querySelector(".transit-nearby-map-canvas");
+    expect(planner.getAttribute("aria-current")).toBe("page");
+    expect(getNearbyStops).not.toHaveBeenCalled();
+    expect(planTrip).toHaveBeenCalledWith(
+      expect.objectContaining({ fromPlace: "101", toPlace: "202" })
+    );
+    expect(container.textContent).toContain("No trips were found");
+    expect(container.textContent).not.toContain("Location unavailable");
+    expect(mapCanvas).not.toBeNull();
+
+    await act(async () => explore.click());
+    expect(explore.getAttribute("aria-current")).toBe("location");
+    expect(container.textContent).toContain("Location unavailable");
+    expect(container.querySelector(".transit-planner")).toBeNull();
+    expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
+    expect(map.remove).not.toHaveBeenCalled();
+  });
 
   it("searches the map center, moves a dropped pin, and returns to a fresh device location", async () => {
     await render("/nearby/stops");

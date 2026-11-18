@@ -54,6 +54,7 @@ export default function RootAppRoutes() {
           <Route path="planner" element={<TripPlannerView />} />
           <Route path="nearby" element={<NearbyView />}>
             <Route path="" element={<Navigate to="simple-routes" />} />
+            <Route path="planner" element={<TripPlannerView inSidebar />} />
             <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
             <Route
               path="simple-routes/:id"

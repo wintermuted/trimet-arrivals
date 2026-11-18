@@ -48,6 +48,11 @@ Nearby removes the main content's outer gutters so the map reaches the available
 edges; the results sidebar retains 14px horizontal padding only, with no top/bottom
 gutter. The sidebar detail header spans the full available sidebar width while its
 contents align with the padded content below. Other pages keep the standard content spacing.
+The Nearby sidebar switches between **Explore** (nearby routes and stops) and
+**Plan a trip** (`/nearby/planner`). The map stays in place. The sidebar planner
+uses the service-wide stop catalog and works without a nearby location or
+nearby results. Standalone `/planner` links still work; both planner views
+support `from` and `to` query parameters.
 Detail headers use an accessible back-caret link before the title rather than an
 outlined Back button.
 Departure rows support mouse and keyboard selection, with a highlight and caret

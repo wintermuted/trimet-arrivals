@@ -8,7 +8,7 @@ import { Dictionary, map, set, size } from "lodash";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
-import { matchPath, useLocation, useNavigate } from "react-router-dom";
+import { Link, matchPath, NavLink, useLocation, useNavigate } from "react-router-dom";
 import getCurrentPosition from "../../../api/geolocation/getCurrentPosition";
 import {
   Location,
@@ -225,6 +225,7 @@ export default function NearbyViewComponent() {
   const mapRef = useRef<Map>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const isPlanner = Boolean(matchPath("/nearby/planner", location.pathname));
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &&
     new URLSearchParams(location.search).getAll("referrer").length === 1 &&
@@ -440,38 +441,56 @@ export default function NearbyViewComponent() {
   return (
     <div className="transit-container transit-nearby-view">
       <div className="transit-columns transit-nearby-layout">
-        <div
-          className="transit-column transit-column-3 transit-nearby-results"
-          role="region"
-          aria-label="Nearby transit"
-          tabIndex={0}
-        >
-          {locationError && (
-            <div role="alert" className="transit-route-list-message">
-              <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>
-              <Button type="button" size="sm" onClick={() => void locate()}>Try my location again</Button>
-            </div>
-          )}
-          {isStopDetail ? (
-            <Outlet context={context} />
-          ) : nearbyDataError ? (
-            <div role="alert" className="transit-route-list-message">
-              <p>Nearby stops could not be loaded.</p>
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleNearbyDataRetry}
-              >
-                Retry
-              </Button>
-            </div>
-          ) : isLocating && !userLocation ? (
-            <p role="status">Finding your location…</p>
-          ) : isNearbyDataLoading ? (
-            <p role="status">Loading nearby stops…</p>
-          ) : isMapLoaded && nearbyStops ? (
-            <Outlet context={context} />
-          ) : null}
+        <div className="transit-column transit-nearby-sidebar">
+          <nav aria-label="Nearby sidebar" className="wm-tab-bar transit-nearby-sidebar-nav">
+            <Link
+              to="/nearby/simple-routes"
+              className={`wm-tab-btn${isPlanner ? "" : " wm-tab-btn-active"}`}
+              aria-current={isPlanner ? undefined : "location"}
+            >
+              Explore
+            </Link>
+            <NavLink
+              to="/nearby/planner"
+              className={({ isActive }) => `wm-tab-btn${isActive ? " wm-tab-btn-active" : ""}`}
+            >
+              Plan a trip
+            </NavLink>
+          </nav>
+          <div
+            key={isPlanner ? "planner" : "explore"}
+            className="transit-nearby-results"
+            role="region"
+            aria-label="Nearby transit"
+            tabIndex={0}
+          >
+            {locationError && !isPlanner && (
+              <div role="alert" className="transit-route-list-message">
+                <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>
+                <Button type="button" size="sm" onClick={() => void locate()}>Try my location again</Button>
+              </div>
+            )}
+            {isPlanner || isStopDetail ? (
+              <Outlet context={context} />
+            ) : nearbyDataError ? (
+              <div role="alert" className="transit-route-list-message">
+                <p>Nearby stops could not be loaded.</p>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleNearbyDataRetry}
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : isLocating && !userLocation ? (
+              <p role="status">Finding your location…</p>
+            ) : isNearbyDataLoading ? (
+              <p role="status">Loading nearby stops…</p>
+            ) : isMapLoaded && nearbyStops ? (
+              <Outlet context={context} />
+            ) : null}
+          </div>
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
           {mapCenter && (
