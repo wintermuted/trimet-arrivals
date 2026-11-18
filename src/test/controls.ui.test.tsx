@@ -202,7 +202,7 @@ describe("Wintermuted control integration", () => {
     expect(details.open).toBe(false);
   });
 
-  it("keeps Home current on Nearby deep links without changing its destination", () => {
+  it("marks Nearby current on deep links while preserving the Home destination", () => {
     act(() =>
       root.render(
         <ThemeProvider>
@@ -215,7 +215,11 @@ describe("Wintermuted control integration", () => {
     const home = container.querySelector(
       'nav[aria-label="Primary navigation"] a[href="/"]'
     );
-    expect(home.getAttribute("aria-current")).toBe("page");
+    const nearby = container.querySelector(
+      'nav[aria-label="Primary navigation"] a[href="/nearby"]'
+    );
+    expect(home.getAttribute("aria-current")).toBeNull();
+    expect(nearby.getAttribute("aria-current")).toBe("page");
   });
 
   it("keeps the saved theme control in the footer and restores it on remount", () => {
