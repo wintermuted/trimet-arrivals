@@ -106,6 +106,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     getCenter: jest.fn(() => ({ lng: 1, lat: 2 })), setZoom: jest.fn(),
     getContainer: jest.fn(() => ({ clientWidth: 390, clientHeight: 230 })),
     fitBounds: jest.fn(), setFilter: jest.fn(), off: jest.fn(),
+    queryRenderedFeatures: jest.fn(),
     addSource: jest.fn((id, _data) => sources.add(id)),
     addLayer: jest.fn(({ id }) => layers.add(id)),
     getSource: jest.fn(id => sources.has(id)),
@@ -376,14 +377,14 @@ describe("Nearby map initialization independently of the sidebar", () => {
       data: expect.objectContaining({
         features: [
           expect.objectContaining({
-            properties: { trip: 0, walk: false, color: "#1559d1" },
+            properties: { trip: 0, legIndex: 1, walk: false, color: "#1559d1" },
             geometry: { type: "LineString", coordinates: [[0, 0], [0.005, 0.001], [0.01, 0]] }
           }),
-          expect.objectContaining({ properties: { trip: 1, walk: false, color: "#1359AE" } }),
-          expect.objectContaining({ properties: { trip: 3, walk: false, color: "#D91965" } }),
-          expect.objectContaining({ properties: { trip: 4, walk: false, color: "#61A60E" } }),
-          expect.objectContaining({ properties: { trip: 5, walk: false, color: "#FFC52F" } }),
-          expect.objectContaining({ properties: { trip: 6, walk: false, color: "#D05F27" } })
+          expect.objectContaining({ properties: { trip: 1, legIndex: 1, walk: false, color: "#1359AE" } }),
+          expect.objectContaining({ properties: { trip: 3, legIndex: 1, walk: false, color: "#D91965" } }),
+          expect.objectContaining({ properties: { trip: 4, legIndex: 1, walk: false, color: "#61A60E" } }),
+          expect.objectContaining({ properties: { trip: 5, legIndex: 1, walk: false, color: "#FFC52F" } }),
+          expect.objectContaining({ properties: { trip: 6, legIndex: 1, walk: false, color: "#D05F27" } })
         ]
       })
     }));
@@ -393,8 +394,37 @@ describe("Nearby map initialization independently of the sidebar", () => {
     }));
     expect(map.fitBounds).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ padding: 38 }));
     expect(container.querySelector("p.transit-planner-partial")).toBeNull();
+    const [walkLeg, busLeg] = container.querySelectorAll<HTMLLIElement>(".transit-planner-leg");
+    const highlighted = "transit-planner-leg--highlighted";
+    const highlightFilter = (trip: number, leg: number) => ["all",
+      ["==", ["get", "trip"], trip], ["==", ["get", "legIndex"], leg], ["==", ["get", "walk"], false]
+    ];
+    const highlightLayer = "planner-itineraries-selected-highlight";
+    act(() => walkLeg.focus());
+    expect(walkLeg.classList.contains(highlighted)).toBe(true);
+    act(() => busLeg.focus());
+    expect(map.setFilter).toHaveBeenCalledWith(highlightLayer, highlightFilter(0, 1));
+    act(() => busLeg.blur());
+    expect(map.setFilter).toHaveBeenLastCalledWith(`${highlightLayer}-walk`, expect.arrayContaining([["==", ["get", "legIndex"], -1]]));
+    const move = map.on.mock.calls.filter(([event]) => event === "mousemove").pop()[1];
+    const leave = map.on.mock.calls.filter(([event]) => event === "mouseout").pop()[1];
+    map.queryRenderedFeatures.mockReturnValue([
+      { properties: { trip: 1, legIndex: 0 } },
+      { properties: { trip: 0, legIndex: 2 } },
+      { properties: { trip: 0, legIndex: 1 } },
+    ]);
+    act(() => move({ point: { x: 10, y: 20 } }));
+    expect(map.queryRenderedFeatures).toHaveBeenCalledWith({ x: 10, y: 20 }, {
+      layers: ["planner-itineraries-selected", "planner-itineraries-selected-walk"]
+    });
+    expect(busLeg.classList.contains(highlighted)).toBe(true);
+    act(() => leave());
+    expect(busLeg.classList.contains(highlighted)).toBe(false);
+    act(() => move({ point: { x: 10, y: 20 } }));
     const choices = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]');
     await act(async () => choices[1].click());
+    expect(container.querySelector(`.${highlighted}`)).toBeNull();
+    expect(map.off).toHaveBeenCalledWith("mousemove", move);
     expect(popup.isConnected).toBe(false);
     expect(marker.remove).toHaveBeenCalledTimes(2);
     expect(Marker.mock.calls.slice(-2).map(([{ element }]) => element.getAttribute("aria-label"))).toEqual([
@@ -422,7 +452,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(getWalkingPath).toHaveBeenCalledWith([0.01, 0], [0.011, 0.001], expect.anything());
     expect(map.addSource).toHaveBeenLastCalledWith("planner-itineraries", expect.objectContaining({
       data: expect.objectContaining({
-        features: expect.arrayContaining([expect.objectContaining({ properties: { trip: 2, walk: true }, geometry: walkingGeometry })])
+        features: expect.arrayContaining([expect.objectContaining({ properties: { trip: 2, legIndex: 0, walk: true }, geometry: walkingGeometry })])
       })
     }));
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected-walk", ["all", ["==", ["get", "trip"], 2], ["==", ["get", "walk"], true]]);

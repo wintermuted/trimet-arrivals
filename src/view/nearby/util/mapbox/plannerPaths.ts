@@ -9,7 +9,7 @@ import { getRouteGeometry } from "./routeLines";
 import { getSelectedRouteSegment } from "./routeSegment";
 
 type Path = LineString | MultiLineString;
-type TripProperties = { trip: number; walk: boolean; color?: string };
+type TripProperties = { trip: number; legIndex: number; walk: boolean; color?: string };
 const MAX_SNAP_MILES = 0.075;
 
 function legColor(route: TrimetRoute) {
@@ -85,7 +85,7 @@ export async function loadPlannerPaths(
   const shapes = new Map<string, ReturnType<typeof getRouteGeometry>>();
   const walks = new Map<string, ReturnType<typeof getWalkingPath>>();
   const coverage = await Promise.all(itineraries.map(async (itinerary, trip) => {
-    const legs = await Promise.all(itinerary.legs.map(async (leg): Promise<Feature<Path, TripProperties> | undefined> => {
+    const legs = await Promise.all(itinerary.legs.map(async (leg, legIndex): Promise<Feature<Path, TripProperties> | undefined> => {
       const { from, to, route } = leg;
       if (leg.mode?.toLowerCase() === "walk") {
         if (!walkingEnabled || ![from?.lon, from?.lat, to?.lon, to?.lat].every(Number.isFinite)) return;
@@ -97,7 +97,7 @@ export async function loadPlannerPaths(
           if (!walks.has(key)) walks.set(key, getWalkingPath(origin, destination, signal));
           const path = await walks.get(key);
           if (path.status === "ready") {
-            return { ...path.feature, properties: { trip, walk: true } };
+            return { ...path.feature, properties: { trip, legIndex, walk: true } };
           }
         } catch {
           // Keep the remaining legs when walking routing is unavailable.
@@ -121,7 +121,7 @@ export async function loadPlannerPaths(
         );
         if (matches.length !== 1 || signal.aborted) return;
         const { direction, origin, destination, routeConfig } = matches[0];
-        const properties = { trip, walk: false, color: legColor(routeConfig) };
+        const properties = { trip, legIndex, walk: false, color: legColor(routeConfig) };
         const key = `${id}/${direction}`;
         if (!shapes.has(key)) shapes.set(key, getRouteGeometry(String(id), direction, signal));
         const shape = await shapes.get(key);
