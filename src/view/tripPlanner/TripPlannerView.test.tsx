@@ -189,8 +189,9 @@ describe("TripPlannerView", () => {
     expect(requestTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "8356", toPlace: "7777" }),
     );
-    expect(container.querySelector<HTMLInputElement>("#planner-from").value).toContain("8356");
-    expect(container.querySelector<HTMLInputElement>("#planner-to").value).toContain("7777");
+    const fields = container.querySelectorAll(".transit-planner-stop-select");
+    expect(fields[0].textContent).toContain("8356");
+    expect(fields[1].textContent).toContain("7777");
     expect(recent.querySelectorAll("button")).toHaveLength(1);
   });
 
@@ -286,20 +287,33 @@ describe("TripPlannerView", () => {
     expect(container.textContent).toContain("Available leg information");
   });
 
-  it("offers keyboard-operable stop search choices for direct input", async () => {
+  it("groups both fields by published street prefixes and keeps other stops searchable", async () => {
+    const data = catalog();
+    data.stops.push({ ...data.stops[0], locid: 299, desc: "NE 42nd & Broadway" });
+    data.stops.push({ ...data.stops[0], locid: 399, desc: "Broadway & SW 6th" });
+    loadCatalog.mockResolvedValue(data);
     await render("/planner");
 
+    for (const id of ["planner-from", "planner-to"]) {
+      const input = container.querySelector<HTMLInputElement>(`#${id}`);
+      act(() => input.focus());
+      act(() => Simulate.keyDown(input, { key: "ArrowDown" }));
+      const menu = document.getElementById(input.getAttribute("aria-controls"));
+      expect(menu.textContent).toContain("NE");
+      expect(menu.textContent).toContain("SW");
+      expect(menu.textContent).toContain("Other stops");
+      act(() => Simulate.keyDown(input, { key: "Escape" }));
+    }
+
     const from = container.querySelector<HTMLInputElement>("#planner-from");
+    act(() => from.focus());
     act(() => {
-      from.value = "Gresham";
+      from.value = "8356";
       Simulate.change(from);
     });
-    const option = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent.includes("Gresham City Hall"),
-    );
-    expect(option).toBeDefined();
-    expect(option.getAttribute("type")).toBe("button");
-    option.focus();
-    expect(document.activeElement).toBe(option);
+    expect(document.querySelector('[role="option"]').textContent).toContain("8356");
+    act(() => Simulate.keyDown(from, { key: "ArrowDown" }));
+    act(() => Simulate.keyDown(from, { key: "Enter" }));
+    expect(from.closest(".transit-planner-stop-select").textContent).toContain("8356");
   });
 });
