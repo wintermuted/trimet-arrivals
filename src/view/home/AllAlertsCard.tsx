@@ -3,6 +3,7 @@ import {
   Badge,
   Button,
   Card,
+  CardBody,
   CardHeader,
   Table
 } from "@wintermuted/ui-theme/react";
@@ -160,7 +161,7 @@ function AllAlertsCard(props: Props) {
   return (
     <Card>
       <CardHeader>Route & Stop Alerts</CardHeader>
-      {getAlertsAccordion(props, formatDate)}
+      <CardBody>{getAlertsAccordion(props, formatDate)}</CardBody>
     </Card>
   );
 }

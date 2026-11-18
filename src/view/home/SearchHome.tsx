@@ -11,6 +11,7 @@ import {
 import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
 import { routeBookmarksSelector } from "../../store/selectors/routeBookmarkSelectors";
 import { initializeMap } from "../nearby/util/mapbox/initializeMap";
+import { stopDetailUrl } from "../nearby/util/stopNavigation";
 import AllAlertsCard from "./AllAlertsCard";
 import { useHomeAlerts } from "./Home";
 import { SystemAlertsCard } from "./SystemAlertsCard";
@@ -122,7 +123,7 @@ function StopSearch() {
                   Plan a trip
                 </Link>
                 <Link
-                  to={`/stop/${stop.locid}`}
+                  to={stopDetailUrl(stop.locid, "/")}
                   aria-label={`Arrivals at ${stop.desc}, stop ${stop.locid}`}
                 >
                   Arrivals

@@ -260,7 +260,8 @@ general multi-route or transfer planner.
 ### 8. Search homepage
 
 - `/` opens stop-name/ID search in the Wintermuted shell. Result actions open
-  stop arrivals or seed the destination in the general `/planner` by exact ID.
+  Nearby stop arrivals independently of location or nearby radius, or seed the
+  destination in the general `/planner` by exact ID.
 - The homepage shows up to five recent journeys with available itineraries,
   stored on this device by directional stop-ID pair, previews existing stop
   and route bookmarks, and presents the shared system and route/stop alerts.
