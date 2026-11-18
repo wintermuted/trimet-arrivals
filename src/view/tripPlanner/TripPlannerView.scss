@@ -495,3 +495,31 @@
     justify-self: stretch;
   }
 }
+
+.transit-planner-stop-modes {
+  display: inline-flex;
+  gap: var(--wm-space-1);
+  margin-inline-end: var(--wm-space-2);
+
+  svg {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    fill: currentColor;
+  }
+}
+
+.transit-planner-stop-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wm-space-1);
+  margin-top: var(--wm-space-1);
+
+  .transit-planner-stop-route {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+}

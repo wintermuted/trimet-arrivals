@@ -7,8 +7,19 @@ import {
   TrimetRoute,
 } from "./interfaces/routes";
 
+const STOP_MODES = ["Bus", "Rail", "Streetcar", "Aerial tram"] as const;
+export type StopMode = typeof STOP_MODES[number];
+
+interface StopCatalogRoute {
+  id: number;
+  label: string;
+  color?: string;
+}
+
 export interface StopCatalogStop extends RouteDirectionStop {
   aliases: string[];
+  modes?: StopMode[];
+  routes?: StopCatalogRoute[];
 }
 
 export interface StopCatalog {
@@ -30,6 +41,16 @@ function routeName(route: TrimetRoute): string {
   return `${route.desc || "Unknown route"} (${route.route})`;
 }
 
+function stopMode(route: TrimetRoute): StopMode | undefined {
+  if (route.type === "B") return "Bus";
+  if (route.type === "S") return "Streetcar";
+  if (route.type === "R") {
+    if (route.route === 208) return "Aerial tram";
+    if (/^Portland Streetcar\b/i.test(route.desc)) return "Streetcar";
+    return "Rail";
+  }
+}
+
 export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
   if (!data || data.errorMessage) {
     throw new Error(data?.errorMessage || "TriMet returned no route data");
@@ -38,7 +59,10 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
     throw new Error("TriMet returned no route configuration");
   }
 
-  const stopsById = new Map<number, StopCatalogStop>();
+  const stopsById = new Map<number, StopCatalogStop & {
+    modes: StopMode[];
+    routesById: Map<number, StopCatalogRoute>;
+  }>();
   const plannerRouteColors = new Map<number, string>();
   const incompleteRoutes = new Set<string>();
   let directionCount = 0;
@@ -48,10 +72,16 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
   let invalidStopCount = 0;
 
   data.route.forEach((route) => {
-    if (route && ((route.type === "R" && Boolean(ROUTE_DISPLAY[route.route])) ||
-        /^FX\s*\d+\b/i.test(route.desc))) {
+    const mode = route && stopMode(route);
+    let color: string | undefined;
+    if (route && (mode === "Streetcar" ||
+        (mode === "Rail" && Boolean(ROUTE_DISPLAY[route.route])) ||
+        /^\s*FX\s*\d+\b/i.test(route.desc))) {
       const hex = route.routeColor?.replace(/^#/, "");
-      if (hex && /^[\da-f]{6}$/i.test(hex)) plannerRouteColors.set(route.route, `#${hex}`);
+      if (hex && /^[\da-f]{6}$/i.test(hex)) {
+        color = `#${hex}`;
+        plannerRouteColors.set(route.route, color);
+      }
     }
     if (!route || !Array.isArray(route.dir)) {
       incompleteRouteCount += 1;
@@ -61,6 +91,9 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
       return;
     }
 
+    const service = Number.isSafeInteger(route.route) && route.route > 0
+      ? { id: route.route, label: route.desc?.trim() || `Route ${route.route}`, color }
+      : undefined;
     route.dir.forEach((direction) => {
       directionCount += 1;
       if (!direction || !Array.isArray(direction.stop)) {
@@ -86,6 +119,8 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
         stopReferenceCount += 1;
         const existing = stopsById.get(stop.locid);
         if (existing) {
+          if (mode && !existing.modes.includes(mode)) existing.modes.push(mode);
+          if (service) existing.routesById.set(service.id, service);
           if (
             stop.desc !== existing.desc &&
             !existing.aliases.includes(stop.desc)
@@ -95,12 +130,21 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
           return;
         }
 
-        stopsById.set(stop.locid, { ...stop, aliases: [] });
+        stopsById.set(stop.locid, {
+          ...stop,
+          aliases: [],
+          modes: mode ? [mode] : [],
+          routesById: new Map(service ? [[service.id, service]] : []),
+        });
       });
     });
   });
 
-  const stops = Array.from(stopsById.values()).sort(
+  const stops = Array.from(stopsById.values(), ({ modes, routesById, ...stop }) => ({
+    ...stop,
+    modes: modes.sort((a, b) => STOP_MODES.indexOf(a) - STOP_MODES.indexOf(b)),
+    routes: Array.from(routesById.values()).sort((a, b) => a.id - b.id),
+  })).sort(
     (a, b) =>
       a.desc.toLowerCase().localeCompare(b.desc.toLowerCase()) ||
       a.locid - b.locid,
