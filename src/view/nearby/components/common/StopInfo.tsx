@@ -49,7 +49,6 @@ function StopInfo({ stopLocation, arrivalRoutes, selectedRoutes, onToggleRoute }
           </small>
         </CardText>
         <div className="transit-destination-connections" role="group" aria-label="Filter departures by route">
-          <span>Routes serving this stop (filter departures): </span>
           {error ? (
             <span role="alert">
               Routes could not be loaded.{" "}

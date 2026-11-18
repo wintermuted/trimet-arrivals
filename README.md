@@ -53,6 +53,8 @@ The Nearby sidebar switches between **Explore** (nearby routes and stops) and
 uses the service-wide stop catalog and works without a nearby location or
 nearby results. Standalone `/planner` links still work; both planner views
 support `from` and `to` query parameters.
+Choose **Plan a trip to this stop** on a Nearby stop detail page to open the
+sidebar planner with that exact destination selected.
 Both stop pickers group stops by the Portland quadrant prefix in their
 published names. Stops without an unambiguous prefix appear in **Other stops**.
 The menus show a sample from each group; type a name or ID to search the full
