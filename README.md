@@ -68,6 +68,11 @@ Choose **Plan a trip to this stop** on a Nearby stop detail page to open the
 sidebar planner with that exact destination selected.
 Both stop pickers group stops by the Portland quadrant prefix in their
 published names. Stops without an unambiguous prefix appear in **Other stops**.
+Icons identify bus, rail, streetcar, or aerial tram service when TriMet reports
+it for that stop. Stops can show more than one mode.
+Open stop menus can extend past the sidebar so longer names are easier to scan.
+Each option shows named route badges below the stop name, using published
+colors for MAX, FX, and Portland Streetcar when available.
 **Common places** suggests verified stops for familiar destinations, including
 Washington Square Transit Center (the mall's transit stop, not its entrance),
 Washington Park MAX Station for the Oregon Zoo, and the airport MAX station.

@@ -1,6 +1,8 @@
+import { faBus, faCableCar, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
+import { Badge } from "@wintermuted/ui-theme/react";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import React, { useMemo, useState } from "react";
-import { searchStopCatalog, StopCatalogStop } from "../../api/trimet/stopCatalog";
+import { searchStopCatalog, StopCatalogStop, StopMode } from "../../api/trimet/stopCatalog";
 
 export interface SavedPlannerStop {
   id: number;
@@ -9,6 +11,30 @@ export interface SavedPlannerStop {
 
 const GROUPS = ["N", "NE", "SE", "S", "SW", "NW", "Other stops"];
 const MAX_PER_GROUP = 20;
+const MODE_ICONS = {
+  Bus: faBus,
+  Rail: faTrain,
+  Streetcar: faTrainTram,
+  "Aerial tram": faCableCar,
+};
+
+function StopModes({ modes }: { modes: StopMode[] }) {
+  return (
+    <span className="transit-planner-stop-modes">
+      {modes.map(mode => {
+        const { icon: [width, height, , , paths] } = MODE_ICONS[mode];
+        return (
+          <span key={mode} title={mode}>
+            <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true" focusable="false">
+              {[paths].flat().map(path => <path key={path} d={path} />)}
+            </svg>
+            <span className="wm-sr-only">{mode} </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
 
 const COMMON_PLACES = new Map([
   [9650, { label: "Washington Square Transit Center", aliases: ["Washington Square Mall", "Washington Sq"] }],
@@ -78,6 +104,12 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
       savedLabels
     };
   }, [stops, quadrants, query, savedStops]);
+  function stopLabel(stop: StopCatalogStop) {
+    const label = savedLabels.get(stop.locid);
+    const name = COMMON_PLACES.get(stop.locid)?.label ?? stop.desc;
+    return `${label ? `${label}: ` : ""}${name} (${stop.locid})`;
+  }
+
   return (
     <MultiSelect<StopCatalogStop, false>
       inputId={id}
@@ -92,10 +124,32 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
       onInputChange={value => setQuery(value)}
       onChange={onChange}
       getOptionLabel={stop => {
-        const label = savedLabels.get(stop.locid);
-        const name = COMMON_PLACES.get(stop.locid)?.label ?? stop.desc;
-        return `${label ? `${label}: ` : ""}${name} (${stop.locid})`;
+        const label = stopLabel(stop);
+        return stop.modes?.length ? `${label}, ${stop.modes.join(", ")}` : label;
       }}
+      formatOptionLabel={(stop, { context }) => (
+        <>
+          {stop.modes?.length ? <StopModes modes={stop.modes} /> : null}
+          {stopLabel(stop)}
+          {context === "menu" && stop.routes?.length ? (
+            <span className="transit-planner-stop-routes">
+              <span className="wm-sr-only">Routes: </span>
+              {stop.routes.map(({ id: routeId, label, color }) => (
+                <Badge
+                  key={routeId}
+                  className="transit-planner-stop-route"
+                  style={color ? {
+                    borderColor: color,
+                    backgroundColor: `color-mix(in srgb, ${color} 12%, var(--wm-color-surface-solid))`,
+                  } : undefined}
+                >
+                  {label}
+                </Badge>
+              ))}
+            </span>
+          ) : null}
+        </>
+      )}
       getOptionValue={stop => String(stop.locid)}
       filterOption={null}
       placeholder="Search stops or common places"
@@ -103,11 +157,15 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
       menuPortalTarget={document.body}
       menuPosition="fixed"
       menuPlacement="auto"
-      maxMenuHeight={240}
+      maxMenuHeight={400}
       styles={{
         control: base => ({ ...base, minHeight: "var(--wm-control-height)" }),
         menu: base => ({ ...base, fontSize: "0.875rem" }),
-        menuPortal: base => ({ ...base, zIndex: 5 })
+        menuPortal: (base, { rect }) => ({
+          ...base,
+          width: `max(${rect.width}px, min(30rem, calc(100% - ${rect.left}px - var(--wm-space-3))))`,
+          zIndex: 5
+        })
       }}
     />
   );
