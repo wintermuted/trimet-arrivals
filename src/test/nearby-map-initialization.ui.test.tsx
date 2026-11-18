@@ -7,12 +7,12 @@ import { getArrivals } from "../api/trimet/arrivals";
 import { getRouteById } from "../api/trimet/routeConfig";
 import { StopData } from "../api/trimet/interfaces/types";
 import { FeatureFlagsProvider } from "../component/feature-flags/FeatureFlags";
-import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent, NearbyViewComponentOutletContextProps } from "../view/nearby/components/NearbyViewComponent";
+import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent, NearbyTripPlannerComponent, NearbyViewComponentOutletContextProps } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 import { getStopCatalog } from "../api/trimet/stopCatalog";
 import { planTrip } from "../api/trimet/tripplanner";
-import TripPlannerView from "../view/tripPlanner/TripPlannerView";
+import { getRouteGeometry } from "../view/nearby/util/mapbox/routeLines";
 
 jest.mock("../api/geolocation/getCurrentPosition");
 jest.mock("../api/trimet/stops");
@@ -23,6 +23,10 @@ jest.mock("../api/trimet/stopCatalog", () => ({
   getStopCatalog: jest.fn(),
 }));
 jest.mock("../api/trimet/tripplanner");
+jest.mock("../view/nearby/util/mapbox/routeLines", () => ({
+  ...jest.requireActual("../view/nearby/util/mapbox/routeLines"),
+  getRouteGeometry: jest.fn(),
+}));
 jest.mock("../api/mapbox/walking");
 jest.mock("../view/nearby/util/mapbox/routeInfo", () => ({
   highlightRouteInfoStop: jest.fn(),
@@ -46,6 +50,9 @@ jest.mock("../view/nearby/util/mapbox/stopLocationMarker.util", () => ({
 jest.mock("mapbox-gl", () => ({
   __esModule: true,
   default: { accessToken: "pk.synthetic-test-token", Marker: jest.fn() },
+  LngLatBounds: class {
+    extend() { return this; }
+  },
 }));
 
 const stops: StopData = {
@@ -72,9 +79,19 @@ const stops: StopData = {
 describe("Nearby map initialization independently of the sidebar", () => {
   let container: HTMLDivElement;
   let root: Root;
+  const sources = new Set<string>();
+  const layers = new Set<string>();
   const map = {
     on: jest.fn(), remove: jest.fn(), resize: jest.fn(), flyTo: jest.fn(),
-    getCenter: jest.fn(() => ({ lng: 1, lat: 2 })), setZoom: jest.fn()
+    getCenter: jest.fn(() => ({ lng: 1, lat: 2 })), setZoom: jest.fn(),
+    getContainer: jest.fn(() => ({ clientWidth: 390, clientHeight: 230 })),
+    fitBounds: jest.fn(), setFilter: jest.fn(), off: jest.fn(),
+    addSource: jest.fn((id, _data) => sources.add(id)),
+    addLayer: jest.fn(({ id }) => layers.add(id)),
+    getSource: jest.fn(id => sources.has(id)),
+    getLayer: jest.fn(id => layers.has(id)),
+    removeLayer: jest.fn(id => layers.delete(id)),
+    removeSource: jest.fn(id => sources.delete(id)),
   };
   const marker = {
     setLngLat: jest.fn(), addTo: jest.fn(), getLngLat: jest.fn(() => ({ lng: 3, lat: 4 })),
@@ -84,6 +101,15 @@ describe("Nearby map initialization independently of the sidebar", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    sources.clear();
+    layers.clear();
+    map.getContainer.mockReturnValue({ clientWidth: 390, clientHeight: 230 });
+    map.addSource.mockImplementation(id => sources.add(id));
+    map.addLayer.mockImplementation(({ id }) => layers.add(id));
+    map.getSource.mockImplementation(id => sources.has(id));
+    map.getLayer.mockImplementation(id => layers.has(id));
+    map.removeLayer.mockImplementation(id => layers.delete(id));
+    map.removeSource.mockImplementation(id => sources.delete(id));
     map.getCenter.mockReturnValue({ lng: 1, lat: 2 });
     marker.getLngLat.mockReturnValue({ lng: 3, lat: 4 });
     marker.setLngLat.mockReturnValue(marker);
@@ -151,7 +177,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
           <MemoryRouter initialEntries={[path]}>
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
-                <Route path="planner" element={<TripPlannerView inSidebar />} />
+                <Route path="planner" element={<NearbyTripPlannerComponent />} />
                 <Route path="*" element={<p>Sidebar ready</p>} />
               </Route>
             </Routes>
@@ -197,6 +223,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       expect.objectContaining({ fromPlace: "101", toPlace: "202" })
     );
     expect(container.textContent).toContain("No trips were found");
+    expect(container.textContent).not.toContain("Choose any two TriMet stops");
     expect(container.textContent).not.toContain("Location unavailable");
     expect(mapCanvas).not.toBeNull();
 
@@ -205,6 +232,79 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.textContent).toContain("Location unavailable");
     expect(container.querySelector(".transit-planner")).toBeNull();
     expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
+    expect(map.remove).not.toHaveBeenCalled();
+  });
+
+  it("draws available paths together, highlights the chosen option, and removes only planner paths on exit", async () => {
+    const [origin, destination] = [101, 202].map((locid, index) => ({
+      ...stops.location[0], locid, desc: `Stop ${locid}`, lng: index * 0.01,
+      lat: 0, aliases: [], seq: index + 1, tp: false,
+    }));
+    jest.mocked(getStopCatalog).mockResolvedValue({
+      stops: [origin, destination], routeCount: 2, directionCount: 2, stopReferenceCount: 2,
+      incompleteRouteCount: 0, incompleteDirectionCount: 0,
+      incompleteRouteNames: [], invalidStopCount: 0,
+    });
+    jest.mocked(getRouteById).mockImplementation(async id => ({
+      route: [{
+        id, route: id, desc: "Test route", type: "bus", routeColor: "", routeSortOrder: id,
+        dir: [{ dir: 0, desc: "Eastbound", stop: [origin, destination] }]
+      }]
+    }));
+    jest.mocked(getRouteGeometry).mockImplementation(async id => {
+      if (id === "45") throw new Error("No shape");
+      if (id === "42") return {
+        type: "Feature", properties: {},
+        geometry: {
+          type: "MultiLineString",
+          coordinates: [[[0.01, 0], [0.005, 0.001]], [[0, 0], [0.005, 0.001]], [[0, 0], [0.005, 0.001]]]
+        }
+      };
+      return {
+        type: "Feature", properties: {},
+        geometry: { type: "LineString", coordinates: [[0, 0], [0.005, Number(id) / 100000], [0.01, 0]] }
+      };
+    });
+    jest.mocked(planTrip).mockResolvedValue({
+      success: true, partial: false,
+      itineraries: [42, 43, 45].map((id, index) => ({
+        id: String(id), duration: 15 + index, partial: false,
+        legs: [
+          { mode: "Walk", partial: false },
+          {
+            mode: "Bus", partial: false, route: { internalNumber: id, number: String(id), name: "Test route" },
+            from: { stopId: origin.locid, description: origin.desc },
+            to: { stopId: destination.locid, description: destination.desc }
+          }
+        ]
+      }))
+    });
+
+    await render("/nearby/planner?from=101&to=202");
+    await act(async () => finishMapLoading());
+    expect(map.addSource).toHaveBeenCalledWith("planner-itineraries", expect.objectContaining({
+      data: expect.objectContaining({
+        features: [
+          expect.objectContaining({
+            properties: { trip: 0 },
+            geometry: { type: "LineString", coordinates: [[0, 0], [0.005, 0.001], [0.01, 0]] }
+          }),
+          expect.objectContaining({ properties: { trip: 1 } })
+        ]
+      })
+    }));
+    expect(map.fitBounds).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ padding: 38 }));
+    expect(container.textContent).toContain("Some legs aren't shown");
+    const choices = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]');
+    await act(async () => choices[1].click());
+    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["==", ["get", "trip"], 1]);
+    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["!=", ["get", "trip"], 1]);
+    expect(map.fitBounds).toHaveBeenCalledTimes(1);
+    await act(async () => choices[2].click());
+    expect(container.textContent).toContain("No path is available for the selected trip");
+    await act(async () => container.querySelector<HTMLAnchorElement>('nav[aria-label="Nearby sidebar"] a').click());
+    expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
+    expect(layers.size).toBe(0);
     expect(map.remove).not.toHaveBeenCalled();
   });
 

@@ -168,7 +168,10 @@ function itineraryLabel(itinerary: TripPlannerItinerary, index: number) {
     .join(" · ");
 }
 
-export default function TripPlannerView({ inSidebar = false }: { inSidebar?: boolean }) {
+export default function TripPlannerView({ inSidebar = false, renderMapStatus }: {
+  inSidebar?: boolean;
+  renderMapStatus?: (itineraries: TripPlannerItinerary[], selected: number) => React.ReactNode;
+}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from") || "";
   const toParam = searchParams.get("to") || "";
@@ -457,10 +460,12 @@ export default function TripPlannerView({ inSidebar = false }: { inSidebar?: boo
     >
       <header className="transit-planner-header">
         <h2 id="transit-planner-title">Plan a trip</h2>
-        <p>
-          Choose any two TriMet stops. Search by stop name or ID; addresses are
-          not supported.
-        </p>
+        {!inSidebar && (
+          <p>
+            Choose any two TriMet stops. Search by stop name or ID; addresses are
+            not supported.
+          </p>
+        )}
       </header>
 
       {catalogState.loading && (
@@ -551,6 +556,7 @@ export default function TripPlannerView({ inSidebar = false }: { inSidebar?: boo
           className="transit-planner-results"
           aria-label="Trip options"
         >
+          {renderMapStatus?.(itineraries, selectedItinerary)}
           {itineraries.length > 1 && (
             <fieldset className="transit-planner-options">
               <legend>Choose a trip</legend>

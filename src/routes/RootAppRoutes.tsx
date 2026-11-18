@@ -25,7 +25,8 @@ import NearbyView, {
   NearbySimpleRouteArrivalsComp,
   NearbySimpleRoutesComp,
   NearbyStopDetailComponent,
-  NearbyStopsComponent
+  NearbyStopsComponent,
+  NearbyTripPlannerComponent
 } from "../view/nearby/components/NearbyViewComponent";
 import StopLocationViewContainer from "../view/stop/container/StopLocationViewContainer";
 import StopCatalogView from "../view/stops/StopCatalogView";
@@ -54,7 +55,7 @@ export default function RootAppRoutes() {
           <Route path="planner" element={<TripPlannerView />} />
           <Route path="nearby" element={<NearbyView />}>
             <Route path="" element={<Navigate to="simple-routes" />} />
-            <Route path="planner" element={<TripPlannerView inSidebar />} />
+            <Route path="planner" element={<NearbyTripPlannerComponent />} />
             <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
             <Route
               path="simple-routes/:id"
