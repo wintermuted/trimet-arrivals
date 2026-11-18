@@ -214,6 +214,23 @@
     justify-self: stretch;
   }
 
+  .transit-planner-recent {
+    margin-block-end: var(--wm-space-3);
+
+    summary {
+      min-height: var(--wm-control-height);
+      padding-block: var(--wm-space-2);
+      color: var(--wm-color-accent);
+      cursor: pointer;
+      font-weight: 600;
+
+      &:focus-visible {
+        outline: 2px solid var(--wm-color-accent);
+        outline-offset: -2px;
+      }
+    }
+  }
+
   .transit-planner-stop-matches {
     max-height: 10rem;
   }

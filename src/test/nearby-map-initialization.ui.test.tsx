@@ -6,7 +6,8 @@ import { getNearbyStops } from "../api/trimet/stops";
 import { getArrivals } from "../api/trimet/arrivals";
 import { getRouteById } from "../api/trimet/routeConfig";
 import { StopData } from "../api/trimet/interfaces/types";
-import { FeatureFlagsProvider } from "../component/feature-flags/FeatureFlags";
+import { FeatureFlagsProvider, useFeatureFlags } from "../component/feature-flags/FeatureFlags";
+import { getWalkingPath } from "../api/mapbox/walking";
 import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent, NearbyTripPlannerComponent, NearbyViewComponentOutletContextProps } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
@@ -75,6 +76,11 @@ const stops: StopData = {
   ],
   queryTime: "",
 };
+
+function WalkingToggle() {
+  const { walkingEnabled, setWalkingEnabled } = useFeatureFlags();
+  return <button onClick={() => setWalkingEnabled(!walkingEnabled)}>Toggle walking estimates</button>;
+}
 
 describe("Nearby map initialization independently of the sidebar", () => {
   let container: HTMLDivElement;
@@ -174,6 +180,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     return act(async () =>
       root.render(
         <FeatureFlagsProvider>
+          <WalkingToggle />
           <MemoryRouter initialEntries={[path]}>
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
@@ -270,7 +277,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       itineraries: [42, 43, 45].map((id, index) => ({
         id: String(id), duration: 15 + index, partial: false,
         legs: [
-          { mode: "Walk", partial: false },
+          { mode: "Walk", partial: false, from: { lon: 0.01, lat: 0 }, to: { lon: 0.011, lat: 0.001 } },
           {
             mode: "Bus", partial: false, route: { internalNumber: id, number: String(id), name: "Test route" },
             from: { stopId: origin.locid, description: origin.desc },
@@ -286,10 +293,10 @@ describe("Nearby map initialization independently of the sidebar", () => {
       data: expect.objectContaining({
         features: [
           expect.objectContaining({
-            properties: { trip: 0 },
+            properties: { trip: 0, walk: false },
             geometry: { type: "LineString", coordinates: [[0, 0], [0.005, 0.001], [0.01, 0]] }
           }),
-          expect.objectContaining({ properties: { trip: 1 } })
+          expect.objectContaining({ properties: { trip: 1, walk: false } })
         ]
       })
     }));
@@ -297,11 +304,31 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.textContent).toContain("Some legs aren't shown");
     const choices = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]');
     await act(async () => choices[1].click());
-    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["==", ["get", "trip"], 1]);
-    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["!=", ["get", "trip"], 1]);
+    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
+    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["all", ["!=", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
     await act(async () => choices[2].click());
     expect(container.textContent).toContain("No path is available for the selected trip");
+    expect(getWalkingPath).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("enable walking estimates");
+    const walkingGeometry = { type: "LineString" as const, coordinates: [[0.01, 0], [0.0105, 0], [0.011, 0.001]] };
+    jest.mocked(getWalkingPath).mockResolvedValue({
+      status: "ready", meters: 100, seconds: 80,
+      feature: { type: "Feature", properties: {}, geometry: walkingGeometry }
+    });
+    await act(async () => button("Toggle walking estimates").click());
+    expect(getWalkingPath).toHaveBeenCalledTimes(1);
+    expect(getWalkingPath).toHaveBeenCalledWith([0.01, 0], [0.011, 0.001], expect.anything());
+    expect(map.addSource).toHaveBeenLastCalledWith("planner-itineraries", expect.objectContaining({
+      data: expect.objectContaining({
+        features: expect.arrayContaining([expect.objectContaining({ properties: { trip: 2, walk: true }, geometry: walkingGeometry })])
+      })
+    }));
+    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected-walk", ["all", ["==", ["get", "trip"], 2], ["==", ["get", "walk"], true]]);
+    expect(container.textContent).toContain("Dashed lines show walking paths estimated by Mapbox");
+    await act(async () => button("Toggle walking estimates").click());
+    expect(jest.mocked(getWalkingPath).mock.calls[0][2].aborted).toBe(true);
+    expect(container.textContent).not.toContain("Dashed lines show walking paths");
     await act(async () => container.querySelector<HTMLAnchorElement>('nav[aria-label="Nearby sidebar"] a').click());
     expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
     expect(layers.size).toBe(0);

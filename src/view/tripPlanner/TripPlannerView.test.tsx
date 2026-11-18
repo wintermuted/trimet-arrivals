@@ -147,6 +147,7 @@ describe("TripPlannerView", () => {
   let root: Root;
 
   beforeEach(() => {
+    localStorage.clear();
     loadCatalog.mockReset().mockResolvedValue(catalog());
     requestTrip.mockReset().mockResolvedValue(itineraryResponse());
     container = document.createElement("div");
@@ -155,16 +156,17 @@ describe("TripPlannerView", () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     act(() => root.unmount());
     container.remove();
   });
 
-  async function render(path: string) {
+  async function render(path: string, inSidebar = false) {
     await act(async () => {
       root.render(
         <ThemeProvider>
           <MemoryRouter initialEntries={[path]}>
-            <TripPlannerView />
+            <TripPlannerView inSidebar={inSidebar} />
           </MemoryRouter>
         </ThemeProvider>,
       );
@@ -172,6 +174,42 @@ describe("TripPlannerView", () => {
       await Promise.resolve();
     });
   }
+
+  it("reopens a persisted stop pair in the sidebar and requests fresh itineraries", async () => {
+    await render("/planner?from=8356&to=7777");
+    act(() => root.unmount());
+    root = createRoot(container);
+    requestTrip.mockClear();
+    await render("/nearby/planner", true);
+    expect(requestTrip).not.toHaveBeenCalled();
+    const recent = container.querySelector<HTMLDetailsElement>(".transit-planner-recent");
+    expect(recent.querySelector("summary").textContent).toBe("Recent trips");
+    recent.open = true;
+    await act(async () => recent.querySelector("button").click());
+    expect(requestTrip).toHaveBeenCalledWith(
+      expect.objectContaining({ fromPlace: "8356", toPlace: "7777" }),
+    );
+    expect(container.querySelector<HTMLInputElement>("#planner-from").value).toContain("8356");
+    expect(container.querySelector<HTMLInputElement>("#planner-to").value).toContain("7777");
+    expect(recent.querySelectorAll("button")).toHaveLength(1);
+  });
+
+  it.each(["malformed", "blocked"])("keeps sidebar planning usable when recent storage is %s", async (failure) => {
+    if (failure === "malformed") {
+      localStorage.setItem("trimet-arrivals:recent-journeys", "{invalid");
+    } else {
+      jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+    }
+    await render("/nearby/planner?from=8356&to=7777", true);
+    expect(container.textContent).toContain("Recent trips are unavailable on this device.");
+    expect(container.textContent).toContain("Choose a trip");
+    expect(container.querySelector(".transit-planner-recent")).toBeNull();
+    if (failure === "malformed") {
+      expect(localStorage.getItem("trimet-arrivals:recent-journeys")).toBe("{invalid");
+    }
+  });
 
   it("plans a name-based deep link with stop IDs and shows transfers and leg detail", async () => {
     await render(
