@@ -1,12 +1,18 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { Provider } from "react-redux";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
+import { applyMiddleware, createStore } from "redux";
+import createSagaMiddleware, { Task } from "redux-saga";
+import { BOOKMARKS, fetchStoredBookmarks } from "../api/localstorage/bookmarks.localstorage";
 import { getArrivals } from "../api/trimet/arrivals";
 import { getNearbyStops } from "../api/trimet/stops";
 import { ArrivalData } from "../api/trimet/interfaces/arrivals";
 import { arrival1 } from "../api/trimet/fixture/arrival";
 import { getWalkingRoute, WalkingRoute } from "../api/mapbox/walking";
 import { NearbyStopsDetail } from "../view/nearby/components/NearbyStopsDetail";
+import reducers from "../store/reducers";
+import { rootSaga } from "../store/sagas";
 
 jest.mock("../api/trimet/arrivals");
 jest.mock("../api/trimet/stops");
@@ -51,6 +57,8 @@ const walking: WalkingRoute = {
 describe("general Nearby stop walking access", () => {
   let container: HTMLDivElement;
   let root: Root;
+  let store: ReturnType<typeof createStore>;
+  let saga: Task;
   const handleStopOpened = jest.fn();
   const close = jest.fn();
   const onWalkingRouteChanged = jest.fn(() => close);
@@ -73,15 +81,22 @@ describe("general Nearby stop walking access", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    localStorage.removeItem(BOOKMARKS);
+    const middleware = createSagaMiddleware();
+    store = createStore(reducers, applyMiddleware(middleware));
+    saga = middleware.run(rootSaga);
   });
   afterEach(() => {
     act(() => root.unmount());
+    saga.cancel();
+    localStorage.removeItem(BOOKMARKS);
     container.remove();
   });
 
   function render(enabled = false, path = "/nearby/stops/340") {
     return act(async () =>
       root.render(
+        <Provider store={store}>
         <MemoryRouter initialEntries={[path]}>
           <Link to="/nearby/stops/367">Next stop</Link>
           <Routes>
@@ -98,9 +113,31 @@ describe("general Nearby stop walking access", () => {
             />
           </Routes>
         </MemoryRouter>
+        </Provider>
       )
     );
   }
+
+  it("saves and removes the exact stop through the Nearby bookmark action", async () => {
+    jest.mocked(getArrivals).mockResolvedValue({
+      ...stopData(340),
+      location: [...stopData(367).location, ...stopData(340).location]
+    });
+    await render();
+    const bookmark = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Bookmark this stop"]'
+    );
+    expect(bookmark.textContent).toContain("Bookmark this stop");
+    await act(async () => bookmark.click());
+    expect(fetchStoredBookmarks()).toEqual({
+      340: expect.objectContaining({ locid: 340, desc: "Example stop 340" })
+    });
+    expect(bookmark.getAttribute("aria-pressed")).toBe("true");
+    expect(bookmark.textContent).toContain("Remove stop bookmark");
+    await act(async () => bookmark.click());
+    expect(fetchStoredBookmarks()).toEqual({});
+    expect(bookmark.getAttribute("aria-pressed")).toBe("false");
+  });
 
   it("uses the current location and exact stop ID only when the shared flag is enabled", async () => {
     await render();

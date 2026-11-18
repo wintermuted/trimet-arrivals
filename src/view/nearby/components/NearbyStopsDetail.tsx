@@ -7,6 +7,7 @@ import {
   ArrivalData,
   ArrivalLocation,
 } from "../../../api/trimet/interfaces/arrivals";
+import StopBookmarkControlContainer from "../../nearbyStops/containers/StopBookmarkControlContainer";
 import StopInfo from "./common/StopInfo";
 import StopArrivals from "./NearbyStopArrivals";
 import { TopNavBar } from "./common/TopNavBar";
@@ -123,6 +124,11 @@ export function NearbyStopsDetail({
         <Link className="wm-btn wm-btn-primary" to={`/nearby/planner?to=${stopLocation.id}`}>
           Plan a trip to this stop
         </Link>
+        <StopBookmarkControlContainer
+          locationId={stopLocation.id}
+          stopLocation={{ ...stopLocation, locid: stopLocation.id }}
+          showLabel
+        />
       </div>
       {onWalkingRouteChanged && (
         <WalkingAccess

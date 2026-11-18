@@ -1,5 +1,7 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { Provider } from "react-redux";
+import { createStore } from "redux";
 import { MemoryRouter, Route, Routes, useOutletContext } from "react-router-dom";
 import getCurrentPosition from "../api/geolocation/getCurrentPosition";
 import { getNearbyStops } from "../api/trimet/stops";
@@ -14,6 +16,12 @@ import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 import { buildStopCatalog, getStopCatalog } from "../api/trimet/stopCatalog";
 import { planTrip } from "../api/trimet/tripplanner";
 import { getRouteGeometry } from "../view/nearby/util/mapbox/routeLines";
+import reducers from "../store/reducers";
+
+function StopDetailWithStore() {
+  const [store] = React.useState(() => createStore(reducers));
+  return <Provider store={store}><NearbyStopDetailComponent /></Provider>;
+}
 
 jest.mock("../api/geolocation/getCurrentPosition");
 jest.mock("../api/trimet/stops");
@@ -200,7 +208,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
                 <Route path="planner" element={<NearbyTripPlannerComponent />} />
-                <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+                <Route path="stops/:id" element={<StopDetailWithStore />} />
                 <Route path="*" element={<p>Sidebar ready</p>} />
               </Route>
             </Routes>
@@ -682,7 +690,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
           <Routes>
             <Route path="/" element={<p>Home</p>} />
             <Route path="/nearby" element={<NearbyViewComponent />}>
-              <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+              <Route path="stops/:id" element={<StopDetailWithStore />} />
             </Route>
           </Routes>
         </MemoryRouter>
@@ -711,7 +719,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => root.render(
       <FeatureFlagsProvider><MemoryRouter initialEntries={["/nearby/stops/8455"]}><Routes>
         <Route path="/nearby" element={<NearbyViewComponent />}>
-          <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+          <Route path="stops/:id" element={<StopDetailWithStore />} />
         </Route>
       </Routes></MemoryRouter></FeatureFlagsProvider>
     ));
@@ -742,7 +750,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
         <MemoryRouter initialEntries={["/nearby/stops/8455"]}>
           <Routes>
             <Route path="/nearby" element={<NearbyViewComponent />}>
-              <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+              <Route path="stops/:id" element={<StopDetailWithStore />} />
             </Route>
           </Routes>
         </MemoryRouter>
@@ -763,7 +771,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
           <Routes>
             <Route path="/nearby" element={<NearbyViewComponent />}>
               <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
-              <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
+              <Route path="stops/:id" element={<StopDetailWithStore />} />
             </Route>
           </Routes>
         </MemoryRouter>
