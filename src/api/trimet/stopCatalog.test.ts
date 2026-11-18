@@ -97,14 +97,15 @@ describe("stop catalog", () => {
     expect(catalog.stops.find(item => item.locid === 101).modes).toEqual(["Bus"]);
     expect(catalog.stops.find(item => item.locid === 102).modes).toEqual([]);
     expect(catalog.stops.find(item => item.locid === 100).routes).toEqual([
-      { id: 1, label: "Route 1" },
+      { id: 1, label: "Route 1", color: "#1559d1" },
       { id: 2, label: "FX2-Division", color: "#AF4C9D" },
       { id: 90, label: "MAX Red Line", color: "#e11a2b" },
       { id: 194, label: "Portland Streetcar - A Loop", color: "#539d3d" },
       { id: 203, label: "WES Commuter Rail", color: "#6E6E6E" },
       { id: 208, label: "Portland Aerial Tram" },
     ]);
-    expect(catalog.stops.find(item => item.locid === 101).routes).toEqual([{ id: 1, label: "Route 1" }]);
+    expect(catalog.stops.find(item => item.locid === 101).routes)
+      .toEqual([{ id: 1, label: "Route 1", color: "#1559d1" }]);
   });
 
   it("rejects API errors and empty route responses", () => {

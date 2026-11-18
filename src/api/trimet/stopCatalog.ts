@@ -1,6 +1,6 @@
 import { getAllRoutes } from "./routeConfig";
 import { ROUTE_DISPLAY } from "./constants";
-import { PlannerRouteColors } from "./plannerRouteColors";
+import { PLANNER_BUS_COLOR, PlannerRouteColors } from "./plannerRouteColors";
 import {
   RouteDataResultSet,
   RouteDirectionStop,
@@ -73,7 +73,7 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
 
   data.route.forEach((route) => {
     const mode = route && stopMode(route);
-    let color: string | undefined;
+    let color = mode === "Bus" ? PLANNER_BUS_COLOR : undefined;
     if (route && (mode === "Streetcar" ||
         (mode === "Rail" && (route.route === 203 || Boolean(ROUTE_DISPLAY[route.route]))) ||
         /^\s*FX\s*\d+\b/i.test(route.desc))) {
