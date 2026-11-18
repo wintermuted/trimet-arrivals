@@ -1,6 +1,7 @@
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { recordRecentJourney } from "../../api/localstorage/recentJourneys";
 import {
   getStopCatalog,
   searchStopCatalog,
@@ -184,6 +185,7 @@ export default function TripPlannerView() {
   const [tripRetry, setTripRetry] = useState(0);
   const [tripState, setTripState] = useState<TripState>({ status: "idle" });
   const [validationError, setValidationError] = useState("");
+  const [historyUnavailable, setHistoryUnavailable] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -231,6 +233,7 @@ export default function TripPlannerView() {
   }, [catalog, fromParam, toParam]);
 
   useEffect(() => {
+    setHistoryUnavailable(false);
     if (!catalog || !fromParam || !toParam) {
       setTripState({ status: "idle" });
       return;
@@ -272,6 +275,13 @@ export default function TripPlannerView() {
           return;
         }
         setTripState({ status: "ready", response });
+        if (response.itineraries.length > 0) {
+          try {
+            recordRecentJourney(from.stop, to.stop);
+          } catch {
+            setHistoryUnavailable(true);
+          }
+        }
       })
       .catch(() => {
         if (!controller.signal.aborted) {
@@ -523,6 +533,9 @@ export default function TripPlannerView() {
           TriMet returned some incomplete itinerary details. Available trip
           information is shown.
         </p>
+      )}
+      {historyUnavailable && (
+        <p role="status">This trip could not be saved to recent journeys on this device.</p>
       )}
       {tripState.status === "ready" && itineraries.length === 0 && (
         <p className="transit-planner-message" role="status">

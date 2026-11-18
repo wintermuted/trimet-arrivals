@@ -24,7 +24,7 @@ export function partitionAlerts(alerts: Alert[]) {
   };
 }
 
-function Home() {
+export function useHomeAlerts() {
   const [alertsState, setAlertsState] = useState<AlertsState>({
     alerts: undefined,
     systemAlerts: undefined,
@@ -32,7 +32,6 @@ function Home() {
     error: false
   });
   const [alertRefresh, setAlertRefresh] = useState(0);
-  const [bookmarksData, setBookmarksData] = useState(undefined);
 
   useEffect(() => {
     let active = true;
@@ -64,6 +63,16 @@ function Home() {
     };
   }, [alertRefresh]);
 
+  return {
+    ...alertsState,
+    onRefresh: () => setAlertRefresh(value => value + 1)
+  };
+}
+
+function Home() {
+  const alertsState = useHomeAlerts();
+  const [bookmarksData, setBookmarksData] = useState(undefined);
+
   useEffect(() => {
     const storedBookmarks = fetchStoredBookmarks();
     setBookmarksData(storedBookmarks);
@@ -80,7 +89,7 @@ function Home() {
             systemAlertsData={alertsState.systemAlerts}
             loading={alertsState.loading}
             error={alertsState.error}
-            onRefresh={() => setAlertRefresh(value => value + 1)}
+            onRefresh={alertsState.onRefresh}
           />
         </div>
         <div className="transit-column transit-column-4">
@@ -88,7 +97,7 @@ function Home() {
             alertsData={alertsState.alerts}
             loading={alertsState.loading}
             error={alertsState.error}
-            onRefresh={() => setAlertRefresh(value => value + 1)}
+            onRefresh={alertsState.onRefresh}
           />
         </div>
         <div className="transit-column transit-column-3">

@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import BookmarksViewContainer from "../view/bookmarks/container/BookmarksViewContainer";
 import Home from "../view/home/Home";
+import SearchHome from "../view/home/SearchHome";
 import LineDetailComponent from "../view/lineDetail/component/LineDetailComponent";
 import { AllLines } from "../view/lines/component/AllLines";
 import { BusLines } from "../view/lines/component/BusLines";
@@ -48,7 +49,7 @@ export default function RootAppRoutes() {
       <MainNavigationContainer />
       <main className="main-view" tabIndex={0}>
         <Routes>
-          <Route path="/" element={<Navigate to="/nearby" replace />} />
+          <Route path="/" element={<SearchHome />} />
           <Route path="stops" element={<StopCatalogView />} />
           <Route path="planner" element={<TripPlannerView />} />
           <Route path="nearby" element={<NearbyView />}>
