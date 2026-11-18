@@ -449,7 +449,8 @@ describe("TripPlannerView", () => {
     await render("/planner?from=8356&toCoord=-122.6815,45.5231", true);
     act(() => container.querySelector<HTMLButtonElement>(".transit-planner-options button").click());
     act(() => container.querySelector<HTMLButtonElement>('[aria-label="Edit locations"]').click());
-    const swap = container.querySelector<HTMLButtonElement>(".transit-planner-swap");
+    const swap = container.querySelector<HTMLButtonElement>('button[aria-label="Swap origin and destination"]');
+    expect(swap.textContent.trim()).toBe("");
     const query = container.querySelector('[data-test-id="query"]');
     const originalQuery = query.textContent;
     act(() => swap.click());
