@@ -1,7 +1,9 @@
+import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
+import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import React, { FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { readRecentJourneys, recordRecentJourney } from "../../api/localstorage/recentJourneys";
+import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
 import {
   getStopCatalog,
   StopCatalog,
@@ -85,6 +87,15 @@ function legTitle(leg: TripPlannerLeg): string {
   return [leg.mode, routeName].filter(Boolean).join(" · ") || "Transit";
 }
 
+function legIcon(mode?: string) {
+  const name = mode?.trim().toLowerCase() || "";
+  if (name === "walk" || name === "walking") return faPersonWalking;
+  if (/\b(bus|fx)\b/.test(name)) return faBus;
+  if (/\b(light rail|max|streetcar|tram)\b/.test(name)) return faTrainTram;
+  if (/\b(rail|train|wes)\b/.test(name)) return faTrain;
+  return faRoute;
+}
+
 function ItineraryDetails({
   itinerary,
   index,
@@ -106,6 +117,7 @@ function ItineraryDetails({
         {itinerary.legs.map((leg, legIndex) => {
           const isTransit = leg.mode !== "Walk";
           const showTransfer = isTransit && transitLegSeen;
+          const { iconName, icon: [width, height, , , paths] } = legIcon(leg.mode);
           if (isTransit) {
             transitLegSeen = true;
           }
@@ -117,12 +129,22 @@ function ItineraryDetails({
               )}
               <li className="transit-planner-leg">
                 <div>
+                  <svg
+                    className="transit-planner-leg-icon"
+                    data-icon={iconName}
+                    viewBox={`0 0 ${width} ${height}`}
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    {[paths].flat().map(path => <path key={path} d={path} />)}
+                  </svg>
                   <strong>{legTitle(leg)}</strong>
                   {leg.direction && <span> · {leg.direction}</span>}
                 </div>
-                <p>
-                  {formatStop(leg.from)} <span aria-hidden="true">→</span>{" "}
-                  {formatStop(leg.to)}
+                <p className="transit-planner-leg-stops">
+                  <span>{formatStop(leg.from)}</span>{" "}
+                  <span aria-hidden="true">↓</span>{" "}
+                  <span>{formatStop(leg.to)}</span>
                 </p>
                 {(leg.startTime || leg.endTime) && (
                   <p className="transit-planner-leg-time">
@@ -329,6 +351,23 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
     setValidationError("");
   }
 
+  function chooseRecentTrip(journey: RecentJourney | null) {
+    if (!journey) return;
+    const { from, to } = journey;
+    const params = { from: String(from.locid), to: String(to.locid) };
+    if (params.from !== fromParam || params.to !== toParam) {
+      setSearchParams(params);
+      return;
+    }
+    const origin = catalog?.stops.find(stop => stop.locid === from.locid);
+    const destination = catalog?.stops.find(stop => stop.locid === to.locid);
+    if (origin && destination) {
+      chooseStop(origin, "from");
+      chooseStop(destination, "to");
+    }
+    setTripRetry(value => value + 1);
+  }
+
   function renderStopField(field: "from" | "to") {
     const isFrom = field === "from";
     const selected = isFrom ? fromStop : toStop;
@@ -394,32 +433,28 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
       {recentTrips?.unavailable ? (
         <p className="transit-planner-message" role="status">Recent trips are unavailable on this device.</p>
       ) : recentTrips?.journeys.length > 0 && (
-        <details className="transit-planner-recent">
-          <summary>Recent trips</summary>
-          <ul className="transit-planner-stop-matches">
-            {recentTrips.journeys.map(({ from, to }) => (
-              <li key={`${from.locid}-${to.locid}`}>
-                <button type="button" onClick={() => {
-                  const params = { from: String(from.locid), to: String(to.locid) };
-                  if (params.from === fromParam && params.to === toParam) {
-                    const origin = catalog?.stops.find(stop => stop.locid === from.locid);
-                    const destination = catalog?.stops.find(stop => stop.locid === to.locid);
-                    if (origin && destination) {
-                      chooseStop(origin, "from");
-                      chooseStop(destination, "to");
-                      setValidationError("");
-                    }
-                    setTripRetry(value => value + 1);
-                  } else {
-                    setSearchParams(params);
-                  }
-                }}>
-                  {from.desc} ({from.locid}) to {to.desc} ({to.locid})
-                </button>
-              </li>
-            ))}
-          </ul>
-        </details>
+        <div className="transit-planner-recent">
+          <FieldGroup label="Recent trips" htmlFor="planner-recent">
+            <MultiSelect<RecentJourney, false>
+              inputId="planner-recent"
+              isMulti={false}
+              options={recentTrips.journeys}
+              value={null}
+              onChange={chooseRecentTrip}
+              getOptionLabel={({ from, to }) => `${from.desc} (${from.locid}) to ${to.desc} (${to.locid})`}
+              getOptionValue={({ from, to }) => `${from.locid}-${to.locid}`}
+              placeholder="Choose a recent trip"
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+              menuPlacement="auto"
+              maxMenuHeight={240}
+              styles={{
+                control: base => ({ ...base, minHeight: "var(--wm-control-height)" }),
+                menuPortal: base => ({ ...base, zIndex: 5 })
+              }}
+            />
+          </FieldGroup>
+        </div>
       )}
 
       {catalogState.loading && (

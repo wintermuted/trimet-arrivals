@@ -54,6 +54,16 @@ jest.mock("mapbox-gl", () => {
     __esModule: true,
     default: { accessToken: "pk.synthetic-test-token", Marker },
     Marker,
+    Popup: class {
+      content: HTMLElement;
+      close: () => void;
+      setLngLat() { return this; }
+      setDOMContent(content: HTMLElement) { this.content = content; return this; }
+      on(_event: string, close: () => void) { this.close = close; return this; }
+      addTo() { this.content.ownerDocument.body.appendChild(this.content); return this; }
+      isOpen() { return this.content.isConnected; }
+      remove() { this.content.remove(); this.close(); }
+    },
     LngLatBounds: class {
       extend() { return this; }
     },
@@ -325,7 +335,12 @@ describe("Nearby map initialization independently of the sidebar", () => {
             mode: "Bus", partial: false, route: { internalNumber: id, number: String(id), name: `Test route ${id}` },
             from: { stopId: origin.locid, description: origin.desc, lon: origin.lng, lat: origin.lat },
             to: { stopId: destination.locid, description: destination.desc, lon: destination.lng, lat: destination.lat }
-          }
+          },
+          ...(id === 45 ? [{
+            mode: "Bus", partial: false, route: { internalNumber: 46, number: "46", name: "Test route 46" },
+            from: { stopId: destination.locid, description: destination.desc, lon: destination.lng, lat: destination.lat },
+            to: { stopId: 303, description: "Stop 303", lon: 0.02, lat: 0 }
+          }] : [])
         ]
       }))
     });
@@ -339,6 +354,24 @@ describe("Nearby map initialization independently of the sidebar", () => {
       "Board: Test route 42 at Stop 101",
       "Get off: Test route 42 at Stop 202"
     ]);
+    const firstMarker: HTMLButtonElement = Marker.mock.calls[0][0].element;
+    expect(firstMarker.tagName).toBe("BUTTON");
+    firstMarker.click();
+    expect(firstMarker.getAttribute("aria-expanded")).toBe("true");
+    const popup = document.getElementById(firstMarker.getAttribute("aria-controls"));
+    expect(popup.querySelector("strong").textContent).toBe("Stop 101");
+    expect(popup.textContent).toContain("Stop ID: 101");
+    expect(popup.textContent).toContain("Board: Test route 42");
+    firstMarker.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(firstMarker.getAttribute("aria-expanded")).toBe("false");
+    expect(popup.isConnected).toBe(false);
+    firstMarker.click();
+    const secondMarker: HTMLButtonElement = Marker.mock.calls[1][0].element;
+    secondMarker.click();
+    expect(firstMarker.getAttribute("aria-expanded")).toBe("false");
+    expect(secondMarker.getAttribute("aria-expanded")).toBe("true");
+    expect(popup.isConnected).toBe(false);
+    firstMarker.click();
     expect(map.addSource).toHaveBeenCalledWith("planner-itineraries", expect.objectContaining({
       data: expect.objectContaining({
         features: [
@@ -362,6 +395,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector("p.transit-planner-partial")).toBeNull();
     const choices = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]');
     await act(async () => choices[1].click());
+    expect(popup.isConnected).toBe(false);
     expect(marker.remove).toHaveBeenCalledTimes(2);
     expect(Marker.mock.calls.slice(-2).map(([{ element }]) => element.getAttribute("aria-label"))).toEqual([
       "Board: Test route 100 at Stop 101",
@@ -371,6 +405,12 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["all", ["!=", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
     await act(async () => choices[2].click());
+    const transferMarker: HTMLButtonElement = Marker.mock.calls.slice(-2)[0][0].element;
+    transferMarker.click();
+    const transferPopup = document.getElementById(transferMarker.getAttribute("aria-controls"));
+    expect(transferPopup.textContent).toContain("Stop ID: 202");
+    expect(Array.from(transferPopup.querySelectorAll("li"), row => row.textContent))
+      .toEqual(["Get off: Test route 45", "Board: Test route 46"]);
     expect(getWalkingPath).not.toHaveBeenCalled();
     const walkingGeometry = { type: "LineString" as const, coordinates: [[0.01, 0], [0.0105, 0], [0.011, 0.001]] };
     jest.mocked(getWalkingPath).mockResolvedValue({
@@ -396,7 +436,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => container.querySelector<HTMLAnchorElement>('nav[aria-label="Nearby sidebar"] a').click());
     expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
     expect(setNearbyStops).toHaveBeenCalled();
-    expect(marker.remove).toHaveBeenCalledTimes(6);
+    expect(transferPopup.isConnected).toBe(false);
+    expect(marker.remove).toHaveBeenCalledTimes(7);
     expect(layers.size).toBe(0);
     expect(map.remove).not.toHaveBeenCalled();
   });
