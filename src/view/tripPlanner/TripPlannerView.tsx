@@ -913,10 +913,12 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         <form className="transit-planner-form" onSubmit={submit}>
           {renderStopField("from")}
           <Button type="button" size="sm" variant="secondary" className="transit-planner-swap"
+            aria-label="Swap origin and destination"
+            title="Swap origin and destination"
             disabled={!(fromLocation?.trim() || toLocation?.trim() ||
               (fromLocation === undefined && fromStop) || (toLocation === undefined && toStop))}
             onClick={swapEndpoints}>
-            <FontAwesome name="exchange" aria-hidden="true" /> Swap origin and destination
+            <FontAwesome name="exchange" aria-hidden="true" />
           </Button>
           {renderStopField("to")}
           <p className="transit-planner-select-hint" id="planner-location-privacy">

@@ -53,7 +53,8 @@
   margin-block-start: var(--wm-space-2);
 }
 
-.transit-planner-nearest-stop {
+.transit-planner-nearest-stop,
+.transit-planner-swap {
   inline-size: 44px;
   padding-inline: 0;
 }
@@ -364,7 +365,7 @@
     padding: var(--wm-space-3);
   }
 
-  .transit-planner-form > .wm-btn {
+  .transit-planner-form > .wm-btn[type="submit"] {
     width: 100%;
     justify-self: stretch;
   }
@@ -375,7 +376,7 @@
   padding: var(--wm-space-3) 0;
   overflow-wrap: anywhere;
 
-  .transit-planner-form > .wm-btn {
+  .transit-planner-form > .wm-btn[type="submit"] {
     width: 100%;
     justify-self: stretch;
   }
