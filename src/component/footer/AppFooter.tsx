@@ -104,8 +104,9 @@ export default function AppFooter() {
               Enable walking estimates
             </label>
             <p id="feature-walking-description">
-              Nearby sends your current location and stop coordinates to Mapbox
-              to estimate walking distances and paths. GPS and mapped paths may
+              Nearby sends your current location and stop coordinates, or the
+              endpoints of trip-planner walking legs, to Mapbox to estimate
+              walking distances and paths. GPS and mapped paths may
               be inaccurate; accessibility is not verified. Turning this off
               cancels requests and removes the walking path.
             </p>

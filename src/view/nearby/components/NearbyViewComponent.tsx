@@ -77,12 +77,12 @@ export interface NearbyViewComponentOutletContextProps {
 }
 
 export function NearbyTripPlannerComponent() {
-  const { plannerMap } = useOutletContext<NearbyViewComponentOutletContextProps>();
+  const { plannerMap, walkingEnabled } = useOutletContext<NearbyViewComponentOutletContextProps>();
   return (
     <TripPlannerView
       inSidebar
       renderMapStatus={(itineraries, selected) => (
-        <NearbyPlannerPaths map={plannerMap} itineraries={itineraries} selected={selected} />
+        <NearbyPlannerPaths map={plannerMap} itineraries={itineraries} selected={selected} walkingEnabled={walkingEnabled} />
       )}
     />
   );

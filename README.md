@@ -53,11 +53,15 @@ The Nearby sidebar switches between **Explore** (nearby routes and stops) and
 uses the service-wide stop catalog and works without a nearby location or
 nearby results. Standalone `/planner` links still work; both planner views
 support `from` and `to` query parameters.
+**Recent trips** in the sidebar reopens up to five successful stop pairs
+stored in this browser by either planner view. Choosing a pair fetches fresh
+itineraries instead of reusing old departure times.
 Nearby draws available trip paths together: the selected option is blue and
 alternatives are gray. The map uses published transit shapes matched to the
-itinerary's boarding and exit stops. Legs without a matching shape, including
-walking legs, are omitted and called out in the sidebar instead of drawing a
-straight-line substitute.
+itinerary's boarding and exit stops. With **Walking estimates** enabled,
+Mapbox estimates the walking paths from TriMet's leg endpoints, including
+transfers. Dashed lines distinguish these paths from transit, and the sidebar
+calls out missing legs rather than drawing a straight-line substitute.
 Detail headers use an accessible back-caret link before the title rather than an
 outlined Back button.
 Departure rows support mouse and keyboard selection, with a highlight and caret
@@ -94,8 +98,8 @@ can mean the selected location is outside TriMet's service area.
 
 Distances are explicitly labeled straight-line until you
 enable **Walking estimates** in **Feature flags**, opened from the footer menu.
-Opting in sends the selected search location and exact stop coordinates to
-Mapbox. Feature flags apply immediately across the app in the current tab, stay
+Opting in sends the selected search location and exact stop coordinates, or
+trip-planner walking leg endpoints, to Mapbox. Feature flags apply immediately across the app in the current tab, stay
 in memory only, and reset to off on reload. Turning walking estimates off
 aborts requests, removes the walking overlay and clears
 the in-memory routing cache. Coordinates are not persisted by this feature.

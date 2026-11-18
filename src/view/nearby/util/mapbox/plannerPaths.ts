@@ -1,4 +1,5 @@
 import { Feature, FeatureCollection, LineString, MultiLineString, Position } from "geojson";
+import { getWalkingPath } from "../../../../api/mapbox/walking";
 import { getRouteById } from "../../../../api/trimet/routeConfig";
 import { TripPlannerItinerary } from "../../../../api/trimet/tripplanner";
 import { getDistance } from "../turfUtils";
@@ -6,7 +7,7 @@ import { getRouteGeometry } from "./routeLines";
 import { getSelectedRouteSegment } from "./routeSegment";
 
 type Path = LineString | MultiLineString;
-type TripProperties = { trip: number };
+type TripProperties = { trip: number; walk: boolean };
 const MAX_SNAP_MILES = 0.075;
 
 function connectedShape(lines: Position[][], origin: Position, destination: Position) {
@@ -68,16 +69,35 @@ function connectedShape(lines: Position[][], origin: Position, destination: Posi
 
 export async function loadPlannerPaths(
   itineraries: TripPlannerItinerary[],
-  signal: AbortSignal
+  signal: AbortSignal,
+  walkingEnabled: boolean
 ) {
   const routes = new Map<number, ReturnType<typeof getRouteById>>();
   const shapes = new Map<string, ReturnType<typeof getRouteGeometry>>();
+  const walks = new Map<string, ReturnType<typeof getWalkingPath>>();
   const coverage = await Promise.all(itineraries.map(async (itinerary, trip) => {
     const legs = await Promise.all(itinerary.legs.map(async (leg): Promise<Feature<Path, TripProperties> | undefined> => {
       const { from, to, route } = leg;
+      if (leg.mode?.toLowerCase() === "walk") {
+        if (!walkingEnabled || ![from?.lon, from?.lat, to?.lon, to?.lat].every(Number.isFinite)) return;
+        const origin = [from.lon, from.lat];
+        const destination = [to.lon, to.lat];
+        if (origin[0] === destination[0] && origin[1] === destination[1]) return;
+        const key = JSON.stringify([origin, destination]);
+        try {
+          if (!walks.has(key)) walks.set(key, getWalkingPath(origin, destination, signal));
+          const path = await walks.get(key);
+          if (path.status === "ready") {
+            return { ...path.feature, properties: { trip, walk: true } };
+          }
+        } catch {
+          // Keep the remaining legs and report partial coverage in the sidebar.
+        }
+        return;
+      }
       const id = route?.internalNumber ?? Number(route?.number);
       if (!Number.isInteger(id) || id <= 0 || !from?.stopId || !to?.stopId ||
-          from.stopId === to.stopId || leg.mode === "Walk") return;
+          from.stopId === to.stopId) return;
       if (!routes.has(id)) routes.set(id, getRouteById(id, signal));
       try {
         const config = await routes.get(id);
@@ -100,7 +120,7 @@ export async function loadPlannerPaths(
         if (shape.geometry.type === "MultiLineString") {
           const coordinates = connectedShape(shape.geometry.coordinates, originPoint, destinationPoint);
           if (!coordinates) return;
-          return { type: "Feature", geometry: { type: "LineString", coordinates }, properties: { trip } };
+          return { type: "Feature", geometry: { type: "LineString", coordinates }, properties: { trip, walk: false } };
         }
         const { geometry } = getSelectedRouteSegment(shape, origin, destination);
         if (geometry.type !== "LineString") return;
@@ -112,7 +132,7 @@ export async function loadPlannerPaths(
           getDistance(b, destinationPoint) <= MAX_SNAP_MILES;
         if ((!matchesEndpoints(start, end) && !matchesEndpoints(end, start)) ||
             getDistance(start, end) === 0) return;
-        return { type: "Feature", geometry, properties: { trip } };
+        return { type: "Feature", geometry, properties: { trip, walk: false } };
       } catch {
         // A missing or unreadable shape contributes to the visible coverage notice.
         return undefined;
@@ -120,6 +140,7 @@ export async function loadPlannerPaths(
     }));
     return {
       total: legs.length,
+      hasWalk: itinerary.legs.some(leg => leg.mode?.toLowerCase() === "walk"),
       paths: legs.filter((path): path is Feature<Path, TripProperties> => Boolean(path))
     };
   }));

@@ -1,7 +1,7 @@
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
 import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { recordRecentJourney } from "../../api/localstorage/recentJourneys";
+import { readRecentJourneys, recordRecentJourney } from "../../api/localstorage/recentJourneys";
 import {
   getStopCatalog,
   searchStopCatalog,
@@ -168,6 +168,14 @@ function itineraryLabel(itinerary: TripPlannerItinerary, index: number) {
     .join(" · ");
 }
 
+function loadRecentTrips() {
+  try {
+    return { journeys: readRecentJourneys(), unavailable: false };
+  } catch {
+    return { journeys: [], unavailable: true };
+  }
+}
+
 export default function TripPlannerView({ inSidebar = false, renderMapStatus }: {
   inSidebar?: boolean;
   renderMapStatus?: (itineraries: TripPlannerItinerary[], selected: number) => React.ReactNode;
@@ -189,6 +197,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   const [tripState, setTripState] = useState<TripState>({ status: "idle" });
   const [validationError, setValidationError] = useState("");
   const [historyUnavailable, setHistoryUnavailable] = useState(false);
+  const [recentTrips, setRecentTrips] = useState(() => inSidebar ? loadRecentTrips() : undefined);
   const fromInput = useRef<HTMLInputElement>(null);
   const toInput = useRef<HTMLInputElement>(null);
 
@@ -283,6 +292,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
         if (response.itineraries.length > 0) {
           try {
             recordRecentJourney(from.stop, to.stop);
+            if (inSidebar) setRecentTrips(loadRecentTrips());
           } catch {
             setHistoryUnavailable(true);
           }
@@ -298,7 +308,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
       });
 
     return () => controller.abort();
-  }, [catalog, fromParam, toParam, tripRetry]);
+  }, [catalog, fromParam, toParam, tripRetry, inSidebar]);
 
   const fromMatches = useMemo(
     () =>
@@ -467,6 +477,37 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
           </p>
         )}
       </header>
+
+      {recentTrips?.unavailable ? (
+        <p className="transit-planner-message" role="status">Recent trips are unavailable on this device.</p>
+      ) : recentTrips?.journeys.length > 0 && (
+        <details className="transit-planner-recent">
+          <summary>Recent trips</summary>
+          <ul className="transit-planner-stop-matches">
+            {recentTrips.journeys.map(({ from, to }) => (
+              <li key={`${from.locid}-${to.locid}`}>
+                <button type="button" onClick={() => {
+                  const params = { from: String(from.locid), to: String(to.locid) };
+                  if (params.from === fromParam && params.to === toParam) {
+                    const origin = catalog?.stops.find(stop => stop.locid === from.locid);
+                    const destination = catalog?.stops.find(stop => stop.locid === to.locid);
+                    if (origin && destination) {
+                      chooseStop(origin, "from");
+                      chooseStop(destination, "to");
+                      setValidationError("");
+                    }
+                    setTripRetry(value => value + 1);
+                  } else {
+                    setSearchParams(params);
+                  }
+                }}>
+                  {from.desc} ({from.locid}) to {to.desc} ({to.locid})
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {catalogState.loading && (
         <p role="status">

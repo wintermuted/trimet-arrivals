@@ -170,13 +170,32 @@ export async function getWalkingRoute(
   signal: AbortSignal
 ): Promise<WalkingRoute> {
   validateInput(origin, stop);
+  return requestWalkingPath(origin, [stop.lng, stop.lat], stopKey(origin, stop), signal);
+}
+
+export async function getWalkingPath(
+  origin: number[],
+  destination: number[],
+  signal: AbortSignal
+): Promise<WalkingRoute> {
+  if (!validCoordinates(origin) || !validCoordinates(destination)) {
+    throw new Error("Walking paths require valid endpoint coordinates.");
+  }
+  return requestWalkingPath(origin, destination, JSON.stringify([origin, destination]), signal);
+}
+
+async function requestWalkingPath(
+  origin: number[],
+  destination: number[],
+  key: string,
+  signal: AbortSignal
+): Promise<WalkingRoute> {
   checkCancelled(signal);
-  const key = stopKey(origin, stop);
   const cached = readCache(routeCache, key);
   if (cached) return cached;
   const data = await request<DirectionsResponse>(
     "directions/v5",
-    [origin, [stop.lng, stop.lat]],
+    [origin, destination],
     {
       geometries: "geojson",
       overview: "full",

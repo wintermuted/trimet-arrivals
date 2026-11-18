@@ -7,17 +7,23 @@ const SOURCE = "planner-itineraries";
 const OTHER = `${SOURCE}-alternatives`;
 const CASING = `${SOURCE}-selected-casing`;
 const ACTIVE = `${SOURCE}-selected`;
+const OTHER_WALK = `${OTHER}-walk`;
+const ACTIVE_WALK = `${ACTIVE}-walk`;
 
-export default function NearbyPlannerPaths({ map, itineraries, selected }: {
+export default function NearbyPlannerPaths({ map, itineraries, selected, walkingEnabled }: {
   map?: MapboxMap;
   itineraries: TripPlannerItinerary[];
   selected: number;
+  walkingEnabled: boolean;
 }) {
+  const includeWalking = walkingEnabled && Boolean(map);
   const [loaded, setLoaded] = useState<{
     itineraries: TripPlannerItinerary[];
+    includeWalking: boolean;
     paths: Awaited<ReturnType<typeof loadPlannerPaths>>;
   }>();
-  const result = loaded?.itineraries === itineraries ? loaded.paths : undefined;
+  const result = loaded?.itineraries === itineraries && loaded.includeWalking === includeWalking
+    ? loaded.paths : undefined;
   const [mapError, setMapError] = useState(false);
   const mapSelection = React.useRef(selected);
   const applySelection = React.useRef<() => void>();
@@ -29,11 +35,11 @@ export default function NearbyPlannerPaths({ map, itineraries, selected }: {
 
   useEffect(() => {
     const controller = new AbortController();
-    void loadPlannerPaths(itineraries, controller.signal).then(paths => {
-      if (!controller.signal.aborted) setLoaded({ itineraries, paths });
+    void loadPlannerPaths(itineraries, controller.signal, includeWalking).then(paths => {
+      if (!controller.signal.aborted) setLoaded({ itineraries, includeWalking, paths });
     });
     return () => controller.abort();
-  }, [itineraries]);
+  }, [itineraries, includeWalking]);
 
   useEffect(() => {
     if (!map || !result?.data.features.length) return;
@@ -49,12 +55,20 @@ export default function NearbyPlannerPaths({ map, itineraries, selected }: {
           paint: { "line-color": "#667b92", "line-width": 3.5, "line-opacity": 0.85, "line-emissive-strength": 1 }
         });
         map.addLayer({
+          id: OTHER_WALK, source: SOURCE, type: "line", slot: "top", layout,
+          paint: { "line-color": "#667b92", "line-width": 3, "line-dasharray": [1, 2], "line-emissive-strength": 1 }
+        });
+        map.addLayer({
           id: CASING, source: SOURCE, type: "line", slot: "top", layout,
           paint: { "line-color": "#f8fbff", "line-width": 9, "line-emissive-strength": 1 }
         });
         map.addLayer({
           id: ACTIVE, source: SOURCE, type: "line", slot: "top", layout,
           paint: { "line-color": "#1559d1", "line-width": 5, "line-emissive-strength": 1 }
+        });
+        map.addLayer({
+          id: ACTIVE_WALK, source: SOURCE, type: "line", slot: "top", layout,
+          paint: { "line-color": "#1559d1", "line-width": 4, "line-dasharray": [1, 2], "line-emissive-strength": 1 }
         });
         updateSelection();
         if (!fitted) {
@@ -78,13 +92,17 @@ export default function NearbyPlannerPaths({ map, itineraries, selected }: {
     function updateSelection() {
       if (!map.getLayer(ACTIVE)) return;
       const trip = mapSelection.current;
-      map.setFilter(OTHER, ["!=", ["get", "trip"], trip]);
-      map.setFilter(CASING, ["==", ["get", "trip"], trip]);
-      map.setFilter(ACTIVE, ["==", ["get", "trip"], trip]);
+      const filter = (layer: string, operator: "==" | "!=", walk: boolean) =>
+        map.setFilter(layer, ["all", [operator, ["get", "trip"], trip], ["==", ["get", "walk"], walk]]);
+      filter(OTHER, "!=", false);
+      filter(OTHER_WALK, "!=", true);
+      filter(CASING, "==", false);
+      filter(ACTIVE, "==", false);
+      filter(ACTIVE_WALK, "==", true);
     }
 
     function removeLayers() {
-      [ACTIVE, CASING, OTHER].forEach(id => {
+      [ACTIVE_WALK, ACTIVE, CASING, OTHER_WALK, OTHER].forEach(id => {
         if (map.getLayer(id)) map.removeLayer(id);
       });
       if (map.getSource(SOURCE)) map.removeSource(SOURCE);
@@ -113,5 +131,13 @@ export default function NearbyPlannerPaths({ map, itineraries, selected }: {
       : `Selected trip in blue${itineraries.length > 1 ? "; other available paths in gray" : ""}.${incomplete ?
         " Some legs aren't shown because their paths are unavailable." : ""}`;
   }
-  return <p className="transit-planner-partial" role="status">{message}</p>;
+  const hasWalk = result?.coverage.some(trip => trip.hasWalk);
+  const showsWalk = result?.data.features.some(path => path.properties.walk) && map && !mapError;
+  return (
+    <p className="transit-planner-partial" role="status">
+      {message}
+      {showsWalk && " Dashed lines show walking paths estimated by Mapbox."}
+      {hasWalk && !walkingEnabled && " To show walking paths, enable walking estimates in Feature flags."}
+    </p>
+  );
 }
