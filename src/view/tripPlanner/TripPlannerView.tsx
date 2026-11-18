@@ -1,7 +1,7 @@
 import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useId, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
 import {
@@ -103,31 +103,43 @@ function ItineraryDetails({
   itinerary: TripPlannerItinerary;
   index: number;
 }) {
+  const [expanded, setExpanded] = useState(true);
+  const directionsId = useId();
   let transitLegSeen = false;
 
   return (
     <div className="transit-planner-itinerary-detail">
-      {itinerary.partial && (
-        <p className="transit-planner-partial" role="status">
-          Some details were missing from TriMet. Available leg information is
-          shown below.
-        </p>
-      )}
-      <ol aria-label={`Itinerary ${index + 1} steps`}>
-        {itinerary.legs.map((leg, legIndex) => {
-          const isTransit = leg.mode !== "Walk";
-          const showTransfer = isTransit && transitLegSeen;
-          const { iconName, icon: [width, height, , , paths] } = legIcon(leg.mode);
-          if (isTransit) {
-            transitLegSeen = true;
-          }
+      <h3 className="transit-planner-directions-heading">
+        <button
+          type="button"
+          aria-controls={directionsId}
+          aria-expanded={expanded}
+          onClick={() => setExpanded(previous => !previous)}
+        >
+          Directions
+        </button>
+      </h3>
+      <div id={directionsId} hidden={!expanded}>
+        {itinerary.partial && (
+          <p className="transit-planner-partial" role="status">
+            Some details were missing from TriMet. Available leg information is
+            shown below.
+          </p>
+        )}
+        <ol aria-label={`Itinerary ${index + 1} steps`}>
+          {itinerary.legs.map((leg, legIndex) => {
+            const isTransit = leg.mode !== "Walk";
+            const showTransfer = isTransit && transitLegSeen;
+            const { iconName, icon: [width, height, , , paths] } = legIcon(leg.mode);
+            if (isTransit) {
+              transitLegSeen = true;
+            }
 
-          return (
-            <React.Fragment key={leg.id || `${index}-${legIndex}`}>
-              {showTransfer && (
-                <li className="transit-planner-transfer">Transfer</li>
-              )}
-              <li className="transit-planner-leg">
+            return (
+              <li className="transit-planner-leg" key={leg.id || `${index}-${legIndex}`}>
+                {showTransfer && (
+                  <div className="transit-planner-transfer">Transfer</div>
+                )}
                 <div>
                   <svg
                     className="transit-planner-leg-icon"
@@ -164,10 +176,10 @@ function ItineraryDetails({
                   </p>
                 )}
               </li>
-            </React.Fragment>
-          );
-        })}
-      </ol>
+            );
+          })}
+        </ol>
+      </div>
     </div>
   );
 }
