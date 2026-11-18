@@ -1,7 +1,7 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import { Feature, LineString } from "geojson";
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import {
   ArrivalData,
@@ -119,6 +119,11 @@ export function NearbyStopsDetail({
         selectedRoutes={selectedRoutes}
         onToggleRoute={toggleRoute}
       />
+      <div className="transit-nearby-stop-plan">
+        <Link className="wm-btn wm-btn-primary" to={`/nearby/planner?to=${stopLocation.id}`}>
+          Plan a trip to this stop
+        </Link>
+      </div>
       {onWalkingRouteChanged && (
         <WalkingAccess
           currentLocation={currentLocation}

@@ -189,6 +189,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
                 <Route path="planner" element={<NearbyTripPlannerComponent />} />
+                <Route path="stops/:id" element={<NearbyStopDetailComponent />} />
                 <Route path="*" element={<p>Sidebar ready</p>} />
               </Route>
             </Routes>
@@ -210,6 +211,36 @@ describe("Nearby map initialization independently of the sidebar", () => {
       item.title.includes(label)
     );
   }
+
+  it("opens the sidebar planner with the exact stop detail destination and no boarding stop", async () => {
+    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    const stop = { desc: "Shared platform name", dir: "E", id: 8455, lat: 45.52, lng: -122.67, passengerCode: "E" };
+    jest.mocked(getArrivals).mockResolvedValue({
+      arrival: [], detour: [], queryTime: "", location: [stop]
+    });
+    jest.mocked(getStopCatalog).mockResolvedValue({
+      stops: [8454, 8455].map(locid => ({
+        ...stop, locid, aliases: [], seq: 1, tp: false,
+      })),
+      routeCount: 1, directionCount: 1, stopReferenceCount: 2,
+      incompleteRouteCount: 0, incompleteDirectionCount: 0,
+      incompleteRouteNames: [], invalidStopCount: 0,
+    });
+
+    await render("/nearby/stops/8455");
+    expect(container.querySelector('[role="group"][aria-label="Filter departures by route"]')).not.toBeNull();
+    expect(container.textContent).not.toContain("Routes serving this stop (filter departures)");
+    const action = Array.from(container.querySelectorAll("a"))
+      .find(link => link.textContent.trim() === "Plan a trip to this stop");
+    expect(action.getAttribute("href")).toBe("/nearby/planner?to=8455");
+    await act(async () => action.click());
+
+    const [boarding, destination] = Array.from(container.querySelectorAll(".transit-planner-stop-select"));
+    expect(boarding.textContent).toContain("Search by stop name or ID");
+    expect(destination.textContent).toContain("Shared platform name (8455)");
+    expect(button("Find trips").disabled).toBe(true);
+    expect(planTrip).not.toHaveBeenCalled();
+  });
 
   it("plans a deep-linked trip without geolocation and switches views without replacing the map", async () => {
     jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
