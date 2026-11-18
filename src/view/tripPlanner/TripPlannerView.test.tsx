@@ -223,6 +223,40 @@ describe("TripPlannerView", () => {
     }
   });
 
+  it("compares options by schedule, duration, and their actual legs in travel order", async () => {
+    loadCatalog.mockResolvedValue({
+      ...catalog(),
+      plannerRouteColors: new Map([[100, "#0069aa"]]),
+    });
+    const [transit, bus] = itineraryResponse().itineraries;
+    transit.legs[1].route.internalNumber = 100;
+    requestTrip.mockResolvedValue(itineraryResponse({
+      itineraries: [
+        transit,
+        bus,
+        { id: "3", endTime: "2:50 PM", legs: [transit.legs[0]], partial: true },
+        { id: "4", legs: [], partial: true },
+      ],
+    }));
+    await render("/nearby/planner?from=8356&to=7777", true);
+
+    const [mixed, direct, walk, partial] = container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button");
+    const labels = (option: HTMLButtonElement) =>
+      Array.from(option.querySelectorAll(".transit-planner-option-leg span"), label => label.textContent);
+    expect(mixed.querySelector("strong").textContent).toBe("1:39 PM to 2:28 PM");
+    expect(mixed.textContent).toContain("51 min");
+    expect(labels(mixed)).toEqual(["Walk", "MAX Blue Line", "WES to Beaverton"]);
+    expect(mixed.querySelector<SVGElement>('[data-icon="train-tram"]').style.color).toBe("rgb(0, 105, 170)");
+    expect(labels(direct)).toEqual(["Bus 20"]);
+    expect(labels(walk)).toEqual(["Walk"]);
+    expect(walk.querySelector(".transit-planner-option-chevron")).toBeNull();
+    expect(walk.textContent).toContain("Arrives 2:50 PM");
+    expect(walk.textContent).toContain("Duration unavailable");
+    expect(walk.textContent).not.toContain("transfer");
+    expect(partial.textContent).toContain("Times unavailable");
+    expect(partial.textContent).toContain("Route details unavailable");
+  });
+
   it("plans a name-based deep link with stop IDs and shows transfers and leg detail", async () => {
     await render(
       "/planner?from=Gresham%20City%20Hall%20MAX%20Station&to=Pioneer%20Courthouse%2FSW%206th%20Ave%20MAX%20Stn",

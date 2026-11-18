@@ -83,15 +83,8 @@
   padding: 0;
   list-style: none;
 
-  button {
-    width: 100%;
-    text-align: start;
-  }
-
-  span {
-    display: block;
-    color: var(--wm-color-text-muted);
-    font-size: 0.875rem;
+  > li {
+    min-inline-size: 0;
   }
 
   + .wm-btn {
@@ -100,18 +93,76 @@
 }
 
 .transit-planner-options button {
-  min-height: var(--wm-control-height);
-  padding: var(--wm-space-2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--wm-space-2);
+  inline-size: 100%;
+  min-block-size: max(44px, var(--wm-control-height));
+  padding: var(--wm-space-3);
   border: 1px solid var(--wm-color-border);
   border-radius: var(--wm-radius-xs);
   background: var(--wm-color-surface);
   color: inherit;
   font: inherit;
+  text-align: start;
   cursor: pointer;
 
   &:hover,
   &[aria-current="true"] {
     background: var(--wm-color-surface-muted);
+  }
+
+  .transit-planner-option-timing,
+  .transit-planner-option-route {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--wm-space-1) var(--wm-space-2);
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+  }
+
+  .transit-planner-option-timing {
+    justify-content: space-between;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .transit-planner-option-duration {
+    font-weight: 600;
+  }
+
+  .transit-planner-option-route {
+    font-size: 0.875rem;
+  }
+
+  .transit-planner-option-step,
+  .transit-planner-option-leg {
+    display: inline-flex;
+    align-items: center;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+
+  .transit-planner-option-leg {
+    gap: var(--wm-space-1);
+
+    .transit-planner-leg-icon {
+      flex-shrink: 0;
+    }
+
+    > span {
+      min-inline-size: 0;
+    }
+  }
+
+  .transit-planner-option-chevron {
+    margin-inline-end: var(--wm-space-2);
+    color: var(--wm-color-text-muted);
+  }
+
+  .transit-planner-option-meta {
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
   }
 
   &:focus-visible {
@@ -317,16 +368,8 @@
   }
 
   .transit-planner-leg-icon {
-    width: 1.25em;
-    height: 1em;
     margin-inline-end: var(--wm-space-2);
-    color: var(--wm-color-text-muted);
-    fill: currentColor;
     vertical-align: -0.125em;
-
-    &--walk {
-      color: var(--wm-color-success);
-    }
   }
 
   p {
@@ -345,6 +388,18 @@
     color: var(--wm-color-text-muted);
     font-size: 0.875rem;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+.transit-planner-leg .transit-planner-leg-icon,
+.transit-planner-option-leg .transit-planner-leg-icon {
+  width: 1.25em;
+  height: 1em;
+  color: var(--wm-color-text-muted);
+  fill: currentColor;
+
+  &.transit-planner-leg-icon--walk {
+    color: var(--wm-color-success);
   }
 }
 
