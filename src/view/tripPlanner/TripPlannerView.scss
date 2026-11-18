@@ -163,10 +163,73 @@
     font-size: 0.9375rem;
     font-weight: 600;
   }
+}
 
-  dd + dt {
-    margin-block-start: var(--wm-space-2);
+.transit-planner-endpoint-pair {
+  display: grid;
+  grid-template-rows: auto auto;
+  row-gap: var(--wm-space-2);
+}
+
+.transit-planner-endpoint-pair--editing {
+  grid-template-rows: auto auto auto;
+  row-gap: var(--wm-space-3);
+
+  > .transit-planner-swap {
+    justify-self: start;
   }
+}
+
+.transit-planner--sidebar .transit-planner-endpoint-pair {
+  --endpoint-rail-width: 1.75rem;
+  --endpoint-row-gap: var(--wm-space-2);
+  grid-template-columns: var(--endpoint-rail-width) minmax(0, 1fr);
+
+  &::before {
+    content: "";
+    grid-area: 1 / 1 / -2 / 2;
+    justify-self: center;
+    border-inline-start: 2px dotted var(--wm-color-text-muted);
+    margin-block: 1.125rem calc(2px - var(--endpoint-row-gap));
+  }
+
+  > * {
+    grid-column: 2;
+  }
+
+  > .transit-planner-endpoint {
+    position: relative;
+    min-inline-size: 0;
+  }
+}
+
+.transit-planner--sidebar .transit-planner-endpoint-pair--editing {
+  --endpoint-row-gap: var(--wm-space-3);
+}
+
+.transit-planner-endpoint-marker {
+  position: absolute;
+  inset-inline-end: 100%;
+  inset-block-start: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--endpoint-rail-width);
+  block-size: 1.25rem;
+  color: var(--wm-color-text-muted);
+  line-height: 1;
+}
+
+.transit-planner-endpoint-marker--from::before {
+  content: "";
+  box-sizing: border-box;
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.transit-planner-endpoint-marker--to {
+  color: var(--wm-color-accent);
 }
 
 .transit-planner-disclosure-header {
