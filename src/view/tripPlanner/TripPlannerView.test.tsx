@@ -2,7 +2,8 @@ import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Simulate } from "react-dom/test-utils";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import geoLocateCurrentPosition from "../../api/geolocation/geoLocateCurrentPosition";
 import {
   getStopCatalog,
   StopCatalog,
@@ -19,8 +20,10 @@ jest.mock("../../api/trimet/stopCatalog", () => {
 });
 
 jest.mock("../../api/trimet/tripplanner", () => ({
+  ...jest.requireActual("../../api/trimet/tripplanner"),
   planTrip: jest.fn(),
 }));
+jest.mock("../../api/geolocation/geoLocateCurrentPosition");
 
 const loadCatalog = jest.mocked(getStopCatalog);
 const requestTrip = jest.mocked(planTrip);
@@ -150,6 +153,7 @@ describe("TripPlannerView", () => {
     localStorage.clear();
     loadCatalog.mockReset().mockResolvedValue(catalog());
     requestTrip.mockReset().mockResolvedValue(itineraryResponse());
+    jest.mocked(geoLocateCurrentPosition).mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -162,10 +166,14 @@ describe("TripPlannerView", () => {
   });
 
   async function render(path: string, inSidebar = false) {
+    function SearchLocation() {
+      return <output data-test-id="query">{useLocation().search}</output>;
+    }
     await act(async () => {
       root.render(
         <ThemeProvider>
           <MemoryRouter initialEntries={[path]}>
+            <SearchLocation />
             <TripPlannerView inSidebar={inSidebar} />
           </MemoryRouter>
         </ThemeProvider>,
@@ -376,6 +384,67 @@ describe("TripPlannerView", () => {
       "different stops",
     );
     expect(requestTrip).not.toHaveBeenCalled();
+  });
+
+  it("plans a linked place-to-stop trip, keeping geographic inputs out of stop history", async () => {
+    requestTrip.mockResolvedValueOnce(itineraryResponse({
+      from: { description: "Powell's City of Books", lat: 45.523, lon: -122.681 },
+    }));
+    await render("/planner?fromPlace=Powell%27s+City+of+Books&to=7777", true);
+    expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({
+      fromPlace: "Powell's City of Books", toPlace: "7777",
+    }));
+    expect(container.querySelector(".transit-planner-stop-summary").textContent).toContain("Powell's City of Books");
+    expect(container.querySelector('[aria-label="Edit locations"]')).not.toBeNull();
+    expect(localStorage.getItem("trimet-arrivals:recent-journeys")).toBeNull();
+    expect(geoLocateCurrentPosition).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed coordinates, then preserves the correct order in the link and request", async () => {
+    await render("/planner?from=8356&toCoord=45,-122");
+    expect(container.textContent).toContain("The linked location is invalid.");
+    expect(requestTrip).not.toHaveBeenCalled();
+    const input = container.querySelector<HTMLInputElement>("#planner-to");
+    act(() => {
+      input.value = "-122.6815, 45.5231";
+      Simulate.change(input);
+    });
+    await act(async () => Simulate.submit(container.querySelector("form")));
+    expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({
+      fromPlace: "8356", toCoord: "-122.6815,45.5231",
+    }));
+    const query = container.querySelector('[data-test-id="query"]').textContent;
+    expect(new URLSearchParams(query).get("toCoord")).toBe("-122.6815,45.5231");
+  });
+
+  it("shows a geocoding failure instead of presenting it as an empty trip list", async () => {
+    requestTrip.mockResolvedValueOnce(itineraryResponse({
+      success: false, errorMessage: "Uncertain Location: Main Street was not recognized", itineraries: [],
+    }));
+    await render("/planner?fromPlace=Main+Street&to=7777");
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Main Street was not recognized");
+    expect(container.querySelector(".transit-planner-results")).toBeNull();
+    expect(container.querySelector<HTMLInputElement>("#planner-from").value).toBe("Main Street");
+  });
+
+  it("requests device location only on demand and uses only the chosen public stop ID", async () => {
+    jest.mocked(geoLocateCurrentPosition).mockRejectedValueOnce(new Error("denied"))
+      .mockResolvedValueOnce({ coords: { longitude: -122.43582, latitude: 45.50568 } });
+    await render("/planner?to=7777", true);
+    const click = (text: string) => Array.from(container.querySelectorAll("button"))
+      .find(button => button.textContent.trim() === text).click();
+    act(() => click("Other origin options"));
+    expect(document.activeElement).toBe(container.querySelector("#planner-from"));
+    expect(geoLocateCurrentPosition).not.toHaveBeenCalled();
+    await act(async () => click("Use nearest stop to me"));
+    expect(container.textContent).toContain("Check browser permissions");
+    await act(async () => click("Use nearest stop to me"));
+    expect(document.activeElement).toBe(container.querySelector("#planner-from"));
+    await act(async () => Simulate.submit(container.querySelector("form")));
+    expect(requestTrip).toHaveBeenCalledWith({ fromPlace: "8356", toPlace: "7777", signal: expect.anything() });
+    const query = container.querySelector('[data-test-id="query"]').textContent;
+    expect(query).toBe("?from=8356&to=7777");
+    expect(localStorage.getItem("trimet-arrivals:recent-journeys")).not.toContain("-122.43582");
   });
 
   it("reports no trips and keeps planner search usable for an invalid linked stop", async () => {

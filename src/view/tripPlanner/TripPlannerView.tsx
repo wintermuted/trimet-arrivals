@@ -1,10 +1,12 @@
 import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
-import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
+import { Button, FieldGroup, Input } from "@wintermuted/ui-theme/react";
+import distance from "@turf/distance";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import React, { FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";
 import { useSearchParams } from "react-router-dom";
+import geoLocateCurrentPosition from "../../api/geolocation/geoLocateCurrentPosition";
 import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
 import { PlannerRouteColors, plannerTransitColor } from "../../api/trimet/plannerRouteColors";
 import {
@@ -14,6 +16,7 @@ import {
 } from "../../api/trimet/stopCatalog";
 import {
   planTrip,
+  parsePlannerCoordinates,
   TripPlannerItinerary,
   TripPlannerLeg,
   TripPlannerResponse,
@@ -41,10 +44,53 @@ type TripState =
   | { status: "ready" | "empty" };
 
 type PlannedSearch = {
-  from: StopCatalogStop;
-  to: StopCatalogStop;
+  from: PlannerEndpoint;
+  to: PlannerEndpoint;
   response: TripPlannerResponse;
 };
+
+type PlannerEndpoint =
+  | { kind: "stop"; stop: StopCatalogStop }
+  | { kind: "place" | "coord"; value: string };
+type EndpointField = "from" | "to";
+
+function endpointLabel(endpoint: PlannerEndpoint, resolved?: TripPlannerResponse["from"]) {
+  if (endpoint.kind === "stop") return `${endpoint.stop.desc} (${endpoint.stop.locid})`;
+  if (endpoint.kind === "coord") return endpoint.value;
+  return resolved?.description || endpoint.value;
+}
+
+function endpointLabelForRequest(endpoint: PlannerEndpoint) {
+  return endpoint.kind === "stop" ? String(endpoint.stop.locid) : endpoint.value;
+}
+
+function sameEndpoint(from: PlannerEndpoint, to: PlannerEndpoint) {
+  return from.kind === to.kind &&
+    endpointLabelForRequest(from).toLowerCase() === endpointLabelForRequest(to).toLowerCase();
+}
+
+function sameEndpointMessage(from: PlannerEndpoint, to: PlannerEndpoint) {
+  return from.kind === "stop" && to.kind === "stop"
+    ? "Choose two different stops to plan a trip."
+    : "Choose two different locations to plan a trip.";
+}
+
+function endpointParams(endpoint: PlannerEndpoint, field: EndpointField) {
+  if (endpoint.kind === "stop") return { [field]: String(endpoint.stop.locid) };
+  return { [`${field}${endpoint.kind === "coord" ? "Coord" : "Place"}`]: endpoint.value };
+}
+
+function locationEndpoint(value: string, coordinates = false): PlannerEndpoint | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (coordinates || /^[+\-.\d\s,]+$/.test(trimmed) || /^[+-]?(?:\d+\.?\d*|\.\d+)\s*,/.test(trimmed)) {
+    const point = parsePlannerCoordinates(trimmed);
+    return point && { kind: "coord", value: point.join(",") };
+  }
+  return { kind: "place", value: trimmed };
+}
+
+const coordinateHelp = "Enter longitude, latitude (for example -122.68, 45.52).";
 
 function resolveStopReference(
   stops: StopCatalogStop[],
@@ -344,6 +390,12 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from") || "";
   const toParam = searchParams.get("to") || "";
+  const fromCoord = searchParams.get("fromCoord");
+  const toCoord = searchParams.get("toCoord");
+  const fromPlace = searchParams.get("fromPlace");
+  const toPlace = searchParams.get("toPlace");
+  const fromLinkedLocation = fromCoord ?? fromPlace;
+  const toLinkedLocation = toCoord ?? toPlace;
   const [catalogState, setCatalogState] = useState<CatalogState>({
     error: false,
     loading: true,
@@ -351,6 +403,11 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   const [catalogRetry, setCatalogRetry] = useState(0);
   const [fromStop, setFromStop] = useState<StopCatalogStop>();
   const [toStop, setToStop] = useState<StopCatalogStop>();
+  const [fromLocation, setFromLocation] = useState<string>();
+  const [toLocation, setToLocation] = useState<string>();
+  const [locating, setLocating] = useState<EndpointField>();
+  const locationRequest = useRef(0);
+  const pendingEndpointFocus = useRef<EndpointField>();
   const [selectedItinerary, setSelectedItinerary] = useState(-1);
   const [editingTrip, setEditingTrip] = useState(false);
   const [hoveredTrip, setHoveredTrip] = useState<number>();
@@ -406,6 +463,15 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   }, [catalogRetry]);
 
   const catalog = catalogState.catalog;
+  const lookupCatalog = fromLinkedLocation === null || toLinkedLocation === null ? catalog : undefined;
+
+  useEffect(() => {
+    setFromLocation(fromLinkedLocation ?? undefined);
+    setToLocation(toLinkedLocation ?? undefined);
+    setValidationError("");
+    setLocating(undefined);
+    return () => { locationRequest.current += 1; };
+  }, [fromParam, toParam, fromLinkedLocation, toLinkedLocation]);
 
   useEffect(() => {
     if (!catalog) {
@@ -416,38 +482,43 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     const to = resolveStopReference(catalog.stops, toParam);
     setFromStop(from.stop);
     setToStop(to.stop);
-    setValidationError("");
   }, [catalog, fromParam, toParam]);
 
   useEffect(() => {
     setHistoryUnavailable(false);
     setEditingStops(true);
-    if (!catalog || !fromParam || !toParam) {
+    if (!(fromLinkedLocation ?? fromParam) || !(toLinkedLocation ?? toParam)) {
       setTripState({ status: "idle" });
       return;
     }
 
-    const from = resolveStopReference(catalog.stops, fromParam);
-    const to = resolveStopReference(catalog.stops, toParam);
-    if (!from.stop || !to.stop) {
+    const from = resolveStopReference(lookupCatalog?.stops ?? EMPTY_STOPS, fromParam).stop;
+    const to = resolveStopReference(lookupCatalog?.stops ?? EMPTY_STOPS, toParam).stop;
+    const origin = fromLinkedLocation !== null ? locationEndpoint(fromLinkedLocation, fromCoord !== null) :
+      from && { kind: "stop" as const, stop: from };
+    const destination = toLinkedLocation !== null ? locationEndpoint(toLinkedLocation, toCoord !== null) :
+      to && { kind: "stop" as const, stop: to };
+    if ((fromLinkedLocation !== null && !origin) || (toLinkedLocation !== null && !destination)) {
+      setTripState({ status: "error", message: `The linked location is invalid. ${coordinateHelp}` });
+      return;
+    }
+    if (!origin || !destination) {
       setTripState({ status: "idle" });
       return;
     }
-    if (from.stop.locid === to.stop.locid) {
+    if (sameEndpoint(origin, destination)) {
       setTripState({
         status: "error",
-        message: "Choose two different stops to plan a trip.",
+        message: sameEndpointMessage(origin, destination),
       });
       return;
     }
 
-    const origin = from.stop;
-    const destination = to.stop;
     const controller = new AbortController();
     setTripState({ status: "loading" });
     planTrip({
-      fromPlace: String(origin.locid),
-      toPlace: String(destination.locid),
+      ...(origin.kind === "coord" ? { fromCoord: origin.value, fromPlace: origin.value } : { fromPlace: endpointLabelForRequest(origin) }),
+      ...(destination.kind === "coord" ? { toCoord: destination.value, toPlace: destination.value } : { toPlace: endpointLabelForRequest(destination) }),
       signal: controller.signal,
     })
       .then((response) => {
@@ -457,9 +528,9 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         if (!response.success) {
           setTripState({
             status: "error",
-            message:
-              response.errorMessage ||
-              "TriMet could not find a trip for these stops.",
+            message: response.errorMessage?.startsWith("Uncertain Location")
+              ? `TriMet could not identify the location. ${response.errorMessage}. Try a more specific name, a street address without city or state, or coordinates.`
+              : response.errorMessage || "TriMet could not find a trip for these locations.",
           });
           return;
         }
@@ -474,11 +545,13 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         clearTripPreview();
         setJourneyItinerary(undefined);
         setEditingStops(false);
-        try {
-          recordRecentJourney(origin, destination);
-          if (inSidebar) setRecentTrips(loadRecentTrips());
-        } catch {
-          setHistoryUnavailable(true);
+        if (origin.kind === "stop" && destination.kind === "stop") {
+          try {
+            recordRecentJourney(origin.stop, destination.stop);
+            if (inSidebar) setRecentTrips(loadRecentTrips());
+          } catch {
+            setHistoryUnavailable(true);
+          }
         }
       })
       .catch(() => {
@@ -491,23 +564,72 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       });
 
     return () => controller.abort();
-  }, [catalog, fromParam, toParam, tripRetry, inSidebar]);
+  }, [lookupCatalog, fromParam, toParam, fromLinkedLocation, toLinkedLocation, fromCoord, toCoord, tripRetry, inSidebar]);
+
+  useLayoutEffect(() => {
+    const field = pendingEndpointFocus.current;
+    if (!field) return;
+    pendingEndpointFocus.current = undefined;
+    searchFields.current?.querySelector<HTMLInputElement>(`#planner-${field}`)?.focus();
+  }, [fromLocation, toLocation]);
+
+  async function useNearestStop(field: EndpointField) {
+    if (!catalog) return;
+    const request = ++locationRequest.current;
+    setLocating(field);
+    setValidationError("");
+    try {
+      const { coords } = await geoLocateCurrentPosition();
+      if (request !== locationRequest.current) return;
+      const point = parsePlannerCoordinates(`${coords.longitude},${coords.latitude}`);
+      let nearest: StopCatalogStop | undefined;
+      let bestDistance = 1;
+      if (point) {
+        for (const stop of catalog.stops) {
+          if (!Number.isFinite(stop.lng) || !Number.isFinite(stop.lat)) continue;
+          const miles = distance(point, [stop.lng, stop.lat], { units: "miles" });
+          if (miles < bestDistance) {
+            nearest = stop;
+            bestDistance = miles;
+          }
+        }
+      }
+      if (nearest) {
+        pendingEndpointFocus.current = field;
+        chooseStop(nearest, field);
+      } else {
+        setValidationError("No TriMet stop was found within one mile. Enter a place, address, or coordinates instead.");
+      }
+    } catch {
+      if (request === locationRequest.current) {
+        setValidationError("Could not use your location. Check browser permissions or enter a location manually.");
+      }
+    } finally {
+      if (request === locationRequest.current) setLocating(undefined);
+    }
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setValidationError("");
-    if (!fromStop || !toStop) {
-      setValidationError("Choose a boarding stop and a destination stop.");
+    const from = fromLocation !== undefined ? locationEndpoint(fromLocation) : fromStop && { kind: "stop" as const, stop: fromStop };
+    const to = toLocation !== undefined ? locationEndpoint(toLocation) : toStop && { kind: "stop" as const, stop: toStop };
+    if ((fromLocation?.trim() && !from) || (toLocation?.trim() && !to)) {
+      setValidationError(`Check the ${!from ? "origin" : "destination"} coordinates. ${coordinateHelp}`);
       return;
     }
-    if (fromStop.locid === toStop.locid) {
-      setValidationError("Choose two different stops to plan a trip.");
+    if (!from || !to) {
+      setValidationError("Choose an origin and a destination.");
+      return;
+    }
+    if (sameEndpoint(from, to)) {
+      setValidationError(sameEndpointMessage(from, to));
       return;
     }
 
     focusStopSummary.current = true;
-    const params = { from: String(fromStop.locid), to: String(toStop.locid) };
-    if (params.from === fromParam && params.to === toParam) {
+    const params = { ...endpointParams(from, "from"), ...endpointParams(to, "to") };
+    if (new URLSearchParams(params).toString() === searchParams.toString()) {
       setTripRetry(value => value + 1);
     } else {
       setSearchParams(params);
@@ -520,8 +642,10 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   ) {
     if (field === "from") {
       setFromStop(stop ?? undefined);
+      setFromLocation(undefined);
     } else {
       setToStop(stop ?? undefined);
+      setToLocation(undefined);
     }
     setValidationError("");
   }
@@ -531,7 +655,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     focusStopSummary.current = true;
     const { from, to } = journey;
     const params = { from: String(from.locid), to: String(to.locid) };
-    if (params.from !== fromParam || params.to !== toParam) {
+    if (params.from !== fromParam || params.to !== toParam || fromLinkedLocation !== null || toLinkedLocation !== null) {
       setSearchParams(params);
       return;
     }
@@ -549,6 +673,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     const selected = isFrom ? fromStop : toStop;
     const label = isFrom ? "Boarding stop" : "Destination stop";
     const id = isFrom ? "planner-from" : "planner-to";
+    const location = isFrom ? fromLocation : toLocation;
+    const setLocation = isFrom ? setFromLocation : setToLocation;
     const reference = isFrom ? fromParam : toParam;
     const referenceResolution =
       catalog && reference
@@ -557,6 +683,39 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
 
     return (
       <div className="transit-planner-stop-field">
+        {location !== undefined ? (
+          <div className="transit-planner-location-field">
+            <FieldGroup label={isFrom ? "Origin address, place, or coordinates" : "Destination address, place, or coordinates"} htmlFor={id}>
+              <Input id={id} value={location} maxLength={240} autoComplete="off" aria-describedby={`${id}-hint`}
+                onChange={event => {
+                  locationRequest.current += 1;
+                  setLocating(undefined);
+                  setLocation(event.target.value);
+                  setValidationError("");
+                }} />
+            </FieldGroup>
+            <p className="transit-planner-select-hint" id={`${id}-hint`}>
+              Try a street address without city or state, a place name, or longitude, latitude.
+            </p>
+            <div className="transit-planner-endpoint-actions">
+              <Button type="button" size="sm" variant="secondary" onClick={() => {
+                locationRequest.current += 1;
+                setLocating(undefined);
+                pendingEndpointFocus.current = field;
+                setLocation(undefined);
+                setValidationError("");
+              }}>Use a {isFrom ? "boarding" : "destination"} stop</Button>
+              <Button type="button" size="sm" variant="secondary" disabled={!catalog || Boolean(locating)}
+                aria-describedby={`${id}-location-privacy`}
+                onClick={() => void useNearestStop(field)}>
+                {locating === field ? "Finding nearest stop…" : "Use nearest stop to me"}
+              </Button>
+            </div>
+            <p className="transit-planner-select-hint" id={`${id}-location-privacy`}>
+              Device location stays on this device. Only the chosen public stop is used.
+            </p>
+          </div>
+        ) : <>
         <FieldGroup label={label} htmlFor={id}>
           <PlannerStopSelect
             id={id}
@@ -566,6 +725,14 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
             onChange={stop => chooseStop(stop, field)}
           />
         </FieldGroup>
+        <Button type="button" size="sm" variant="secondary" className="transit-planner-location-toggle"
+          onClick={() => {
+            pendingEndpointFocus.current = field;
+            setLocation("");
+            setValidationError("");
+          }}>
+          {isFrom ? "Other origin options" : "Other destination options"}
+        </Button>
         {!selected &&
           referenceResolution &&
           referenceResolution.matches.length > 1 && (
@@ -582,6 +749,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
               or ID and choose a result.
             </p>
           )}
+        </>}
       </div>
     );
   }
@@ -649,7 +817,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       ref={planningContent}
     >
       <PlannerDisclosure title="Plan a trip" headingId="transit-planner-title" edit={stopSummary ? {
-        label: "Edit stops",
+        label: stopSummary.from.kind === "stop" && stopSummary.to.kind === "stop" ? "Edit stops" : "Edit locations",
         buttonRef: editStopsButton,
         onClick: () => {
           focusBoardingStop.current = true;
@@ -658,18 +826,17 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       } : undefined}>
         {stopSummary ? (
             <dl className="transit-planner-stop-summary">
-              <dt>Boarding stop</dt>
-              <dd>{stopSummary.from.desc} ({stopSummary.from.locid})</dd>
-              <dt>Destination stop</dt>
-              <dd>{stopSummary.to.desc} ({stopSummary.to.locid})</dd>
+              <dt>{stopSummary.from.kind === "stop" ? "Boarding stop" : "Origin"}</dt>
+              <dd>{endpointLabel(stopSummary.from, stopSummary.response.from)}</dd>
+              <dt>{stopSummary.to.kind === "stop" ? "Destination stop" : "Destination"}</dt>
+              <dd>{endpointLabel(stopSummary.to, stopSummary.response.to)}</dd>
             </dl>
         ) : (
           <fieldset ref={searchFields} className="transit-planner-search-fields" disabled={tripState.status === "loading"}
             aria-label="Trip search">
         {!inSidebar && (
           <p className="transit-planner-intro">
-            Choose any two TriMet stops. Search by stop name or ID; addresses are
-            not supported.
+            Plan between TriMet stops, street addresses, places, or coordinates.
           </p>
         )}
 
@@ -726,7 +893,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         <form className="transit-planner-form" onSubmit={submit}>
           {renderStopField("from")}
           {renderStopField("to")}
-          <p className="transit-planner-select-hint">Type a name or ID to search all stops.</p>
+          {(fromLocation === undefined || toLocation === undefined) &&
+            <p className="transit-planner-select-hint">Type a name or ID to search all stops.</p>}
           {validationError && (
             <p className="transit-planner-message" role="alert">
               {validationError}
@@ -734,7 +902,9 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
           )}
           <Button
             type="submit"
-            disabled={!fromStop || !toStop || catalogState.loading}
+            disabled={Boolean(locating) ||
+              (fromLocation === undefined ? !fromStop || catalogState.loading : !fromLocation.trim()) ||
+              (toLocation === undefined ? !toStop || catalogState.loading : !toLocation.trim())}
           >
             Find trips
           </Button>
@@ -751,7 +921,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       {tripState.status === "error" && (
         <div className="transit-planner-message" role="alert">
           <p>{tripState.message}</p>
-          {fromParam && toParam && (
+          {(fromLinkedLocation ?? fromParam) && (toLinkedLocation ?? toParam) && (
             <Button
               type="button"
               variant="secondary"
@@ -762,14 +932,14 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
           )}
         </div>
       )}
-      {tripState.status === "idle" && !fromParam && !toParam && (
+      {tripState.status === "idle" && !fromParam && !toParam && fromLinkedLocation === null && toLinkedLocation === null && (
         <p className="transit-planner-message" role="status">
-          Select a boarding stop and destination to see trip options.
+          Choose an origin and a destination to see trip options.
         </p>
       )}
-      {tripState.status === "idle" && Boolean(fromParam || toParam) && (
+      {tripState.status === "idle" && Boolean(fromParam || toParam || fromLinkedLocation || toLinkedLocation) && (
         <p className="transit-planner-message" role="status">
-          Choose valid stops from the service-wide catalog to plan this trip.
+          Complete both locations to plan this trip.
         </p>
       )}
 
@@ -784,7 +954,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       )}
       {tripState.status === "empty" && (
         <p className="transit-planner-message" role="status">
-          No trips were found between these stops. Try another pair of stops.
+          No trips were found between these locations. Try another pair of locations.
         </p>
       )}
       {itineraries.length > 0 && (
@@ -794,8 +964,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         >
           {editingStops && plannedSearch && (
             <p className="transit-planner-select-hint">
-              Showing results for {plannedSearch.from.desc} ({plannedSearch.from.locid}) to{" "}
-              {plannedSearch.to.desc} ({plannedSearch.to.locid}).
+              Showing results for {endpointLabel(plannedSearch.from, response?.from)} to{" "}
+              {endpointLabel(plannedSearch.to, response?.to)}.
             </p>
           )}
           {renderMapStatus?.(itineraries, selectedItinerary, highlightedLeg, setMapLeg, catalog?.plannerRouteColors, previewTrip)}
