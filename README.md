@@ -73,8 +73,9 @@ The collapsible **Directions** section shows mode icons alongside written
 instructions, with dividers between each leg.
 In Nearby, hover a leg in the directions or on the map to highlight it in both
 places. Keyboard focus on a direction also highlights its path when available.
-Nearby draws available trip paths together. MAX, streetcar, and FX legs use
-their published line colors; regular bus legs stay blue. The selected trip
+Nearby draws available trip paths together. MAX, streetcar, and FX paths and
+direction icons use their published line colors. Regular bus stays blue, and the
+walking icon is green. The selected trip
 has a thicker stroke and a light outline, while alternatives are muted.
 The map uses published transit shapes matched to the
 itinerary's boarding and exit stops. Only boarding and exit stops for the
