@@ -1,7 +1,8 @@
 import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
-import React, { FormEvent, useEffect, useId, useRef, useState } from "react";
+import React, { FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";
 import { useSearchParams } from "react-router-dom";
 import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
@@ -68,7 +69,7 @@ function resolveStopReference(
 
 function formatStop(location?: TripPlannerLeg["from"]): string {
   if (!location?.description) {
-    return "Stop information unavailable";
+    return location?.stopId ? `Stop ${location.stopId}` : "Stop information unavailable";
   }
   return location.stopId
     ? `${location.description} (${location.stopId})`
@@ -102,6 +103,62 @@ function legIcon(mode?: string) {
   if (/\b(light rail|max|streetcar|tram)\b/.test(name)) return faTrainTram;
   if (/\b(rail|train|wes)\b/.test(name)) return faTrain;
   return faRoute;
+}
+
+function LegIcon({ leg, routeColors }: { leg: TripPlannerLeg; routeColors?: PlannerRouteColors }) {
+  const { iconName, icon: [width, height, , , paths] } = legIcon(leg.mode);
+  const walking = iconName === "person-walking";
+  return (
+    <svg
+      className={`transit-planner-leg-icon${walking ? " transit-planner-leg-icon--walk" : ""}`}
+      style={walking ? undefined : { color: plannerTransitColor(leg, routeColors) }}
+      data-icon={iconName}
+      viewBox={`0 0 ${width} ${height}`}
+      aria-hidden="true"
+      focusable="false"
+    >
+      {[paths].flat().map(path => <path key={path} d={path} />)}
+    </svg>
+  );
+}
+
+function JourneyDirections({ itinerary, headingRef, routeColors }: {
+  itinerary: TripPlannerItinerary;
+  headingRef: React.Ref<HTMLHeadingElement>;
+  routeColors?: PlannerRouteColors;
+}) {
+  return (
+    <>
+      <header className="transit-journey-header">
+        <h2 tabIndex={-1} ref={headingRef}>Journey directions</h2>
+        <p>Planned times from TriMet, not live updates.</p>
+        {itinerary.startTime && itinerary.endTime && (
+          <p>Planned trip: {itinerary.startTime} to {itinerary.endTime}</p>
+        )}
+      </header>
+      {itinerary.legs.length ? (
+        <ol className="transit-journey-steps" aria-label="Journey steps">
+          {itinerary.legs.map((leg, index) => {
+            const walking = /^walk(?:ing)?$/i.test(leg.mode?.trim() ?? "");
+            const hasRoute = !walking && Boolean(leg.route?.name || leg.route?.number);
+            const direction = leg.direction || leg.route?.direction;
+            return (
+              <li className="transit-planner-leg" key={index}>
+                <h3><LegIcon leg={leg} routeColors={routeColors} />{legTitle(leg)}</h3>
+                {!walking && direction && <p className="transit-planner-leg-time">Direction: {direction}</p>}
+                <dl>
+                  <dt>{walking ? "Start walking" : hasRoute ? "Board at" : "Start at"}</dt>
+                  <dd>{formatStop(leg.from)}<span>{leg.startTime ?? "Time unavailable"}</span></dd>
+                  <dt>{hasRoute ? "Get off at" : "Arrive at"}</dt>
+                  <dd>{formatStop(leg.to)}<span>{leg.endTime ?? "Time unavailable"}</span></dd>
+                </dl>
+              </li>
+            );
+          })}
+        </ol>
+      ) : <p>TriMet did not provide steps for this trip.</p>}
+    </>
+  );
 }
 
 function PlannerDisclosure({ title, children, onCollapse, headingId, edit }: {
@@ -195,7 +252,6 @@ function ItineraryDetails({
           {itinerary.legs.map((leg, legIndex) => {
             const isTransit = leg.mode !== "Walk";
             const showTransfer = isTransit && transitLegSeen;
-            const { iconName, icon: [width, height, , , paths] } = legIcon(leg.mode);
             if (isTransit) {
               transitLegSeen = true;
             }
@@ -216,16 +272,7 @@ function ItineraryDetails({
                   <div className="transit-planner-transfer">Transfer</div>
                 )}
                 <div>
-                  <svg
-                    className={`transit-planner-leg-icon${iconName === "person-walking" ? " transit-planner-leg-icon--walk" : ""}`}
-                    style={iconName === "person-walking" ? undefined : { color: plannerTransitColor(leg, routeColors) }}
-                    data-icon={iconName}
-                    viewBox={`0 0 ${width} ${height}`}
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    {[paths].flat().map(path => <path key={path} d={path} />)}
-                  </svg>
+                  <LegIcon leg={leg} routeColors={routeColors} />
                   <strong>{legTitle(leg)}</strong>
                   {leg.direction && <span> · {leg.direction}</span>}
                 </div>
@@ -282,8 +329,9 @@ function loadRecentTrips() {
   }
 }
 
-export default function TripPlannerView({ inSidebar = false, renderMapStatus }: {
+export default function TripPlannerView({ inSidebar = false, directionsFooter, renderMapStatus }: {
   inSidebar?: boolean;
+  directionsFooter?: HTMLDivElement;
   renderMapStatus?: (
     itineraries: TripPlannerItinerary[],
     selected: number,
@@ -304,6 +352,10 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   const [toStop, setToStop] = useState<StopCatalogStop>();
   const [selectedItinerary, setSelectedItinerary] = useState(-1);
   const [editingTrip, setEditingTrip] = useState(false);
+  const [journeyItinerary, setJourneyItinerary] = useState<TripPlannerItinerary>();
+  const planningContent = useRef<HTMLElement>(null);
+  const journeyHeading = useRef<HTMLHeadingElement>(null);
+  const planningScrollTop = useRef<number>();
   const editTripButton = useRef<HTMLButtonElement>(null);
   const currentTripOption = useRef<HTMLButtonElement>(null);
   const [hoveredLeg, setHoveredLeg] = useState<number>();
@@ -416,6 +468,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
         setTripState({ status: "ready" });
         setSelectedItinerary(-1);
         setEditingTrip(false);
+        setJourneyItinerary(undefined);
         setEditingStops(false);
         try {
           recordRecentJourney(origin, destination);
@@ -533,6 +586,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   const stopSummary = editingStops ? undefined : plannedSearch;
   const itineraries = response?.itineraries || [];
   const activeItinerary = itineraries[selectedItinerary];
+  const inJourney = Boolean(journeyItinerary && journeyItinerary === activeItinerary);
   const highlightedLeg = hoveredLeg ?? mapLeg ?? focusedLeg;
 
   useEffect(() => {
@@ -551,6 +605,25 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
     (editingTrip ? currentTripOption : editTripButton).current?.focus();
   }, [selectedItinerary, editingTrip]);
 
+  useLayoutEffect(() => {
+    const scrollRegion = planningContent.current?.closest(".transit-nearby-results");
+    if (inJourney) {
+      if (scrollRegion) scrollRegion.scrollTop = 0;
+      journeyHeading.current?.focus({ preventScroll: true });
+    } else if (planningScrollTop.current !== undefined) {
+      if (scrollRegion) scrollRegion.scrollTop = planningScrollTop.current;
+      planningScrollTop.current = undefined;
+      directionsFooter?.querySelector("button")?.focus({ preventScroll: true });
+    }
+  }, [inJourney, directionsFooter]);
+
+  function openJourney() {
+    planningScrollTop.current = planningContent.current?.closest(".transit-nearby-results")?.scrollTop ?? 0;
+    setHoveredLeg(undefined);
+    setFocusedLeg(undefined);
+    setJourneyItinerary(activeItinerary);
+  }
+
   useEffect(() => {
     setHoveredLeg(undefined);
     setFocusedLeg(undefined);
@@ -558,9 +631,12 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   }, [activeItinerary, selectedItinerary]);
 
   return (
+    <>
     <section
       className={`transit-planner${inSidebar ? " transit-planner--sidebar" : ""}`}
       aria-labelledby="transit-planner-title"
+      hidden={inJourney}
+      ref={planningContent}
     >
       <PlannerDisclosure title="Plan a trip" headingId="transit-planner-title" edit={stopSummary ? {
         label: "Edit stops",
@@ -775,5 +851,21 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
         </section>
       )}
     </section>
+    {inJourney && journeyItinerary && (
+      <section className="transit-planner transit-planner--sidebar" aria-label="Journey directions">
+        <JourneyDirections
+          itinerary={journeyItinerary}
+          headingRef={journeyHeading}
+          routeColors={catalog?.plannerRouteColors}
+        />
+      </section>
+    )}
+    {directionsFooter && activeItinerary && createPortal(
+      <Button type="button" onClick={inJourney ? () => setJourneyItinerary(undefined) : openJourney}>
+        {inJourney ? "Back to planning" : "Get directions"}
+      </Button>,
+      directionsFooter
+    )}
+    </>
   );
 }

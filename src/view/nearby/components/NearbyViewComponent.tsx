@@ -56,6 +56,7 @@ const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
 
 export interface NearbyViewComponentOutletContextProps {
   plannerMap?: Map;
+  plannerFooter?: HTMLDivElement;
   currentLocation: number[];
   nearbyRoutes: Dictionary<TrimetRoute[]>;
   nearbyStops: StopData;
@@ -77,10 +78,11 @@ export interface NearbyViewComponentOutletContextProps {
 }
 
 export function NearbyTripPlannerComponent() {
-  const { plannerMap, walkingEnabled } = useOutletContext<NearbyViewComponentOutletContextProps>();
+  const { plannerMap, plannerFooter, walkingEnabled } = useOutletContext<NearbyViewComponentOutletContextProps>();
   return (
     <TripPlannerView
       inSidebar
+      directionsFooter={plannerFooter}
       renderMapStatus={(itineraries, selected, highlightedLeg, onMapLeg, routeColors) => (
         <NearbyPlannerPaths
           map={plannerMap}
@@ -443,8 +445,14 @@ export default function NearbyViewComponent() {
     flyToCenter(lng, lat);
   }
 
+  const [plannerFooter, setPlannerFooter] = useState<HTMLDivElement>();
+  const bindPlannerFooter = useCallback((element: HTMLDivElement | null) => {
+    setPlannerFooter(element ?? undefined);
+  }, []);
+
   const context: NearbyViewComponentOutletContextProps = {
     plannerMap: isMapLoaded ? mapRef.current : undefined,
+    plannerFooter,
     currentLocation,
     nearbyRoutes,
     nearbyStops,
@@ -515,6 +523,7 @@ export default function NearbyViewComponent() {
               <Outlet context={context} />
             ) : null}
           </div>
+          {isPlanner && <div className="transit-nearby-planner-footer" ref={bindPlannerFooter} />}
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
           {mapCenter && (

@@ -118,9 +118,21 @@
 .transit-nearby-sidebar {
   --transit-nearby-sidebar-gutter: 14px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
+}
+
+.transit-nearby-planner-footer:not(:empty) {
+  padding: var(--wm-space-2) var(--transit-nearby-sidebar-gutter);
+  padding-block-end: max(var(--wm-space-2), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--wm-color-border);
+  background: var(--wm-color-surface);
+
+  .wm-btn {
+    width: 100%;
+    min-height: max(44px, var(--wm-control-height));
+  }
 }
 
 .transit-nearby-sidebar-nav {
