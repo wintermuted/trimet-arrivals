@@ -337,7 +337,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     selected: number,
     highlightedLeg: number | undefined,
     onMapLeg: (leg?: number) => void,
-    routeColors?: PlannerRouteColors
+    routeColors?: PlannerRouteColors,
+    previewTrip?: number
   ) => React.ReactNode;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -352,6 +353,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   const [toStop, setToStop] = useState<StopCatalogStop>();
   const [selectedItinerary, setSelectedItinerary] = useState(-1);
   const [editingTrip, setEditingTrip] = useState(false);
+  const [hoveredTrip, setHoveredTrip] = useState<number>();
+  const [focusedTrip, setFocusedTrip] = useState<number>();
   const [journeyItinerary, setJourneyItinerary] = useState<TripPlannerItinerary>();
   const planningContent = useRef<HTMLElement>(null);
   const journeyHeading = useRef<HTMLHeadingElement>(null);
@@ -468,6 +471,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         setTripState({ status: "ready" });
         setSelectedItinerary(-1);
         setEditingTrip(false);
+        clearTripPreview();
         setJourneyItinerary(undefined);
         setEditingStops(false);
         try {
@@ -587,7 +591,13 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   const itineraries = response?.itineraries || [];
   const activeItinerary = itineraries[selectedItinerary];
   const inJourney = Boolean(journeyItinerary && journeyItinerary === activeItinerary);
+  const previewTrip = !inJourney && (!activeItinerary || editingTrip) ? hoveredTrip ?? focusedTrip : undefined;
   const highlightedLeg = hoveredLeg ?? mapLeg ?? focusedLeg;
+
+  function clearTripPreview() {
+    setHoveredTrip(undefined);
+    setFocusedTrip(undefined);
+  }
 
   useEffect(() => {
     if (stopSummary && focusStopSummary.current) {
@@ -788,8 +798,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
               {plannedSearch.to.desc} ({plannedSearch.to.locid}).
             </p>
           )}
-          {renderMapStatus?.(itineraries, selectedItinerary, highlightedLeg, setMapLeg, catalog?.plannerRouteColors)}
-          <PlannerDisclosure title="Choose a trip" edit={activeItinerary && !editingTrip ? {
+          {renderMapStatus?.(itineraries, selectedItinerary, highlightedLeg, setMapLeg, catalog?.plannerRouteColors, previewTrip)}
+          <PlannerDisclosure title="Choose a trip" onCollapse={clearTripPreview} edit={activeItinerary && !editingTrip ? {
             label: "Edit trip",
             buttonRef: editTripButton,
             onClick: () => setEditingTrip(true),
@@ -803,7 +813,14 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
                         type="button"
                         aria-current={selectedItinerary === index ? "true" : undefined}
                         ref={selectedItinerary === index ? currentTripOption : undefined}
+                        onPointerEnter={event => {
+                          if (event.pointerType !== "touch") setHoveredTrip(index);
+                        }}
+                        onPointerLeave={() => setHoveredTrip(undefined)}
+                        onFocus={() => setFocusedTrip(index)}
+                        onBlur={() => setFocusedTrip(undefined)}
                         onClick={() => {
+                          clearTripPreview();
                           setSelectedItinerary(index);
                           setEditingTrip(false);
                         }}
@@ -815,7 +832,10 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
                   ))}
                 </ul>
                 {editingTrip && (
-                  <Button type="button" variant="secondary" onClick={() => setEditingTrip(false)}>
+                  <Button type="button" variant="secondary" onClick={() => {
+                    clearTripPreview();
+                    setEditingTrip(false);
+                  }}>
                     Cancel
                   </Button>
                 )}

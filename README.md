@@ -81,6 +81,8 @@ Nearby draws available trip paths together. MAX, streetcar, and FX paths and
 direction icons use their published line colors. Regular bus stays blue, and the
 walking icon is green. The selected trip
 has a thicker stroke and a light outline, while alternatives are muted.
+Hover or focus a trip option to preview its available paths with that emphasis,
+without changing the selected trip or its stop markers.
 The map uses published transit shapes matched to the
 itinerary's boarding and exit stops. Only boarding and exit stops for the
 selected option are marked while planning; Nearby markers return in Explore.

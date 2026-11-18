@@ -351,10 +351,28 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(Marker).not.toHaveBeenCalled();
     expect(button("Get directions")).toBeUndefined();
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], -1], ["==", ["get", "walk"], false]]);
+    const option = (index: number) => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[index];
+    const expectEmphasis = (index: number) => {
+      expect(map.setFilter.mock.calls.filter(([layer]) => layer === "planner-itineraries-selected").slice(-1)[0][1])
+        .toEqual(["all", ["==", ["get", "trip"], index], ["==", ["get", "walk"], false]]);
+    };
+    const pointer = (target: HTMLElement, type: string) => {
+      act(() => target.dispatchEvent(new MouseEvent(type, { bubbles: true })));
+    };
+    pointer(option(1), "pointerover");
+    expectEmphasis(1);
+    expect(button("Get directions")).toBeUndefined();
+    expect(Marker).not.toHaveBeenCalled();
+    pointer(option(1), "pointerout");
+    expectEmphasis(-1);
+    act(() => option(0).focus());
+    expectEmphasis(0);
+    act(() => option(0).blur());
+    expectEmphasis(-1);
     const chooseTrip = async (index: number) => {
       const edit = container.querySelector<HTMLButtonElement>(".transit-planner-results .transit-planner-edit");
       if (edit) act(() => edit.click());
-      await act(async () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[index].click());
+      await act(async () => option(index).click());
     };
     await chooseTrip(0);
     const footer = container.querySelector(".transit-nearby-planner-footer");
@@ -377,6 +395,21 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector('[aria-label="Journey directions"]')).toBeNull();
     expect(document.activeElement).toBe(button("Get directions"));
     expect(container.querySelector(".transit-planner-summary").textContent).toContain("Option 1");
+    const markerCount = Marker.mock.calls.length;
+    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-results .transit-planner-edit").click());
+    expect(option(0).getAttribute("aria-current")).toBe("true");
+    pointer(option(1), "pointerover");
+    expectEmphasis(1);
+    pointer(option(1), "pointerout");
+    expectEmphasis(0);
+    act(() => option(1).focus());
+    expectEmphasis(1);
+    act(() => button("Cancel").focus());
+    expectEmphasis(0);
+    pointer(option(1), "pointerover");
+    act(() => button("Cancel").click());
+    expectEmphasis(0);
+    expect(Marker).toHaveBeenCalledTimes(markerCount);
     const iconColors = () => Array.from(container.querySelectorAll<SVGElement>(".transit-planner-leg-icon"), icon => icon.style.color);
     expect(container.querySelector(".transit-planner-leg-icon--walk")).not.toBeNull();
     expect(iconColors()[1]).toBe("rgb(21, 89, 209)");

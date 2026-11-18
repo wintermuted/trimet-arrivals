@@ -42,10 +42,11 @@ function itineraryStops(itinerary: TripPlannerItinerary) {
   return [...stops.values()];
 }
 
-export default function NearbyPlannerPaths({ map, itineraries, selected, walkingEnabled, highlightedLeg, onMapLeg, routeColors }: {
+export default function NearbyPlannerPaths({ map, itineraries, selected, previewTrip, walkingEnabled, highlightedLeg, onMapLeg, routeColors }: {
   map?: MapboxMap;
   itineraries: TripPlannerItinerary[];
   selected: number;
+  previewTrip?: number;
   walkingEnabled: boolean;
   highlightedLeg?: number;
   onMapLeg: (leg?: number) => void;
@@ -60,9 +61,12 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
   }>();
   const result = loaded?.itineraries === itineraries && loaded.includeWalking === includeWalking && loaded.routeColors === routeColors
     ? loaded.paths : undefined;
+  const emphasizedTrip = previewTrip !== undefined && result?.data.features.some(({ properties }) => properties.trip === previewTrip)
+    ? previewTrip : selected;
+  const emphasizedLeg = emphasizedTrip === selected ? highlightedLeg : undefined;
   const [mapError, setMapError] = useState(false);
-  const mapSelection = React.useRef(selected);
-  const mapHighlight = React.useRef(highlightedLeg);
+  const mapEmphasis = React.useRef(emphasizedTrip);
+  const mapHighlight = React.useRef(emphasizedLeg);
   const applySelection = React.useRef<() => void>();
   const stopsByTrip = useMemo(() => itineraries.map(itineraryStops), [itineraries]);
   const selectedStops = stopsByTrip[selected];
@@ -126,10 +130,10 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
   }, [map, selectedStops, popupIdPrefix]);
 
   useEffect(() => {
-    mapSelection.current = selected;
-    mapHighlight.current = highlightedLeg;
+    mapEmphasis.current = emphasizedTrip;
+    mapHighlight.current = emphasizedLeg;
     applySelection.current?.();
-  }, [selected, highlightedLeg]);
+  }, [emphasizedTrip, emphasizedLeg]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -185,7 +189,7 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
 
     function updateSelection() {
       if (!map.getLayer(ACTIVE)) return;
-      const trip = mapSelection.current;
+      const trip = mapEmphasis.current;
       const filter = (layer: string, operator: "==" | "!=", walk: boolean) =>
         map.setFilter(layer, ["all", [operator, ["get", "trip"], trip], ["==", ["get", "walk"], walk]]);
       filter(OTHER, "!=", false);
