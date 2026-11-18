@@ -16,10 +16,8 @@ export default function MainNavigationMenu(props: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
   const menuButton = useRef<HTMLButtonElement>(null);
-  const homeActive =
-    pathname === "/" ||
-    pathname === "/nearby" ||
-    pathname.startsWith("/nearby/");
+  const homeActive = pathname === "/";
+  const nearbyActive = pathname === "/nearby" || pathname.startsWith("/nearby/");
   const plannerActive =
     pathname === "/planner" || pathname.startsWith("/planner/");
   const linesActive = pathname === "/lines" || pathname.startsWith("/lines/");
@@ -106,6 +104,17 @@ export default function MainNavigationMenu(props: Props) {
             >
               <FontAwesome name="home" fixedWidth={true} aria-hidden="true" />
               Home
+            </Link>
+            <Link
+              to="/nearby"
+              className={`wm-docs-topbar-link-devdocs${
+                nearbyActive ? " is-active" : ""
+              }`}
+              aria-current={nearbyActive ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              <FontAwesome name="location-arrow" fixedWidth aria-hidden="true" />
+              Nearby
             </Link>
             <Link
               to="/planner"

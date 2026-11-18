@@ -34,7 +34,7 @@ increment 7 on this feature branch:
 | Alerts and time displays | Implemented (#969) | System, route and stop alerts are scoped and expose refresh, empty and error states; persisted 12/24-hour and timezone preferences preserve the prior defaults. |
 | Service-wide stop catalog | Implemented (#970) | Searchable, deduplicated stop names and IDs are available from the Stops navigation without geolocation; missing route-direction data is surfaced. |
 | General stop-to-stop trip planner | Implemented in this increment | `/planner` accepts catalog stops by name or ID, resolves them to stop IDs, and presents normalized TriMet itineraries without using the route-specific Nearby flow. |
-| Search homepage | Pending | `/` still opens Nearby; a planner-backed search homepage remains. |
+| Search homepage | Implemented | `/` opens service-wide stop search with planner, arrivals, recent journeys, bookmarks, alerts, and Nearby entry points. |
 
 These statuses summarize the merged increments through the service-wide catalog
 in [#970](https://github.com/wintermuted/trimet-arrivals/pull/970), plus the
@@ -257,23 +257,18 @@ general multi-route or transfer planner.
   partial data and retries. The route-specific Nearby directions, selected-trip
   times, walking access and map components were not changed.
 
-### 8. Search homepage — pending
+### 8. Search homepage
 
-The current root redirects to `/nearby`; the older home view remains at
-`/homepage-backup`. Neither is the planned planner-backed search homepage.
-
-- Adapt the older homepage's stop search, recent journeys, bookmark preview,
-  alerts, nearby links and location/map presentation using the shared catalog,
-  general planner, bookmark data and map/location mechanisms. Use the existing
-  Wintermuted shell and components rather than the older Bootstrap or rotating
-  image implementation.
-- Route `/` to the new search homepage only in this increment; keep `/nearby`
-  and all existing bookmarked/deep-linked URLs working. Search remains usable
-  without location permission and must reach the actual general planner.
-- Acceptance: users can search the service area by name/ID and complete a
-  stop-to-stop journey; Nearby, bookmarks and alerts remain reachable.
-  Exercise no-location, no-results, loading, failure, empty recent/bookmark,
-  mobile, keyboard and both-theme states.
+- `/` opens stop-name/ID search in the Wintermuted shell. Result actions open
+  stop arrivals or seed the destination in the general `/planner` by exact ID.
+- The homepage shows up to five recent journeys with available itineraries,
+  stored on this device by directional stop-ID pair, previews existing stop
+  and route bookmarks, and presents the shared system and route/stop alerts.
+- Search never requests location. The optional Portland map preview uses the
+  shared map theme without device location; `/nearby` retains location and
+  area search. `/homepage-backup` and existing deep links remain available.
+- Acceptance covers no-location, no-results, loading, failure, empty history
+  and bookmarks, mobile, keyboard, and light and dark themes.
 
 ## Validation and PR handoff
 

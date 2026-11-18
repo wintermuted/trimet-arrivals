@@ -32,7 +32,8 @@ describe("Wintermuted route navigation", () => {
   }
 
   it.each([
-    ["/nearby/simple-routes/54", "/"],
+    ["/", "/"],
+    ["/nearby/simple-routes/54", "/nearby"],
     ["/lines/bus", "/lines/all"],
     ["/lines/54", "/lines/all"],
     ["/stops", "/stops"],
@@ -61,6 +62,7 @@ describe("Wintermuted route navigation", () => {
     );
     expect(links.map((link) => link.textContent.trim())).toEqual([
       "Home",
+      "Nearby",
       "Plan a trip",
       "Stops",
       "Lines",
