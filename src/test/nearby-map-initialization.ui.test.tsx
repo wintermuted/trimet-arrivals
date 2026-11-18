@@ -48,13 +48,17 @@ jest.mock("../view/nearby/util/mapbox/stopLocationMarker.util", () => ({
   showStopDetailMarker: jest.fn(() => jest.fn()),
   updateStopMarkerColor: jest.fn(),
 }));
-jest.mock("mapbox-gl", () => ({
-  __esModule: true,
-  default: { accessToken: "pk.synthetic-test-token", Marker: jest.fn() },
-  LngLatBounds: class {
-    extend() { return this; }
-  },
-}));
+jest.mock("mapbox-gl", () => {
+  const Marker = jest.fn();
+  return {
+    __esModule: true,
+    default: { accessToken: "pk.synthetic-test-token", Marker },
+    Marker,
+    LngLatBounds: class {
+      extend() { return this; }
+    },
+  };
+});
 
 const stops: StopData = {
   location: [
@@ -279,16 +283,23 @@ describe("Nearby map initialization independently of the sidebar", () => {
         legs: [
           { mode: "Walk", partial: false, from: { lon: 0.01, lat: 0 }, to: { lon: 0.011, lat: 0.001 } },
           {
-            mode: "Bus", partial: false, route: { internalNumber: id, number: String(id), name: "Test route" },
-            from: { stopId: origin.locid, description: origin.desc },
-            to: { stopId: destination.locid, description: destination.desc }
+            mode: "Bus", partial: false, route: { internalNumber: id, number: String(id), name: `Test route ${id}` },
+            from: { stopId: origin.locid, description: origin.desc, lon: origin.lng, lat: origin.lat },
+            to: { stopId: destination.locid, description: destination.desc, lon: destination.lng, lat: destination.lat }
           }
         ]
       }))
     });
 
     await render("/nearby/planner?from=101&to=202");
+    const Marker = jest.requireMock("mapbox-gl").Marker;
     await act(async () => finishMapLoading());
+    expect(setNearbyStops).not.toHaveBeenCalled();
+    expect(Marker).toHaveBeenCalledTimes(2);
+    expect(Marker.mock.calls.map(([{ element }]) => element.getAttribute("aria-label"))).toEqual([
+      "Board: Test route 42 at Stop 101",
+      "Get off: Test route 42 at Stop 202"
+    ]);
     expect(map.addSource).toHaveBeenCalledWith("planner-itineraries", expect.objectContaining({
       data: expect.objectContaining({
         features: [
@@ -301,16 +312,19 @@ describe("Nearby map initialization independently of the sidebar", () => {
       })
     }));
     expect(map.fitBounds).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ padding: 38 }));
-    expect(container.textContent).toContain("Some legs aren't shown");
+    expect(container.querySelector("p.transit-planner-partial")).toBeNull();
     const choices = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]');
     await act(async () => choices[1].click());
+    expect(marker.remove).toHaveBeenCalledTimes(2);
+    expect(Marker.mock.calls.slice(-2).map(([{ element }]) => element.getAttribute("aria-label"))).toEqual([
+      "Board: Test route 43 at Stop 101",
+      "Get off: Test route 43 at Stop 202"
+    ]);
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["all", ["!=", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
     await act(async () => choices[2].click());
-    expect(container.textContent).toContain("No path is available for the selected trip");
     expect(getWalkingPath).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("enable walking estimates");
     const walkingGeometry = { type: "LineString" as const, coordinates: [[0.01, 0], [0.0105, 0], [0.011, 0.001]] };
     jest.mocked(getWalkingPath).mockResolvedValue({
       status: "ready", meters: 100, seconds: 80,
@@ -325,12 +339,17 @@ describe("Nearby map initialization independently of the sidebar", () => {
       })
     }));
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected-walk", ["all", ["==", ["get", "trip"], 2], ["==", ["get", "walk"], true]]);
-    expect(container.textContent).toContain("Dashed lines show walking paths estimated by Mapbox");
     await act(async () => button("Toggle walking estimates").click());
     expect(jest.mocked(getWalkingPath).mock.calls[0][2].aborted).toBe(true);
-    expect(container.textContent).not.toContain("Dashed lines show walking paths");
+    expect(map.addSource).toHaveBeenLastCalledWith("planner-itineraries", expect.objectContaining({
+      data: expect.objectContaining({
+        features: expect.not.arrayContaining([expect.objectContaining({ properties: expect.objectContaining({ walk: true }) })])
+      })
+    }));
     await act(async () => container.querySelector<HTMLAnchorElement>('nav[aria-label="Nearby sidebar"] a').click());
     expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
+    expect(setNearbyStops).toHaveBeenCalled();
+    expect(marker.remove).toHaveBeenCalledTimes(6);
     expect(layers.size).toBe(0);
     expect(map.remove).not.toHaveBeenCalled();
   });

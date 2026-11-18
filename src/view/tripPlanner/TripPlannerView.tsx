@@ -578,7 +578,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
         </p>
       )}
 
-      {response?.partial && (
+      {response?.partial && !inSidebar && (
         <p className="transit-planner-partial" role="status">
           TriMet returned some incomplete itinerary details. Available trip
           information is shown.
