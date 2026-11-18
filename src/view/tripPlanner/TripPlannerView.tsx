@@ -5,6 +5,7 @@ import React, { FormEvent, useEffect, useId, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { useSearchParams } from "react-router-dom";
 import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
+import { PlannerRouteColors, plannerTransitColor } from "../../api/trimet/plannerRouteColors";
 import {
   getStopCatalog,
   StopCatalog,
@@ -162,9 +163,11 @@ function ItineraryDetails({
   itinerary,
   index,
   highlight,
+  routeColors,
 }: {
   itinerary: TripPlannerItinerary;
   index: number;
+  routeColors?: PlannerRouteColors;
   highlight?: {
     leg?: number;
     onHover: (leg?: number) => void;
@@ -214,7 +217,8 @@ function ItineraryDetails({
                 )}
                 <div>
                   <svg
-                    className="transit-planner-leg-icon"
+                    className={`transit-planner-leg-icon${iconName === "person-walking" ? " transit-planner-leg-icon--walk" : ""}`}
+                    style={iconName === "person-walking" ? undefined : { color: plannerTransitColor(leg, routeColors) }}
                     data-icon={iconName}
                     viewBox={`0 0 ${width} ${height}`}
                     aria-hidden="true"
@@ -284,7 +288,8 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
     itineraries: TripPlannerItinerary[],
     selected: number,
     highlightedLeg: number | undefined,
-    onMapLeg: (leg?: number) => void
+    onMapLeg: (leg?: number) => void,
+    routeColors?: PlannerRouteColors
   ) => React.ReactNode;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -707,7 +712,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
               {plannedSearch.to.desc} ({plannedSearch.to.locid}).
             </p>
           )}
-          {renderMapStatus?.(itineraries, selectedItinerary, highlightedLeg, setMapLeg)}
+          {renderMapStatus?.(itineraries, selectedItinerary, highlightedLeg, setMapLeg, catalog?.plannerRouteColors)}
           <PlannerDisclosure title="Choose a trip" edit={activeItinerary && !editingTrip ? {
             label: "Edit trip",
             buttonRef: editTripButton,
@@ -763,6 +768,7 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
             <ItineraryDetails
               itinerary={activeItinerary}
               index={selectedItinerary}
+              routeColors={catalog?.plannerRouteColors}
               highlight={renderMapStatus ? { leg: highlightedLeg, onHover: setHoveredLeg, onFocus: setFocusedLeg } : undefined}
             />
           )}

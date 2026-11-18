@@ -1,4 +1,6 @@
 import { getAllRoutes } from "./routeConfig";
+import { ROUTE_DISPLAY } from "./constants";
+import { PlannerRouteColors } from "./plannerRouteColors";
 import {
   RouteDataResultSet,
   RouteDirectionStop,
@@ -19,6 +21,7 @@ export interface StopCatalog {
   incompleteRouteNames: string[];
   invalidStopCount: number;
   receivedAt?: string;
+  plannerRouteColors?: PlannerRouteColors;
 }
 
 let catalogRequest: Promise<StopCatalog> | undefined;
@@ -36,6 +39,7 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
   }
 
   const stopsById = new Map<number, StopCatalogStop>();
+  const plannerRouteColors = new Map<number, string>();
   const incompleteRoutes = new Set<string>();
   let directionCount = 0;
   let stopReferenceCount = 0;
@@ -44,6 +48,11 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
   let invalidStopCount = 0;
 
   data.route.forEach((route) => {
+    if (route && ((route.type === "R" && Boolean(ROUTE_DISPLAY[route.route])) ||
+        /^FX\s*\d+\b/i.test(route.desc))) {
+      const hex = route.routeColor?.replace(/^#/, "");
+      if (hex && /^[\da-f]{6}$/i.test(hex)) plannerRouteColors.set(route.route, `#${hex}`);
+    }
     if (!route || !Array.isArray(route.dir)) {
       incompleteRouteCount += 1;
       if (route) {
@@ -99,6 +108,7 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
 
   return {
     stops,
+    plannerRouteColors,
     routeCount: data.route.length,
     directionCount,
     stopReferenceCount,

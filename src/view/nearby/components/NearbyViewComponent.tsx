@@ -81,7 +81,7 @@ export function NearbyTripPlannerComponent() {
   return (
     <TripPlannerView
       inSidebar
-      renderMapStatus={(itineraries, selected, highlightedLeg, onMapLeg) => (
+      renderMapStatus={(itineraries, selected, highlightedLeg, onMapLeg, routeColors) => (
         <NearbyPlannerPaths
           map={plannerMap}
           itineraries={itineraries}
@@ -89,6 +89,7 @@ export function NearbyTripPlannerComponent() {
           walkingEnabled={walkingEnabled}
           highlightedLeg={highlightedLeg}
           onMapLeg={onMapLeg}
+          routeColors={routeColors}
         />
       )}
     />

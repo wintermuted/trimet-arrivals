@@ -11,7 +11,7 @@ import { getWalkingPath } from "../api/mapbox/walking";
 import NearbyViewComponent, { NearbySimpleRoutesComp, NearbyStopDetailComponent, NearbyTripPlannerComponent, NearbyViewComponentOutletContextProps } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
-import { getStopCatalog } from "../api/trimet/stopCatalog";
+import { buildStopCatalog, getStopCatalog } from "../api/trimet/stopCatalog";
 import { planTrip } from "../api/trimet/tripplanner";
 import { getRouteGeometry } from "../view/nearby/util/mapbox/routeLines";
 
@@ -293,11 +293,6 @@ describe("Nearby map initialization independently of the sidebar", () => {
       ...stops.location[0], locid, desc: `Stop ${locid}`, lng: index * 0.01,
       lat: 0, aliases: [], seq: index + 1, tp: false,
     }));
-    jest.mocked(getStopCatalog).mockResolvedValue({
-      stops: [origin, destination], routeCount: 2, directionCount: 2, stopReferenceCount: 2,
-      incompleteRouteCount: 0, incompleteDirectionCount: 0,
-      incompleteRouteNames: [], invalidStopCount: 0,
-    });
     const branded = {
       100: { desc: "MAX Blue Line", type: "R", routeColor: "1359AE" },
       190: { desc: "MAX Yellow Line", type: "R", routeColor: "FFC52F" },
@@ -305,13 +300,15 @@ describe("Nearby map initialization independently of the sidebar", () => {
       194: { desc: "Portland Streetcar - A Loop", type: "R", routeColor: "D91965" },
       2: { desc: "FX2-Division", type: "B", routeColor: "61A60E" }
     };
-    jest.mocked(getRouteById).mockImplementation(async id => ({
-      route: [{
+    const configFor = (id: number) => ({
         id, route: id, desc: "Test route", type: "B", routeColor: "4679AA", routeSortOrder: id,
         ...branded[id],
         dir: [{ dir: 0, desc: "Eastbound", stop: [origin, destination] }]
-      }]
+    });
+    jest.mocked(getStopCatalog).mockResolvedValue(buildStopCatalog({
+      route: [42, 100, 45, 194, 2, 190, 290].map(configFor),
     }));
+    jest.mocked(getRouteById).mockImplementation(async id => ({ route: [configFor(id)] }));
     jest.mocked(getRouteGeometry).mockImplementation(async id => {
       if (id === "45") throw new Error("No shape");
       if (id === "42") return {
@@ -358,6 +355,9 @@ describe("Nearby map initialization independently of the sidebar", () => {
       await act(async () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[index].click());
     };
     await chooseTrip(0);
+    const iconColors = () => Array.from(container.querySelectorAll<SVGElement>(".transit-planner-leg-icon"), icon => icon.style.color);
+    expect(container.querySelector(".transit-planner-leg-icon--walk")).not.toBeNull();
+    expect(iconColors()[1]).toBe("rgb(21, 89, 209)");
     expect(Marker).toHaveBeenCalledTimes(2);
     expect(Marker.mock.calls.map(([{ element }]) => element.getAttribute("aria-label"))).toEqual([
       "Board: Test route 42 at Stop 101",
@@ -430,6 +430,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(busLeg.classList.contains(highlighted)).toBe(false);
     act(() => move({ point: { x: 10, y: 20 } }));
     await chooseTrip(1);
+    expect(iconColors()[1]).toBe("rgb(19, 89, 174)");
     expect(container.querySelector(`.${highlighted}`)).toBeNull();
     expect(map.off).toHaveBeenCalledWith("mousemove", move);
     expect(popup.isConnected).toBe(false);
@@ -470,11 +471,20 @@ describe("Nearby map initialization independently of the sidebar", () => {
         features: expect.not.arrayContaining([expect.objectContaining({ properties: expect.objectContaining({ walk: true }) })])
       })
     }));
+    for (const [option, color] of [
+      [3, "rgb(217, 25, 101)"],
+      [4, "rgb(97, 166, 14)"],
+      [5, "rgb(255, 197, 47)"],
+      [6, "rgb(208, 95, 39)"],
+    ] as const) {
+      await chooseTrip(option);
+      expect(iconColors()[1]).toBe(color);
+    }
     await act(async () => container.querySelector<HTMLAnchorElement>('nav[aria-label="Nearby sidebar"] a').click());
     expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
     expect(setNearbyStops).toHaveBeenCalled();
     expect(transferPopup.isConnected).toBe(false);
-    expect(marker.remove).toHaveBeenCalledTimes(7);
+    expect(marker.remove).toHaveBeenCalledTimes(Marker.mock.calls.length);
     expect(layers.size).toBe(0);
     expect(map.remove).not.toHaveBeenCalled();
   });

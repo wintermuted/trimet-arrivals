@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useState } from "react";
 import { LngLatBounds, Map as MapboxMap, MapMouseEvent, Marker, Popup } from "mapbox-gl";
 import { TripPlannerItinerary } from "../../../api/trimet/tripplanner";
+import { PlannerRouteColors } from "../../../api/trimet/plannerRouteColors";
 import { loadPlannerPaths } from "../util/mapbox/plannerPaths";
 
 const SOURCE = "planner-itineraries";
@@ -41,21 +42,23 @@ function itineraryStops(itinerary: TripPlannerItinerary) {
   return [...stops.values()];
 }
 
-export default function NearbyPlannerPaths({ map, itineraries, selected, walkingEnabled, highlightedLeg, onMapLeg }: {
+export default function NearbyPlannerPaths({ map, itineraries, selected, walkingEnabled, highlightedLeg, onMapLeg, routeColors }: {
   map?: MapboxMap;
   itineraries: TripPlannerItinerary[];
   selected: number;
   walkingEnabled: boolean;
   highlightedLeg?: number;
   onMapLeg: (leg?: number) => void;
+  routeColors?: PlannerRouteColors;
 }) {
   const includeWalking = walkingEnabled && Boolean(map);
   const [loaded, setLoaded] = useState<{
     itineraries: TripPlannerItinerary[];
     includeWalking: boolean;
+    routeColors?: PlannerRouteColors;
     paths: Awaited<ReturnType<typeof loadPlannerPaths>>;
   }>();
-  const result = loaded?.itineraries === itineraries && loaded.includeWalking === includeWalking
+  const result = loaded?.itineraries === itineraries && loaded.includeWalking === includeWalking && loaded.routeColors === routeColors
     ? loaded.paths : undefined;
   const [mapError, setMapError] = useState(false);
   const mapSelection = React.useRef(selected);
@@ -130,11 +133,11 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
 
   useEffect(() => {
     const controller = new AbortController();
-    void loadPlannerPaths(itineraries, controller.signal, includeWalking).then(paths => {
-      if (!controller.signal.aborted) setLoaded({ itineraries, includeWalking, paths });
+    void loadPlannerPaths(itineraries, controller.signal, includeWalking, routeColors).then(paths => {
+      if (!controller.signal.aborted) setLoaded({ itineraries, includeWalking, routeColors, paths });
     });
     return () => controller.abort();
-  }, [itineraries, includeWalking]);
+  }, [itineraries, includeWalking, routeColors]);
 
   useEffect(() => {
     if (!map || !result?.data.features.length) return;
