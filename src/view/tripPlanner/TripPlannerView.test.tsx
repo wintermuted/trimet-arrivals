@@ -447,8 +447,15 @@ describe("TripPlannerView", () => {
 
   it("swaps mixed drafts without changing the last results, selection, or URL until submission", async () => {
     await render("/planner?from=8356&toCoord=-122.6815,45.5231", true);
+    const expectEndpointMarkers = (surface: string) => {
+      const endpoints = container.querySelectorAll(`${surface} .transit-planner-endpoint`);
+      expect(endpoints[0].querySelector('.transit-planner-endpoint-marker--from[aria-hidden="true"]')).not.toBeNull();
+      expect(endpoints[1].querySelector('.transit-planner-endpoint-marker--to[aria-hidden="true"]')).not.toBeNull();
+    };
+    expectEndpointMarkers(".transit-planner-stop-summary");
     act(() => container.querySelector<HTMLButtonElement>(".transit-planner-options button").click());
     act(() => container.querySelector<HTMLButtonElement>('[aria-label="Edit locations"]').click());
+    expectEndpointMarkers(".transit-planner-form");
     const swap = container.querySelector<HTMLButtonElement>('button[aria-label="Swap origin and destination"]');
     expect(swap.textContent.trim()).toBe("");
     const query = container.querySelector('[data-test-id="query"]');

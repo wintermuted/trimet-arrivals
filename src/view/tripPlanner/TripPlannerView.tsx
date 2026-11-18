@@ -54,6 +54,14 @@ type PlannerEndpoint =
   | { kind: "place" | "coord"; value: string };
 type EndpointField = "from" | "to";
 
+function EndpointMarker({ field }: { field: EndpointField }) {
+  return (
+    <span className={`transit-planner-endpoint-marker transit-planner-endpoint-marker--${field}`} aria-hidden="true">
+      {field === "to" && <FontAwesome name="map-marker" />}
+    </span>
+  );
+}
+
 function endpointLabel(endpoint: PlannerEndpoint, resolved?: TripPlannerResponse["from"]) {
   if (endpoint.kind === "stop") return `${endpoint.stop.desc} (${endpoint.stop.locid})`;
   if (endpoint.kind === "coord") return endpoint.value;
@@ -845,11 +853,15 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         },
       } : undefined}>
         {stopSummary ? (
-            <dl className="transit-planner-stop-summary">
-              <dt>{stopSummary.from.kind === "stop" ? "Boarding stop" : "Origin"}</dt>
-              <dd>{endpointLabel(stopSummary.from, stopSummary.response.from)}</dd>
-              <dt>{stopSummary.to.kind === "stop" ? "Destination stop" : "Destination"}</dt>
-              <dd>{endpointLabel(stopSummary.to, stopSummary.response.to)}</dd>
+            <dl className="transit-planner-stop-summary transit-planner-endpoint-pair">
+              <div className="transit-planner-endpoint">
+                <dt>{inSidebar && <EndpointMarker field="from" />}{stopSummary.from.kind === "stop" ? "Boarding stop" : "Origin"}</dt>
+                <dd>{endpointLabel(stopSummary.from, stopSummary.response.from)}</dd>
+              </div>
+              <div className="transit-planner-endpoint">
+                <dt>{inSidebar && <EndpointMarker field="to" />}{stopSummary.to.kind === "stop" ? "Destination stop" : "Destination"}</dt>
+                <dd>{endpointLabel(stopSummary.to, stopSummary.response.to)}</dd>
+              </div>
             </dl>
         ) : (
           <fieldset ref={searchFields} className="transit-planner-search-fields" disabled={tripState.status === "loading"}
@@ -911,16 +923,24 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         )}
 
         <form className="transit-planner-form" onSubmit={submit}>
-          {renderStopField("from")}
-          <Button type="button" size="sm" variant="secondary" className="transit-planner-swap"
-            aria-label="Swap origin and destination"
-            title="Swap origin and destination"
-            disabled={!(fromLocation?.trim() || toLocation?.trim() ||
-              (fromLocation === undefined && fromStop) || (toLocation === undefined && toStop))}
-            onClick={swapEndpoints}>
-            <FontAwesome name="exchange" aria-hidden="true" />
-          </Button>
-          {renderStopField("to")}
+          <div className="transit-planner-endpoint-pair transit-planner-endpoint-pair--editing">
+            <div className="transit-planner-endpoint">
+              {inSidebar && <EndpointMarker field="from" />}
+              {renderStopField("from")}
+            </div>
+            <Button type="button" size="sm" variant="secondary" className="transit-planner-swap"
+              aria-label="Swap origin and destination"
+              title="Swap origin and destination"
+              disabled={!(fromLocation?.trim() || toLocation?.trim() ||
+                (fromLocation === undefined && fromStop) || (toLocation === undefined && toStop))}
+              onClick={swapEndpoints}>
+              <FontAwesome name="exchange" aria-hidden="true" />
+            </Button>
+            <div className="transit-planner-endpoint">
+              {inSidebar && <EndpointMarker field="to" />}
+              {renderStopField("to")}
+            </div>
+          </div>
           <p className="transit-planner-select-hint" id="planner-location-privacy">
             Nearest stop uses your location on this device only.
           </p>

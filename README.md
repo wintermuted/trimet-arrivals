@@ -77,6 +77,8 @@ The searchable **Recent trips** dropdown in the sidebar reopens up to five succe
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
 After a successful search, **Plan a trip** shows the origin and destination.
+In Nearby, a circle and destination pin connected by a dotted line identify the
+two endpoints in both the summary and the form.
 **Edit stops** or **Edit locations** in the header reopens the form; the last successful results stay visible
 and labeled until another search returns trips.
 Collapse **Plan a trip** without clearing your stops or results,
