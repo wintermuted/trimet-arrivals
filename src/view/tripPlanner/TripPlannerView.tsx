@@ -571,7 +571,21 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     if (!field) return;
     pendingEndpointFocus.current = undefined;
     searchFields.current?.querySelector<HTMLInputElement>(`#planner-${field}`)?.focus();
-  }, [fromLocation, toLocation]);
+  }, [fromLocation, toLocation, locating]);
+
+  function cancelLocationLookup() {
+    locationRequest.current += 1;
+    setLocating(undefined);
+  }
+
+  function swapEndpoints() {
+    cancelLocationLookup();
+    setFromStop(toStop);
+    setToStop(fromStop);
+    setFromLocation(toLocation);
+    setToLocation(fromLocation);
+    setValidationError("");
+  }
 
   async function useNearestStop(field: EndpointField) {
     if (!catalog) return;
@@ -638,7 +652,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
 
   function chooseStop(
     stop: StopCatalogStop | null,
-    field: "from" | "to",
+    field: EndpointField,
   ) {
     if (field === "from") {
       setFromStop(stop ?? undefined);
@@ -680,53 +694,59 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       catalog && reference
         ? resolveStopReference(catalog.stops, reference)
         : undefined;
+    const nearestStopLabel = `Use nearest stop to me for ${isFrom ? "boarding" : "destination"}`;
 
     return (
       <div className="transit-planner-stop-field">
-        {location !== undefined ? (
-          <div className="transit-planner-location-field">
+        <div className="transit-planner-endpoint-row">
+          {location !== undefined ? (
             <FieldGroup label={isFrom ? "Origin address, place, or coordinates" : "Destination address, place, or coordinates"} htmlFor={id}>
               <Input id={id} value={location} maxLength={240} autoComplete="off" aria-describedby={`${id}-hint`}
                 onChange={event => {
-                  locationRequest.current += 1;
-                  setLocating(undefined);
+                  cancelLocationLookup();
                   setLocation(event.target.value);
                   setValidationError("");
                 }} />
             </FieldGroup>
+          ) : (
+            <FieldGroup label={label} htmlFor={id}>
+              <PlannerStopSelect
+                id={id}
+                stops={catalog?.stops ?? EMPTY_STOPS}
+                selected={selected}
+                loading={catalogState.loading}
+                onChange={stop => {
+                  cancelLocationLookup();
+                  chooseStop(stop, field);
+                }}
+              />
+            </FieldGroup>
+          )}
+          <Button type="button" size="sm" variant="secondary" className="transit-planner-nearest-stop"
+            disabled={!catalog || Boolean(locating)}
+            aria-label={nearestStopLabel}
+            title={nearestStopLabel}
+            aria-describedby="planner-location-privacy"
+            onClick={() => void useNearestStop(field)}>
+            <FontAwesome name={locating === field ? "spinner" : "location-arrow"} spin={locating === field} aria-hidden="true" />
+          </Button>
+        </div>
+        {location !== undefined ? (
+          <div className="transit-planner-location-field">
             <p className="transit-planner-select-hint" id={`${id}-hint`}>
               Try a street address without city or state, a place name, or longitude, latitude.
             </p>
-            <div className="transit-planner-endpoint-actions">
-              <Button type="button" size="sm" variant="secondary" onClick={() => {
-                locationRequest.current += 1;
-                setLocating(undefined);
-                pendingEndpointFocus.current = field;
-                setLocation(undefined);
-                setValidationError("");
-              }}>Use a {isFrom ? "boarding" : "destination"} stop</Button>
-              <Button type="button" size="sm" variant="secondary" disabled={!catalog || Boolean(locating)}
-                aria-describedby={`${id}-location-privacy`}
-                onClick={() => void useNearestStop(field)}>
-                {locating === field ? "Finding nearest stop…" : "Use nearest stop to me"}
-              </Button>
-            </div>
-            <p className="transit-planner-select-hint" id={`${id}-location-privacy`}>
-              Device location stays on this device. Only the chosen public stop is used.
-            </p>
+            <Button type="button" size="sm" variant="secondary" className="transit-planner-mode-button" onClick={() => {
+              cancelLocationLookup();
+              pendingEndpointFocus.current = field;
+              setLocation(undefined);
+              setValidationError("");
+            }}>Use a {isFrom ? "boarding" : "destination"} stop</Button>
           </div>
         ) : <>
-        <FieldGroup label={label} htmlFor={id}>
-          <PlannerStopSelect
-            id={id}
-            stops={catalog?.stops ?? EMPTY_STOPS}
-            selected={selected}
-            loading={catalogState.loading}
-            onChange={stop => chooseStop(stop, field)}
-          />
-        </FieldGroup>
-        <Button type="button" size="sm" variant="secondary" className="transit-planner-location-toggle"
+        <Button type="button" size="sm" variant="secondary" className="transit-planner-mode-button transit-planner-location-toggle"
           onClick={() => {
+            cancelLocationLookup();
             pendingEndpointFocus.current = field;
             setLocation("");
             setValidationError("");
@@ -892,7 +912,17 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
 
         <form className="transit-planner-form" onSubmit={submit}>
           {renderStopField("from")}
+          <Button type="button" size="sm" variant="secondary" className="transit-planner-swap"
+            disabled={!(fromLocation?.trim() || toLocation?.trim() ||
+              (fromLocation === undefined && fromStop) || (toLocation === undefined && toStop))}
+            onClick={swapEndpoints}>
+            <FontAwesome name="exchange" aria-hidden="true" /> Swap origin and destination
+          </Button>
           {renderStopField("to")}
+          <p className="transit-planner-select-hint" id="planner-location-privacy">
+            Nearest stop uses your location on this device only.
+          </p>
+          {locating && <p className="transit-planner-select-hint" role="status">Finding nearest stop…</p>}
           {(fromLocation === undefined || toLocation === undefined) &&
             <p className="transit-planner-select-hint">Type a name or ID to search all stops.</p>}
           {validationError && (

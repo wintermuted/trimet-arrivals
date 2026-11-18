@@ -59,9 +59,11 @@ try the street address without city or state if a full address is not recognized
 Typed endpoints can be linked with `fromPlace`/`toPlace` or
 `fromCoord`/`toCoord`, including in combination with a stop. These inputs are
 visible in the link but are not added to Recent trips.
-**Use nearest stop to me** asks for device location and finds a public TriMet
+The location-arrow button beside either stop selector asks for device location and finds a public TriMet
 stop within one mile locally. The planner uses the selected stop ID, not the
 device coordinates, in requests, links, or Recent trips.
+**Swap origin and destination** reverses the draft inputs, including mixed
+stop and location types. The displayed trip stays unchanged until you use **Find trips** and get new results.
 Choose **Plan a trip to this stop** on a Nearby stop detail page to open the
 sidebar planner with that exact destination selected.
 Both stop pickers group stops by the Portland quadrant prefix in their

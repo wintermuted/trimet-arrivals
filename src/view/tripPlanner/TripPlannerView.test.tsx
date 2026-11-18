@@ -431,20 +431,52 @@ describe("TripPlannerView", () => {
     jest.mocked(geoLocateCurrentPosition).mockRejectedValueOnce(new Error("denied"))
       .mockResolvedValueOnce({ coords: { longitude: -122.43582, latitude: 45.50568 } });
     await render("/planner?to=7777", true);
-    const click = (text: string) => Array.from(container.querySelectorAll("button"))
-      .find(button => button.textContent.trim() === text).click();
-    act(() => click("Other origin options"));
-    expect(document.activeElement).toBe(container.querySelector("#planner-from"));
+    const nearest = container.querySelector<HTMLButtonElement>('[aria-label="Use nearest stop to me for boarding"]');
+    expect(nearest.closest(".transit-planner-endpoint-row").querySelector("#planner-from")).not.toBeNull();
     expect(geoLocateCurrentPosition).not.toHaveBeenCalled();
-    await act(async () => click("Use nearest stop to me"));
+    await act(async () => nearest.click());
     expect(container.textContent).toContain("Check browser permissions");
-    await act(async () => click("Use nearest stop to me"));
+    await act(async () => nearest.click());
     expect(document.activeElement).toBe(container.querySelector("#planner-from"));
     await act(async () => Simulate.submit(container.querySelector("form")));
     expect(requestTrip).toHaveBeenCalledWith({ fromPlace: "8356", toPlace: "7777", signal: expect.anything() });
     const query = container.querySelector('[data-test-id="query"]').textContent;
     expect(query).toBe("?from=8356&to=7777");
     expect(localStorage.getItem("trimet-arrivals:recent-journeys")).not.toContain("-122.43582");
+  });
+
+  it("swaps mixed drafts without changing the last results, selection, or URL until submission", async () => {
+    await render("/planner?from=8356&toCoord=-122.6815,45.5231", true);
+    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-options button").click());
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Edit locations"]').click());
+    const swap = container.querySelector<HTMLButtonElement>(".transit-planner-swap");
+    const query = container.querySelector('[data-test-id="query"]');
+    const originalQuery = query.textContent;
+    act(() => swap.click());
+    expect(container.querySelector<HTMLInputElement>("#planner-from").value).toBe("-122.6815,45.5231");
+    expect(container.querySelector("#planner-to").closest(".transit-planner-stop-select").textContent).toContain("8356");
+    expect(query.textContent).toBe(originalQuery);
+    expect(requestTrip).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toMatch(/Showing results for .*8356.* to -122\.6815,45\.5231/);
+    expect(container.querySelector('ol[aria-label="Itinerary 1 steps"]')).not.toBeNull();
+    await act(async () => Simulate.submit(container.querySelector("form")));
+    expect(requestTrip).toHaveBeenLastCalledWith(expect.objectContaining({
+      fromCoord: "-122.6815,45.5231", toPlace: "8356",
+    }));
+  });
+
+  it("swaps a single chosen stop and ignores a pending nearest-stop result", async () => {
+    let finishLocation: (position: Awaited<ReturnType<typeof geoLocateCurrentPosition>>) => void;
+    jest.mocked(geoLocateCurrentPosition).mockImplementationOnce(() => new Promise(resolve => {
+      finishLocation = resolve;
+    }));
+    await render("/planner?to=7777", true);
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Use nearest stop to me for boarding"]').click());
+    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-swap").click());
+    await act(async () => finishLocation({ coords: { longitude: -122.43582, latitude: 45.50568 } }));
+    expect(container.querySelector("#planner-from").closest(".transit-planner-stop-select").textContent).toContain("7777");
+    expect(container.querySelector("#planner-to").closest(".transit-planner-stop-select").textContent).not.toContain("7777");
+    expect(requestTrip).not.toHaveBeenCalled();
   });
 
   it("reports no trips and keeps planner search usable for an invalid linked stop", async () => {
