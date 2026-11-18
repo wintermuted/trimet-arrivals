@@ -1,7 +1,8 @@
 import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
-import React, { FormEvent, useEffect, useId, useState } from "react";
+import React, { FormEvent, useEffect, useId, useRef, useState } from "react";
+import FontAwesome from "react-fontawesome";
 import { useSearchParams } from "react-router-dom";
 import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
 import {
@@ -96,6 +97,39 @@ function legIcon(mode?: string) {
   return faRoute;
 }
 
+function PlannerDisclosure({ title, children, onCollapse, headingId }: {
+  title: string;
+  children: React.ReactNode;
+  onCollapse?: () => void;
+  headingId?: string;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const panelId = useId();
+  const Heading = headingId ? "h2" : "h3";
+
+  return (
+    <div>
+      <Heading id={headingId} className="transit-planner-disclosure-heading">
+        <button
+          type="button"
+          aria-controls={panelId}
+          aria-expanded={expanded}
+          onClick={() => {
+            if (expanded) onCollapse?.();
+            setExpanded(!expanded);
+          }}
+        >
+          <FontAwesome name="caret-right" aria-hidden="true" />
+          {title}
+        </button>
+      </Heading>
+      <div id={panelId} hidden={!expanded}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function ItineraryDetails({
   itinerary,
   index,
@@ -109,29 +143,17 @@ function ItineraryDetails({
     onFocus: (leg?: number) => void;
   };
 }) {
-  const [expanded, setExpanded] = useState(true);
-  const directionsId = useId();
   let transitLegSeen = false;
 
   return (
     <div className="transit-planner-itinerary-detail">
-      <h3 className="transit-planner-directions-heading">
-        <button
-          type="button"
-          aria-controls={directionsId}
-          aria-expanded={expanded}
-          onClick={() => {
-            if (expanded) {
-              highlight?.onHover();
-              highlight?.onFocus();
-            }
-            setExpanded(!expanded);
-          }}
-        >
-          Directions
-        </button>
-      </h3>
-      <div id={directionsId} hidden={!expanded}>
+      <PlannerDisclosure
+        title="Directions"
+        onCollapse={() => {
+          highlight?.onHover();
+          highlight?.onFocus();
+        }}
+      >
         {itinerary.partial && (
           <p className="transit-planner-partial" role="status">
             Some details were missing from TriMet. Available leg information is
@@ -201,7 +223,7 @@ function ItineraryDetails({
             );
           })}
         </ol>
-      </div>
+      </PlannerDisclosure>
     </div>
   );
 }
@@ -247,7 +269,10 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   const [catalogRetry, setCatalogRetry] = useState(0);
   const [fromStop, setFromStop] = useState<StopCatalogStop>();
   const [toStop, setToStop] = useState<StopCatalogStop>();
-  const [selectedItinerary, setSelectedItinerary] = useState(0);
+  const [selectedItinerary, setSelectedItinerary] = useState(-1);
+  const [editingTrip, setEditingTrip] = useState(false);
+  const editTripButton = useRef<HTMLButtonElement>(null);
+  const currentTripOption = useRef<HTMLButtonElement>(null);
   const [hoveredLeg, setHoveredLeg] = useState<number>();
   const [focusedLeg, setFocusedLeg] = useState<number>();
   const [mapLeg, setMapLeg] = useState<number>();
@@ -323,7 +348,8 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
 
     const controller = new AbortController();
     setTripState({ status: "loading" });
-    setSelectedItinerary(0);
+    setSelectedItinerary(-1);
+    setEditingTrip(false);
     planTrip({
       fromPlace: String(from.stop.locid),
       toPlace: String(to.stop.locid),
@@ -459,6 +485,11 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
   const highlightedLeg = hoveredLeg ?? mapLeg ?? focusedLeg;
 
   useEffect(() => {
+    if (selectedItinerary < 0) return;
+    (editingTrip ? currentTripOption : editTripButton).current?.focus();
+  }, [selectedItinerary, editingTrip]);
+
+  useEffect(() => {
     setHoveredLeg(undefined);
     setFocusedLeg(undefined);
     setMapLeg(undefined);
@@ -469,82 +500,81 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
       className={`transit-planner${inSidebar ? " transit-planner--sidebar" : ""}`}
       aria-labelledby="transit-planner-title"
     >
-      <header className="transit-planner-header">
-        <h2 id="transit-planner-title">Plan a trip</h2>
+      <PlannerDisclosure title="Plan a trip" headingId="transit-planner-title">
         {!inSidebar && (
-          <p>
+          <p className="transit-planner-intro">
             Choose any two TriMet stops. Search by stop name or ID; addresses are
             not supported.
           </p>
         )}
-      </header>
 
-      {recentTrips?.unavailable ? (
-        <p className="transit-planner-message" role="status">Recent trips are unavailable on this device.</p>
-      ) : recentTrips?.journeys.length > 0 && (
-        <div className="transit-planner-recent">
-          <FieldGroup label="Recent trips" htmlFor="planner-recent">
-            <MultiSelect<RecentJourney, false>
-              inputId="planner-recent"
-              isMulti={false}
-              options={recentTrips.journeys}
-              value={null}
-              onChange={chooseRecentTrip}
-              getOptionLabel={({ from, to }) => `${from.desc} (${from.locid}) to ${to.desc} (${to.locid})`}
-              getOptionValue={({ from, to }) => `${from.locid}-${to.locid}`}
-              placeholder="Choose a recent trip"
-              menuPortalTarget={document.body}
-              menuPosition="fixed"
-              menuPlacement="auto"
-              maxMenuHeight={240}
-              styles={{
-                control: base => ({ ...base, minHeight: "var(--wm-control-height)" }),
-                menuPortal: base => ({ ...base, zIndex: 5 })
-              }}
-            />
-          </FieldGroup>
-        </div>
-      )}
+        {recentTrips?.unavailable ? (
+          <p className="transit-planner-message" role="status">Recent trips are unavailable on this device.</p>
+        ) : recentTrips?.journeys.length > 0 && (
+          <div className="transit-planner-recent">
+            <FieldGroup label="Recent trips" htmlFor="planner-recent">
+              <MultiSelect<RecentJourney, false>
+                inputId="planner-recent"
+                isMulti={false}
+                options={recentTrips.journeys}
+                value={null}
+                onChange={chooseRecentTrip}
+                getOptionLabel={({ from, to }) => `${from.desc} (${from.locid}) to ${to.desc} (${to.locid})`}
+                getOptionValue={({ from, to }) => `${from.locid}-${to.locid}`}
+                placeholder="Choose a recent trip"
+                menuPortalTarget={document.body}
+                menuPosition="fixed"
+                menuPlacement="auto"
+                maxMenuHeight={240}
+                styles={{
+                  control: base => ({ ...base, minHeight: "var(--wm-control-height)" }),
+                  menuPortal: base => ({ ...base, zIndex: 5 })
+                }}
+              />
+            </FieldGroup>
+          </div>
+        )}
 
-      {catalogState.loading && (
-        <p role="status">
-          {catalog ? "Refreshing stops…" : "Loading TriMet stops…"}
-        </p>
-      )}
-      {catalogState.error && (
-        <div role="alert" className="transit-planner-message">
-          <p>
-            The TriMet stop catalog could not be loaded.
-            {catalog
-              ? " The previously loaded stops are still available."
-              : " Check your connection and try again."}
-          </p>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setCatalogRetry((value) => value + 1)}
-          >
-            Retry loading stops
-          </Button>
-        </div>
-      )}
-
-      <form className="transit-planner-form" onSubmit={submit}>
-        {renderStopField("from")}
-        {renderStopField("to")}
-        <p className="transit-planner-select-hint">Type a name or ID to search all stops.</p>
-        {validationError && (
-          <p className="transit-planner-message" role="alert">
-            {validationError}
+        {catalogState.loading && (
+          <p role="status">
+            {catalog ? "Refreshing stops…" : "Loading TriMet stops…"}
           </p>
         )}
-        <Button
-          type="submit"
-          disabled={!fromStop || !toStop || catalogState.loading}
-        >
-          Find trips
-        </Button>
-      </form>
+        {catalogState.error && (
+          <div role="alert" className="transit-planner-message">
+            <p>
+              The TriMet stop catalog could not be loaded.
+              {catalog
+                ? " The previously loaded stops are still available."
+                : " Check your connection and try again."}
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setCatalogRetry((value) => value + 1)}
+            >
+              Retry loading stops
+            </Button>
+          </div>
+        )}
+
+        <form className="transit-planner-form" onSubmit={submit}>
+          {renderStopField("from")}
+          {renderStopField("to")}
+          <p className="transit-planner-select-hint">Type a name or ID to search all stops.</p>
+          {validationError && (
+            <p className="transit-planner-message" role="alert">
+              {validationError}
+            </p>
+          )}
+          <Button
+            type="submit"
+            disabled={!fromStop || !toStop || catalogState.loading}
+          >
+            Find trips
+          </Button>
+        </form>
+      </PlannerDisclosure>
 
       {tripState.status === "loading" && (
         <p className="transit-planner-message" role="status">
@@ -590,51 +620,76 @@ export default function TripPlannerView({ inSidebar = false, renderMapStatus }: 
           No trips were found between these stops. Try another pair of stops.
         </p>
       )}
-      {activeItinerary && (
+      {itineraries.length > 0 && (
         <section
           className="transit-planner-results"
           aria-label="Trip options"
         >
           {renderMapStatus?.(itineraries, selectedItinerary, highlightedLeg, setMapLeg)}
-          {itineraries.length > 1 && (
-            <fieldset className="transit-planner-options">
-              <legend>Choose a trip</legend>
-              {itineraries.map((itinerary, index) => (
-                <label key={itinerary.id || index}>
-                  <input
-                    type="radio"
-                    name="planner-itinerary"
-                    checked={selectedItinerary === index}
-                    onChange={() => setSelectedItinerary(index)}
-                  />
-                  <span>{itineraryLabel(itinerary, index)}</span>
-                </label>
-              ))}
-            </fieldset>
+          <PlannerDisclosure title="Choose a trip">
+            {!activeItinerary || editingTrip ? (
+              <>
+                <ul className="transit-planner-options" aria-label="Available trips">
+                  {itineraries.map((itinerary, index) => (
+                    <li key={itinerary.id || index}>
+                      <button
+                        type="button"
+                        aria-current={selectedItinerary === index ? "true" : undefined}
+                        ref={selectedItinerary === index ? currentTripOption : undefined}
+                        onClick={() => {
+                          setSelectedItinerary(index);
+                          setEditingTrip(false);
+                        }}
+                      >
+                        {itineraryLabel(itinerary, index)}
+                        {selectedItinerary === index && <span>Current trip</span>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {editingTrip && (
+                  <Button type="button" variant="secondary" onClick={() => setEditingTrip(false)}>
+                    Cancel
+                  </Button>
+                )}
+              </>
+            ) : (
+              <div className="transit-planner-summary">
+                <div>
+                  <h4>
+                    Option {selectedItinerary + 1}
+                    {activeItinerary.startTime && activeItinerary.endTime &&
+                      ` · ${activeItinerary.startTime}–${activeItinerary.endTime}`}
+                  </h4>
+                  <p>
+                    {activeItinerary.duration !== undefined &&
+                      `${activeItinerary.duration} min · `}
+                    {transferCount(activeItinerary)}{" "}
+                    {transferCount(activeItinerary) === 1 ? "transfer" : "transfers"}
+                    {activeItinerary.distance !== undefined &&
+                      ` · ${activeItinerary.distance.toFixed(2)} mi`}
+                    {activeItinerary.fare !== undefined &&
+                      ` · $${activeItinerary.fare.toFixed(2)} regular fare`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="transit-planner-edit-trip"
+                  ref={editTripButton}
+                  onClick={() => setEditingTrip(true)}
+                >
+                  Edit trip
+                </button>
+              </div>
+            )}
+          </PlannerDisclosure>
+          {activeItinerary && (
+            <ItineraryDetails
+              itinerary={activeItinerary}
+              index={selectedItinerary}
+              highlight={renderMapStatus ? { leg: highlightedLeg, onHover: setHoveredLeg, onFocus: setFocusedLeg } : undefined}
+            />
           )}
-          <div className="transit-planner-summary">
-            <h3>
-              {activeItinerary.startTime && activeItinerary.endTime
-                ? `${activeItinerary.startTime}–${activeItinerary.endTime}`
-                : "Trip details"}
-            </h3>
-            <p>
-              {activeItinerary.duration !== undefined &&
-                `${activeItinerary.duration} min`}
-              {activeItinerary.duration !== undefined && " · "}
-              {transferCount(activeItinerary)}{" "}
-              {transferCount(activeItinerary) === 1 ? "transfer" : "transfers"}
-              {activeItinerary.distance !== undefined &&
-                ` · ${activeItinerary.distance.toFixed(2)} mi`}
-              {activeItinerary.fare !== undefined &&
-                ` · $${activeItinerary.fare.toFixed(2)} regular fare`}
-            </p>
-          </div>
-          <ItineraryDetails
-            itinerary={activeItinerary}
-            index={selectedItinerary}
-            highlight={renderMapStatus ? { leg: highlightedLeg, onHover: setHoveredLeg, onFocus: setFocusedLeg } : undefined}
-          />
         </section>
       )}
     </section>

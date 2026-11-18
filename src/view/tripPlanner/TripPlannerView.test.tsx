@@ -223,6 +223,8 @@ describe("TripPlannerView", () => {
       expect.objectContaining({ fromPlace: "8356", toPlace: "7777" }),
     );
     expect(container.textContent).toContain("Choose a trip");
+    const options = () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button");
+    await act(async () => options()[0].click());
     expect(container.textContent).toContain("MAX Blue Line to Portland");
     expect(container.textContent).toContain("WES to Beaverton");
     expect(container.textContent).toContain("Transfer");
@@ -231,7 +233,8 @@ describe("TripPlannerView", () => {
     const legs = Array.from(container.querySelectorAll(".transit-planner-leg"));
     expect(legs.map(leg => leg.querySelector('svg[aria-hidden="true"]').getAttribute("data-icon")))
       .toEqual(["person-walking", "train-tram", "train"]);
-    await act(async () => container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]')[1].click());
+    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip").click());
+    await act(async () => options()[1].click());
     const bus = container.querySelector(".transit-planner-leg");
     expect(bus.querySelector("strong").textContent).toContain("Bus");
     expect(bus.querySelector('svg[aria-hidden="true"]').getAttribute("data-icon")).toBe("bus");
@@ -239,8 +242,9 @@ describe("TripPlannerView", () => {
 
   it("keeps directions collapsed when the selected itinerary changes", async () => {
     await render("/planner?from=8356&to=7777");
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-planner-options button").click());
 
-    const toggle = container.querySelector<HTMLButtonElement>("h3 button[aria-expanded]");
+    const toggle = container.querySelector<HTMLButtonElement>(".transit-planner-itinerary-detail h3 button");
     const directions = document.getElementById(toggle.getAttribute("aria-controls"));
     expect(toggle.textContent.trim()).toBe("Directions");
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
@@ -251,15 +255,68 @@ describe("TripPlannerView", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(directions.hidden).toBe(true);
 
-    const secondTrip = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]')[1];
+    act(() => container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip").click());
+    const secondTrip = container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[1];
     await act(async () => secondTrip.click());
-    expect(secondTrip.checked).toBe(true);
     expect(directions.hidden).toBe(true);
 
     act(() => toggle.click());
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(directions.hidden).toBe(false);
     expect(directions.querySelector('ol[aria-label="Itinerary 2 steps"]').textContent).toContain("Burnside/Stark");
+  });
+
+  it("starts unselected and preserves the current trip while editing or canceling", async () => {
+    await render("/planner?from=8356&to=7777");
+
+    const options = () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button");
+    const edit = () => container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip");
+    const toggle = Array.from(container.querySelectorAll<HTMLButtonElement>("h3 button"))
+      .find(button => button.textContent.trim() === "Choose a trip");
+    const panel = document.getElementById(toggle.getAttribute("aria-controls"));
+    expect(panel.contains(options()[1])).toBe(true);
+    expect(panel.hidden).toBe(false);
+    expect(panel.querySelector("[aria-current]")).toBeNull();
+    expect(container.querySelector(".transit-planner-itinerary-detail")).toBeNull();
+    await act(async () => options()[1].click());
+    expect(panel.querySelector(".transit-planner-summary").textContent).toContain("55 min");
+    expect(document.activeElement).toBe(edit());
+    act(() => toggle.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(panel.hidden).toBe(true);
+    expect(container.querySelector('ol[aria-label="Itinerary 2 steps"]')).not.toBeNull();
+
+    act(() => toggle.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(panel.hidden).toBe(false);
+    act(() => edit().click());
+    expect(options()[1].getAttribute("aria-current")).toBe("true");
+    expect(document.activeElement).toBe(options()[1]);
+    expect(container.querySelector('ol[aria-label="Itinerary 2 steps"]')).not.toBeNull();
+    act(() => Array.from(panel.querySelectorAll<HTMLButtonElement>("button"))
+      .find(button => button.textContent.trim() === "Cancel").click());
+    expect(document.activeElement).toBe(edit());
+  });
+
+  it("keeps the form selections and results when the form is collapsed", async () => {
+    await render("/nearby/planner?from=8356&to=7777", true);
+
+    const toggle = container.querySelector<HTMLButtonElement>("#transit-planner-title button");
+    const panel = document.getElementById(toggle.getAttribute("aria-controls"));
+    const form = panel.querySelector("form");
+    const initialText = form.textContent;
+    expect(panel.hidden).toBe(false);
+    expect(form.querySelector("button[type=submit]").hasAttribute("disabled")).toBe(false);
+
+    act(() => toggle.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(panel.hidden).toBe(true);
+    expect(container.querySelector(".transit-planner-results").closest("[hidden]")).toBeNull();
+
+    act(() => toggle.click());
+    expect(panel.hidden).toBe(false);
+    expect(panel.querySelector("form").textContent).toBe(initialText);
+    expect(requestTrip).toHaveBeenCalledTimes(1);
   });
 
   it("rejects identical stop IDs without making a planner request", async () => {
@@ -318,6 +375,8 @@ describe("TripPlannerView", () => {
 
     expect(requestTrip).toHaveBeenCalledTimes(2);
     expect(container.textContent).toContain("incomplete itinerary details");
+    expect(container.querySelectorAll(".transit-planner-options button")).toHaveLength(1);
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-planner-options button").click());
     expect(container.textContent).toContain("Available leg information");
   });
 

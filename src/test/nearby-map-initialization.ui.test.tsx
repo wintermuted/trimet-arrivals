@@ -350,6 +350,14 @@ describe("Nearby map initialization independently of the sidebar", () => {
     const Marker = jest.requireMock("mapbox-gl").Marker;
     await act(async () => finishMapLoading());
     expect(setNearbyStops).not.toHaveBeenCalled();
+    expect(Marker).not.toHaveBeenCalled();
+    expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], -1], ["==", ["get", "walk"], false]]);
+    const chooseTrip = async (index: number) => {
+      const edit = container.querySelector<HTMLButtonElement>(".transit-planner-edit-trip");
+      if (edit) act(() => edit.click());
+      await act(async () => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[index].click());
+    };
+    await chooseTrip(0);
     expect(Marker).toHaveBeenCalledTimes(2);
     expect(Marker.mock.calls.map(([{ element }]) => element.getAttribute("aria-label"))).toEqual([
       "Board: Test route 42 at Stop 101",
@@ -421,8 +429,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     act(() => leave());
     expect(busLeg.classList.contains(highlighted)).toBe(false);
     act(() => move({ point: { x: 10, y: 20 } }));
-    const choices = container.querySelectorAll<HTMLInputElement>('input[name="planner-itinerary"]');
-    await act(async () => choices[1].click());
+    await chooseTrip(1);
     expect(container.querySelector(`.${highlighted}`)).toBeNull();
     expect(map.off).toHaveBeenCalledWith("mousemove", move);
     expect(popup.isConnected).toBe(false);
@@ -434,7 +441,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["all", ["!=", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
-    await act(async () => choices[2].click());
+    await chooseTrip(2);
     const transferMarker: HTMLButtonElement = Marker.mock.calls.slice(-2)[0][0].element;
     transferMarker.click();
     const transferPopup = document.getElementById(transferMarker.getAttribute("aria-controls"));

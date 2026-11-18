@@ -62,6 +62,10 @@ TriMet catalog.
 The searchable **Recent trips** dropdown in the sidebar reopens up to five successful stop pairs
 stored in this browser by either planner view. Choosing a pair fetches fresh
 itineraries instead of reusing old departure times.
+Collapse **Plan a trip** to hide the form without clearing your stops or results,
+or **Choose a trip** to hide the options without changing the selected trip.
+Trip options start unselected. Choose one to see its summary and directions,
+or use **Edit trip** to switch options without clearing the current trip first.
 The collapsible **Directions** section shows mode icons alongside written
 instructions, with dividers between each leg.
 In Nearby, hover a leg in the directions or on the map to highlight it in both
