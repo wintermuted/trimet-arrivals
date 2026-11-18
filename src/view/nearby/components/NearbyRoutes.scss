@@ -1,3 +1,4 @@
+@use "../../../styles/disclosure";
 @import "../../../styles/routes";
 
 .transit-departure-option {
@@ -622,34 +623,17 @@
 
 .transit-simple-route-group > summary,
 .transit-simple-route-direction > summary {
-  display: flex;
-  align-items: center;
-  gap: var(--wm-space-2);
-  min-height: var(--wm-control-height);
-  cursor: pointer;
+  @include disclosure.trigger;
   list-style: none;
 
   &::-webkit-details-marker {
     display: none;
   }
-
-  &:hover {
-    background: var(--wm-color-surface-muted);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--wm-color-accent);
-    outline-offset: -2px;
-  }
-
-  > .fa {
-    flex: 0 0 auto;
-  }
 }
 
-.transit-simple-route-group[open] > summary > .fa,
-.transit-simple-route-direction[open] > summary > .fa {
-  transform: rotate(90deg);
+.transit-simple-route-group[open] > summary,
+.transit-simple-route-direction[open] > summary {
+  @include disclosure.expanded-caret;
 }
 
 .transit-simple-route-details-link {
@@ -683,11 +667,8 @@
   margin-top: var(--wm-space-1);
 
   > summary {
+    @include disclosure.label;
     margin: 0 0 var(--wm-space-2);
-    color: var(--wm-color-text-muted);
-    font-size: 0.875rem;
-    font-weight: 600;
-    overflow-wrap: anywhere;
   }
 }
 

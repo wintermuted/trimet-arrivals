@@ -218,7 +218,7 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, walking
 
   useEffect(() => {
     onMapLeg();
-    if (!map || !result?.data.features.length) return;
+    if (!map || !result?.data.features.length || selected < 0) return;
     const move = ({ point }: MapMouseEvent) => {
       const layers = [ACTIVE, ACTIVE_WALK].filter(id => map.getLayer(id));
       if (!layers.length) return onMapLeg();
