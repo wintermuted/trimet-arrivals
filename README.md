@@ -76,8 +76,8 @@ colors for MAX, FX, and Portland Streetcar when available.
 **Common places** suggests verified stops for familiar destinations, including
 Washington Square Transit Center (the mall's transit stop, not its entrance),
 Washington Park MAX Station for the Oregon Zoo, and the airport MAX station.
-The menus show a sample from each group; type a name or ID to search the full
-TriMet catalog.
+The menus show a sample from each group; type a stop name, stop ID, or route
+name (such as **FX2**) to search the full TriMet catalog.
 Assign a bookmarked stop to **Home** or **Work** on the Bookmarks page to put
 it in **Saved stops** in both planners. Optional bookmarked commute routes
 appear alongside those stops in the homepage's Bookmarks preview. Replace a

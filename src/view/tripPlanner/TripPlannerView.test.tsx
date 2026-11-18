@@ -626,6 +626,29 @@ describe("TripPlannerView", () => {
     }
   });
 
+  it("finds stops by their FX route name and shows the FX badge", async () => {
+    const data = catalog();
+    data.stops.push({
+      ...data.stops[0],
+      locid: 9302,
+      desc: "NW 5th & Hoyt",
+      routes: [{ id: 2, label: "FX2-Division", color: "#61A60E" }],
+    });
+    loadCatalog.mockResolvedValue(data);
+    await render("/planner");
+    const input = container.querySelector<HTMLInputElement>("#planner-from");
+    act(() => input.focus());
+    act(() => {
+      input.value = "fx";
+      Simulate.change(input);
+    });
+    const menu = document.getElementById(input.getAttribute("aria-controls"));
+    const options = menu.querySelectorAll('[role="option"]');
+    expect(options).toHaveLength(1);
+    expect(options[0].textContent).toContain("NW 5th & Hoyt (9302)");
+    expect(options[0].querySelector(".wm-badge").textContent).toBe("FX2-Division");
+  });
+
   it("groups both fields by published street prefixes and keeps other stops searchable", async () => {
     const data = catalog();
     data.stops.push({ ...data.stops[0], locid: 299, desc: "NE 42nd & Broadway" });

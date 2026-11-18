@@ -69,7 +69,7 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
   const { options, savedLabels } = useMemo(() => {
     const groups = new Map(GROUPS.map(label => [label, { label, options: [] as StopCatalogStop[] }]));
     const trimmed = query.trim();
-    const matching = trimmed ? searchStopCatalog(stops, trimmed) : stops;
+    const matching = trimmed ? searchStopCatalog(stops, trimmed, { includeRouteNames: true }) : stops;
     const placeQuery = normalizePlace(query);
     const savedLabels = new Map<number, string>();
     for (const { id, label } of savedStops ?? []) {
@@ -153,7 +153,7 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
       getOptionValue={stop => String(stop.locid)}
       filterOption={null}
       placeholder="Search stops or common places"
-      noOptionsMessage={() => "No stops or common places match. Try another name or stop ID."}
+      noOptionsMessage={() => "No matches. Try a stop ID, stop name, route name, or common place."}
       menuPortalTarget={document.body}
       menuPosition="fixed"
       menuPlacement="auto"
