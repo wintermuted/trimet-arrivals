@@ -71,6 +71,56 @@ Points mark trunks, not public entrances. Some trees are on private land or
 not visible from public paths. View only from lawful public access; do not enter
 private property. Source status does not establish current condition or access.
 
+grocery-stores.json
+Source: City of Portland, Bureau of Planning and Sustainability.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/40
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=54182
+Changes: retained source-existing full-service grocery locations, source object
+IDs, names and addresses; excluded source-closed records. Not a complete or live
+directory, stock/hours feed, or verified entrance location.
+
+reuse-repair.json
+Source: City of Portland, Bureau of Planning and Sustainability.
+Service and source metadata: https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/1426
+Changes: retained mapped Resourceful PDX organization names, addresses, websites,
+source object IDs and listed services/items. Omitted unmapped records with an
+explicit refresh warning. Phone/contact fields are not requested or published.
+Listings can be out of date. Confirm accepted items, eligibility, appointments,
+hours, fees and site access before visiting or bringing donations.
+
+csa-pickups.json
+Source: City of Portland, Bureau of Planning and Sustainability.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/188
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=54388
+Changes: retained source-active farm drop-offs with numbered pickup-site
+addresses and valid Portland-area points, source object IDs, farm names,
+websites, listed seasons and products. Omitted nonspecific city/ZIP-code,
+street-only, intersection-only and unnamed-site entries with refresh warnings.
+Separate offerings at a shared site remain distinct; farm IDs are not treated
+as unique pickup-site IDs. Email/contact fields are not requested or published.
+Not a public-market directory or live schedule. Membership, scheduled pickup
+and permission to access private sites may be required. Confirm with the farm.
+
+bicycle-parking.json
+Source: City of Portland, Bureau of Transportation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/62
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=52921
+Changes: retained mapped public-right-of-way rack asset IDs, WGS84 points,
+source-listed capacity and cover; blank/unknown cover is explicitly unknown.
+Each location/count represents an individual rack, not spaces or a parking area.
+Co-located racks remain distinct. Parking-area and bike-share layers are not
+overlaid/double-counted. Not all bike parking, live availability, a reservation,
+or a guarantee of condition, security or accessible routing.
+
+Terms for grocery-stores.json, reuse-repair.json, csa-pickups.json and bicycle-parking.json:
+https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Unrelated attributes are not retained. All points are approximate, not verified
+public entrances. Retrieval dates do not establish current operation or access.
+Points outside the app's Portland-area coverage are omitted with refresh warnings.
+
 neighborhoods.json
 Source: City of Portland, Bureau of Planning and Sustainability.
 Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3

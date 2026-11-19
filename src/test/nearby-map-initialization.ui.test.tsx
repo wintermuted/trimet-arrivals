@@ -429,7 +429,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
     ["community-garden", "portland:garden:37d4ec75-92b5-47dd-8b36-b8717e7a2cc5"],
     ["farmers-market", "portland:market:1"],
     ["public-restroom", "portland:restroom:300"],
-    ["heritage-tree", "portland:tree:14"]
+    ["heritage-tree", "portland:tree:14"],
+    ["grocery-store", "portland:grocery:1"],
+    ["reuse-repair", "portland:reuse:1"],
+    ["csa-pickup", "portland:csa:1"],
+    ["bicycle-parking", "portland:bike:5220-1"]
   ] as const)("opens a directly linked %s without GPS and returns to Places using only the header", async (category, id) => {
     const place: placesApi.InterestPlace = { id, category, name: "Directly linked place",
       coordinates: [-122.67, 45.52], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/" };

@@ -67,7 +67,8 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
             type: "geojson", data: placeFeatures(latest.current.places, category),
             cluster: true, clusterRadius: 45, clusterMaxZoom: 14,
             attribution: ["park", "community-garden", "public-restroom", "heritage-tree"].includes(category) ? "City of Portland, Bureau of Parks and Recreation" :
-              category === "farmers-market" ? "City of Portland, Bureau of Planning and Sustainability" :
+              ["farmers-market", "grocery-store", "reuse-repair", "csa-pickup"].includes(category) ? "City of Portland, Bureau of Planning and Sustainability" :
+              category === "bicycle-parking" ? "City of Portland, Bureau of Transportation" :
               category === "food-cart-pod" ? '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors (ODbL)</a>' :
                 '<a href="https://rlisdiscovery.oregonmetro.gov/pages/open-database-license">Metro RLIS data (license)</a>'
           });
@@ -171,6 +172,14 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
           document.createTextNode("Availability is not live; closures or access restrictions may apply."));
         if (place.category === "heritage-tree") description.append(document.createElement("br"),
           document.createTextNode("May be on private land; view only from lawful public access."));
+        if (place.category === "grocery-store") description.append(document.createElement("br"),
+          document.createTextNode("Check the current location and opening hours."));
+        if (place.category === "reuse-repair") description.append(document.createElement("br"),
+          document.createTextNode("Confirm accepted items, appointments and access before visiting."));
+        if (place.category === "csa-pickup") description.append(document.createElement("br"),
+          document.createTextNode("Membership and arranged pickup may be required; not a public market."));
+        if (place.category === "bicycle-parking") description.append(document.createElement("br"),
+          document.createTextNode("Mapped rack, not live parking availability."));
         const hint = document.createElement("p");
         hint.textContent = "Click for details and trip planning.";
         content.append(hint);

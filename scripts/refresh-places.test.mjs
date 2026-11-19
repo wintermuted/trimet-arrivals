@@ -148,6 +148,68 @@ const cityRestroom = id => ({ type: "Feature", geometry: { type: "Point", coordi
 const cityTree = id => ({ type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
   properties: { OBJECTID: id, TREEID: id + 50, STATUS: "Heritage", COMMON: "Oregon white oak", SCIENTIFIC: "Quercus garryana",
     SITE_ADDRESS: "100 Main Street", Ownership: "Private, Front Yard", Delist_Date: null, Owner_name: "MUST NOT BE PUBLISHED" } });
+const cityGrocery = id => ({ ...cityMarket(id),
+  properties: { OBJECTID: id, NAME: `Grocer ${id}`, ADDRESS: "100 Main Street", STATUS: "Existing" } });
+const cityReuse = id => ({ ...cityMarket(id),
+  properties: { OBJECTID: id, Organization: `Reuse ${id}`, Address: "100 Main Street", Website: "www.example.org",
+    Service: "Lending Library", Additional_service: "Repair Shop", What_they_offer_accept: "Tools", Phone: "NOT FOR PUBLICATION" } });
+const cityCsa = id => ({ ...cityMarket(id),
+  properties: { OBJECTID: id, Farm_Name: `Farm ${id}`, Location: "100 Main Street", Status: "Active",
+    UniqueID: "shared-farm-id", Season: "June - November", Main_Products: "vegetables", Website: "example.org", email: "NOT FOR PUBLICATION" } });
+const cityBike = id => ({ ...cityMarket(id),
+  properties: { OBJECTID: id, AssetID: `5220-${id}`, NumSpaces: 2, Covered: "Y" } });
+
+test("keeps existing groceries and separate addressed CSA offerings, excluding closures and vague pickup locations", () => {
+  const groceries = normalizeCityPlaces([cityGrocery(1),
+    { ...cityGrocery(2), properties: { ...cityGrocery(2).properties, STATUS: "Closed" } }], "grocery-store");
+  assert.equal(groceries.length, 1);
+  assert.equal(groceries[0].id, "portland:grocery:1");
+  const csa = normalizeCityPlaces([cityCsa(1), cityCsa(2),
+    { ...cityCsa(3), properties: { ...cityCsa(3).properties, Status: "Inactive" } },
+    { ...cityCsa(4), properties: { ...cityCsa(4).properties, Location: "Portland" } },
+    { ...cityCsa(5), properties: { ...cityCsa(5).properties, Location: "NE Wygant St." } }], "csa-pickup");
+  assert.equal(csa.length, 2);
+  assert.equal(csa[0].id, "portland:csa:1");
+  assert.equal(csa[0].pickupSeason, "June - November");
+  assert.equal(csa[0].pickupProducts, "vegetables");
+  assert.equal(csa[0].website, "https://example.org");
+  assert.ok(!JSON.stringify(csa).includes("NOT FOR PUBLICATION"));
+  for (const [category, fixture, key] of [["grocery-store", cityGrocery, "STATUS"], ["csa-pickup", cityCsa, "Status"]]) {
+    assert.throws(() => normalizeCityPlaces([{ ...fixture(1), properties: { ...fixture(1).properties, [key]: "Unknown" } }], category), /status/);
+  }
+});
+
+test("retains safe reuse service/item metadata and stable individual bike assets without implying availability", () => {
+  const reuse = normalizeCityPlaces([cityReuse(1),
+    { ...cityReuse(2), geometry: { type: "Point", coordinates: [] } }], "reuse-repair");
+  assert.equal(reuse.length, 1);
+  assert.equal(reuse[0].reuseServices, "Lending Library, Repair Shop");
+  assert.equal(reuse[0].reuseItems, "Tools");
+  assert.equal(reuse[0].website, "https://www.example.org");
+  assert.ok(!JSON.stringify(reuse).includes("NOT FOR PUBLICATION"));
+  const bikes = normalizeCityPlaces([cityBike(1), { ...cityBike(2),
+    properties: { ...cityBike(2).properties, NumSpaces: null, Covered: " " } }], "bicycle-parking");
+  assert.equal(bikes.length, 2);
+  assert.equal(bikes[0].id, "portland:bike:5220-1");
+  assert.equal(bikes[0].bikeSpaces, 2);
+  assert.equal(bikes[0].bikeCovered, "yes");
+  assert.equal(bikes[1].bikeCovered, "unknown");
+  assert.equal(bikes[1].bikeSpaces, undefined);
+  assert.equal(bikes[0].arrival, "approximate");
+  assert.throws(() => normalizeCityPlaces([{ ...cityBike(1),
+    properties: { ...cityBike(1).properties, NumSpaces: -1 } }], "bicycle-parking"), /capacity/);
+});
+
+test("rejects malformed or duplicate everyday destinations and explicitly omits points outside map coverage", () => {
+  for (const [category, fixture] of [["grocery-store", cityGrocery], ["reuse-repair", cityReuse],
+    ["csa-pickup", cityCsa], ["bicycle-parking", cityBike]]) {
+    assert.throws(() => normalizeCityPlaces([fixture(1), fixture(1)], category), /Duplicate/);
+    assert.throws(() => normalizeCityPlaces([{ ...fixture(1), geometry: null }], category), /geometry/);
+    assert.throws(() => normalizeCityPlaces([{ ...fixture(1), properties: {} }], category));
+    assert.equal(normalizeCityPlaces([fixture(1), { ...fixture(2),
+      geometry: { type: "Point", coordinates: [-123.1, 45.5] } }], category).length, 1);
+  }
+});
 
 test("keeps open-listed and unknown restroom rooms distinct without implying live hours or accessibility", () => {
   const unknown = { ...cityRestroom(2), properties: { ...cityRestroom(2).properties, Status: "2", ADA: null } };
@@ -210,10 +272,14 @@ test("excludes closed and inactive markets and retains source-listed schedules w
 
 test("fetches complete city place pages before normalizing, rejecting omitted records", async () => {
   for (const [category, fixture] of [["community-garden", cityGarden], ["farmers-market", cityMarket],
-    ["public-restroom", cityRestroom], ["heritage-tree", cityTree]]) {
+    ["public-restroom", cityRestroom], ["heritage-tree", cityTree], ["grocery-store", cityGrocery],
+    ["reuse-repair", cityReuse], ["csa-pickup", cityCsa], ["bicycle-parking", cityBike]]) {
     const ids = Array.from({ length: 105 }, (_, i) => i + 1);
     const request = async url => {
       const params = new URL(url).searchParams;
+      if (["reuse-repair", "csa-pickup"].includes(category) && !params.has("returnIdsOnly")) {
+        assert.ok(!/phone|email/i.test(params.get("outFields")));
+      }
       if (category === "heritage-tree" && !params.has("returnIdsOnly")) {
         assert.ok(!params.get("outFields").includes("Owner_name"));
         assert.ok(!params.get("outFields").includes("Owner_address"));
@@ -239,15 +305,18 @@ test("full and targeted refresh commands publish the intended snapshots without 
     await writeFile(script, await readFile(new URL("./refresh-places.mjs", import.meta.url)));
     const fixtures = {
       park: park(1), garden: cityGarden(1), market: cityMarket(1), restroom: cityRestroom(1), tree: cityTree(1),
+      grocery: cityGrocery(1), reuse: cityReuse(1), csa: cityCsa(1), bike: cityBike(1),
       neighborhood: neighborhood(1), metro: metro(1, "Central Library"),
       osm: { osm3s: { timestamp_osm_base: "2026-07-15T12:00:00Z" }, elements: [pod(1, "Example Food Carts")] }
     };
     for (const [mode, expected] of [
       ["--gardens-markets-only", ["community-gardens.json", "farmers-markets.json"]],
       ["--restrooms-trees-only", ["public-restrooms.json", "heritage-trees.json"]],
+      ["--everyday-only", ["grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json"]],
       ["--neighborhoods-only", ["neighborhoods.json"]],
       ["", ["parks.json", "food-cart-pods.json", "community-centers.json", "libraries.json",
-        "community-gardens.json", "farmers-markets.json", "public-restrooms.json", "heritage-trees.json", "neighborhoods.json"]]
+        "community-gardens.json", "farmers-markets.json", "public-restrooms.json", "heritage-trees.json", "neighborhoods.json",
+        "grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json"]]
     ]) {
       const code = `
         const fixtures = ${JSON.stringify(fixtures)};
@@ -258,12 +327,16 @@ test("full and targeted refresh commands publish the intended snapshots without 
           let data;
           const key = pathname.includes("/216/") ? "garden" : pathname.includes("/187/") ? "market" :
             pathname.includes("/1304/") ? "restroom" : pathname.includes("/26/") ? "tree" :
+            pathname.includes("/40/") ? "grocery" : pathname.includes("/1426/") ? "reuse" :
+            pathname.includes("/188/") ? "csa" : pathname.includes("/62/") ? "bike" :
             pathname.includes("Boundary") ? "neighborhood" : pathname.includes("Environment") ? "park" :
             pathname.includes("arcgis") ? "metro" : "osm";
           if (${JSON.stringify(mode)} === "--gardens-markets-only" && !["garden", "market"].includes(key))
             throw new Error("Targeted refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--restrooms-trees-only" && !["restroom", "tree"].includes(key))
             throw new Error("Targeted refresh queried an unrelated source");
+          if (${JSON.stringify(mode)} === "--everyday-only" && !["grocery", "reuse", "csa", "bike"].includes(key))
+            throw new Error("Everyday refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--neighborhoods-only" && key !== "neighborhood")
             throw new Error("Neighborhood refresh queried an unrelated source");
           if (key === "osm") data = fixtures.osm;
