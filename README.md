@@ -174,6 +174,7 @@ enables the whole group. Individual category toggles remain available, and group
 states follow presets and shared views without changing existing defaults.
 Each group starts collapsed. Its title/chevron button independently shows or hides
 the children; the adjacent bulk checkbox works without expanding the group.
+Tree, basket, people and signpost icons distinguish the four group headers.
 Children use a consistent single-column layout, indentation and spacing.
 The Places header's **About Places** help tooltip contains the browsing
 description; the list does not repeat the visible header title or introduction.
