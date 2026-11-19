@@ -6,7 +6,7 @@ import { placeIconDefinition } from "../util/mapbox/placeIcons";
 import { Link } from "react-router-dom";
 import {
   categoryName, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
-  PlaceFilters, PlaceSourceState, placePlannerLink
+  PlaceFilters, PlaceSourceState, placeDetailLink, placePlannerLink
 } from "../../../api/places/places";
 import "./NearbyPlaces.scss";
 import { NeighborhoodState } from "../../../api/places/neighborhoods";
@@ -44,8 +44,8 @@ export default function NearbyPlaces({
   useEffect(() => {
     if (selected) heading.current?.focus();
     else if (previousSelection.current) {
-      const result = Array.from(results.current?.querySelectorAll<HTMLButtonElement>("button") || [])
-        .find(button => button.dataset.placeId === previousSelection.current);
+      const result = Array.from(results.current?.querySelectorAll<HTMLAnchorElement>("a[data-place-id]") || [])
+        .find(link => link.dataset.placeId === previousSelection.current);
       (result || browseHeading.current)?.focus();
     }
     previousSelection.current = selected?.id;
@@ -113,9 +113,6 @@ export default function NearbyPlaces({
       {mapError && <p role="alert">Place markers could not be drawn. You can still select places from this list. Reopen Places to retry the map layer.</p>}
       {selected && (
         <section className="transit-place-detail" aria-labelledby="selected-place-heading">
-          <Button size="sm" variant="ghost" onClick={() => onSelect()}>
-            <FontAwesome name="angle-left" aria-hidden="true" /> Back to places
-          </Button>
           <div className="transit-place-detail-heading">
             <h2 id="selected-place-heading" ref={heading} tabIndex={-1}>{selected.name}</h2>
           </div>
@@ -164,13 +161,17 @@ export default function NearbyPlaces({
       <ul ref={results} className="transit-places-list" aria-label="Places in map area">
         {sorted.slice(0, limit).map(place => (
           <li key={place.id}>
-            <button type="button" className="transit-place-result" data-place-id={place.id}
-              onClick={() => onSelect(place.id, true)}>
+            <Link to={placeDetailLink(place.id)} className="transit-place-result" data-place-id={place.id}
+              onClick={event => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                onSelect(place.id, true);
+              }}>
               <FontAwesomeIcon icon={placeIconDefinition(place.category)} aria-hidden="true"
                 className={`transit-place-icon transit-place-icon--${place.category}`} />
               <span><strong>{place.name}</strong><small>{place.address || PLACE_INFO[place.category].singular}</small></span>
               <FontAwesome name="angle-right" aria-hidden="true" />
-            </button>
+            </Link>
           </li>
         ))}
       </ul>

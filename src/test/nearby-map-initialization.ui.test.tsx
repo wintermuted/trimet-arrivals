@@ -2,7 +2,7 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Provider } from "react-redux";
 import { createStore } from "redux";
-import { MemoryRouter, Route, Routes, useOutletContext } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import getCurrentPosition from "../api/geolocation/getCurrentPosition";
 import { getNearbyStops } from "../api/trimet/stops";
 import { getArrivals } from "../api/trimet/arrivals";
@@ -83,10 +83,11 @@ jest.mock("mapbox-gl", () => {
       close: () => void;
       setLngLat() { return this; }
       setDOMContent(content: HTMLElement) { this.content = content; return this; }
+      setText(text: string) { this.content = globalThis.document.createElement("div"); this.content.textContent = text; return this; }
       on(_event: string, close: () => void) { this.close = close; return this; }
       addTo() { this.content.ownerDocument.body.appendChild(this.content); return this; }
       isOpen() { return this.content.isConnected; }
-      remove() { this.content.remove(); this.close(); }
+      remove() { this.content.remove(); this.close?.(); }
     },
     LngLatBounds: class {
       extend() { return this; }
@@ -127,6 +128,16 @@ function mockVehicleFollow() {
   })}>Follow test trip</button>);
 }
 
+function NavigationProbe() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  return <>
+    <output data-testid="current-url">{location.pathname}{location.search}</output>
+    <button aria-label="Browser back" onClick={() => navigate(-1)}>Browser back</button>
+    <button aria-label="Browser forward" onClick={() => navigate(1)}>Browser forward</button>
+  </>;
+}
+
 describe("Nearby map initialization independently of the sidebar", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -148,7 +159,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   };
   const marker = {
     setLngLat: jest.fn(), addTo: jest.fn(), getLngLat: jest.fn(() => ({ lng: 3, lat: 4 })),
-    on: jest.fn(), off: jest.fn(), remove: jest.fn()
+    on: jest.fn(), off: jest.fn(), remove: jest.fn(), setPopup: jest.fn(), togglePopup: jest.fn()
   };
   const previousResizeObserver = global.ResizeObserver;
   const originalFetch = global.fetch;
@@ -174,6 +185,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     map.getCenter.mockReturnValue({ lng: 1, lat: 2 });
     marker.getLngLat.mockReturnValue({ lng: 3, lat: 4 });
     marker.setLngLat.mockReturnValue(marker);
+    marker.setPopup.mockReturnValue(marker);
     marker.addTo.mockReturnValue(marker);
     jest.requireMock("mapbox-gl").default.Marker.mockImplementation(() => marker);
     global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -239,8 +251,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
         <FeatureFlagsProvider>
           <WalkingToggle />
           <MemoryRouter initialEntries={[path]}>
+            <NavigationProbe />
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
+                <Route path="places" element={null} />
+                <Route path="places/:placeId" element={null} />
                 <Route path="planner" element={
                   <Provider store={createStore(reducers)}>
                     <NearbyTripPlannerComponent />
@@ -340,7 +355,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     );
   }
 
-  it("browses Places without GPS or transit data and preserves filters and selection across planner navigation", async () => {
+  it("uses header Back for Places, preserves filters, and restores URL selection through browser and planner navigation", async () => {
     const place: placesApi.InterestPlace = {
       id: "portland:park:1", name: "Example Park", category: "park", coordinates: [-122.67, 45.52],
       arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/"
@@ -373,21 +388,96 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(polygonToggle().checked).toBe(false);
     act(() => polygonToggle().click());
     act(() => container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').click());
-    act(() => container.querySelector<HTMLButtonElement>(".transit-place-result").click());
+    act(() => container.querySelector<HTMLAnchorElement>(".transit-place-result").click());
+    expect(container.querySelector('[data-testid="current-url"]').textContent).toBe(placesApi.placeDetailLink(place.id));
     expect(container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').search).toContain("confirmPlace=1");
+    expect(container.textContent).not.toContain("Back to places");
+    expect(container.querySelector<HTMLAnchorElement>('.transit-detail-back').getAttribute("href")).toBe("/nearby/places");
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
+    expect(container.querySelector(".transit-nearby-launcher")).toBeNull();
+    expect(container.querySelector("#selected-place-heading")).toBeNull();
+    expect(container.querySelector(".transit-places-list")).not.toBeNull();
+    await act(async () => button("Browser back").click());
+    expect(container.querySelector("#selected-place-heading").textContent).toBe("Example Park");
+    await act(async () => button("Browser forward").click());
+    expect(container.querySelector("#selected-place-heading")).toBeNull();
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-place-result").click());
+    await act(async () => container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').click());
+    expect(container.querySelector<HTMLAnchorElement>('.transit-detail-back').getAttribute("href")).toBe(placesApi.placeDetailLink(place.id));
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
+    expect(container.querySelector("#selected-place-heading").textContent).toBe("Example Park");
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
     expect(container.querySelector(".transit-nearby-launcher")).not.toBeNull();
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/planner"]').click());
     expect(container.textContent).not.toContain("Places nearby");
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/places"]').click());
-    expect(container.querySelector("#selected-place-heading").textContent).toBe("Example Park");
-    act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent.includes("Back to places")).click());
+    expect(container.querySelector("#selected-place-heading")).toBeNull();
     expect(container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').checked).toBe(false);
     expect(neighborhoodToggle().checked).toBe(true);
     expect(polygonToggle().checked).toBe(true);
     expect(map.jumpTo).toHaveBeenCalled();
     expect(getCurrentPosition).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["park", "portland:park:1"],
+    ["food-cart-pod", "osm:way:2"],
+    ["community-center", "metro:community-center:13"],
+    ["library", "metro:library:central-library"],
+    ["community-garden", "portland:garden:37d4ec75-92b5-47dd-8b36-b8717e7a2cc5"],
+    ["farmers-market", "portland:market:1"],
+    ["public-restroom", "portland:restroom:300"],
+    ["heritage-tree", "portland:tree:14"]
+  ] as const)("opens a directly linked %s without GPS and returns to Places using only the header", async (category, id) => {
+    const place: placesApi.InterestPlace = { id, category, name: "Directly linked place",
+      coordinates: [-122.67, 45.52], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/" };
+    const snapshot: placesApi.PlaceSnapshot = {
+      version: 1, category, retrievedAt: "2026-11-19T12:00:00Z", source: "Test", sourceUrl: place.sourceUrl,
+      license: "Test", licenseUrl: place.sourceUrl, coverage: "Test", places: [place]
+    };
+    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({ places: [place],
+      sources: { ...placesApi.emptyPlaceSources(), [category]: { snapshot, loading: false, error: false } }, retry: jest.fn() });
+    await render(placesApi.placeDetailLink(id));
+    finishMapLoading();
+    expect(container.querySelector("#selected-place-heading").textContent).toBe(place.name);
+    expect(container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').search).toContain("confirmPlace=1");
+    expect(container.textContent).not.toContain("Back to places");
+    expect(map.jumpTo).toHaveBeenCalledWith({ center: place.coordinates, zoom: 15 });
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
+    expect(container.querySelector(".transit-places-list")).not.toBeNull();
+    expect(container.querySelector("#selected-place-heading")).toBeNull();
+    expect(container.querySelector(".transit-nearby-launcher")).toBeNull();
+  });
+
+  it("keeps a direct place route while loading and retrying, then reports an absent place without opening the list", async () => {
+    const retry = jest.fn();
+    const catalog = jest.spyOn(placesApi, "usePlaceCatalog");
+    catalog.mockReturnValue({ places: [], sources: { ...placesApi.emptyPlaceSources(),
+      park: { loading: true, error: false } }, retry });
+    const path = placesApi.placeDetailLink("portland:park:99999");
+    await render(path);
+    expect(container.textContent).toContain("Loading place details");
+    expect(container.querySelector(".transit-places-list")).toBeNull();
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+    catalog.mockReturnValue({ places: [], sources: { ...placesApi.emptyPlaceSources(),
+      park: { loading: false, error: true } }, retry });
+    await render(path);
+    expect(container.textContent).toContain("This place could not be loaded");
+    await act(async () => button("Retry place").click());
+    expect(retry).toHaveBeenCalledWith("park");
+    const snapshot: placesApi.PlaceSnapshot = { version: 1, category: "park", retrievedAt: "2026-11-19T12:00:00Z",
+      source: "Test", sourceUrl: "https://www.portlandmaps.com/", license: "Test",
+      licenseUrl: "https://www.portlandmaps.com/", coverage: "Test", places: [] };
+    catalog.mockReturnValue({ places: [], sources: { ...placesApi.emptyPlaceSources(),
+      park: { snapshot, loading: false, error: false } }, retry });
+    await render(path);
+    expect(container.textContent).toContain("Place not found");
+    expect(container.querySelector(".transit-places-list")).toBeNull();
+    expect(container.querySelector('[data-testid="current-url"]').textContent).toBe(path);
+    expect(container.querySelector<HTMLAnchorElement>('.transit-detail-back').getAttribute("href")).toBe("/nearby/places");
   });
 
   it("opens the sidebar planner with the exact stop detail destination and no boarding stop", async () => {

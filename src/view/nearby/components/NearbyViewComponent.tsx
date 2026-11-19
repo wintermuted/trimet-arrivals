@@ -8,7 +8,7 @@ import { Dictionary, map, set, size } from "lodash";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
-import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
+import { Link, matchPath, useLocation, useMatch, useNavigate } from "react-router-dom";
 import FontAwesome from "react-fontawesome";
 import getCurrentPosition from "../../../api/geolocation/getCurrentPosition";
 import {
@@ -62,7 +62,7 @@ import NearbyPlaces from "./NearbyPlaces";
 import NearbyPlacesMap from "./NearbyPlacesMap";
 import NearbyNeighborhoodsMap from "./NearbyNeighborhoodsMap";
 import NearbyPlaceDestination from "./NearbyPlaceDestination";
-import { DEFAULT_PLACE_FILTERS, filterPlaces, placeInBounds, PlaceFilters, usePlaceCatalog } from "../../../api/places/places";
+import { DEFAULT_PLACE_FILTERS, filterPlaces, placeCategoryForId, placeDetailLink, placeInBounds, PlaceFilters, usePlaceCatalog } from "../../../api/places/places";
 import { useNeighborhoods } from "../../../api/places/neighborhoods";
 
 const DEFAULT_RADIUS = 1000;
@@ -272,7 +272,9 @@ export default function NearbyViewComponent() {
   const wasLanding = useRef(isLanding);
   const isExplore = Boolean(matchPath("/nearby/simple-routes", location.pathname));
   const isPlanner = Boolean(matchPath("/nearby/planner", location.pathname));
-  const isPlaces = Boolean(matchPath("/nearby/places", location.pathname));
+  const placeDetail = useMatch("/nearby/places/:placeId");
+  const selectedPlaceId = placeDetail?.params.placeId;
+  const isPlaces = Boolean(placeDetail || matchPath("/nearby/places", location.pathname));
   const isChoosingDirectionStop = Boolean(matchPath("/nearby/directions", location.pathname));
   const isDirections = Boolean(matchPath("/nearby/directions/*", location.pathname));
   const searchParams = new URLSearchParams(location.search);
@@ -324,7 +326,6 @@ export default function NearbyViewComponent() {
   const { walkingEnabled } = useFeatureFlags();
   const placeCatalog = usePlaceCatalog(isPlaces);
   const [placeFilters, setPlaceFilters] = useState<PlaceFilters>(DEFAULT_PLACE_FILTERS);
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string>();
   const [placeBounds, setPlaceBounds] = useState<[number, number, number, number]>();
   const [placeMapError, setPlaceMapError] = useState(false);
   const [neighborhoodsShown, setNeighborhoodsShown] = useState(false);
@@ -338,32 +339,32 @@ export default function NearbyViewComponent() {
     [placeCatalog.sources, placeFilters]);
   const visiblePlaces = useMemo(() => placeBounds
     ? filteredPlaces.filter(place => placeInBounds(place, placeBounds)) : [], [filteredPlaces, placeBounds]);
-  const selectedPlace = filteredPlaces.find(place => place.id === selectedPlaceId);
+  const selectedPlace = placeCatalog.places.find(place => place.id === selectedPlaceId);
+  const selectedCategory = placeCategoryForId(selectedPlaceId || "");
+  const selectedSource = selectedCategory ? placeCatalog.sources[selectedCategory] : undefined;
+  const mappedPlaces = useMemo(() => selectedPlace && !filteredPlaces.some(place => place.id === selectedPlace.id)
+    ? [...filteredPlaces, selectedPlace] : filteredPlaces, [filteredPlaces, selectedPlace]);
   useEffect(() => {
-    if (selectedPlaceId && !selectedPlace) setSelectedPlaceId(undefined);
     setCoincidentIds([]);
-  }, [placeFilters]);
-  const selectPlace = useCallback((id?: string, pan = false) => {
-    setSelectedPlaceId(id);
+  }, [placeFilters, selectedPlaceId, isPlaces]);
+  const selectPlace = useCallback((id?: string) => {
     setCoincidentIds([]);
-    if (pan) {
-      const place = placeCatalog.places.find(item => item.id === id);
-      if (place) mapRef.current?.easeTo({ center: place.coordinates });
-    }
-  }, [placeCatalog.sources]);
+    navigate(id ? placeDetailLink(id) : "/nearby/places");
+  }, [navigate]);
   const updatePlaceBounds = useCallback((bounds: [number, number, number, number]) => {
     setPlaceBounds(bounds);
     const map = mapRef.current;
-    if (map) {
+    if (map && !selectedPlaceId) {
       const center = map.getCenter();
       placeViewport.current = { center: [center.lng, center.lat], zoom: map.getZoom() };
     }
-  }, []);
+  }, [selectedPlaceId]);
   useLayoutEffect(() => {
     if (isPlaces && isMapLoaded) {
-      mapRef.current?.jumpTo(placeViewport.current ?? { center: SERVICE_AREA_CENTER, zoom: 12 });
+      if (selectedPlace) mapRef.current?.jumpTo({ center: selectedPlace.coordinates, zoom: 15 });
+      else if (!selectedPlaceId) mapRef.current?.jumpTo(placeViewport.current ?? { center: SERVICE_AREA_CENTER, zoom: 12 });
     }
-  }, [isPlaces, isMapLoaded]);
+  }, [isPlaces, isMapLoaded, selectedPlaceId, selectedPlace]);
 
   useEffect(() => () => clearWalkingCache(), []);
 
@@ -598,6 +599,10 @@ export default function NearbyViewComponent() {
   const canShowNearbyResults = !nearbyDataError && !sidebarLoadingMessage && isMapLoaded && Boolean(nearbyStops);
   const sectionTitle = isPlaces ? "Places" : isPlanner ? "Plan a trip" :
     isExplore && !(isRouteInfo && canShowNearbyResults) ? "Explore" : undefined;
+  const plannerPlaceId = searchParams.get("toPlaceId");
+  const sectionBackTo = selectedPlaceId ? "/nearby/places" :
+    isPlanner && searchParams.get("confirmPlace") === "1" && placeCategoryForId(plannerPlaceId || "")
+      ? placeDetailLink(plannerPlaceId) : "/nearby";
 
   return (
     <div className="transit-container transit-nearby-view">
@@ -610,7 +615,7 @@ export default function NearbyViewComponent() {
             aria-label={isPlaces ? "Nearby places" : "Nearby transit"}
             tabIndex={0}
           >
-            {sectionTitle && !following && <TopNavBar id={sectionTitle} backTo="/nearby" />}
+            {sectionTitle && !following && <TopNavBar id={sectionTitle} backTo={sectionBackTo} />}
             {locationError && !isLanding && !isPlanner && !isPlaces && !following && (
               <div role="alert" className="transit-route-list-message">
                 <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>
@@ -645,11 +650,20 @@ export default function NearbyViewComponent() {
               <>
                 {coincidentIds.length > 1 && <section aria-label="Locations at this point">
                   <h3>Locations at this point</h3>
-                  {filteredPlaces.filter(place => coincidentIds.includes(place.id)).map(place =>
-                    <Button key={place.id} variant="secondary" onClick={() => selectPlace(place.id)}>{place.name}</Button>)}
+                  {mappedPlaces.filter(place => coincidentIds.includes(place.id)).map(place =>
+                    <Link key={place.id} className="wm-btn wm-btn-secondary" to={placeDetailLink(place.id)}>{place.name}</Link>)}
                   <Button variant="ghost" onClick={() => setCoincidentIds([])}>Dismiss locations</Button>
                 </section>}
-                <NearbyPlaces sources={placeCatalog.sources} filters={placeFilters} onFilters={setPlaceFilters}
+                {selectedPlaceId && !selectedPlace ? <section className="transit-places" aria-label="Place details">
+                  {selectedSource && !selectedSource.snapshot && !selectedSource.error ? (
+                    <p role="status">Loading place details...</p>
+                  ) : selectedSource?.error && selectedCategory ? (
+                    <div role="alert">
+                      <p>This place could not be loaded. Other places remain available.</p>
+                      <Button variant="secondary" onClick={() => placeCatalog.retry(selectedCategory)}>Retry place</Button>
+                    </div>
+                  ) : <p role="alert">Place not found. This location may no longer be in the current catalog.</p>}
+                </section> : <NearbyPlaces sources={placeCatalog.sources} filters={placeFilters} onFilters={setPlaceFilters}
                   visiblePlaces={visiblePlaces} selected={selectedPlace} onSelect={selectPlace}
                   neighborhoods={{ ...neighborhoods, shown: neighborhoodsShown, onShown: setNeighborhoodsShown,
                     polygonsShown: neighborhoodPolygonsShown, onPolygonsShown: setNeighborhoodPolygonsShown,
@@ -657,7 +671,7 @@ export default function NearbyViewComponent() {
                       neighborhoods.retry();
                       setNeighborhoodLayerRevision(value => value + 1);
                     } }}
-                  origin={currentLocation} originMode={searchMode} onRetry={placeCatalog.retry} mapError={placeMapError} mapReady={Boolean(placeBounds)} />
+                  origin={currentLocation} originMode={searchMode} onRetry={placeCatalog.retry} mapError={placeMapError} mapReady={Boolean(placeBounds)} />}
               </>
             ) : isStopDetail ? (
               <Outlet context={context} />
@@ -734,7 +748,7 @@ export default function NearbyViewComponent() {
           {isPlaces && isMapLoaded && neighborhoodsShown && neighborhoods.snapshot &&
             <NearbyNeighborhoodsMap key={neighborhoodLayerRevision} map={mapRef.current}
               snapshot={neighborhoods.snapshot} polygonsShown={neighborhoodPolygonsShown} onError={setNeighborhoodMapError} />}
-          {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={filteredPlaces}
+          {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={mappedPlaces}
             selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
             onBounds={updatePlaceBounds} onError={setPlaceMapError} />}
         </div>

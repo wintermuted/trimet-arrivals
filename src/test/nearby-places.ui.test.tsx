@@ -3,7 +3,7 @@ import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import {
   DEFAULT_PLACE_FILTERS, emptyPlaceSources, filterPlaces, InterestPlace, parsePlaceSnapshot, placeCategoryForId,
-  placeInBounds, placePlannerLink, PlaceSnapshot
+  placeDetailLink, placeInBounds, placePlannerLink, PlaceSnapshot
 } from "../api/places/places";
 import { Popup } from "mapbox-gl";
 import NearbyPlaces from "../view/nearby/components/NearbyPlaces";
@@ -246,8 +246,10 @@ describe("Places filtering, selection and map layers", () => {
   it("exposes accessible individual results and route context even when one source failed", () => {
     const select = jest.fn();
     const retry = jest.fn();
+    let clearSelection: () => void;
     function Harness() {
       const [selected, setSelected] = React.useState<InterestPlace>();
+      clearSelection = () => setSelected(undefined);
       return <MemoryRouter><NearbyPlaces sources={{
       ...emptyPlaceSources(),
       park: { snapshot, loading: false, error: false },
@@ -262,8 +264,9 @@ describe("Places filtering, selection and map layers", () => {
     act(() => root.render(<Harness />));
     expect(container.textContent).toContain("Food-cart pods could not be loaded");
     expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(8);
-    const button = container.querySelector<HTMLButtonElement>(".transit-place-result");
-    act(() => button.click());
+    const result = container.querySelector<HTMLAnchorElement>(".transit-place-result");
+    expect(result.getAttribute("href")).toBe(placeDetailLink(park.id));
+    act(() => result.click());
     expect(select).toHaveBeenCalledWith(park.id, true);
     const link = container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]');
     expect(link.search).toContain("toPlaceId=portland%3Apark%3A1");
@@ -272,7 +275,8 @@ describe("Places filtering, selection and map layers", () => {
     expect(retry).toHaveBeenCalledWith("food-cart-pod");
     expect(document.activeElement.id).toBe("selected-place-heading");
     expect(container.querySelector(".transit-places-list")).toBeNull();
-    act(() => Array.from(container.querySelectorAll("button")).find(item => item.textContent.includes("Back to places")).click());
+    expect(container.textContent).not.toContain("Back to places");
+    act(() => clearSelection());
     expect(container.querySelector(".transit-places-list")).not.toBeNull();
     expect(document.activeElement).toBe(container.querySelector(".transit-place-result"));
   });
