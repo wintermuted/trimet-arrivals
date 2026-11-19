@@ -130,8 +130,9 @@ visible in the link but are not added to Recent trips.
 
 **Places** starts with Parks, Food-cart pods, Community centers, Libraries,
 Community gardens, Farmers markets, Public restrooms, Heritage trees, Grocery
-stores, Reuse & repair, and CSA pickups enabled. **Bicycle parking** is available
-as an opt-in category so thousands of racks do not obscure other places. Its list follows the
+stores, Reuse & repair, CSA pickups, Drinking fountains and Park artwork enabled.
+**Bicycle parking** and **Picnic & seating** are opt-in categories so thousands
+of individual racks, benches and tables do not obscure other places. Its list follows the
 visible map area after a pan or zoom, independently of transit's search radius.
 Category toggles and name/address search filter both the map and list. Numbered
 clusters pair the category icon with a count and expand when selected; green
@@ -254,6 +255,56 @@ Layer controls carry color/pattern swatches; point discovery and transit plannin
 are unchanged. Enabled lines sit above neighborhood fills and below POI markers,
 retain their settings during Nearby navigation, recover on map-style reloads,
 and have independent loading/errors/retry. Loaded data are cached for the session.
+
+#### Park amenities and walking context
+
+**Drinking fountains**, **Picnic & seating**, and **Park artwork** use the Parks
+Amenities inventory. Each marker is an individual source-active asset, not a
+park entrance or a reservable picnic area; removed/closed assets are excluded.
+Asset types/styles are searchable. Some fountain assets are dog bowls. Water
+service, potability, seasonal operation, availability, fees and accessible
+approaches are not verified. Artwork names identify inventory assets, not
+verified artwork titles or a complete public-art directory.
+
+Four additional opt-in **Map layers** provide walking context:
+
+- **Street trees**: the active street-tree inventory, distinct from heritage
+  trees. Inventory locations do not guarantee a living tree, shade or access.
+- **Sidewalks**: actual asset polygons, including ramps, driveways and pads.
+  An inventory gap does not prove a sidewalk is missing.
+- **PedPDX crossings**: the 2023 planning inventory where crossings meet the
+  Pedestrian Priority Network, not every city crossing.
+- **Crossing deficiencies**: orange points for historical arterial-crossing
+  planning findings, not live closures or a safe/unsafe routing classification.
+
+Hover these context layers for source details; they are not place destinations
+or a walking/accessibility routing engine. Neighborhood fills remain underneath,
+with route lines and selectable POIs above. Street trees and sidewalks require
+zoom 14 or closer; mapped crossings require zoom 13. Deficiencies can show at
+any zoom. The UI explains when to zoom in.
+
+The large inventories are partitioned into content-addressed 0.025-degree
+spatial tiles. Only intersecting tiles load when enabled at the required zoom;
+the browser does not download the full tree or sidewalk inventory. Whole
+sidewalk polygons, including holes, are retained in a tile whose recorded bounds
+cover the complete geometry. Display geometry is source-generalized at
+0.000002 degrees (roughly 0.2 m); tiny assets that collapse under generalization
+are re-queried without it. Client tile caching is bounded. Load/draw failures have
+independent retry controls; a retained older area is explicitly identified.
+
+Refresh just the new amenities or just these walking/tree layers:
+
+```powershell
+npm run places:refresh -- --amenities-only
+npm run places:refresh -- --walking-trees-only
+```
+
+The full refresh includes both. Queries validate every matching ID in batches of
+at most 200, with at most four concurrent requests. Only relevant classification
+fields are requested: no donor, contact, maintenance-user or demographic priority
+attributes are published. Content-addressed tile names keep cached indexes tied
+to the correct generation; older tiles are retained by refresh for in-flight
+indexes and can be pruned deliberately after reviewing their references.
 
 #### Refreshing place snapshots
 

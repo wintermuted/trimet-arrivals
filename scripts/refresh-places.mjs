@@ -1,6 +1,8 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fetchArcgisFeatures } from "./arcgis.mjs";
+import { fetchContextSnapshots } from "./context-overlays.mjs";
 
 export const PARKS_URL = "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/35";
 export const NEIGHBORHOODS_URL = "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3";
@@ -51,6 +53,20 @@ export const CITY_PLACE_SOURCES = {
     coverage: "Mapped bicycle-rack assets in the public right-of-way, not all bicycle parking. Each marker and cluster count represents racks, not spaces or parking areas. Separate racks at one location remain distinct. Capacity and cover are source-listed, not live availability, condition or security."
   }
 };
+export const AMENITY_TYPES = {
+  "drinking-fountain": ["Drinking Fountain"],
+  "picnic-seating": ["Picnic Table", "Bench"],
+  "park-artwork": ["Art Work"]
+};
+for (const [category, types] of Object.entries(AMENITY_TYPES)) {
+  CITY_PLACE_SOURCES[category] = {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/1291",
+    metadataId: 54573, file: `${category}.json`, bureau: "Bureau of Parks and Recreation",
+    fields: "OBJECTID,Park,Asset,Style,Status",
+    where: `Asset IN (${types.map(type => `'${type}'`).join(",")})`,
+    coverage: "Source-active Portland Parks amenities, not a citywide directory. Each point represents an individual asset, not a park entrance. Removed and closed assets are excluded. Water service, potability, seasonal operation, availability, reservations, condition and accessible approaches are not verified."
+  };
+}
 const citySourceUrl = source => source.sourceUrl ||
   `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${source.metadataId}`;
 const EVERYDAY_CATEGORIES = ["grocery-store", "reuse-repair", "csa-pickup", "bicycle-parking"];
@@ -273,6 +289,7 @@ export async function fetchParks(request = json) {
 
 export function normalizeCityPlaces(features, category) {
   if (!features.length) throw new Error(`City ${category} response was empty`);
+  if (category in AMENITY_TYPES) return normalizeAmenities(features, category);
   if (EVERYDAY_CATEGORIES.includes(category)) return normalizeEverydayPlaces(features, category);
   if (category === "public-restroom" || category === "heritage-tree") return normalizeCityDestinations(features, category);
   const places = new Map();
@@ -310,6 +327,35 @@ export function normalizeCityPlaces(features, category) {
   }
   if (!places.size) throw new Error(`No active ${category} records`);
   return [...places.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function normalizeAmenities(features, category) {
+  const ids = new Set();
+  const places = [];
+  for (const feature of features) {
+    const p = feature.properties || {};
+    if (!Number.isInteger(p.OBJECTID) || p.OBJECTID <= 0 || ids.has(p.OBJECTID)) throw new Error("Invalid or duplicate amenity ID");
+    ids.add(p.OBJECTID);
+    if (!["Active", "Removed", "Closed"].includes(p.Status) || !AMENITY_TYPES[category].includes(p.Asset)) {
+      throw new Error("Unrecognized park amenity classification or status");
+    }
+    if (p.Status !== "Active") continue;
+    if (feature.geometry == null || (feature.geometry.type === "Point" && feature.geometry.coordinates?.length === 0)) {
+      console.warn(`Omitted unmapped ${category} ${p.OBJECTID}.`);
+      continue;
+    }
+    if (feature.geometry.type !== "Point" || !validPoint(feature.geometry.coordinates)) throw new Error("Invalid amenity geometry");
+    const park = typeof p.Park === "string" ? p.Park.trim() : "";
+    const amenityStyle = typeof p.Style === "string" ? p.Style.trim() : "";
+    places.push({
+      id: `portland:${category}:${p.OBJECTID}`, category, name: `${park || "Portland Parks"} - ${p.Asset} #${p.OBJECTID}`,
+      coordinates: feature.geometry.coordinates, arrival: "approximate",
+      sourceUrl: citySourceUrl(CITY_PLACE_SOURCES[category]), amenityType: p.Asset,
+      ...(amenityStyle ? { amenityStyle } : {})
+    });
+  }
+  if (!places.length) throw new Error(`No eligible ${category} records`);
+  return places.sort((a, b) => a.id.localeCompare(b.id));
 }
 
 function normalizeEverydayPlaces(features, category) {
@@ -414,6 +460,12 @@ function normalizeCityDestinations(features, category) {
 export async function fetchCityPlaces(category, request = json) {
   const source = CITY_PLACE_SOURCES[category];
   if (!source) throw new Error(`Unsupported city place category ${category}`);
+  if (category in AMENITY_TYPES) return {
+    version: 1, category, retrievedAt: new Date().toISOString(),
+    source: `City of Portland, ${source.bureau}`, sourceUrl: citySourceUrl(source),
+    license: "PDDL-1.0", licenseUrl: "https://www.portlandmaps.com/bps/arpa/tos.pdf",
+    coverage: source.coverage, places: normalizeAmenities(await fetchArcgisFeatures(source, request), category)
+  };
   const ids = await request(`${source.url}/query?where=1%3D1&returnIdsOnly=true&f=json`);
   if (!Array.isArray(ids.objectIds) || !ids.objectIds.length) throw new Error(`City returned no ${category} IDs`);
   const uniqueIds = [...new Set(ids.objectIds)].sort((a, b) => a - b);
@@ -601,6 +653,18 @@ export async function writeSnapshots(directory, snapshots) {
 }
 
 async function main() {
+  if (process.argv.includes("--walking-trees-only")) {
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), await fetchContextSnapshots());
+    console.log("Refreshed viewport-tiled walking and street-tree overlays.");
+    return;
+  }
+  if (process.argv.includes("--amenities-only")) {
+    const snapshots = {};
+    for (const category of Object.keys(AMENITY_TYPES)) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
+    console.log(`Refreshed ${Object.values(snapshots).map(snapshot => `${snapshot.places.length} ${snapshot.category}`).join(", ")} assets.`);
+    return;
+  }
   if (process.argv.includes("--overlays-only")) {
     const snapshots = {};
     for (const category of Object.keys(LINE_OVERLAY_SOURCES)) snapshots[LINE_OVERLAY_SOURCES[category].file] = await fetchLineOverlay(category);
@@ -681,6 +745,8 @@ async function main() {
   };
   for (const category of EVERYDAY_CATEGORIES) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
   for (const category of Object.keys(LINE_OVERLAY_SOURCES)) snapshots[LINE_OVERLAY_SOURCES[category].file] = await fetchLineOverlay(category);
+  for (const category of Object.keys(AMENITY_TYPES)) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
+  Object.assign(snapshots, await fetchContextSnapshots());
   for (const [category, data] of [["community-center", centers], ["library", libraries]]) {
     snapshots[METRO_SOURCES[category].file] = {
       version: 1, category, retrievedAt, sourceUpdatedAt: data.sourceUpdatedAt,

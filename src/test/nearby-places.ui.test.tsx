@@ -52,6 +52,12 @@ const everydayPlaces: InterestPlace[] = [
   { ...park, id: "portland:bike:5220-1", name: "Bicycle rack 5220-1", category: "bicycle-parking",
     bikeSpaces: 2, bikeCovered: "yes" }
 ];
+const amenities: InterestPlace[] = [
+  { ...park, id: "portland:drinking-fountain:1", category: "drinking-fountain",
+    amenityType: "Drinking Fountain", amenityStyle: "Dog Bowl" },
+  { ...park, id: "portland:picnic-seating:2", category: "picnic-seating", amenityType: "Bench" },
+  { ...park, id: "portland:park-artwork:3", category: "park-artwork", amenityType: "Art Work" }
+];
 const snapshot: PlaceSnapshot = {
   version: 1, category: "park", retrievedAt: "2026-11-18T12:00:00Z",
   source: "City of Portland", sourceUrl: "https://www.portlandmaps.com/",
@@ -360,17 +366,32 @@ describe("Places filtering, selection and map layers", () => {
     expect(filterPlaces(everydayPlaces, DEFAULT_PLACE_FILTERS)).not.toContain(everydayPlaces[3]);
     expect(filterPlaces(everydayPlaces, { ...DEFAULT_PLACE_FILTERS, "bicycle-parking": true })).toContain(everydayPlaces[3]);
   });
+  it("validates and searches amenity classifications without treating tables as fountains or flooding the default map", () => {
+    for (const place of amenities) {
+      expect(parsePlaceSnapshot({ ...snapshot, category: place.category, places: [place] }, place.category).places).toEqual([place]);
+      expect(placeCategoryForId(place.id)).toBe(place.category);
+    }
+    expect(() => parsePlaceSnapshot({ ...snapshot, category: "drinking-fountain",
+      places: [{ ...amenities[0], amenityType: "Bench" }] }, "drinking-fountain")).toThrow();
+    expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, amenityStyle: "Unsupported" }] }, "park")).toThrow();
+    expect(filterPlaces(amenities, DEFAULT_PLACE_FILTERS)).not.toContain(amenities[1]);
+    expect(filterPlaces(amenities, { ...DEFAULT_PLACE_FILTERS, search: "dog bowl" })).toEqual([amenities[0]]);
+    expect(filterPlaces(amenities, { ...DEFAULT_PLACE_FILTERS, "picnic-seating": true, search: "bench" })).toEqual([amenities[1]]);
+  });
 
   it.each([
     require("../../public/data/places/grocery-stores.json"),
     require("../../public/data/places/reuse-repair.json"),
     require("../../public/data/places/csa-pickups.json"),
-    require("../../public/data/places/bicycle-parking.json")
+    require("../../public/data/places/bicycle-parking.json"),
+    require("../../public/data/places/drinking-fountain.json"),
+    require("../../public/data/places/picnic-seating.json"),
+    require("../../public/data/places/park-artwork.json")
   ])("accepts every published $category record in the actual catalog parser", data => {
     expect(parsePlaceSnapshot(data, data.category).places).toHaveLength(data.places.length);
   });
 
-  it.each([garden, market, restroom, tree, ...everydayPlaces])("shows $category details, caveats, and an approximate named planner destination", place => {
+  it.each([garden, market, restroom, tree, ...everydayPlaces, ...amenities])("shows $category details, caveats, and an approximate named planner destination", place => {
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
       filters={DEFAULT_PLACE_FILTERS} onFilters={jest.fn()} visiblePlaces={[place]} selected={place}
       onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false} /></MemoryRouter>));
@@ -409,6 +430,13 @@ describe("Places filtering, selection and map layers", () => {
       expect(container.textContent).toContain("Covered: Yes");
       expect(container.textContent).toContain("racks, not spaces");
       expect(container.textContent).toContain("does not reserve parking or select a cycling route");
+    } else if (place.category === "drinking-fountain") {
+      expect(container.textContent).toContain("potability");
+      expect(container.textContent).toContain("Dog Bowl");
+    } else if (place.category === "picnic-seating") {
+      expect(container.textContent).toContain("not a reservable picnic area");
+    } else if (place.category === "park-artwork") {
+      expect(container.textContent).toContain("not a complete public-art directory");
     }
   });
 
@@ -432,7 +460,7 @@ describe("Places filtering, selection and map layers", () => {
     }
     act(() => root.render(<Harness />));
     expect(container.textContent).toContain("Food-cart pods could not be loaded");
-    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(12);
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(15);
     const result = container.querySelector<HTMLAnchorElement>(".transit-place-result");
     expect(result.getAttribute("href")).toBe(placeDetailLink(park.id));
     act(() => result.click());
@@ -483,7 +511,7 @@ describe("Places filtering, selection and map layers", () => {
     act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace, pod]} selectedId={park.id}
       onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
     expect(fakeMap.addSource).toHaveBeenCalledWith("nearby-places-park", expect.objectContaining({ cluster: true }));
-    expect(images.size).toBe(12);
+    expect(images.size).toBe(15);
     expect(fakeMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({
       id: "nearby-places-park-counts",
       layout: expect.objectContaining({ "icon-image": "nearby-places-park-icon", "text-field": ["get", "point_count_abbreviated"] })
@@ -538,7 +566,7 @@ describe("Places filtering, selection and map layers", () => {
     expect(onCoincident).toHaveBeenCalledWith([park.id, pod.id]);
     sources.clear(); layers.clear(); images.clear();
     act(() => listeners.get("style.load")());
-    expect(sources.size).toBe(12);
+    expect(sources.size).toBe(15);
     expect(onError).not.toHaveBeenCalledWith(true);
     act(() => root.render(null));
     expect(sources.size).toBe(0);
