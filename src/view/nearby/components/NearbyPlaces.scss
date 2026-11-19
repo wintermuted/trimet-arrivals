@@ -14,7 +14,8 @@
   margin: 0 0 var(--wm-space-4);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--wm-space-2) var(--wm-space-4);
+  gap: 0 var(--wm-space-3);
+  .transit-places-category { min-height: 32px; font-size: 0.875rem; gap: var(--wm-space-1); }
 }
 
 .transit-places-category {
@@ -44,6 +45,10 @@
 .transit-places-category--community-center .fa { color: #7448a3; }
 .transit-place-icon--library,
 .transit-places-category--library .fa { color: #176b95; }
+.transit-place-icon--community-garden,
+.transit-places-category--community-garden .fa { color: #526d16; }
+.transit-place-icon--farmers-market,
+.transit-places-category--farmers-market .fa { color: #a32d58; }
 [data-theme="dark"] {
   .transit-place-icon--park,
   .transit-places-category--park .fa { color: #75d7a2; }
@@ -53,6 +58,10 @@
   .transit-places-category--community-center .fa { color: #c7a6eb; }
   .transit-place-icon--library,
   .transit-places-category--library .fa { color: #83c9ed; }
+  .transit-place-icon--community-garden,
+  .transit-places-category--community-garden .fa { color: #b7d77e; }
+  .transit-place-icon--farmers-market,
+  .transit-places-category--farmers-market .fa { color: #f3a5bf; }
 }
 
 .transit-places-search {

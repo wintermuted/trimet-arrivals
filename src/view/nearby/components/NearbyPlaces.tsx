@@ -58,7 +58,7 @@ export default function NearbyPlaces({
       {!selected && <>
       <header className="transit-places-header">
         <h2 id="nearby-places-heading" ref={browseHeading} tabIndex={-1}>Places nearby</h2>
-        <p>Explore parks, food-cart pods, community centers, and libraries. Move the map to explore another area.</p>
+        <p>Explore parks, food-cart pods, community centers, libraries, community gardens, and farmers markets. Move the map to explore another area.</p>
       </header>
       <fieldset className="transit-places-filters">
         <legend className="wm-sr-only">Place categories</legend>
@@ -120,6 +120,14 @@ export default function NearbyPlaces({
           <p><FontAwesome name={categoryIcon(selected.category)} aria-hidden="true" />{" "}
             {PLACE_INFO[selected.category].singular}</p>
           {selected.address && <p>{selected.address}</p>}
+          {selected.category === "community-garden" && <p>Garden plots may require registration and have restricted access. Check with Portland Parks before visiting.</p>}
+          {selected.category === "farmers-market" && <section aria-label="Market schedule">
+            <h3>Source-listed schedule</h3>
+            <p>This snapshot may contain older seasonal dates and hours. Check the market website before traveling; this is not live opening information.</p>
+            {selected.marketDays && <p><strong>Days:</strong> {selected.marketDays}</p>}
+            {selected.marketSeason && <p><strong>Season:</strong> {selected.marketSeason}</p>}
+            {selected.marketHours && <p><strong>Hours:</strong> {selected.marketHours}</p>}
+          </section>}
           <p>Approximate map location, not a verified public entrance. Confirm your arrival point before finding trips.</p>
           <Link className="wm-btn wm-btn-primary" to={placePlannerLink(selected, origin, originMode)}>Plan a trip here</Link>
           <p className="transit-place-source">

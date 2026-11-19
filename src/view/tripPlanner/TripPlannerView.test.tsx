@@ -232,7 +232,9 @@ describe("TripPlannerView", () => {
 
   it.each<[placesApi.PlaceCategory, string, string]>([
     ["library", "metro:library:central-library", "Central Library"],
-    ["community-center", "metro:community-center:13", "Community Center"]
+    ["community-center", "metro:community-center:13", "Community Center"],
+    ["community-garden", "portland:garden:37d4ec75-92b5-47dd-8b36-b8717e7a2cc5", "Community Garden"],
+    ["farmers-market", "portland:market:1", "Farmers Market"]
   ])("leaves origin empty for a linked %s and clears stale identity when editing coordinates", async (category, id, name) => {
     const place: placesApi.InterestPlace = {
       id, name, category,

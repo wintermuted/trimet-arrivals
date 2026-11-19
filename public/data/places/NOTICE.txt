@@ -13,6 +13,34 @@ Changes: converted boundaries to approximate display points; consolidated
 property parts; retained source property IDs and names. These are parks-system
 properties, not a guarantee of public entrances, park status, access or hours.
 
+community-gardens.json
+Source: City of Portland, Bureau of Parks and Recreation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Miscellaneous/MapServer/216
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=54459
+Terms: https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Changes: retained source-active garden areas, GlobalIDs and related park property
+IDs; converted polygons to approximate display points, not verified entrances.
+Garden-specific park duplicates are hidden in discovery when the garden data
+is available; host parks and distinct garden areas remain separately usable.
+Plots may require registration or have restricted access.
+
+farmers-markets.json
+Source: City of Portland, Bureau of Planning and Sustainability.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/187
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=54387
+Terms: https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Changes: retained source-active market points and source IDs; excluded closed
+and inactive records; trimmed names, locations, websites and schedule text.
+Source-listed days, seasons and hours may reflect an older year. Active source
+status and retrieval date do not verify current operation, hours, payment
+benefits, exact location or public entrances. Check each market's website.
+
 neighborhoods.json
 Source: City of Portland, Bureau of Planning and Sustainability.
 Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3
