@@ -174,6 +174,9 @@ export function placeInBounds(place: InterestPlace, bounds: [number, number, num
   const [lng, lat] = place.coordinates;
   return lng >= bounds[0] && lng <= bounds[2] && lat >= bounds[1] && lat <= bounds[3];
 }
+export function placeDetailLink(id: string) {
+  return `/nearby/places/${encodeURIComponent(id)}`;
+}
 export function placePlannerLink(place: InterestPlace, origin?: number[], originMode?: string) {
   const params = new URLSearchParams({
     toPlaceId: place.id, toCoord: place.coordinates.join(","), confirmPlace: "1"

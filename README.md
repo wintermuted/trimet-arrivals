@@ -140,6 +140,16 @@ identify individual locations. Category controls use a compact wrapped layout. O
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
 reveals additional results without silently limiting the catalog.
+Each place has a directly loadable URL at `/nearby/places/:placeId` (the source ID
+is URL-encoded). Result and overlapping-marker links support opening in a new tab;
+map selection also updates the URL. Reloading or sharing a detail URL restores that
+place independently of the current category filters, with its marker centered.
+Missing or unavailable places show a specific not-found/loading/retry state.
+The **header Back** returns from details to the Places list and restores its map
+view; the list's header Back returns to Nearby. There is no inline Back button.
+Browser Back/Forward restores URL-selected details, and a place-linked planner's
+header Back returns to that place. Filters and neighborhood settings are kept
+while navigating within the mounted Nearby view.
 
 Hovering a marker previews its name, category, and any available address;
 cluster previews show the category and count. Clicking a marker or selecting a

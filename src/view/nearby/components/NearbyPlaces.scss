@@ -103,6 +103,7 @@
   color: var(--wm-color-text);
   font: inherit;
   text-align: start;
+  text-decoration: none;
   cursor: pointer;
   span:not(.fa) { flex: 1; min-width: 0; }
   strong, small { display: block; }
