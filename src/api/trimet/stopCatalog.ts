@@ -1,6 +1,6 @@
 import { getAllRoutes } from "./routeConfig";
 import { ROUTE_DISPLAY } from "./constants";
-import { PLANNER_BUS_COLOR, PlannerRouteColors } from "./plannerRouteColors";
+import { normalizeRouteColor, PLANNER_BUS_COLOR, PlannerRouteColors } from "./plannerRouteColors";
 import {
   RouteDataResultSet,
   RouteDirectionStop,
@@ -77,9 +77,9 @@ export function buildStopCatalog(data: RouteDataResultSet): StopCatalog {
     if (route && (mode === "Streetcar" ||
         (mode === "Rail" && (route.route === 203 || Boolean(ROUTE_DISPLAY[route.route]))) ||
         /^\s*FX\s*\d+\b/i.test(route.desc))) {
-      const hex = route.routeColor?.replace(/^#/, "");
-      if (hex && /^[\da-f]{6}$/i.test(hex)) {
-        color = `#${hex}`;
+      const routeColor = normalizeRouteColor(route.routeColor);
+      if (routeColor) {
+        color = routeColor;
         plannerRouteColors.set(route.route, color);
       }
     }

@@ -53,6 +53,11 @@ import { stopDetailUrl } from "../util/stopNavigation";
 import { ConnectedTripPlannerView } from "../../tripPlanner/TripPlannerView";
 import NearbyPlannerPaths from "./NearbyPlannerPaths";
 import { TopNavBar } from "./common/TopNavBar";
+import NearbyVehicles from "./NearbyVehicles";
+import { useVehiclePositions } from "../util/useVehiclePositions";
+import { VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
+import FollowedVehicleTrip from "./FollowedVehicleTrip";
+import { VehicleFollowView } from "../util/mapbox/vehicleLayer";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
@@ -285,6 +290,17 @@ export default function NearbyViewComponent() {
   const [retryCount, setRetryCount] = useState(0);
   const locationRequestRef = useRef(0);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [vehiclesEnabled, setVehiclesEnabled] = useState(true);
+  const [vehicleMapError, setVehicleMapError] = useState(false);
+  const [vehicleLayerAttempt, setVehicleLayerAttempt] = useState(0);
+  const [following, setFollowing] = useState<VehiclePosition>();
+  const [followView, setFollowView] = useState<VehicleFollowView>("north-up");
+  const vehicleMap = isMapLoaded ? mapRef.current : undefined;
+  const vehicleFeed = useVehiclePositions(vehicleMap, vehiclesEnabled, following?.id);
+  const handleVehicleFollow = useCallback((vehicle: VehiclePosition) => {
+    setFollowing(vehicle);
+    setVehiclesEnabled(true);
+  }, []);
   const [nearbyDataError, setNearbyDataError] = useState(false);
   const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
   const { walkingEnabled } = useFeatureFlags();
@@ -377,26 +393,26 @@ export default function NearbyViewComponent() {
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeStopLocationLayers(mapRef.current);
-    if (!isPlanner && !isChoosingDirectionStop && stopLocations && nearbyRouteIds) {
+    if (!isPlanner && !isChoosingDirectionStop && !following && stopLocations && nearbyRouteIds) {
       setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     }
-  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isChoosingDirectionStop]);
+  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isChoosingDirectionStop, following]);
 
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isPlanner || isDirections || isRouteInfo) return;
+    if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isPlanner || isDirections || isRouteInfo || following) return;
     return showNearbyRouteLines(mapRef.current, nearbyRouteIds);
-  }, [isMapLoaded, nearbyRouteIds, isPlanner, isDirections, isRouteInfo]);
+  }, [isMapLoaded, nearbyRouteIds, isPlanner, isDirections, isRouteInfo, following]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeCurrentLocationMarkers(mapRef.current);
-    if (!isPlanner && userLocation) {
+    if (!isPlanner && !following && userLocation) {
       setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
     }
-  }, [isMapLoaded, userLocation, radiusSize, isPlanner]);
+  }, [isMapLoaded, userLocation, radiusSize, isPlanner, following]);
 
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || isPlanner || !userLocation || searchMode !== "pin") return;
+    if (!isMapLoaded || !mapRef.current || isPlanner || following || !userLocation || searchMode !== "pin") return;
     const marker = new mapboxgl.Marker({ draggable: true })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
@@ -406,7 +422,7 @@ export default function NearbyViewComponent() {
     };
     marker.on("dragend", onDragEnd);
     return () => { marker.off("dragend", onDragEnd); marker.remove(); };
-  }, [isMapLoaded, userLocation, searchMode, isPlanner]);
+  }, [isMapLoaded, userLocation, searchMode, isPlanner, following]);
 
   function initializeMapboxMap() {
     mapRef.current = initializeMap(
@@ -491,7 +507,7 @@ export default function NearbyViewComponent() {
   }, []);
 
   const context: NearbyViewComponentOutletContextProps = {
-    plannerMap: isMapLoaded ? mapRef.current : undefined,
+    plannerMap: isMapLoaded && !following ? mapRef.current : undefined,
     plannerFooter,
     currentLocation,
     nearbyRoutes,
@@ -529,14 +545,19 @@ export default function NearbyViewComponent() {
             aria-label="Nearby transit"
             tabIndex={0}
           >
-            {sectionTitle && <TopNavBar id={sectionTitle} backTo="/nearby" />}
-            {locationError && !isLanding && !isPlanner && (
+            {following && <div className="transit-nearby-follow-nav">
+              <Button type="button" variant="secondary" onClick={() => setFollowing(undefined)}>Stop following</Button>
+            </div>}
+            {sectionTitle && !following && <TopNavBar id={sectionTitle} backTo="/nearby" />}
+            {locationError && !isLanding && !isPlanner && !following && (
               <div role="alert" className="transit-route-list-message">
                 <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>
                 <Button type="button" size="sm" onClick={() => void locate()}>Try my location again</Button>
               </div>
             )}
-            {isLanding ? (
+            {isPlanner && <div hidden={Boolean(following)}><Outlet context={context} /></div>}
+            {following ? <FollowedVehicleTrip selection={following} feed={vehicleFeed}
+              view={followView} onViewChange={setFollowView} /> : isLanding ? (
               <nav aria-label="Nearby options" className="transit-nearby-launcher">
                 <h2>Nearby</h2>
                 <Link to="/nearby/simple-routes" className="transit-nearby-tile">
@@ -550,7 +571,7 @@ export default function NearbyViewComponent() {
                   <FontAwesome name="chevron-right" aria-hidden="true" />
                 </Link>
               </nav>
-            ) : isPlanner || isStopDetail ? (
+            ) : isPlanner ? null : isStopDetail ? (
               <Outlet context={context} />
             ) : nearbyDataError ? (
               <div role="alert" className="transit-route-list-message">
@@ -580,7 +601,7 @@ export default function NearbyViewComponent() {
               <Outlet context={context} />
             ) : null}
           </div>
-          {isPlanner && <div className="transit-nearby-planner-footer" ref={bindPlannerFooter} />}
+          {isPlanner && <div hidden={Boolean(following)} className="transit-nearby-planner-footer" ref={bindPlannerFooter} />}
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
           <NearbyMapV2
@@ -595,7 +616,30 @@ export default function NearbyViewComponent() {
             isLocating={isLocating}
             isMapLoading={!isMapLoaded}
             searchMode={searchMode}
+            vehiclesEnabled={vehiclesEnabled}
+            onVehiclesToggle={() => {
+              if (vehiclesEnabled) setFollowing(undefined);
+              setVehiclesEnabled(value => !value);
+              setVehicleMapError(false);
+            }}
+            vehicleFeed={vehicleFeed}
+            vehicleMapError={vehicleMapError}
+            onVehiclesRetry={() => {
+              setVehicleLayerAttempt(value => value + 1);
+              vehicleFeed.retry();
+            }}
           />
+          {vehicleMap && vehiclesEnabled && (
+            <NearbyVehicles
+              key={vehicleLayerAttempt}
+              map={vehicleMap}
+              vehicles={vehicleFeed.vehicles}
+              onError={setVehicleMapError}
+              onFollow={handleVehicleFollow}
+              following={following}
+              followView={followView}
+            />
+          )}
         </div>
       </div>
     </div>

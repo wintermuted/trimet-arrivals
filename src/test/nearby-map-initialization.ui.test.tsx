@@ -17,12 +17,17 @@ import { buildStopCatalog, getStopCatalog } from "../api/trimet/stopCatalog";
 import { planTrip } from "../api/trimet/tripplanner";
 import { getRouteGeometry, NEARBY_ROUTE_LINES } from "../view/nearby/util/mapbox/routeLines";
 import reducers from "../store/reducers";
+import NearbyVehicles from "../view/nearby/components/NearbyVehicles";
 
 function StopDetailWithStore() {
   const [store] = React.useState(() => createStore(reducers));
   return <Provider store={store}><NearbyStopDetailComponent /></Provider>;
 }
 
+jest.mock("../view/nearby/components/NearbyVehicles", () => jest.fn(() => null));
+jest.mock("../view/nearby/util/useVehiclePositions", () => ({
+  useVehiclePositions: () => ({ vehicles: [], rejected: 0, status: "empty", retry: jest.fn() }),
+}));
 jest.mock("../api/geolocation/getCurrentPosition");
 jest.mock("../api/trimet/stops");
 jest.mock("../api/trimet/arrivals");
@@ -137,6 +142,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => routeGeometry });
+    jest.mocked(NearbyVehicles).mockReturnValue(null);
     sources.clear();
     layers.clear();
     map.getContainer.mockReturnValue({ clientWidth: 390, clientHeight: 230 });
@@ -389,6 +395,35 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector(".transit-detail-header").textContent).toContain("Plan a trip");
     expect(container.querySelector(".transit-planner")).not.toBeNull();
     expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
+  });
+
+  it("preserves the planner while following and restores it when tracking stops or vehicles turn off", async () => {
+    jest.mocked(getStopCatalog).mockResolvedValue({
+      stops: [], routeCount: 0, directionCount: 0, stopReferenceCount: 0,
+      incompleteRouteCount: 0, incompleteDirectionCount: 0,
+      incompleteRouteNames: [], invalidStopCount: 0,
+    });
+    jest.mocked(NearbyVehicles).mockImplementation(({ onFollow }) => <button onClick={() => onFollow({
+      id: "4003", type: "bus", tripId: "trip", blockId: "1547", routeNumber: 15,
+      longitude: -122.68, latitude: 45.51, time: Date.now(), expires: Date.now() + 60000,
+    })}>Follow test trip</button>);
+    await render("/nearby/planner");
+    finishMapLoading();
+    const planner = container.querySelector(".transit-planner");
+    const mapCanvas = container.querySelector(".transit-nearby-map-canvas");
+    await act(async () => button("Follow test trip").click());
+    expect(container.querySelector('[aria-label="Following vehicle trip"]')).not.toBeNull();
+    expect(planner.closest("[hidden]")).not.toBeNull();
+    expect(container.querySelector(".transit-nearby-planner-footer").hasAttribute("hidden")).toBe(true);
+    await act(async () => button("Stop following").click());
+    expect(container.querySelector(".transit-planner")).toBe(planner);
+    expect(planner.closest("[hidden]")).toBeNull();
+    await act(async () => button("Follow test trip").click());
+    await act(async () => button("Vehicles").click());
+    expect(container.querySelector('[aria-label="Following vehicle trip"]')).toBeNull();
+    expect(planner.closest("[hidden]")).toBeNull();
+    expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
+    expect(map.remove).not.toHaveBeenCalled();
   });
 
   it("draws available paths together, highlights the chosen option, and removes only planner paths on exit", async () => {
