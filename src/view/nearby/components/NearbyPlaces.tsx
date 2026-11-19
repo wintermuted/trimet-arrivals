@@ -47,6 +47,10 @@ export default function NearbyPlaces({
   discovery, savedPlaces, viewSearch = "", areaLabel = "map area"
 }: Props) {
   const [limit, setLimit] = useState(40);
+  const [sections, setSections] = useState({ discovery: false, categories: false, layers: false });
+  function toggleSection(section: keyof typeof sections, open: boolean) {
+    setSections(previous => previous[section] === open ? previous : { ...previous, [section]: open });
+  }
   const heading = useRef<HTMLHeadingElement>(null);
   const browseHeading = useRef<HTMLHeadingElement>(null);
   const results = useRef<HTMLUListElement>(null);
@@ -72,7 +76,14 @@ export default function NearbyPlaces({
         <h2 id="nearby-places-heading" ref={browseHeading} tabIndex={-1}>Places nearby</h2>
         <p>Explore Portland places and practical stops. Filter by category or move the map to explore another area.</p>
       </header>
-      {discovery}
+      {discovery && <details className="transit-places-section" open={sections.discovery}
+        onToggle={event => toggleSection("discovery", event.currentTarget.open)}>
+        <summary>Discovery tools</summary>
+        {discovery}
+      </details>}
+      <details className="transit-places-section" open={sections.categories}
+        onToggle={event => toggleSection("categories", event.currentTarget.open)}>
+      <summary>Place categories</summary>
       <fieldset className="transit-places-filters">
         <legend className="wm-sr-only">Place categories</legend>
         {PLACE_CATEGORIES.map(category => (
@@ -84,8 +95,12 @@ export default function NearbyPlaces({
           </label>
         ))}
       </fieldset>
-      {neighborhoods && <fieldset className="transit-places-map-layers">
-        <legend>Map layers</legend>
+      </details>
+      {neighborhoods && <details className="transit-places-section" open={sections.layers}
+        onToggle={event => toggleSection("layers", event.currentTarget.open)}>
+      <summary>Map layers</summary>
+      <fieldset className="transit-places-map-layers">
+        <legend className="wm-sr-only">Map layers</legend>
         <label className="transit-places-category">
           <input type="checkbox" checked={neighborhoods.shown} aria-describedby="neighborhood-layer-help"
             onChange={event => neighborhoods.onShown(event.target.checked)} />
@@ -124,7 +139,8 @@ export default function NearbyPlaces({
             <p role="status">Zoom in to level {CONTEXT_OVERLAY_INFO[category].minZoom} or closer to see {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()}.</p>}
         </React.Fragment>)}
         {contextOverlays && <p id="place-context-help">Inventory context, not routing destinations. Hover for source details. Sidewalk gaps do not prove absence; crossing points do not guarantee safety or accessibility. Orange points mark planning deficiencies, not live closures. Street trees do not establish shade or public access.</p>}
-      </fieldset>}
+      </fieldset>
+      </details>}
       <label className="transit-places-search">
         Search places in this {areaLabel}
         <input type="search" className="wm-input" value={filters.search} maxLength={200}
