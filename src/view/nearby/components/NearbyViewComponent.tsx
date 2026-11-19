@@ -22,8 +22,8 @@ import {
   getStopLocations,
   processRoutes
 } from "../util/dataUtils";
-import { setMapZoom } from "../util/mapbox/mapZoom";
-import NearbyMapV2, { NearbyMapSkeleton } from "./NearbyMapV2";
+import { getNearbyMapZoom } from "../util/mapbox/mapZoom";
+import NearbyMapV2 from "./NearbyMapV2";
 import "./NearbyViewComponent.scss";
 import { setCurrentLocationMarker } from "../util/mapbox/currentLocation";
 import { initializeMap } from "../util/mapbox/initializeMap";
@@ -56,6 +56,7 @@ import { TopNavBar } from "./common/TopNavBar";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
+const SERVICE_AREA_ZOOM = 10;
 
 export interface NearbyViewComponentOutletContextProps {
   plannerMap?: Map;
@@ -269,14 +270,14 @@ export default function NearbyViewComponent() {
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &&
     searchParams.getAll("referrer").length === 1 && searchParams.get("referrer") === "/";
-  const [zoom, setZoom] = useState(16);
+  const shouldAutoLocate = !isLanding && !isPlanner && !fromHome;
+  const nearbyZoomRef = useRef(getNearbyMapZoom(DEFAULT_RADIUS));
   const [radiusSize, setRadiusSize] = useState<number>(DEFAULT_RADIUS);
   const [nearbyStops, setNearbyStopData] = useState<StopData>(undefined);
   const [nearbyRoutes, setNearbyRoutesData] = useState<
     Dictionary<TrimetRoute[]>
   >(undefined);
   const [userLocation, setUserLocation] = useState<Location>(undefined);
-  const [mapCenter, setMapCenter] = useState<[number, number]>();
   const [searchMode, setSearchMode] = useState<"none" | "device" | "area" | "pin">("none");
   const [locationError, setLocationError] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -308,26 +309,24 @@ export default function NearbyViewComponent() {
       if (request !== locationRequestRef.current) return;
       setUserLocation(position);
       setSearchMode("device");
-      setMapCenter(center => center ?? [position.coords.longitude, position.coords.latitude]);
-      mapRef.current?.flyTo({ center: [position.coords.longitude, position.coords.latitude], essential: true });
+      mapRef.current?.flyTo({
+        center: [position.coords.longitude, position.coords.latitude],
+        zoom: nearbyZoomRef.current,
+        essential: true,
+      });
     } catch {
       if (request !== locationRequestRef.current) return;
       setLocationError(true);
-      setMapCenter(center => center ?? SERVICE_AREA_CENTER);
     } finally {
       if (request === locationRequestRef.current) setIsLocating(false);
     }
   }, []);
 
   useEffect(() => {
-    if (fromHome || isPlanner) {
-      setIsLocating(false);
-      setMapCenter(center => center ?? SERVICE_AREA_CENTER);
-    } else {
-      void locate();
-    }
+    if (shouldAutoLocate) void locate();
+    else setIsLocating(false);
     return () => { locationRequestRef.current += 1; };
-  }, [locate, fromHome, isPlanner]);
+  }, [locate, shouldAutoLocate]);
 
   useEffect(() => {
     if (!userLocation) return;
@@ -392,7 +391,10 @@ export default function NearbyViewComponent() {
   }, [isMapLoaded, userLocation, searchMode, isPlanner]);
 
   function initializeMapboxMap() {
-    mapRef.current = initializeMap(mapCenter[0], mapCenter[1], mapContainerRef, zoom);
+    mapRef.current = initializeMap(
+      SERVICE_AREA_CENTER[0], SERVICE_AREA_CENTER[1], mapContainerRef,
+      isStopDetail ? nearbyZoomRef.current : SERVICE_AREA_ZOOM
+    );
     setWalkingAccessToken(mapboxgl.accessToken);
     mapRef.current.on("load", () => {
       setIsMapLoaded(true);
@@ -402,7 +404,8 @@ export default function NearbyViewComponent() {
   function handleRadiusSelectionChange(e) {
     const radius = Number(e.target.value);
     setRadiusSize(radius);
-    if (mapRef.current) setMapZoom(mapRef, radius, setZoom);
+    nearbyZoomRef.current = getNearbyMapZoom(radius);
+    mapRef.current?.setZoom(nearbyZoomRef.current);
   }
 
   function handleNearbyDataRetry() {
@@ -490,7 +493,7 @@ export default function NearbyViewComponent() {
     handleRouteInfoStopHighlighted
   };
 
-  const waitingForLocation = !userLocation && (isLocating || (!mapCenter && !locationError));
+  const waitingForLocation = !userLocation && isLocating;
   const sidebarLoadingMessage = waitingForLocation ? "Finding your location…" :
     isNearbyDataLoading || (userLocation && !nearbyStops && !nearbyDataError) ? "Loading nearby stops…" :
       nearbyStops && !isMapLoaded ? "Preparing nearby results…" : undefined;
@@ -563,23 +566,19 @@ export default function NearbyViewComponent() {
           {isPlanner && <div className="transit-nearby-planner-footer" ref={bindPlannerFooter} />}
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
-          {mapCenter ? (
-            <NearbyMapV2
-              initializeMap={initializeMapboxMap}
-              mapRef={mapRef}
-              mapContainerRef={mapContainerRef}
-              onSearchArea={() => searchMapCenter("area")}
-              onDropPin={() => searchMapCenter("pin")}
-              onFindMe={() => void locate()}
-              radiusSize={radiusSize}
-              onRadiusChange={handleRadiusSelectionChange}
-              isLocating={isLocating}
-              isMapLoading={!isMapLoaded}
-              searchMode={searchMode}
-            />
-          ) : (
-            <NearbyMapSkeleton message={waitingForLocation ? "Waiting for your location…" : "Loading map…"} />
-          )}
+          <NearbyMapV2
+            initializeMap={initializeMapboxMap}
+            mapRef={mapRef}
+            mapContainerRef={mapContainerRef}
+            onSearchArea={() => searchMapCenter("area")}
+            onDropPin={() => searchMapCenter("pin")}
+            onFindMe={() => void locate()}
+            radiusSize={radiusSize}
+            onRadiusChange={handleRadiusSelectionChange}
+            isLocating={isLocating}
+            isMapLoading={!isMapLoaded}
+            searchMode={searchMode}
+          />
         </div>
       </div>
     </div>
