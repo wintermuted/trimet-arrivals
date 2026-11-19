@@ -8,7 +8,8 @@ import { Dictionary, map, set, size } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
-import { Link, matchPath, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
+import FontAwesome from "react-fontawesome";
 import getCurrentPosition from "../../../api/geolocation/getCurrentPosition";
 import {
   Location,
@@ -51,6 +52,7 @@ import { highlightRouteInfoStop, showRouteInfo } from "../util/mapbox/routeInfo"
 import { stopDetailUrl } from "../util/stopNavigation";
 import { ConnectedTripPlannerView } from "../../tripPlanner/TripPlannerView";
 import NearbyPlannerPaths from "./NearbyPlannerPaths";
+import { TopNavBar } from "./common/TopNavBar";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
@@ -251,6 +253,8 @@ export default function NearbyViewComponent() {
   const mapRef = useRef<Map>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const isLanding = Boolean(matchPath("/nearby", location.pathname));
+  const isExplore = Boolean(matchPath("/nearby/simple-routes", location.pathname));
   const isPlanner = Boolean(matchPath("/nearby/planner", location.pathname));
   const isChoosingDirectionStop = Boolean(matchPath("/nearby/directions", location.pathname));
   const isDirections = Boolean(matchPath("/nearby/directions/*", location.pathname));
@@ -260,7 +264,7 @@ export default function NearbyViewComponent() {
   const routeDetail = matchPath("/nearby/simple-routes/:id", location.pathname);
   const isRouteInfo = routeInfoValues.length === 1 && /^\d+$/.test(routeInfoId) &&
     Number.isSafeInteger(Number(routeInfoId)) && Number(routeInfoId) > 0 &&
-    (Boolean(matchPath("/nearby/simple-routes", location.pathname)) ||
+    (isExplore ||
       (routeDetail?.params.id === routeInfoId && /^[01]$/.test(searchParams.get("direction") ?? "")));
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &&
@@ -490,40 +494,43 @@ export default function NearbyViewComponent() {
   const sidebarLoadingMessage = waitingForLocation ? "Finding your location…" :
     isNearbyDataLoading || (userLocation && !nearbyStops && !nearbyDataError) ? "Loading nearby stops…" :
       nearbyStops && !isMapLoaded ? "Preparing nearby results…" : undefined;
+  const canShowNearbyResults = !nearbyDataError && !sidebarLoadingMessage && isMapLoaded && Boolean(nearbyStops);
+  const sectionTitle = isPlanner ? "Plan a trip" :
+    isExplore && !(isRouteInfo && canShowNearbyResults) ? "Explore" : undefined;
 
   return (
     <div className="transit-container transit-nearby-view">
       <div className="transit-columns transit-nearby-layout">
         <div className="transit-column transit-nearby-sidebar">
-          <nav aria-label="Nearby sidebar" className="wm-tab-bar transit-nearby-sidebar-nav">
-            <Link
-              to="/nearby/simple-routes"
-              className={`wm-tab-btn${isPlanner ? "" : " wm-tab-btn-active"}`}
-              aria-current={isPlanner ? undefined : "location"}
-            >
-              Explore
-            </Link>
-            <NavLink
-              to="/nearby/planner"
-              className={({ isActive }) => `wm-tab-btn${isActive ? " wm-tab-btn-active" : ""}`}
-            >
-              Plan a trip
-            </NavLink>
-          </nav>
           <div
-            key={isPlanner ? "planner" : "explore"}
+            key={isLanding ? "landing" : isPlanner ? "planner" : "explore"}
             className="transit-nearby-results"
             role="region"
             aria-label="Nearby transit"
             tabIndex={0}
           >
-            {locationError && !isPlanner && (
+            {sectionTitle && <TopNavBar id={sectionTitle} backTo="/nearby" />}
+            {locationError && !isLanding && !isPlanner && (
               <div role="alert" className="transit-route-list-message">
                 <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>
                 <Button type="button" size="sm" onClick={() => void locate()}>Try my location again</Button>
               </div>
             )}
-            {isPlanner || isStopDetail ? (
+            {isLanding ? (
+              <nav aria-label="Nearby options" className="transit-nearby-launcher">
+                <h2>Nearby</h2>
+                <Link to="/nearby/simple-routes" className="transit-nearby-tile">
+                  <FontAwesome name="compass" aria-hidden="true" />
+                  <span><strong>Explore</strong><small>Find nearby stops and departures</small></span>
+                  <FontAwesome name="chevron-right" aria-hidden="true" />
+                </Link>
+                <Link to="/nearby/planner" className="transit-nearby-tile">
+                  <FontAwesome name="exchange" aria-hidden="true" />
+                  <span><strong>Plan a trip</strong><small>Get directions between two places</small></span>
+                  <FontAwesome name="chevron-right" aria-hidden="true" />
+                </Link>
+              </nav>
+            ) : isPlanner || isStopDetail ? (
               <Outlet context={context} />
             ) : nearbyDataError ? (
               <div role="alert" className="transit-route-list-message">
@@ -549,7 +556,7 @@ export default function NearbyViewComponent() {
                   ))}
                 </div>
               </div>
-            ) : isMapLoaded && nearbyStops ? (
+            ) : canShowNearbyResults ? (
               <Outlet context={context} />
             ) : null}
           </div>
