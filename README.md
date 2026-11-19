@@ -159,6 +159,13 @@ and reference-layer combinations. Manual changes show **Custom filters**.
 **Reset filters** restores the default categories/layers and clears saved-only
 and trip-corridor filtering without moving the map.
 
+**Discovery tools**, **Place categories** and **Map layers** are independent,
+keyboard-accessible collapsible sections, initially closed to keep search and
+results accessible. Expanding or collapsing them does not change active filters,
+saved places, overlays or the map. Their open state is retained through place
+details and header Back within the mounted Places view. Search, results and
+source/drawing errors remain outside these sections.
+
 Save places from a result row or its detail view. **Saved places only** shows
 matching saves across Portland, not just the visible map; category and search
 filters still apply. Saves contain only source IDs and display names in this

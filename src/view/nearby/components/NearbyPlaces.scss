@@ -8,6 +8,20 @@
   p { color: var(--wm-color-text-muted); margin-block: var(--wm-space-2) var(--wm-space-4); }
 }
 
+.transit-places-section {
+  border-top: 1px solid var(--wm-color-border);
+  > summary {
+    padding-block: var(--wm-space-3);
+    min-height: 44px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    &:hover { color: var(--wm-color-accent); }
+    &:focus-visible { outline: 2px solid var(--wm-color-accent); outline-offset: -2px; }
+  }
+  &:last-of-type { margin-block-end: var(--wm-space-4); }
+}
+
 .transit-places-discovery {
   margin-block-end: var(--wm-space-4);
   font-size: 0.875rem;
@@ -52,8 +66,7 @@
 
 .transit-places-map-layers {
   border: 0;
-  border-top: 1px solid var(--wm-color-border);
-  padding: var(--wm-space-2) 0 0;
+  padding: 0;
   margin: 0 0 var(--wm-space-4);
   legend { padding-inline-end: var(--wm-space-2); font-size: 0.875rem; }
   p { color: var(--wm-color-text-muted); font-size: 0.875rem; margin: 0; }

@@ -95,6 +95,50 @@ describe("Places filtering, selection and map layers", () => {
     container.remove();
   });
 
+  it("collapses controls independently without changing filters and retains disclosure state through details", async () => {
+    function Harness() {
+      const [filters, setFilters] = React.useState(DEFAULT_PLACE_FILTERS);
+      const [selected, setSelected] = React.useState<InterestPlace>();
+      return <MemoryRouter>
+        <button onClick={() => setSelected(selected ? undefined : park)}>Toggle detail</button>
+        <NearbyPlaces sources={{ ...emptyPlaceSources(), park: { snapshot, loading: false, error: false } }}
+          filters={filters} onFilters={setFilters} visiblePlaces={[park]} selected={selected}
+          onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false}
+          discovery={<button>Discovery action</button>}
+          neighborhoods={{ shown: true, onShown: jest.fn(), polygonsShown: false, onPolygonsShown: jest.fn(),
+            loading: false, error: true, mapError: false, onRetry: jest.fn() }} />
+      </MemoryRouter>;
+    }
+    await act(async () => root.render(<Harness />));
+    const disclosures = () => [...container.querySelectorAll<HTMLDetailsElement>(".transit-places-section")];
+    expect(disclosures().map(section => section.querySelector("summary").textContent))
+      .toEqual(["Discovery tools", "Place categories", "Map layers"]);
+    expect(disclosures().every(section => !section.open)).toBe(true);
+    expect(container.querySelector('input[type="search"]').closest("details")).toBeNull();
+    expect(container.querySelector(".transit-places-list").closest("details")).toBeNull();
+    expect(container.querySelector('[role="alert"]').closest("details")).toBeNull();
+    await act(async () => {
+      disclosures()[1].open = true;
+      disclosures()[1].dispatchEvent(new Event("toggle"));
+    });
+    await act(async () => container.querySelector<HTMLInputElement>(".transit-places-category--park input").click());
+    expect(disclosures().map(section => section.open)).toEqual([false, true, false]);
+    await act(async () => {
+      disclosures()[1].open = false;
+      disclosures()[1].dispatchEvent(new Event("toggle"));
+      disclosures()[2].open = true;
+      disclosures()[2].dispatchEvent(new Event("toggle"));
+    });
+    expect(container.querySelector<HTMLInputElement>(".transit-places-category--park input").checked).toBe(false);
+    const detail = () => container.querySelector<HTMLButtonElement>("button");
+    await act(async () => detail().click());
+    expect(disclosures()).toHaveLength(0);
+    await act(async () => detail().click());
+    expect(disclosures().map(section => section.open)).toEqual([false, false, true]);
+    expect(container.querySelector<HTMLInputElement>(".transit-places-category--park input").checked).toBe(false);
+    expect(container.querySelector<HTMLInputElement>(".transit-places-map-layers input").checked).toBe(true);
+  });
+
   it("validates category data, rejects duplicates, invalid coordinates and unsafe URLs", () => {
     expect(parsePlaceSnapshot(snapshot, "park").places).toEqual([park]);
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [park, park] }, "park")).toThrow();
