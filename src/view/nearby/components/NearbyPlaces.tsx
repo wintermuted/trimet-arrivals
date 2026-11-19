@@ -10,9 +10,10 @@ import {
 } from "../../../api/places/places";
 import "./NearbyPlaces.scss";
 import { NeighborhoodState } from "../../../api/places/neighborhoods";
-import { LINE_CAUTION_COLOR, LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "../../../api/places/lineOverlays";
+import { LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "../../../api/places/lineOverlays";
 import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextControls } from "../../../api/places/contextOverlays";
 import { SavedPlaceControls } from "../../../api/places/savedPlaces";
+import PlacesHelp from "./PlacesHelp";
 
 const CATEGORY_GROUPS: { label: string; categories: PlaceCategory[] }[] = [
   { label: "Parks & nature", categories: ["park", "community-garden", "heritage-tree", "park-artwork"] },
@@ -20,6 +21,20 @@ const CATEGORY_GROUPS: { label: string; categories: PlaceCategory[] }[] = [
   { label: "Community & resources", categories: ["community-center", "library", "reuse-repair"] },
   { label: "Trip amenities", categories: ["public-restroom", "bicycle-parking", "drinking-fountain", "picnic-seating"] }
 ];
+
+const LINE_OVERLAY_HELP = "Optional reference lines, not turn-by-turn routes. Trail access, bike permissions, directions, and closures are not verified.";
+const CONTEXT_LAYER_HELP = {
+  "street-trees": "Street trees do not establish shade or public access.",
+  sidewalks: "Sidewalk gaps do not prove absence.",
+  crossings: "Crossing points do not guarantee safety or accessibility.",
+  "crossing-deficiencies": "Orange points mark planning deficiencies, not live closures."
+};
+
+function MapLayerHelp({ label, text }: { label: string; text: string }) {
+  return <span className="transit-places-layer-help">
+    <PlacesHelp label={label.toLowerCase()} text={text} />
+  </span>;
+}
 
 interface Props {
   sources: Record<PlaceCategory, PlaceSourceState>;
@@ -135,44 +150,48 @@ export default function NearbyPlaces({
       <summary>Map layers</summary>
       <fieldset className="transit-places-map-layers">
         <legend className="wm-sr-only">Map layers</legend>
+        <div className="transit-places-layer-row">
         <label className="transit-places-category">
-          <input type="checkbox" checked={neighborhoods.shown} aria-describedby="neighborhood-layer-help"
+          <input type="checkbox" checked={neighborhoods.shown}
             onChange={event => neighborhoods.onShown(event.target.checked)} />
           <FontAwesome name="map-o" aria-hidden="true" />
           Portland neighborhoods
         </label>
-        <p id="neighborhood-layer-help">Boundaries and names; shared areas may overlap.</p>
+        <MapLayerHelp label="Portland neighborhoods" text="Boundaries and names; shared areas may overlap." />
+        </div>
         {neighborhoods.shown && <label className="transit-places-category transit-places-polygon-toggle">
           <input type="checkbox" checked={neighborhoods.polygonsShown}
             onChange={event => neighborhoods.onPolygonsShown(event.target.checked)} />
           Show neighborhood polygons
         </label>}
-        {lineOverlays && LINE_OVERLAY_CATEGORIES.map(category => <label key={category}
-          className="transit-places-category transit-places-line-toggle">
-          <input type="checkbox" checked={lineOverlays.shown[category]} aria-describedby="place-line-overlay-help"
+        {lineOverlays && LINE_OVERLAY_CATEGORIES.map(category => <div key={category} className="transit-places-layer-row">
+          <label className="transit-places-category transit-places-line-toggle">
+          <input type="checkbox" checked={lineOverlays.shown[category]}
             onChange={event => lineOverlays.onShown(category, event.target.checked)} />
           <span aria-hidden="true" className={`transit-place-line-swatch transit-place-line-swatch--${category}`}
             style={{ borderColor: LINE_OVERLAY_INFO[category].color }} />
           {LINE_OVERLAY_INFO[category].label}
-        </label>)}
-        {lineOverlays && <p id="place-line-overlay-help">Optional reference lines, not turn-by-turn routes. Trail access, bike permissions, directions, and closures are not verified.</p>}
-        {lineOverlays?.shown["bicycle-network"] && <p>Blue shows active mixed bicycle facilities only; future and retired segments are excluded.</p>}
-        {lineOverlays?.shown["recommended-bike-routes"] && <p>
-          <span aria-hidden="true" className="transit-place-line-swatch transit-place-line-swatch--caution" style={{ borderColor: LINE_CAUTION_COLOR }} />
-          {" "}Red dashes: difficult, higher-traffic or unclassified connections. A recommendation is not a safety guarantee.
-        </p>}
+          </label>
+          <MapLayerHelp label={LINE_OVERLAY_INFO[category].label} text={LINE_OVERLAY_HELP + (
+            category === "bicycle-network" ? " Blue shows active mixed bicycle facilities only; future and retired segments are excluded." :
+            category === "recommended-bike-routes" ? " Red dashes: difficult, higher-traffic or unclassified connections. A recommendation is not a safety guarantee." : ""
+          )} />
+        </div>)}
         {contextOverlays && CONTEXT_CATEGORIES.map(category => <React.Fragment key={category}>
+          <div className="transit-places-layer-row">
           <label className="transit-places-category transit-places-line-toggle transit-places-context-toggle">
-            <input type="checkbox" checked={contextOverlays.shown[category]} aria-describedby="place-context-help"
+            <input type="checkbox" checked={contextOverlays.shown[category]}
               onChange={event => contextOverlays.onShown(category, event.target.checked)} />
             <span aria-hidden="true" className={`transit-place-context-swatch transit-place-context-swatch--${category}`}
               style={{ color: CONTEXT_OVERLAY_INFO[category].color }} />
             {CONTEXT_OVERLAY_INFO[category].label}
           </label>
+          <MapLayerHelp label={CONTEXT_OVERLAY_INFO[category].label}
+            text={`Inventory context, not routing destinations. Hover for source details. ${CONTEXT_LAYER_HELP[category]}`} />
+          </div>
           {contextOverlays.shown[category] && contextOverlays.sources[category].zoomRequired &&
             <p role="status">Zoom in to level {CONTEXT_OVERLAY_INFO[category].minZoom} or closer to see {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()}.</p>}
         </React.Fragment>)}
-        {contextOverlays && <p id="place-context-help">Inventory context, not routing destinations. Hover for source details. Sidewalk gaps do not prove absence; crossing points do not guarantee safety or accessibility. Orange points mark planning deficiencies, not live closures. Street trees do not establish shade or public access.</p>}
       </fieldset>
       </details>}
       <label className="transit-places-search">

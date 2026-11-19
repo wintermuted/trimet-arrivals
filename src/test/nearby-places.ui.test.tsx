@@ -7,6 +7,7 @@ import {
 } from "../api/places/places";
 import { Popup } from "mapbox-gl";
 import NearbyPlaces from "../view/nearby/components/NearbyPlaces";
+import PlacesHelp from "../view/nearby/components/PlacesHelp";
 import NearbyPlacesMap, { placeFeatures } from "../view/nearby/components/NearbyPlacesMap";
 import NearbyNeighborhoodsMap, { NEIGHBORHOOD_LAYERS, NEIGHBORHOOD_SOURCE } from "../view/nearby/components/NearbyNeighborhoodsMap";
 import { NeighborhoodSnapshot, parseNeighborhoodSnapshot, useNeighborhoods } from "../api/places/neighborhoods";
@@ -93,6 +94,40 @@ describe("Places filtering, selection and map layers", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+  });
+
+  it("positions Places help over the map, adapting from beside the sidebar to the stacked mobile map", () => {
+    let mobile = false;
+    const bounds = (x: number, y: number, width: number, height: number): DOMRect => ({
+      x, y, width, height, left: x, top: y, right: x + width, bottom: y + height,
+      toJSON: () => ({ x, y, width, height })
+    });
+    const measure = jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+      if (this.classList.contains("transit-nearby-map-stage")) {
+        return mobile ? bounds(0, 350, 390, 240) : bounds(288, 54, 700, 700);
+      }
+      if (this.getAttribute("role") === "tooltip") return bounds(0, 0, 320, 100);
+      return mobile ? bounds(327, 200, 34, 24) : bounds(225, 200, 34, 24);
+    });
+    try {
+      act(() => root.render(<div className="transit-nearby-layout">
+        <PlacesHelp label="park trails" text="Trail access is not verified." />
+        <div className="transit-nearby-map-stage" />
+      </div>));
+      const button = container.querySelector("button");
+      act(() => button.focus());
+      const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]');
+      expect(tooltip.style.left).toBe("296px");
+      expect(tooltip.style.top).toBe("200px");
+      mobile = true;
+      act(() => window.dispatchEvent(new Event("resize")));
+      expect(tooltip.style.left).toBe("41px");
+      expect(tooltip.style.top).toBe("358px");
+      act(() => document.body.dispatchEvent(new Event("pointerdown", { bubbles: true })));
+      expect(document.querySelector('[role="tooltip"]')).toBeNull();
+    } finally {
+      measure.mockRestore();
+    }
   });
 
   it("collapses controls independently without changing filters and retains disclosure state through details", async () => {
@@ -264,7 +299,18 @@ describe("Places filtering, selection and map layers", () => {
     /></MemoryRouter>));
     expect(container.textContent).toContain("Loading park trails");
     expect(container.textContent).toContain("Bicycle network could not be loaded");
-    expect(container.textContent).toContain("Red dashes: difficult, higher-traffic or unclassified connections");
+    expect(container.querySelector("#place-line-overlay-help")).toBeNull();
+    const help = container.querySelector<HTMLButtonElement>('button[aria-label="About recommended bike routes"]');
+    expect(help.closest("label")).toBeNull();
+    act(() => help.focus());
+    const tooltip = document.querySelector('[role="tooltip"]');
+    expect(container.contains(tooltip)).toBe(false);
+    expect(tooltip.textContent).toContain("Optional reference lines, not turn-by-turn routes");
+    expect(tooltip.textContent).toContain("Red dashes: difficult, higher-traffic or unclassified connections");
+    expect(help.getAttribute("aria-describedby")).toBe(tooltip.id);
+    expect(onShown).not.toHaveBeenCalled();
+    act(() => help.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    expect(document.querySelector('[role="tooltip"]')).toBeNull();
     expect(container.querySelector(".transit-place-result")).not.toBeNull();
     const toggle = container.querySelector<HTMLInputElement>(".transit-places-line-toggle input");
     act(() => toggle.click());

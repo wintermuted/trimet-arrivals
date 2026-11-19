@@ -177,6 +177,11 @@ the children; the adjacent bulk checkbox works without expanding the group.
 Children use a consistent single-column layout, indentation and spacing.
 The Places header's **About Places** help tooltip contains the browsing
 description; the list does not repeat the visible header title or introduction.
+Map-layer descriptions and cautions are available from right-aligned help buttons
+beside each toggle. Help opens over the map to the right of the sidebar (over the
+map below on narrow screens), outside the sidebar's scroll clipping. It supports
+hover, focus and touch, and dismisses with Escape or an outside tap. Loading,
+zoom requirements and errors remain visible rather than hidden in tooltips.
 
 Save places from a result row or its detail view. **Saved places only** shows
 matching saves across Portland, not just the visible map; category and search
