@@ -397,7 +397,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
   });
 
-  it("preserves the planner while following and restores it when tracking stops or vehicles turn off", async () => {
+  it("preserves the planner while following and restores it using the header Back button or Vehicles toggle", async () => {
     jest.mocked(getStopCatalog).mockResolvedValue({
       stops: [], routeCount: 0, directionCount: 0, stopReferenceCount: 0,
       incompleteRouteCount: 0, incompleteDirectionCount: 0,
@@ -415,7 +415,9 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector('[aria-label="Following vehicle trip"]')).not.toBeNull();
     expect(planner.closest("[hidden]")).not.toBeNull();
     expect(container.querySelector(".transit-nearby-planner-footer").hasAttribute("hidden")).toBe(true);
-    await act(async () => button("Stop following").click());
+    const followHeader = container.querySelector('[aria-label="Following vehicle trip"] .transit-detail-header');
+    expect(followHeader.textContent).toContain("Following Route 15");
+    await act(async () => followHeader.querySelector<HTMLButtonElement>('button[aria-label="Back"]').click());
     expect(container.querySelector(".transit-planner")).toBe(planner);
     expect(planner.closest("[hidden]")).toBeNull();
     await act(async () => button("Follow test trip").click());

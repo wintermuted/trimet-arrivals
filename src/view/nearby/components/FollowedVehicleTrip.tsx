@@ -7,6 +7,7 @@ import { useTimeDisplay } from "../../../component/time/TimeDisplay";
 import { VehicleFeed } from "../util/useVehiclePositions";
 import { useVehicleTrip } from "../util/useVehicleTrip";
 import { VehicleFollowView } from "../util/mapbox/vehicleLayer";
+import { TopNavBar } from "./common/TopNavBar";
 
 type ProgressMode = "live" | "last-known" | "scheduled";
 
@@ -23,11 +24,12 @@ export function vehicleTripLegs(trip: VehicleTrip, mode: ProgressMode) {
   }));
 }
 
-export default function FollowedVehicleTrip({ selection, feed, view, onViewChange }: {
+export default function FollowedVehicleTrip({ selection, feed, view, onViewChange, onBack }: {
   selection: VehiclePosition;
   feed: VehicleFeed;
   view: VehicleFollowView;
   onViewChange: (view: VehicleFollowView) => void;
+  onBack: () => void;
 }) {
   const vehicle = feed.vehicles.find(entry => entry.id === selection.id);
   const ended = Boolean(vehicle?.tripId && vehicle.tripId !== selection.tripId);
@@ -74,7 +76,7 @@ export default function FollowedVehicleTrip({ selection, feed, view, onViewChang
   }
 
   return <section className="transit-follow-trip" aria-label="Following vehicle trip">
-    <h2>Following {name}</h2>
+    <TopNavBar id={`Following ${name}`} onBack={onBack} />
     <p>{selection.type === "bus" ? "Bus" : "Train"} {selection.id} · Trip {selection.tripId || "not reported"}</p>
     <p>{trip?.destination ? `To ${trip.destination}` : selection.destination}</p>
     <div role="group" aria-label="Following map view" className="transit-follow-view-controls">

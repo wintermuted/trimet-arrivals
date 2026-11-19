@@ -32,9 +32,10 @@ describe("following a vehicle's current run", () => {
   let feed: VehicleFeed;
   let view: VehicleFollowView;
   const onViewChange = jest.fn();
+  const onBack = jest.fn();
   async function render() {
     await act(async () => { root.render(<FollowedVehicleTrip selection={selection} feed={feed}
-      view={view} onViewChange={onViewChange} />); });
+      view={view} onViewChange={onViewChange} onBack={onBack} />); });
   }
   beforeEach(() => {
     jest.useFakeTimers("modern");
@@ -50,6 +51,18 @@ describe("following a vehicle's current run", () => {
     act(() => root.unmount());
     jest.useRealTimers();
     Reflect.deleteProperty(document, "hidden");
+  });
+
+  it("shows a shared sidebar header with a back action even before trip legs load", async () => {
+    jest.mocked(getVehicleTrip).mockImplementation(() => new Promise(() => {}));
+    await render();
+    const header = container.querySelector("header.transit-detail-header");
+    expect(header.querySelector("h3").textContent).toBe("Following Route 15");
+    const back = header.querySelector<HTMLButtonElement>('button[aria-label="Back"]');
+    expect(back).not.toBeNull();
+    act(() => back.click());
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(container.textContent).not.toContain("Stop following");
   });
 
   it("lists actual stop-to-stop legs and advances the current leg with fresh reports", async () => {

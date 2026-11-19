@@ -73,7 +73,8 @@ progress, and upcoming legs show estimated or scheduled stop times. Canceled
 and drop-off-only stops are labeled. Progress without vehicle-distance data is
 explicitly schedule-based; unavailable updates retain labeled last-known legs.
 Tracking pauses if positions expire or updates pause, and does not switch
-silently when the vehicle starts another trip. **Stop following**, or disabling
+silently when the vehicle starts another trip. **Back** in the following sidebar's
+shared header, or disabling
 Vehicles, returns to the previous sidebar; an open planner retains its draft
 and results. Tracking requires reported trip and block IDs.
 While following, **North-up** keeps a flat, north-oriented map. Choose
