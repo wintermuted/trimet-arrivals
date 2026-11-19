@@ -312,10 +312,10 @@ describe("Nearby map initialization independently of the sidebar", () => {
       success: true, partial: false, itineraries: [],
     });
     await render("/nearby/planner?from=101&to=202");
-    const nav = container.querySelector('nav[aria-label="Nearby sidebar"]');
-    const [explore, planner] = Array.from(nav.querySelectorAll("a"));
     const mapCanvas = container.querySelector(".transit-nearby-map-canvas");
-    expect(planner.getAttribute("aria-current")).toBe("page");
+    const back = container.querySelector<HTMLAnchorElement>('.transit-detail-header a[aria-label="Back"]');
+    expect(back.getAttribute("href")).toBe("/nearby");
+    expect(container.querySelector(".transit-nearby-launcher")).toBeNull();
     expect(getNearbyStops).not.toHaveBeenCalled();
     expect(planTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "101", toPlace: "202" })
@@ -325,12 +325,24 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.textContent).not.toContain("Location unavailable");
     expect(mapCanvas).not.toBeNull();
 
+    await act(async () => back.click());
+    const explore = container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/simple-routes"]');
+    expect(explore).not.toBeNull();
     await act(async () => explore.click());
-    expect(explore.getAttribute("aria-current")).toBe("location");
+    expect(container.querySelector(".transit-detail-header").textContent).toContain("Explore");
+    expect(container.querySelector(".transit-nearby-launcher")).toBeNull();
     expect(container.textContent).toContain("Location unavailable");
     expect(container.querySelector(".transit-planner")).toBeNull();
     expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
     expect(map.remove).not.toHaveBeenCalled();
+
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-header a[aria-label="Back"]').click());
+    const planner = container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/planner"]');
+    expect(planner).not.toBeNull();
+    await act(async () => planner.click());
+    expect(container.querySelector(".transit-detail-header").textContent).toContain("Plan a trip");
+    expect(container.querySelector(".transit-planner")).not.toBeNull();
+    expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
   });
 
   it("draws available paths together, highlights the chosen option, and removes only planner paths on exit", async () => {
@@ -591,7 +603,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       await chooseTrip(option);
       expect(iconColors()[1]).toBe(color);
     }
-    await act(async () => container.querySelector<HTMLAnchorElement>('nav[aria-label="Nearby sidebar"] a').click());
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-header a[aria-label="Back"]').click());
     expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
     expect(setNearbyStops).toHaveBeenCalled();
     expect(transferPopup.isConnected).toBe(false);
@@ -736,6 +748,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => button("Search this area").click());
     expect(cleanup).toHaveBeenCalled();
     expect(container.querySelector('[aria-label="Route 56 details"]')).not.toBeNull();
+    expect(container.querySelector(".transit-detail-header")).toBeNull();
+    expect(button("Close")).not.toBeNull();
     expect(showRouteInfo).toHaveBeenCalledTimes(2);
     expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
   });

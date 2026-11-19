@@ -5,8 +5,7 @@ import {
   Route,
   Routes,
   useOutletContext,
-  useParams,
-  Navigate
+  useParams
 } from "react-router-dom";
 import BookmarksViewContainer from "../view/bookmarks/container/BookmarksViewContainer";
 import Home from "../view/home/Home";
@@ -54,7 +53,6 @@ export default function RootAppRoutes() {
           <Route path="stops" element={<StopCatalogView />} />
           <Route path="planner" element={<ConnectedTripPlannerView />} />
           <Route path="nearby" element={<NearbyView />}>
-            <Route path="" element={<Navigate to="simple-routes" />} />
             <Route path="planner" element={<NearbyTripPlannerComponent />} />
             <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
             <Route
