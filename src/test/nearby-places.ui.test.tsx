@@ -2,7 +2,7 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import {
-  DEFAULT_PLACE_FILTERS, emptyPlaceSources, filterPlaces, InterestPlace, parsePlaceSnapshot, placeCategoryForId,
+  DEFAULT_PLACE_FILTERS, emptyPlaceSources, filterPlaces, InterestPlace, parsePlaceSnapshot, placeCategoryForId, PLACE_CATEGORIES,
   placeDetailLink, placeInBounds, placePlannerLink, PlaceSnapshot
 } from "../api/places/places";
 import { Popup } from "mapbox-gl";
@@ -144,6 +144,53 @@ describe("Places filtering, selection and map layers", () => {
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [park, park] }, "park")).toThrow();
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, coordinates: [45.52, -122.67] }] }, "park")).toThrow();
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, website: "javascript:alert(1)" }] }, "park")).toThrow();
+  });
+
+  it("bulk toggles nested category groups and derives mixed state from children and external filters", () => {
+    let updateFilters: React.Dispatch<React.SetStateAction<typeof DEFAULT_PLACE_FILTERS>>;
+    let currentFilters = { ...DEFAULT_PLACE_FILTERS, search: "garden" };
+    function Harness() {
+      const [filters, setFilters] = React.useState(currentFilters);
+      updateFilters = setFilters;
+      currentFilters = filters;
+      return <MemoryRouter><NearbyPlaces sources={emptyPlaceSources()} filters={filters} onFilters={setFilters}
+        visiblePlaces={[]} onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false} /></MemoryRouter>;
+    }
+    act(() => root.render(<Harness />));
+    const groups = [...container.querySelectorAll<HTMLFieldSetElement>(".transit-places-category-group")];
+    expect(groups.map(group => group.querySelector("legend").textContent))
+      .toEqual(["Parks & nature", "Food & markets", "Community & resources", "Trip amenities"]);
+    const childCategories = [...container.querySelectorAll(".transit-places-group-children label")]
+      .map(label => PLACE_CATEGORIES.find(category => label.classList.contains(`transit-places-category--${category}`)));
+    expect([...childCategories].sort()).toEqual([...PLACE_CATEGORIES].sort());
+    for (const group of groups) {
+      const toggle = group.querySelector<HTMLInputElement>("legend input");
+      const children = [...group.querySelectorAll<HTMLInputElement>(".transit-places-group-children input")];
+      const before = currentFilters;
+      const expected = { ...before };
+      for (const category of PLACE_CATEGORIES) {
+        if (group.querySelector(`.transit-places-category--${category}`)) expected[category] = true;
+      }
+      if (toggle.checked) act(() => toggle.click());
+      act(() => toggle.click());
+      expect(currentFilters).toEqual(expected);
+      expect(children.every(input => input.checked)).toBe(true);
+      expect(toggle.indeterminate).toBe(false);
+      act(() => children[0].click());
+      expect(toggle.checked).toBe(false);
+      expect(toggle.indeterminate).toBe(true);
+      act(() => toggle.click());
+      expect(children.every(input => input.checked)).toBe(true);
+      act(() => toggle.click());
+      expect(children.every(input => !input.checked)).toBe(true);
+      expect(toggle.checked).toBe(false);
+      expect(toggle.indeterminate).toBe(false);
+    }
+    act(() => updateFilters({ ...DEFAULT_PLACE_FILTERS, search: "garden" }));
+    const amenitiesToggle = groups[3].querySelector<HTMLInputElement>("legend input");
+    expect(amenitiesToggle.checked).toBe(false);
+    expect(amenitiesToggle.indeterminate).toBe(true);
+    expect(currentFilters.search).toBe("garden");
   });
 
   it.each([
@@ -504,7 +551,7 @@ describe("Places filtering, selection and map layers", () => {
     }
     act(() => root.render(<Harness />));
     expect(container.textContent).toContain("Food-cart pods could not be loaded");
-    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(15);
+    expect(container.querySelectorAll('.transit-places-group-children input[type="checkbox"]')).toHaveLength(15);
     const result = container.querySelector<HTMLAnchorElement>(".transit-place-result");
     expect(result.getAttribute("href")).toBe(placeDetailLink(park.id));
     act(() => result.click());
