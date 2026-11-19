@@ -90,7 +90,7 @@ describe("Wintermuted route navigation", () => {
     expect(menu.querySelectorAll("select")).toHaveLength(2);
     expect(
       menu.previousElementSibling.classList.contains(
-        "transit-navigation-content",
+        "transit-global-place-search",
       ),
     ).toBe(true);
 
@@ -105,6 +105,14 @@ describe("Wintermuted route navigation", () => {
     );
     expect(menu.open).toBe(false);
     expect(document.activeElement).toBe(summary);
+  });
+
+  it("keeps global Places search in the header outside the collapsible navigation", () => {
+    render("/", <MainNavigationMenu numberOfBookmarks={0} timeOfLastLoad="" />);
+    const input = container.querySelector<HTMLInputElement>('input[placeholder="Search all places"]');
+    expect(input.closest(".transit-app-header")).not.toBeNull();
+    expect(input.closest(".transit-navigation-content")).toBeNull();
+    expect(input.closest('form[role="search"]').getAttribute("aria-label")).toBe("All places");
   });
 
   it("closes the navigation disclosure on selection and Escape", () => {

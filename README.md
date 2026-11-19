@@ -150,6 +150,18 @@ single-line rows. Overlapping markers
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
 reveals additional results without silently limiting the catalog.
+
+The navigation bar's **Search all places** searches every published category across
+Portland, including disabled categories and places outside the current map, saved
+view or trip corridor. It matches names, category labels, addresses and source-listed
+types, ignores accents and supports multiple search terms. Exact and prefix name
+matches appear first; **Show more places** exposes additional matches. The catalog
+loads on first search interaction rather than on every page visit. Partial failures
+show an inline error tooltip and source-specific retry beside **All places**, while
+loaded results stay usable. Arrow keys or Tab browse result links; Escape dismisses
+the results. Choosing a result opens its existing details and centers its marker
+without changing map filters. The field stays visible when the mobile menu is closed.
+
 Each place has a directly loadable URL at `/nearby/places/:placeId` (the source ID
 is URL-encoded). Result and overlapping-marker links support opening in a new tab;
 map selection also updates the URL. Reloading or sharing a detail URL restores that
