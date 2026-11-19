@@ -14,6 +14,13 @@ import { LINE_CAUTION_COLOR, LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOve
 import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextControls } from "../../../api/places/contextOverlays";
 import { SavedPlaceControls } from "../../../api/places/savedPlaces";
 
+const CATEGORY_GROUPS: { label: string; categories: PlaceCategory[] }[] = [
+  { label: "Parks & nature", categories: ["park", "community-garden", "heritage-tree", "park-artwork"] },
+  { label: "Food & markets", categories: ["food-cart-pod", "farmers-market", "grocery-store", "csa-pickup"] },
+  { label: "Community & resources", categories: ["community-center", "library", "reuse-repair"] },
+  { label: "Trip amenities", categories: ["public-restroom", "bicycle-parking", "drinking-fountain", "picnic-seating"] }
+];
+
 interface Props {
   sources: Record<PlaceCategory, PlaceSourceState>;
   filters: PlaceFilters;
@@ -86,14 +93,34 @@ export default function NearbyPlaces({
       <summary>Place categories</summary>
       <fieldset className="transit-places-filters">
         <legend className="wm-sr-only">Place categories</legend>
-        {PLACE_CATEGORIES.map(category => (
-          <label key={category} className={`transit-places-category transit-places-category--${category}`}>
-            <input type="checkbox" checked={filters[category]}
-              onChange={event => onFilters({ ...filters, [category]: event.target.checked })} />
-            <FontAwesomeIcon icon={placeIconDefinition(category)} aria-hidden="true" />
-            {categoryName(category)}
-          </label>
-        ))}
+        {CATEGORY_GROUPS.map(group => {
+          const all = group.categories.every(category => filters[category]);
+          const some = group.categories.some(category => filters[category]);
+          return <fieldset key={group.label} className="transit-places-category-group">
+            <legend>
+              <label className="transit-places-category transit-places-group-toggle">
+                <input type="checkbox" checked={all}
+                  ref={input => { if (input) input.indeterminate = some && !all; }}
+                  onChange={event => {
+                    const next = { ...filters };
+                    group.categories.forEach(category => { next[category] = event.target.checked; });
+                    onFilters(next);
+                  }} />
+                {group.label}
+              </label>
+            </legend>
+            <div className="transit-places-group-children">
+              {group.categories.map(category => (
+                <label key={category} className={`transit-places-category transit-places-category--${category}`}>
+                  <input type="checkbox" checked={filters[category]}
+                    onChange={event => onFilters({ ...filters, [category]: event.target.checked })} />
+                  <FontAwesomeIcon icon={placeIconDefinition(category)} aria-hidden="true" />
+                  {categoryName(category)}
+                </label>
+              ))}
+            </div>
+          </fieldset>;
+        })}
       </fieldset>
       </details>
       {neighborhoods && <details className="transit-places-section" open={sections.layers}

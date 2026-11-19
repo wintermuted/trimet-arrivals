@@ -166,6 +166,13 @@ saved places, overlays or the map. Their open state is retained through place
 details and header Back within the mounted Places view. Search, results and
 source/drawing errors remain outside these sections.
 
+Place categories are nested under **Parks & nature**, **Food & markets**,
+**Community & resources** and **Trip amenities**. Each group checkbox enables or
+disables all its categories without changing other groups, search or map layers.
+A mixed checkbox means only some child categories are enabled; selecting it
+enables the whole group. Individual category toggles remain available, and group
+states follow presets and shared views without changing existing defaults.
+
 Save places from a result row or its detail view. **Saved places only** shows
 matching saves across Portland, not just the visible map; category and search
 filters still apply. Saves contain only source IDs and display names in this

@@ -49,10 +49,24 @@
   border: 0;
   padding: 0;
   margin: 0 0 var(--wm-space-4);
+  min-width: 0;
+  .transit-places-category { min-height: 32px; font-size: 0.875rem; gap: var(--wm-space-1); }
+}
+
+.transit-places-category-group {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  & + & { margin-block-start: var(--wm-space-3); }
+  legend { padding: 0; }
+  .transit-places-group-toggle { min-height: 44px; font-weight: 600; }
+}
+.transit-places-group-children {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--wm-space-3);
-  .transit-places-category { min-height: 32px; font-size: 0.875rem; gap: var(--wm-space-1); }
+  padding-inline-start: var(--wm-space-5);
 }
 
 .transit-places-category {
