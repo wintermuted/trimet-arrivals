@@ -1,0 +1,59 @@
+NEARBY PLACES DATA -- SEPARATE FROM THE APPLICATION'S CODE LICENSE
+
+parks.json
+Source: City of Portland, Bureau of Parks and Recreation.
+Dataset: https://gis-pdx.opendata.arcgis.com/datasets/parks/about
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/35
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=52451
+Terms: https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise. The ArcGIS item's license field is not populated.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Changes: converted boundaries to approximate display points; consolidated
+property parts; retained source property IDs and names. These are parks-system
+properties, not a guarantee of public entrances, park status, access or hours.
+
+food-cart-pods.json
+Copyright OpenStreetMap contributors.
+Source: https://www.openstreetmap.org/copyright
+ODbL v1.0: https://opendatacommons.org/licenses/odbl/1-0/
+This separately distributed, OSM-derived data snapshot is available under ODbL.
+Download the JSON itself through this site's data/places/food-cart-pods.json URL.
+Changes: selected named cart-pod candidates from food-court features inside
+Portland's administrative boundary; excluded generic indoor courts and known
+restricted/inactive entries; consolidated duplicates; converted area centers to
+approximate display points. Reviewed generic-name inclusions: Prost Marketplace
+and Midtown Beer Garden, identified as pods by
+https://www.travelportland.com/food-carts/pods/
+Selection rules and the complete Overpass query are in scripts/refresh-places.mjs.
+Coverage and source tags can be incomplete or outdated. Entries do not confirm
+current operation, public entrances, operating hours or accessibility.
+
+community-centers.json and libraries.json
+Regional Land Information System data are a product of Metro and made publicly
+available according to the license agreement found in
+https://rlisdiscovery.oregonmetro.gov/pages/open-database-license
+These data remain available under that agreement, not the app code's MIT license.
+Sources:
+https://www.arcgis.com/home/item.html?id=d28668b7dde04a57b3b14f6cecccb4c1
+https://www.arcgis.com/home/item.html?id=da2229f19d854845ae6e164d4924fe7a
+Changes: selected Portland-addressed Oregon records (including nearby
+unincorporated areas); excluded non-library facilities from the library layer;
+normalized names, addresses, website links, and approximate point locations.
+Community centers include public-serving nonprofit/social facilities and may
+have eligibility requirements or fees. Library source points are older.
+Reviewed corrections (2026-11-18): replaced obsolete Albina and Northwest
+addresses/coordinates using the current official branch pages and their TriMet
+coordinate links:
+https://multcolib.org/hours-and-locations/albina-library
+https://multcolib.org/hours-and-locations/northwest-library
+Omitted Hillsdale while listed closed for construction:
+https://multcolib.org/hours-and-locations/hillsdale-library
+Recheck those decisions on each manual refresh. Neither source records nor
+reviewed corrections establish current access, hours, or a verified entrance.
+
+Each snapshot carries its actual retrieval date and, when supplied, source
+database date. Retrieval does not mean that every feature was recently verified.
+None of these datasets claim verified public entrances. All initial routing handoffs
+use approximate locations and require confirmation or correction in the planner.
+The source providers do not endorse this app.

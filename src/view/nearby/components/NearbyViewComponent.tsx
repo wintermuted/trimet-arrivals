@@ -5,7 +5,7 @@ import { clearWalkingCache, setWalkingAccessToken } from "../../../api/mapbox/wa
 import { showWalkingRoute } from "../util/mapbox/walkingRoute";
 import { useFeatureFlags } from "../../../component/feature-flags/FeatureFlags";
 import { Dictionary, map, set, size } from "lodash";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
 import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
@@ -58,6 +58,10 @@ import { useVehiclePositions } from "../util/useVehiclePositions";
 import { VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
 import FollowedVehicleTrip from "./FollowedVehicleTrip";
 import { VehicleFollowView } from "../util/mapbox/vehicleLayer";
+import NearbyPlaces from "./NearbyPlaces";
+import NearbyPlacesMap from "./NearbyPlacesMap";
+import NearbyPlaceDestination from "./NearbyPlaceDestination";
+import { DEFAULT_PLACE_FILTERS, filterPlaces, placeInBounds, PlaceFilters, usePlaceCatalog } from "../../../api/places/places";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
@@ -93,6 +97,7 @@ export function NearbyTripPlannerComponent() {
     <ConnectedTripPlannerView
       inSidebar
       directionsFooter={plannerFooter}
+      renderPlaceDestination={place => <NearbyPlaceDestination map={plannerMap} place={place} />}
       renderMapStatus={(itineraries, selected, highlightedLeg, onMapLeg, routeColors, previewTrip) => (
         <NearbyPlannerPaths
           map={plannerMap}
@@ -265,6 +270,7 @@ export default function NearbyViewComponent() {
   const wasLanding = useRef(isLanding);
   const isExplore = Boolean(matchPath("/nearby/simple-routes", location.pathname));
   const isPlanner = Boolean(matchPath("/nearby/planner", location.pathname));
+  const isPlaces = Boolean(matchPath("/nearby/places", location.pathname));
   const isChoosingDirectionStop = Boolean(matchPath("/nearby/directions", location.pathname));
   const isDirections = Boolean(matchPath("/nearby/directions/*", location.pathname));
   const searchParams = new URLSearchParams(location.search);
@@ -278,7 +284,7 @@ export default function NearbyViewComponent() {
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &&
     searchParams.getAll("referrer").length === 1 && searchParams.get("referrer") === "/";
-  const shouldAutoLocate = !isLanding && !isPlanner && !fromHome;
+  const shouldAutoLocate = !isLanding && !isPlanner && !isPlaces && !fromHome;
   const nearbyZoomRef = useRef(getNearbyMapZoom(DEFAULT_RADIUS));
   const [radiusSize, setRadiusSize] = useState<number>(DEFAULT_RADIUS);
   const [nearbyStops, setNearbyStopData] = useState<StopData>(undefined);
@@ -314,6 +320,43 @@ export default function NearbyViewComponent() {
   const [nearbyDataError, setNearbyDataError] = useState(false);
   const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
   const { walkingEnabled } = useFeatureFlags();
+  const placeCatalog = usePlaceCatalog(isPlaces);
+  const [placeFilters, setPlaceFilters] = useState<PlaceFilters>(DEFAULT_PLACE_FILTERS);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string>();
+  const [placeBounds, setPlaceBounds] = useState<[number, number, number, number]>();
+  const [placeMapError, setPlaceMapError] = useState(false);
+  const [coincidentIds, setCoincidentIds] = useState<string[]>([]);
+  const placeViewport = useRef<{ center: [number, number]; zoom: number }>();
+  const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters),
+    [placeCatalog.sources, placeFilters]);
+  const visiblePlaces = useMemo(() => placeBounds
+    ? filteredPlaces.filter(place => placeInBounds(place, placeBounds)) : [], [filteredPlaces, placeBounds]);
+  const selectedPlace = filteredPlaces.find(place => place.id === selectedPlaceId);
+  useEffect(() => {
+    if (selectedPlaceId && !selectedPlace) setSelectedPlaceId(undefined);
+    setCoincidentIds([]);
+  }, [placeFilters]);
+  const selectPlace = useCallback((id?: string, pan = false) => {
+    setSelectedPlaceId(id);
+    setCoincidentIds([]);
+    if (pan) {
+      const place = placeCatalog.places.find(item => item.id === id);
+      if (place) mapRef.current?.easeTo({ center: place.coordinates });
+    }
+  }, [placeCatalog.sources]);
+  const updatePlaceBounds = useCallback((bounds: [number, number, number, number]) => {
+    setPlaceBounds(bounds);
+    const map = mapRef.current;
+    if (map) {
+      const center = map.getCenter();
+      placeViewport.current = { center: [center.lng, center.lat], zoom: map.getZoom() };
+    }
+  }, []);
+  useLayoutEffect(() => {
+    if (isPlaces && isMapLoaded) {
+      mapRef.current?.jumpTo(placeViewport.current ?? { center: SERVICE_AREA_CENTER, zoom: 12 });
+    }
+  }, [isPlaces, isMapLoaded]);
 
   useEffect(() => () => clearWalkingCache(), []);
 
@@ -374,7 +417,7 @@ export default function NearbyViewComponent() {
   }, [isLanding]);
 
   useEffect(() => {
-    if (!userLocation) return;
+    if (!userLocation || isPlaces) return;
     setNearbyDataError(false);
     setIsNearbyDataLoading(true);
     setNearbyStopData(undefined);
@@ -399,31 +442,31 @@ export default function NearbyViewComponent() {
     return () => {
       active = false;
     };
-  }, [userLocation, radiusSize, retryCount]);
+  }, [userLocation, radiusSize, retryCount, isPlaces]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeStopLocationLayers(mapRef.current);
-    if (!isPlanner && !isChoosingDirectionStop && !hideNearbyStopsForFollow && stopLocations && nearbyRouteIds) {
+    if (!isPlanner && !isPlaces && !isChoosingDirectionStop && !hideNearbyStopsForFollow && stopLocations && nearbyRouteIds) {
       setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     }
-  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isChoosingDirectionStop, hideNearbyStopsForFollow]);
+  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isPlaces, isChoosingDirectionStop, hideNearbyStopsForFollow]);
 
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isPlanner || isDirections || isRouteInfo || following) return;
+    if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isPlanner || isPlaces || isDirections || isRouteInfo || following) return;
     return showNearbyRouteLines(mapRef.current, nearbyRouteIds);
-  }, [isMapLoaded, nearbyRouteIds, isPlanner, isDirections, isRouteInfo, following]);
+  }, [isMapLoaded, nearbyRouteIds, isPlanner, isPlaces, isDirections, isRouteInfo, following]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeCurrentLocationMarkers(mapRef.current);
-    if (!isPlanner && !following && userLocation) {
+    if (!isPlanner && !isPlaces && !following && userLocation) {
       setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
     }
-  }, [isMapLoaded, userLocation, radiusSize, isPlanner, following]);
+  }, [isMapLoaded, userLocation, radiusSize, isPlanner, isPlaces, following]);
 
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || isPlanner || following || !userLocation || searchMode !== "pin") return;
+    if (!isMapLoaded || !mapRef.current || isPlanner || isPlaces || following || !userLocation || searchMode !== "pin") return;
     const marker = new mapboxgl.Marker({ draggable: true })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
@@ -433,12 +476,12 @@ export default function NearbyViewComponent() {
     };
     marker.on("dragend", onDragEnd);
     return () => { marker.off("dragend", onDragEnd); marker.remove(); };
-  }, [isMapLoaded, userLocation, searchMode, isPlanner, following]);
+  }, [isMapLoaded, userLocation, searchMode, isPlanner, isPlaces, following]);
 
   function initializeMapboxMap() {
     mapRef.current = initializeMap(
       SERVICE_AREA_CENTER[0], SERVICE_AREA_CENTER[1], mapContainerRef,
-      isStopDetail ? nearbyZoomRef.current : SERVICE_AREA_ZOOM
+      isPlaces ? 12 : isStopDetail ? nearbyZoomRef.current : SERVICE_AREA_ZOOM
     );
     setWalkingAccessToken(mapboxgl.accessToken);
     mapRef.current.on("load", () => {
@@ -546,7 +589,7 @@ export default function NearbyViewComponent() {
     isNearbyDataLoading || (userLocation && !nearbyStops && !nearbyDataError) ? "Loading nearby stops…" :
       nearbyStops && !isMapLoaded ? "Preparing nearby results…" : undefined;
   const canShowNearbyResults = !nearbyDataError && !sidebarLoadingMessage && isMapLoaded && Boolean(nearbyStops);
-  const sectionTitle = isPlanner ? "Plan a trip" :
+  const sectionTitle = isPlaces ? "Places" : isPlanner ? "Plan a trip" :
     isExplore && !(isRouteInfo && canShowNearbyResults) ? "Explore" : undefined;
 
   return (
@@ -554,14 +597,14 @@ export default function NearbyViewComponent() {
       <div className="transit-columns transit-nearby-layout">
         <div className="transit-column transit-nearby-sidebar">
           <div
-            key={isLanding ? "landing" : isPlanner ? "planner" : "explore"}
+            key={isLanding ? "landing" : isPlanner ? "planner" : isPlaces ? "places" : "explore"}
             className="transit-nearby-results"
             role="region"
-            aria-label="Nearby transit"
+            aria-label={isPlaces ? "Nearby places" : "Nearby transit"}
             tabIndex={0}
           >
             {sectionTitle && !following && <TopNavBar id={sectionTitle} backTo="/nearby" />}
-            {locationError && !isLanding && !isPlanner && !following && (
+            {locationError && !isLanding && !isPlanner && !isPlaces && !following && (
               <div role="alert" className="transit-route-list-message">
                 <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>
                 <Button type="button" size="sm" onClick={() => void locate()}>Try my location again</Button>
@@ -585,7 +628,24 @@ export default function NearbyViewComponent() {
                   <span><strong>Plan a trip</strong><small>Get directions between two places</small></span>
                   <FontAwesome name="chevron-right" aria-hidden="true" />
                 </Link>
+                <Link to="/nearby/places" className="transit-nearby-tile">
+                  <FontAwesome name="map-marker" aria-hidden="true" />
+                  <span><strong>Places</strong><small>Explore parks, food carts, community centers, and libraries</small></span>
+                  <FontAwesome name="chevron-right" aria-hidden="true" />
+                </Link>
               </nav>
+            ) : isPlaces ? (
+              <>
+                {coincidentIds.length > 1 && <section aria-label="Locations at this point">
+                  <h3>Locations at this point</h3>
+                  {filteredPlaces.filter(place => coincidentIds.includes(place.id)).map(place =>
+                    <Button key={place.id} variant="secondary" onClick={() => selectPlace(place.id)}>{place.name}</Button>)}
+                  <Button variant="ghost" onClick={() => setCoincidentIds([])}>Dismiss locations</Button>
+                </section>}
+                <NearbyPlaces sources={placeCatalog.sources} filters={placeFilters} onFilters={setPlaceFilters}
+                  visiblePlaces={visiblePlaces} selected={selectedPlace} onSelect={selectPlace}
+                  origin={currentLocation} originMode={searchMode} onRetry={placeCatalog.retry} mapError={placeMapError} mapReady={Boolean(placeBounds)} />
+              </>
             ) : isStopDetail ? (
               <Outlet context={context} />
             ) : nearbyDataError ? (
@@ -632,6 +692,7 @@ export default function NearbyViewComponent() {
             isLocating={isLocating}
             isMapLoading={!isMapLoaded}
             searchMode={searchMode}
+            placesMode={isPlaces}
             vehiclesEnabled={vehiclesEnabled}
             onVehiclesToggle={() => {
               if (vehiclesEnabled) stopFollowing();
@@ -657,6 +718,9 @@ export default function NearbyViewComponent() {
             />
           )}
           </NearbyMapV2>
+          {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={filteredPlaces}
+            selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
+            onBounds={updatePlaceBounds} onError={setPlaceMapError} />}
         </div>
       </div>
     </div>
