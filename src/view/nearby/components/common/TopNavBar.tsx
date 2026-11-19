@@ -19,18 +19,22 @@ export function TopNavBar({
   truncateTitle = false,
   action,
   onBack,
-  backTo = "/nearby/simple-routes"
+  backTo
 }: TopNavBarParams) {
   const title = shortSign ? `${id} to ${shortSign}` : id;
   const backIcon = <FontAwesome name="caret-left" aria-hidden="true" />;
   return (
     <header className="transit-detail-header">
-      {onBack ? (
+      {onBack && !backTo ? (
         <button type="button" className="transit-detail-back" aria-label="Back" onClick={onBack}>
           {backIcon}
         </button>
       ) : (
-        <Link to={backTo} className="transit-detail-back" aria-label="Back">
+        <Link to={backTo ?? "/nearby/simple-routes"} className="transit-detail-back" aria-label="Back"
+          onClick={event => {
+            if (!event.defaultPrevented && event.button === 0 &&
+                !event.metaKey && !event.altKey && !event.ctrlKey && !event.shiftKey) onBack?.();
+          }}>
           {backIcon}
         </Link>
       )}

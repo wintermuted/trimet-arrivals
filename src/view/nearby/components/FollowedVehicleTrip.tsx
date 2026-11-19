@@ -24,11 +24,12 @@ export function vehicleTripLegs(trip: VehicleTrip, mode: ProgressMode) {
   }));
 }
 
-export default function FollowedVehicleTrip({ selection, feed, view, onViewChange, onBack }: {
+export default function FollowedVehicleTrip({ selection, feed, view, onViewChange, backTo, onBack }: {
   selection: VehiclePosition;
   feed: VehicleFeed;
   view: VehicleFollowView;
   onViewChange: (view: VehicleFollowView) => void;
+  backTo: string;
   onBack: () => void;
 }) {
   const vehicle = feed.vehicles.find(entry => entry.id === selection.id);
@@ -76,7 +77,7 @@ export default function FollowedVehicleTrip({ selection, feed, view, onViewChang
   }
 
   return <section className="transit-follow-trip" aria-label="Following vehicle trip">
-    <TopNavBar id={`Following ${name}`} onBack={onBack} />
+    <TopNavBar id={`Following ${name}`} backTo={backTo} onBack={onBack} />
     <p>{selection.type === "bus" ? "Bus" : "Train"} {selection.id} · Trip {selection.tripId || "not reported"}</p>
     <p>{trip?.destination ? `To ${trip.destination}` : selection.destination}</p>
     <div role="group" aria-label="Following map view" className="transit-follow-view-controls">

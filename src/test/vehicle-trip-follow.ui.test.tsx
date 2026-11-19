@@ -1,5 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 import { getVehicleTrip, VehicleTripSnapshot } from "../api/trimet/vehicleTrip";
 import { VehicleRequestError } from "../api/trimet/vehicles";
 import { VehiclePosition } from "../api/trimet/interfaces/vehicles";
@@ -34,8 +35,8 @@ describe("following a vehicle's current run", () => {
   const onViewChange = jest.fn();
   const onBack = jest.fn();
   async function render() {
-    await act(async () => { root.render(<FollowedVehicleTrip selection={selection} feed={feed}
-      view={view} onViewChange={onViewChange} onBack={onBack} />); });
+    await act(async () => { root.render(<MemoryRouter><FollowedVehicleTrip selection={selection} feed={feed}
+      view={view} onViewChange={onViewChange} backTo="/nearby/planner?from=101#options" onBack={onBack} /></MemoryRouter>); });
   }
   beforeEach(() => {
     jest.useFakeTimers("modern");
@@ -58,8 +59,9 @@ describe("following a vehicle's current run", () => {
     await render();
     const header = container.querySelector("header.transit-detail-header");
     expect(header.querySelector("h3").textContent).toBe("Following Route 15");
-    const back = header.querySelector<HTMLButtonElement>('button[aria-label="Back"]');
+    const back = header.querySelector<HTMLAnchorElement>('a[aria-label="Back"]');
     expect(back).not.toBeNull();
+    expect(back.getAttribute("href")).toBe("/nearby/planner?from=101#options");
     act(() => back.click());
     expect(onBack).toHaveBeenCalledTimes(1);
     expect(container.textContent).not.toContain("Stop following");

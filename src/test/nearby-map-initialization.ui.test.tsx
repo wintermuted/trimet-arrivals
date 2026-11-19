@@ -397,7 +397,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
   });
 
-  it("preserves the planner while following and restores it using the header Back button or Vehicles toggle", async () => {
+  it.each(["/nearby/planner?keep=yes#options", "/nearby/simple-routes?keep=yes#routes"])(
+    "returns to the captured referrer %s when trip following ends", async referrer => {
     jest.mocked(getStopCatalog).mockResolvedValue({
       stops: [], routeCount: 0, directionCount: 0, stopReferenceCount: 0,
       incompleteRouteCount: 0, incompleteDirectionCount: 0,
@@ -407,23 +408,28 @@ describe("Nearby map initialization independently of the sidebar", () => {
       id: "4003", type: "bus", tripId: "trip", blockId: "1547", routeNumber: 15,
       longitude: -122.68, latitude: 45.51, time: Date.now(), expires: Date.now() + 60000,
     })}>Follow test trip</button>);
-    await render("/nearby/planner");
+    await render(referrer);
     finishMapLoading();
     const planner = container.querySelector(".transit-planner");
     const mapCanvas = container.querySelector(".transit-nearby-map-canvas");
     await act(async () => button("Follow test trip").click());
     expect(container.querySelector('[aria-label="Following vehicle trip"]')).not.toBeNull();
-    expect(planner.closest("[hidden]")).not.toBeNull();
-    expect(container.querySelector(".transit-nearby-planner-footer").hasAttribute("hidden")).toBe(true);
+    if (planner) {
+      expect(planner.closest("[hidden]")).not.toBeNull();
+      expect(container.querySelector(".transit-nearby-planner-footer").hasAttribute("hidden")).toBe(true);
+    }
     const followHeader = container.querySelector('[aria-label="Following vehicle trip"] .transit-detail-header');
     expect(followHeader.textContent).toContain("Following Route 15");
-    await act(async () => followHeader.querySelector<HTMLButtonElement>('button[aria-label="Back"]').click());
+    const back = followHeader.querySelector<HTMLAnchorElement>('a[aria-label="Back"]');
+    expect(back.getAttribute("href")).toBe(referrer);
+    await act(async () => back.click());
+    expect(container.querySelector('[aria-label="Following vehicle trip"]')).toBeNull();
     expect(container.querySelector(".transit-planner")).toBe(planner);
-    expect(planner.closest("[hidden]")).toBeNull();
+    if (planner) expect(planner.closest("[hidden]")).toBeNull();
     await act(async () => button("Follow test trip").click());
     await act(async () => button("Vehicles").click());
     expect(container.querySelector('[aria-label="Following vehicle trip"]')).toBeNull();
-    expect(planner.closest("[hidden]")).toBeNull();
+    if (planner) expect(planner.closest("[hidden]")).toBeNull();
     expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
     expect(map.remove).not.toHaveBeenCalled();
   });
