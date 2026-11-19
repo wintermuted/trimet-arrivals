@@ -157,10 +157,11 @@ ranks whole routes by their earliest reported
 arrival, nearest stop, or route number without separating their directions.
 
 Nearby discovers candidates within the selected **straight-line radius**, not a
-walking catchment. Nearby requests your device location when opened; if it is
-unavailable or permission is denied, use the map to search instead or retry
-after changing browser permissions. Move the map and choose **Search this area**
-to search its center, or **Drop pin at map center** and drag the pin to move
+walking catchment. The Nearby landing map opens on a Portland-area overview without
+requesting your location. **Explore** requests your device location and zooms in
+when it is available. If location is unavailable or permission is denied, use
+the map to search instead or retry after changing browser permissions. Move the
+map and choose **Search this area** to search its center, or **Drop pin at map center** and drag the pin to move
 the search. Both use the selected radius. **Find near me** requests a fresh
 device location. The selected location stays in memory only. An empty result
 can mean the selected location is outside TriMet's service area.

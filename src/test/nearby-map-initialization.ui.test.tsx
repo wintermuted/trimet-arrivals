@@ -235,25 +235,34 @@ describe("Nearby map initialization independently of the sidebar", () => {
     act(() => listeners[listeners.length - 1][1]());
   }
 
-  it("shows loading placeholders through location lookup, then clears each as it becomes ready", async () => {
+  it("loads the Portland overview without locating, then finds nearby stops on entering Explore", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
     let resolveStops: (value: StopData) => void;
     jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
     jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveStops = resolve; }));
 
-    await render("/nearby/simple-routes");
+    await render("/nearby");
     const sidebarSkeleton = () => container.querySelector(".transit-nearby-results-skeleton");
     const mapSkeleton = () => container.querySelector(".transit-nearby-map-skeleton");
-    expect(sidebarSkeleton()?.textContent).toBe("Finding your location…");
-    expect(mapSkeleton()?.textContent).toBe("Waiting for your location…");
-
-    await act(async () => resolveLocation({ coords: { latitude: 0, longitude: 0 } }));
-    expect(sidebarSkeleton()?.textContent).toBe("Loading nearby stops…");
+    const mapCanvas = container.querySelector(".transit-nearby-map-canvas");
+    const { initializeMap } = jest.requireMock("../view/nearby/util/mapbox/initializeMap");
+    expect(initializeMap).toHaveBeenLastCalledWith(-122.6784, 45.5152, expect.anything(), 10);
     expect(mapSkeleton()?.textContent).toBe("Loading map…");
+    expect(sidebarSkeleton()).toBeNull();
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getNearbyStops).not.toHaveBeenCalled();
 
     finishMapLoading();
     expect(mapSkeleton()).toBeNull();
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/simple-routes"]').click());
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
+    expect(sidebarSkeleton()?.textContent).toBe("Finding your location…");
+    expect(mapSkeleton()).toBeNull();
+
+    await act(async () => resolveLocation({ coords: { latitude: 0, longitude: 0 } }));
     expect(sidebarSkeleton()?.textContent).toBe("Loading nearby stops…");
+    expect(map.flyTo).toHaveBeenCalledWith(expect.objectContaining({ center: [0, 0], zoom: 16 }));
 
     await act(async () => resolveStops(stops));
     expect(sidebarSkeleton()).toBeNull();
@@ -605,9 +614,12 @@ describe("Nearby map initialization independently of the sidebar", () => {
     }
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-header a[aria-label="Back"]').click());
     expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
-    expect(setNearbyStops).toHaveBeenCalled();
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(setNearbyStops).not.toHaveBeenCalled();
     expect(transferPopup.isConnected).toBe(false);
     expect(marker.remove).toHaveBeenCalledTimes(Marker.mock.calls.length);
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/simple-routes"]').click());
+    expect(setNearbyStops).toHaveBeenCalled();
     expect([...layers]).toEqual([NEARBY_ROUTE_LINES]);
     expect(map.remove).not.toHaveBeenCalled();
   });
