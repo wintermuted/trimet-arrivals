@@ -44,6 +44,9 @@ Nearby fills that available space with independently scrolling results and a
 contained map. On narrow screens the results and map share the available height
 in stacked panels; map resizing follows panel size changes rather than a fixed
 viewport-height offset.
+Explore shows sidebar and map placeholders while waiting for device location.
+The map placeholder clears when the map is ready; the sidebar placeholder stays
+until nearby results are ready or the request reports an error.
 Nearby removes the main content's outer gutters so the map reaches the available
 edges; the results sidebar retains 14px horizontal padding only, with no top/bottom
 gutter. The sidebar detail header spans the full available sidebar width while its

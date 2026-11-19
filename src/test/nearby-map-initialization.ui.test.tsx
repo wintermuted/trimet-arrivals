@@ -227,6 +227,31 @@ describe("Nearby map initialization independently of the sidebar", () => {
     act(() => listeners[listeners.length - 1][1]());
   }
 
+  it("shows loading placeholders through location lookup, then clears each as it becomes ready", async () => {
+    let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
+    let resolveStops: (value: StopData) => void;
+    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveStops = resolve; }));
+
+    await render("/nearby/simple-routes");
+    const sidebarSkeleton = () => container.querySelector(".transit-nearby-results-skeleton");
+    const mapSkeleton = () => container.querySelector(".transit-nearby-map-skeleton");
+    expect(sidebarSkeleton()?.textContent).toBe("Finding your location…");
+    expect(mapSkeleton()?.textContent).toBe("Waiting for your location…");
+
+    await act(async () => resolveLocation({ coords: { latitude: 0, longitude: 0 } }));
+    expect(sidebarSkeleton()?.textContent).toBe("Loading nearby stops…");
+    expect(mapSkeleton()?.textContent).toBe("Loading map…");
+
+    finishMapLoading();
+    expect(mapSkeleton()).toBeNull();
+    expect(sidebarSkeleton()?.textContent).toBe("Loading nearby stops…");
+
+    await act(async () => resolveStops(stops));
+    expect(sidebarSkeleton()).toBeNull();
+    expect(container.textContent).toContain("Sidebar ready");
+  });
+
   function button(label: string) {
     return Array.from(container.querySelectorAll("button")).find(item =>
       item.textContent.includes(label) ||

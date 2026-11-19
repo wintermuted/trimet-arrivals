@@ -22,7 +22,7 @@ import {
   processRoutes
 } from "../util/dataUtils";
 import { setMapZoom } from "../util/mapbox/mapZoom";
-import NearbyMapV2 from "./NearbyMapV2";
+import NearbyMapV2, { NearbyMapSkeleton } from "./NearbyMapV2";
 import "./NearbyViewComponent.scss";
 import { setCurrentLocationMarker } from "../util/mapbox/currentLocation";
 import { initializeMap } from "../util/mapbox/initializeMap";
@@ -472,6 +472,11 @@ export default function NearbyViewComponent() {
     handleRouteInfoStopHighlighted
   };
 
+  const waitingForLocation = !userLocation && (isLocating || (!mapCenter && !locationError));
+  const sidebarLoadingMessage = waitingForLocation ? "Finding your location…" :
+    isNearbyDataLoading || (userLocation && !nearbyStops && !nearbyDataError) ? "Loading nearby stops…" :
+      nearbyStops && !isMapLoaded ? "Preparing nearby results…" : undefined;
+
   return (
     <div className="transit-container transit-nearby-view">
       <div className="transit-columns transit-nearby-layout">
@@ -517,10 +522,19 @@ export default function NearbyViewComponent() {
                   Retry
                 </Button>
               </div>
-            ) : isLocating && !userLocation ? (
-              <p role="status">Finding your location…</p>
-            ) : isNearbyDataLoading ? (
-              <p role="status">Loading nearby stops…</p>
+            ) : sidebarLoadingMessage ? (
+              <div className="transit-nearby-results-skeleton" role="status">
+                <p>{sidebarLoadingMessage}</p>
+                <div className="transit-nearby-skeleton-rows" aria-hidden="true">
+                  {[0, 1, 2, 3].map(row => (
+                    <div className="transit-nearby-skeleton-row" key={row}>
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : isMapLoaded && nearbyStops ? (
               <Outlet context={context} />
             ) : null}
@@ -528,7 +542,7 @@ export default function NearbyViewComponent() {
           {isPlanner && <div className="transit-nearby-planner-footer" ref={bindPlannerFooter} />}
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
-          {mapCenter && (
+          {mapCenter ? (
             <NearbyMapV2
               initializeMap={initializeMapboxMap}
               mapRef={mapRef}
@@ -539,8 +553,11 @@ export default function NearbyViewComponent() {
               radiusSize={radiusSize}
               onRadiusChange={handleRadiusSelectionChange}
               isLocating={isLocating}
+              isMapLoading={!isMapLoaded}
               searchMode={searchMode}
             />
+          ) : (
+            <NearbyMapSkeleton message={waitingForLocation ? "Waiting for your location…" : "Loading map…"} />
           )}
         </div>
       </div>
