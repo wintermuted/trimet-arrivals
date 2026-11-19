@@ -15,7 +15,11 @@ export const PLACE_INFO = {
   "bicycle-parking": { label: "Bicycle parking", singular: "Bicycle rack", icon: "bicycle", file: "bicycle-parking.json", color: "#365eb0" },
   "drinking-fountain": { label: "Drinking fountains", singular: "Parks drinking-fountain asset", icon: "faucet-drip", file: "drinking-fountain.json", color: "#176b95" },
   "picnic-seating": { label: "Picnic & seating", singular: "Park table or bench", icon: "chair", file: "picnic-seating.json", color: "#805e32" },
-  "park-artwork": { label: "Park artwork", singular: "Park artwork asset", icon: "palette", file: "park-artwork.json", color: "#8a4389" }
+  "park-artwork": { label: "Park artwork", singular: "Park artwork asset", icon: "palette", file: "park-artwork.json", color: "#8a4389" },
+  museum: { label: "Museums", singular: "Museum", icon: "landmark", file: "museums.json", color: "#856019" },
+  "art-gallery": { label: "Art galleries", singular: "Art gallery", icon: "images", file: "art-galleries.json", color: "#995388" },
+  theatre: { label: "Theatres", singular: "Theatre / performing arts venue", icon: "masks-theater", file: "theatres.json", color: "#884758" },
+  "arts-centre": { label: "Arts & cultural centres", singular: "Arts / cultural centre", icon: "paintbrush", file: "arts-centres.json", color: "#4f5c99" }
 } as const;
 export type PlaceCategory = keyof typeof PLACE_INFO;
 export type PlacePoint = [number, number];
@@ -63,6 +67,7 @@ export interface PlaceSourceState {
   error: boolean;
 }
 export const PLACE_CATEGORIES = Object.keys(PLACE_INFO) as PlaceCategory[];
+export const CULTURE_PLACE_CATEGORIES: PlaceCategory[] = ["museum", "art-gallery", "theatre", "arts-centre"];
 export const categoryName = (category: PlaceCategory) => PLACE_INFO[category].label;
 export const categoryIcon = (category: PlaceCategory) => PLACE_INFO[category].icon;
 export const emptyPlaceSources = (): Record<PlaceCategory, PlaceSourceState> => ({
@@ -73,7 +78,9 @@ export const emptyPlaceSources = (): Record<PlaceCategory, PlaceSourceState> => 
   "grocery-store": { loading: false, error: false }, "reuse-repair": { loading: false, error: false },
   "csa-pickup": { loading: false, error: false }, "bicycle-parking": { loading: false, error: false },
   "drinking-fountain": { loading: false, error: false }, "picnic-seating": { loading: false, error: false },
-  "park-artwork": { loading: false, error: false }
+  "park-artwork": { loading: false, error: false },
+  museum: { loading: false, error: false }, "art-gallery": { loading: false, error: false },
+  theatre: { loading: false, error: false }, "arts-centre": { loading: false, error: false }
 });
 export function placeCategoryForId(id: string): PlaceCategory | undefined {
   if (id?.startsWith("portland:park:")) return "park";
@@ -89,6 +96,8 @@ export function placeCategoryForId(id: string): PlaceCategory | undefined {
   if (/^portland:bike:[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(id || "")) return "bicycle-parking";
   const amenity = /^portland:(drinking-fountain|picnic-seating|park-artwork):[1-9]\d*$/.exec(id || "");
   if (amenity) return amenity[1] as PlaceCategory;
+  const cultural = /^osm:(museum|art-gallery|theatre|arts-centre):(node|way|relation):([1-9]\d*)$/.exec(id || "");
+  if (cultural && Number.isSafeInteger(Number(cultural[3]))) return cultural[1] as PlaceCategory;
   if (/^osm:(node|way|relation):\d+$/.test(id || "")) return "food-cart-pod";
   return undefined;
 }
@@ -172,7 +181,8 @@ export function usePlaceCatalog(enabled: boolean) {
   const [retries, setRetries] = useState({ park: 0, "food-cart-pod": 0, "community-center": 0, library: 0,
     "community-garden": 0, "farmers-market": 0, "public-restroom": 0, "heritage-tree": 0,
     "grocery-store": 0, "reuse-repair": 0, "csa-pickup": 0, "bicycle-parking": 0,
-    "drinking-fountain": 0, "picnic-seating": 0, "park-artwork": 0 });
+    "drinking-fountain": 0, "picnic-seating": 0, "park-artwork": 0,
+    museum: 0, "art-gallery": 0, theatre: 0, "arts-centre": 0 });
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
@@ -203,7 +213,8 @@ export type PlaceFilters = Record<PlaceCategory, boolean> & { search: string };
 export const DEFAULT_PLACE_FILTERS: PlaceFilters = { park: true, "food-cart-pod": true, "community-center": true,
   library: true, "community-garden": true, "farmers-market": true, "public-restroom": true, "heritage-tree": true,
   "grocery-store": true, "reuse-repair": true, "csa-pickup": true, "bicycle-parking": false,
-  "drinking-fountain": true, "picnic-seating": false, "park-artwork": true, search: "" };
+  "drinking-fountain": true, "picnic-seating": false, "park-artwork": true,
+  museum: true, "art-gallery": true, theatre: true, "arts-centre": true, search: "" };
 export function filterPlaces(places: InterestPlace[], filters: PlaceFilters) {
   const query = filters.search.trim().toLocaleLowerCase();
   const gardenProperties = new Set(places.filter(place => place.category === "community-garden")

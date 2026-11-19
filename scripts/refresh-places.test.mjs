@@ -8,7 +8,8 @@ import os from "node:os";
 import path from "node:path";
 import {
   fetchCityPlaces, fetchMetroPlaces, fetchNeighborhoods, fetchParks, normalizeCityPlaces, normalizeMetroPlaces, normalizeNeighborhoods,
-  normalizeParks, normalizePods, polygonPoint, writeSnapshots, normalizeLineOverlay, fetchLineOverlay
+  normalizeParks, normalizePods, polygonPoint, writeSnapshots, normalizeLineOverlay, fetchLineOverlay,
+  normalizeCulturePlaces, buildCultureSnapshots, fetchCultureSnapshots, CULTURE_OSM_QUERY, CULTURE_SOURCES
 } from "./refresh-places.mjs";
 import { fetchArcgisFeatures } from "./arcgis.mjs";
 import { buildContextSnapshots, CONTEXT_SOURCES, fetchContextFeatures } from "./context-overlays.mjs";
@@ -16,6 +17,10 @@ import { buildContextSnapshots, CONTEXT_SOURCES, fetchContextFeatures } from "./
 const geometry = { type: "Polygon", coordinates: [[[-122.7, 45.5], [-122.6, 45.5], [-122.6, 45.6], [-122.7, 45.5]]] };
 const park = id => ({ properties: { OBJECTID: id, PROPERTYID: id, NAME: `Park ${id}` }, geometry });
 const pod = (id, name, tags = {}) => ({ type: "node", id, lon: -122.67, lat: 45.52, tags: { amenity: "food_court", name, ...tags } });
+const cultural = (id, category, extra = {}) => ({
+  type: "node", id, lon: -122.67, lat: 45.52,
+  tags: { [CULTURE_SOURCES[category].key]: CULTURE_SOURCES[category].value, name: `Example ${category}`, ...extra }
+});
 const amenity = (id, Asset = "Drinking Fountain", Status = "Active") => ({
   type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
   properties: { OBJECTID: id, Park: "Example Park", Asset, Status, Style: `${Asset}: Example`, Adopt_Donor: "DO NOT PUBLISH" }
@@ -122,6 +127,57 @@ test("excludes generic indoor food courts and closed/private vendors, deduplicat
   assert.equal(places.length, 2);
   assert.equal(places.find(place => place.name === "Test Food Carts").id, "osm:way:6");
   assert.throws(() => normalizePods([pod(1, "Generic")]), /No food-cart pods/);
+});
+
+test("classifies cultural venues, excludes inactive/private entries and merges duplicate footprint/node representations", () => {
+  const venues = Object.keys(CULTURE_SOURCES).map((category, i) => cultural(i + 1, category));
+  const places = normalizeCulturePlaces([
+    ...venues,
+    { ...cultural(20, "museum"), type: "way", center: { lon: -122.67, lat: 45.52 },
+      tags: { tourism: "museum", name: "Example museum", website: "javascript:alert(1)" } },
+    cultural(30, "museum", { name: "Private", access: "private" }),
+    cultural(31, "art-gallery", { name: "Closed gallery", "disused:tourism": "gallery" }),
+    cultural(32, "theatre", { name: "Closed theatre", closed: "yes" }),
+    cultural(33, "arts-centre", { name: "Future centre", "proposed:amenity": "arts_centre" }),
+    cultural(34, "museum", { name: "" }),
+    cultural(35, "museum", { name: "Dual classification", amenity: "arts_centre" }),
+    { ...cultural(36, "museum"), lon: -122.6 }
+  ]);
+  assert.equal(places.length, 6);
+  assert.deepEqual(places.filter(place => place.name === "Example museum").map(place => place.id),
+    ["osm:museum:node:36", "osm:museum:way:20"]);
+  assert.equal(places.find(place => place.id === "osm:museum:way:20").website, undefined);
+  assert.equal(places.find(place => place.name === "Dual classification").category, "museum");
+  assert.equal(places.find(place => place.category === "art-gallery").sourceUrl, "https://www.openstreetmap.org/node/2");
+  assert.ok(places.every(place => place.arrival === "approximate"));
+  assert.throws(() => normalizeCulturePlaces([cultural(0, "museum")]), /identity/);
+  assert.throws(() => normalizeCulturePlaces([cultural(1, "museum"), cultural(1, "museum")]), /Duplicate/);
+  assert.throws(() => normalizeCulturePlaces([{ ...cultural(1, "museum"), lon: -123.5 }]), /point/);
+});
+
+test("builds complete licensed cultural snapshots and rejects partial, empty and undated Overpass responses", async () => {
+  const osm = { osm3s: { timestamp_osm_base: "2026-11-19T12:00:00Z" },
+    elements: Object.keys(CULTURE_SOURCES).map((category, i) => cultural(i + 1, category, {
+      website: "https://example.org/", "addr:housenumber": "100", "addr:street": "SW Example Street"
+    })) };
+  const snapshots = await fetchCultureSnapshots(async (_url, options) => {
+    assert.equal(options.method, "POST");
+    assert.equal(options.body.get("data"), CULTURE_OSM_QUERY);
+    assert.match(CULTURE_OSM_QUERY, /"wikidata"="Q6106"/);
+    return osm;
+  });
+  assert.deepEqual(Object.keys(snapshots).sort(), Object.values(CULTURE_SOURCES).map(source => source.file).sort());
+  for (const snapshot of Object.values(snapshots)) {
+    assert.equal(snapshot.license, "ODbL-1.0");
+    assert.equal(snapshot.sourceUpdatedAt, osm.osm3s.timestamp_osm_base);
+    assert.equal(snapshot.places.length, 1);
+    assert.equal(snapshot.places[0].address, "100 SW Example Street");
+    assert.equal(snapshot.places[0].website, "https://example.org/");
+  }
+  assert.throws(() => buildCultureSnapshots({ ...osm, remark: "timeout" }), /incomplete/);
+  assert.throws(() => buildCultureSnapshots({ ...osm, osm3s: {} }), /timestamp/);
+  assert.throws(() => buildCultureSnapshots({ ...osm, elements: osm.elements.slice(1) }), /No museum/);
+  assert.throws(() => buildCultureSnapshots({ ...osm, elements: [] }), /No museum/);
 });
 
 test("writes complete separate snapshots and leaves no staging files", async () => {
@@ -442,7 +498,9 @@ test("full and targeted refresh commands publish the intended snapshots without 
       fountain: amenity(1), seating: amenity(2, "Bench"), artwork: amenity(3, "Art Work"),
       streetTree: contextPoint(1), sidewalk: { ...contextPoint(1), geometry },
       crossing: contextPoint(1), deficiency: contextPoint(1),
-      osm: { osm3s: { timestamp_osm_base: "2026-07-15T12:00:00Z" }, elements: [pod(1, "Example Food Carts")] }
+      osm: { osm3s: { timestamp_osm_base: "2026-07-15T12:00:00Z" }, elements: [
+        pod(1, "Example Food Carts"), ...Object.keys(CULTURE_SOURCES).map((category, i) => cultural(i + 2, category))
+      ] }
     };
     const amenities = ["drinking-fountain.json", "picnic-seating.json", "park-artwork.json"];
     const contexts = Object.keys(CONTEXT_SOURCES).flatMap(category => Object.keys(buildContextSnapshots(
@@ -456,10 +514,12 @@ test("full and targeted refresh commands publish the intended snapshots without 
       ["--everyday-only", ["grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json"]],
       ["--overlays-only", ["park-trails.json", "bicycle-network.json", "recommended-bike-routes.json"]],
       ["--neighborhoods-only", ["neighborhoods.json"]],
+      ["--culture-only", Object.values(CULTURE_SOURCES).map(source => source.file)],
       ["", ["parks.json", "food-cart-pods.json", "community-centers.json", "libraries.json",
         "community-gardens.json", "farmers-markets.json", "public-restrooms.json", "heritage-trees.json", "neighborhoods.json",
         "grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json",
-        "park-trails.json", "bicycle-network.json", "recommended-bike-routes.json", ...amenities, ...contexts]]
+        "park-trails.json", "bicycle-network.json", "recommended-bike-routes.json",
+        ...Object.values(CULTURE_SOURCES).map(source => source.file), ...amenities, ...contexts]]
     ]) {
       const code = `
         const fixtures = ${JSON.stringify(fixtures)};
@@ -496,6 +556,8 @@ test("full and targeted refresh commands publish the intended snapshots without 
             throw new Error("Amenity refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--walking-trees-only" && !["streetTree", "sidewalk", "crossing", "deficiency"].includes(key))
             throw new Error("Context refresh queried an unrelated source");
+          if (${JSON.stringify(mode)} === "--culture-only" && key !== "osm")
+            throw new Error("Culture refresh queried an unrelated source");
           if (key === "osm") data = fixtures.osm;
           else if (parsed.searchParams.has("returnIdsOnly")) data = {objectIds: [fixtures[key].properties.OBJECTID || 1]};
           else if (pathname.endsWith("/query")) data = {features: [fixtures[key]]};
