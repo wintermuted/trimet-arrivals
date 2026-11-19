@@ -3,11 +3,11 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { faTree, faBasketShopping, faUsers, faSignsPost, faLandmark } from "@fortawesome/free-solid-svg-icons";
+import { faTree, faBasketShopping, faUsers, faSignsPost, faLandmark, faPersonRunning } from "@fortawesome/free-solid-svg-icons";
 import { placeIconDefinition } from "../util/mapbox/placeIcons";
 import { Link } from "react-router-dom";
 import {
-  categoryName, CULTURE_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
+  categoryName, CULTURE_PLACE_CATEGORIES, OUTING_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
   PlaceFilters, PlaceSourceState, placeDetailLink, placePlannerLink
 } from "../../../api/places/places";
 import "./NearbyPlaces.scss";
@@ -18,10 +18,11 @@ import { SavedPlaceControls } from "../../../api/places/savedPlaces";
 import PlacesHelp from "./PlacesHelp";
 
 const CATEGORY_GROUPS: { label: string; icon: IconDefinition; colorCategory: PlaceCategory; categories: PlaceCategory[] }[] = [
-  { label: "Parks & nature", icon: faTree, colorCategory: "park", categories: ["park", "community-garden", "heritage-tree", "park-artwork"] },
-  { label: "Food & markets", icon: faBasketShopping, colorCategory: "food-cart-pod", categories: ["food-cart-pod", "farmers-market", "grocery-store", "csa-pickup"] },
+  { label: "Parks & nature", icon: faTree, colorCategory: "park", categories: ["park", "community-garden", "heritage-tree", "park-artwork", "viewpoint", "public-garden", "nature-reserve"] },
+  { label: "Food & markets", icon: faBasketShopping, colorCategory: "food-cart-pod", categories: ["food-cart-pod", "farmers-market", "grocery-store", "csa-pickup", "cafe", "bakery"] },
   { label: "Community & resources", icon: faUsers, colorCategory: "community-center", categories: ["community-center", "library", "reuse-repair"] },
-  { label: "Arts & culture", icon: faLandmark, colorCategory: "museum", categories: CULTURE_PLACE_CATEGORIES },
+  { label: "Arts & culture", icon: faLandmark, colorCategory: "museum", categories: [...CULTURE_PLACE_CATEGORIES, "historic-site", "public-art"] },
+  { label: "Play & recreation", icon: faPersonRunning, colorCategory: "sports-court", categories: ["playground", "splash-pad", "sports-court", "skatepark"] },
   { label: "Trip amenities", icon: faSignsPost, colorCategory: "bicycle-parking", categories: ["public-restroom", "bicycle-parking", "drinking-fountain", "picnic-seating"] }
 ];
 
@@ -39,6 +40,30 @@ function MapLayerHelp({ label, text }: { label: string; text: string }) {
   </span>;
 }
 
+type LoadIssue = { label: string; message: string; retry?: () => void };
+function LoadStatus({ label, issues, loading = false, warnings = [] }: {
+  label: string; issues: LoadIssue[]; loading?: boolean; warnings?: string[]
+}) {
+  if (!issues.length && !loading && !warnings.length) return null;
+  const message = [...issues.map(issue => issue.message), ...warnings].join(" ");
+  return <span className={`transit-places-load-status${issues.length ? "" : " transit-places-load-status--warning"}`}
+    onClick={event => event.stopPropagation()}
+    onKeyDown={event => event.stopPropagation()}>
+    {(issues.length > 0 || warnings.length > 0) && <>
+      <span role={issues.length ? "alert" : "status"} className="wm-sr-only">{message}</span>
+      <PlacesHelp label={label} triggerLabel={`${label} ${issues.length ? "error" : "warning"}`} icon="exclamation-triangle"
+        text={message} />
+      {issues.some(issue => issue.retry) && <Button size="sm" variant="ghost" aria-label={`Retry ${label.toLowerCase()}`} disabled={loading}
+        onClick={event => { event.preventDefault(); issues.forEach(issue => issue.retry?.()); }}>
+        <FontAwesome name="refresh" spin={loading} aria-hidden="true" />
+      </Button>}
+    </>}
+    {loading && !issues.length && <span role="status" aria-label={`Loading ${label.toLowerCase()}...`}>
+      <FontAwesome name="spinner" spin aria-hidden="true" />
+    </span>}
+  </span>;
+}
+
 interface Props {
   sources: Record<PlaceCategory, PlaceSourceState>;
   filters: PlaceFilters;
@@ -50,6 +75,7 @@ interface Props {
   originMode?: string;
   onRetry: (category: PlaceCategory) => void;
   mapError: boolean;
+  onRetryMap?: () => void;
   mapReady: boolean;
   lineOverlays?: LineOverlayControls;
   contextOverlays?: ContextControls;
@@ -68,7 +94,7 @@ interface Props {
 }
 
 export default function NearbyPlaces({
-  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods, lineOverlays, contextOverlays,
+  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, onRetryMap, mapReady, neighborhoods, lineOverlays, contextOverlays,
   discovery, savedPlaces, viewSearch = "", areaLabel = "map area"
 }: Props) {
   const [limit, setLimit] = useState(40);
@@ -95,6 +121,48 @@ export default function NearbyPlaces({
   useEffect(() => setLimit(40), [filters]);
   const loading = PLACE_CATEGORIES.some(category => sources[category].loading && filters[category]);
   const available = PLACE_CATEGORIES.some(category => sources[category].snapshot && filters[category]);
+  const placeIssues: LoadIssue[] = PLACE_CATEGORIES.filter(category => sources[category].error).map(category => ({
+    label: categoryName(category),
+    message: `${categoryName(category)} could not be loaded.${sources[category].snapshot
+      ? " The previously loaded snapshot is still shown." : " Other available places remain usable."}`,
+    retry: () => onRetry(category)
+  }));
+  const markerIssues: LoadIssue[] = mapError ? [{
+    label: "Place markers", message: "Place markers could not be drawn. You can still select places from this list.",
+    retry: onRetryMap
+  }] : [];
+  const neighborhoodIssues: LoadIssue[] = neighborhoods?.shown && (neighborhoods.error || neighborhoods.mapError) ? [{
+    label: "Portland neighborhoods",
+    message: `Neighborhood boundaries could not be ${neighborhoods.error ? "loaded" : "drawn"}. Other places remain usable.${
+      neighborhoods.error && neighborhoods.snapshot ? " The previously loaded boundaries are still shown." : ""}`,
+    retry: neighborhoods.onRetry
+  }] : [];
+  const lineIssues: LoadIssue[] = lineOverlays ? LINE_OVERLAY_CATEGORIES
+    .filter(category => lineOverlays.shown[category] && (lineOverlays.sources[category].error || lineOverlays.mapErrors[category]))
+    .map(category => ({
+      label: LINE_OVERLAY_INFO[category].label,
+      message: `${LINE_OVERLAY_INFO[category].label} could not be ${lineOverlays.sources[category].error ? "loaded" : "drawn"}. Other map layers and places remain usable.${
+        lineOverlays.sources[category].error && lineOverlays.sources[category].snapshot ? " The previously loaded snapshot is still shown." : ""}`,
+      retry: () => lineOverlays.onRetry(category)
+    })) : [];
+  const contextIssues: LoadIssue[] = contextOverlays ? CONTEXT_CATEGORIES
+    .filter(category => contextOverlays.shown[category] && (contextOverlays.sources[category].error || contextOverlays.mapErrors[category]))
+    .map(category => ({
+      label: CONTEXT_OVERLAY_INFO[category].label,
+      message: `${CONTEXT_OVERLAY_INFO[category].label} could not be ${contextOverlays.sources[category].error ? "loaded" : "drawn"}. Other places and layers remain usable.${
+        contextOverlays.sources[category].snapshot ? " A previously loaded area may still be shown." : ""}`,
+      retry: () => contextOverlays.onRetry(category)
+    })) : [];
+  const layerIssues = [...neighborhoodIssues, ...lineIssues, ...contextIssues];
+  const layersLoading = Boolean(neighborhoods?.shown && neighborhoods.loading) ||
+    LINE_OVERLAY_CATEGORIES.some(category => lineOverlays?.shown[category] && lineOverlays.sources[category].loading) ||
+    CONTEXT_CATEGORIES.some(category => contextOverlays?.shown[category] && contextOverlays.sources[category].loading);
+  const contextWarnings = (category: ContextCategory) => contextOverlays?.shown[category] && contextOverlays.sources[category].zoomRequired
+    ? [`Zoom in to level ${CONTEXT_OVERLAY_INFO[category].minZoom} or closer to see ${CONTEXT_OVERLAY_INFO[category].label.toLowerCase()}.`]
+    : [];
+  const savedIssues: LoadIssue[] = savedPlaces?.error ? [{
+    label: "Saved places", message: savedPlaces.error, retry: savedPlaces.retry
+  }] : [];
 
   return (
     <section className="transit-places" aria-labelledby={selected ? "selected-place-heading" : "nearby-places-heading"}>
@@ -102,14 +170,18 @@ export default function NearbyPlaces({
       <h2 id="nearby-places-heading" className="wm-sr-only" ref={browseHeading} tabIndex={-1}>Places nearby</h2>
       {discovery && <details className="transit-places-section" open={sections.discovery}
         onToggle={event => toggleSection("discovery", event.currentTarget.open)}>
-        <summary>Discovery tools</summary>
+        <summary>Discovery tools<LoadStatus label="Saved places" issues={savedIssues} /></summary>
         {discovery}
       </details>}
       <details className="transit-places-section" open={sections.categories}
         onToggle={event => toggleSection("categories", event.currentTarget.open)}>
-      <summary>Place categories</summary>
+      <summary>Place categories{!sections.categories &&
+        <LoadStatus label="Place categories" issues={[...placeIssues, ...markerIssues]} loading={loading} />}</summary>
       <fieldset className="transit-places-filters">
         <legend className="wm-sr-only">Place categories</legend>
+        {sections.categories && markerIssues.length > 0 && <div className="transit-places-layer-row">
+          <span>Map markers</span><LoadStatus label="Place markers" issues={markerIssues} />
+        </div>}
         {CATEGORY_GROUPS.map((group, index) => {
           const all = group.categories.every(category => filters[category]);
           const some = group.categories.some(category => filters[category]);
@@ -135,15 +207,22 @@ export default function NearbyPlaces({
                 <span className="transit-places-group-label">{group.label}</span>
                 <FontAwesome name={expanded ? "caret-down" : "caret-right"} aria-hidden="true" />
               </button>
+              {!expanded && <LoadStatus label={group.label}
+                issues={placeIssues.filter(issue => group.categories.some(category => categoryName(category) === issue.label))}
+                loading={group.categories.some(category => sources[category].loading && filters[category])} />}
             </div>
             <div id={childrenId} className="transit-places-group-children" hidden={!expanded}>
               {group.categories.map(category => (
-                <label key={category} className={`transit-places-category transit-places-category--${category}`}>
+                <div key={category} className="transit-places-layer-row">
+                <label className={`transit-places-category transit-places-category--${category}`}>
                   <input type="checkbox" checked={filters[category]}
                     onChange={event => onFilters({ ...filters, [category]: event.target.checked })} />
                   <FontAwesomeIcon icon={placeIconDefinition(category)} aria-hidden="true" />
-                  {categoryName(category)}
+                  <span className="transit-places-layer-label">{categoryName(category)}</span>
                 </label>
+                <LoadStatus label={categoryName(category)} issues={placeIssues.filter(issue => issue.label === categoryName(category))}
+                  loading={sources[category].loading} />
+                </div>
               ))}
             </div>
           </fieldset>;
@@ -152,7 +231,8 @@ export default function NearbyPlaces({
       </details>
       {neighborhoods && <details className="transit-places-section" open={sections.layers}
         onToggle={event => toggleSection("layers", event.currentTarget.open)}>
-      <summary>Map layers</summary>
+      <summary>Map layers{!sections.layers && <LoadStatus label="Map layers" issues={layerIssues} loading={layersLoading}
+        warnings={CONTEXT_CATEGORIES.flatMap(contextWarnings)} />}</summary>
       <fieldset className="transit-places-map-layers">
         <legend className="wm-sr-only">Map layers</legend>
         <div className="transit-places-layer-row">
@@ -163,6 +243,7 @@ export default function NearbyPlaces({
           <span className="transit-places-layer-label">Portland neighborhoods</span>
         </label>
         <MapLayerHelp label="Portland neighborhoods" text="Boundaries and names; shared areas may overlap." />
+        <LoadStatus label="Neighborhoods" issues={neighborhoodIssues} loading={neighborhoods.shown && neighborhoods.loading} />
         </div>
         {neighborhoods.shown && <label className="transit-places-category transit-places-polygon-toggle">
           <input type="checkbox" checked={neighborhoods.polygonsShown}
@@ -181,6 +262,8 @@ export default function NearbyPlaces({
             category === "bicycle-network" ? " Blue shows active mixed bicycle facilities only; future and retired segments are excluded." :
             category === "recommended-bike-routes" ? " Red dashes: difficult, higher-traffic or unclassified connections. A recommendation is not a safety guarantee." : ""
           )} />
+          <LoadStatus label={LINE_OVERLAY_INFO[category].label} issues={lineIssues.filter(issue => issue.label === LINE_OVERLAY_INFO[category].label)}
+            loading={lineOverlays.shown[category] && lineOverlays.sources[category].loading} />
         </div>)}
         {contextOverlays && CONTEXT_CATEGORIES.map(category => <React.Fragment key={category}>
           <div className="transit-places-layer-row">
@@ -193,9 +276,11 @@ export default function NearbyPlaces({
           </label>
           <MapLayerHelp label={CONTEXT_OVERLAY_INFO[category].label}
             text={`Inventory context, not routing destinations. Hover for source details. ${CONTEXT_LAYER_HELP[category]}`} />
+          <LoadStatus label={CONTEXT_OVERLAY_INFO[category].label}
+            issues={contextIssues.filter(issue => issue.label === CONTEXT_OVERLAY_INFO[category].label)}
+              loading={contextOverlays.shown[category] && contextOverlays.sources[category].loading}
+              warnings={contextWarnings(category)} />
           </div>
-          {contextOverlays.shown[category] && contextOverlays.sources[category].zoomRequired &&
-            <p role="status">Zoom in to level {CONTEXT_OVERLAY_INFO[category].minZoom} or closer to see {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()}.</p>}
         </React.Fragment>)}
       </fieldset>
       </details>}
@@ -205,47 +290,15 @@ export default function NearbyPlaces({
           onChange={event => onFilters({ ...filters, search: event.target.value })} />
       </label>
       </>}
-      {savedPlaces?.error && <div role="alert" className="transit-places-message">
-        <p>{savedPlaces.error}</p>
-        <Button size="sm" variant="secondary" onClick={savedPlaces.retry}>Retry saved places</Button>
-      </div>}
-      {neighborhoods?.shown && <>
-        {neighborhoods.loading && <p role="status">Loading neighborhood boundaries...</p>}
-        {(neighborhoods.error || neighborhoods.mapError) && <div role="alert" className="transit-places-message">
-          <p>Neighborhood boundaries could not be {neighborhoods.error ? "loaded" : "drawn"}. Other places remain usable.
-            {neighborhoods.error && neighborhoods.snapshot && " The previously loaded boundaries are still shown."}</p>
-          <Button size="sm" variant="secondary" onClick={neighborhoods.onRetry}>Retry neighborhoods</Button>
-        </div>}
-      </>}
-      {PLACE_CATEGORIES.map(category => sources[category].error && (
-        <div role="alert" key={category} className="transit-places-message">
-          <p>{categoryName(category)} could not be loaded.
-            {sources[category].snapshot ? " The previously loaded snapshot is still shown." : " Other available places remain usable."}</p>
-          <Button size="sm" variant="secondary" onClick={() => onRetry(category)}>Retry {categoryName(category).toLowerCase()}</Button>
-        </div>
-      ))}
-      {loading && <p role="status">Loading places...</p>}
-      {lineOverlays && LINE_OVERLAY_CATEGORIES.map(category => lineOverlays.shown[category] && <React.Fragment key={category}>
-        {lineOverlays.sources[category].loading && <p role="status">Loading {LINE_OVERLAY_INFO[category].label.toLowerCase()}...</p>}
-        {(lineOverlays.sources[category].error || lineOverlays.mapErrors[category]) && <div role="alert" className="transit-places-message">
-          <p>{LINE_OVERLAY_INFO[category].label} could not be {lineOverlays.sources[category].error ? "loaded" : "drawn"}. Other map layers and places remain usable.
-            {lineOverlays.sources[category].error && lineOverlays.sources[category].snapshot && " The previously loaded snapshot is still shown."}</p>
-          <Button size="sm" variant="secondary" onClick={() => lineOverlays.onRetry(category)}>Retry {LINE_OVERLAY_INFO[category].label.toLowerCase()}</Button>
-        </div>}
-      </React.Fragment>)}
-      {mapError && <p role="alert">Place markers could not be drawn. You can still select places from this list. Reopen Places to retry the map layer.</p>}
-      {contextOverlays && CONTEXT_CATEGORIES.map(category => contextOverlays.shown[category] && <React.Fragment key={category}>
-        {contextOverlays.sources[category].loading && <p role="status">Loading {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()} in this map area...</p>}
-        {(contextOverlays.sources[category].error || contextOverlays.mapErrors[category]) && <div role="alert" className="transit-places-message">
-          <p>{CONTEXT_OVERLAY_INFO[category].label} could not be {contextOverlays.sources[category].error ? "loaded" : "drawn"}. Other places and layers remain usable.
-            {contextOverlays.sources[category].snapshot && " A previously loaded area may still be shown."}</p>
-          <Button size="sm" variant="secondary" onClick={() => contextOverlays.onRetry(category)}>Retry {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()}</Button>
-        </div>}
-      </React.Fragment>)}
       {selected && (
         <section className="transit-place-detail" aria-labelledby="selected-place-heading">
           <div className="transit-place-detail-heading">
             <h2 id="selected-place-heading" ref={heading} tabIndex={-1}>{selected.name}</h2>
+            <LoadStatus label={categoryName(selected.category)}
+              issues={placeIssues.filter(issue => issue.label === categoryName(selected.category))}
+              loading={sources[selected.category].loading} />
+            <LoadStatus label="Saved places" issues={savedIssues} />
+            <LoadStatus label="Place markers" issues={markerIssues} />
           </div>
           <p><FontAwesomeIcon icon={placeIconDefinition(selected.category)} aria-hidden="true" />{" "}
             {PLACE_INFO[selected.category].singular}</p>
@@ -298,6 +351,14 @@ export default function NearbyPlaces({
           {CULTURE_PLACE_CATEGORIES.includes(selected.category) && <section aria-label="Cultural venue information">
             <h3>Source-mapped venue</h3>
             <p>This community-mapped listing is not live opening information. Admission, tickets, reservations, accessibility and public access are not verified. Confirm the current location, hours and visiting arrangements with the venue.</p>
+          </section>}
+          {OUTING_PLACE_CATEGORIES.includes(selected.category) && <section aria-label="Outing destination information">
+            {selected.siteType && <p><strong>Source-listed type:</strong> {selected.siteType}</p>}
+            <p>This community-mapped listing is not live opening or availability information. Confirm public access, hours, fees and accessibility before visiting. Do not enter restricted property.</p>
+            {selected.category === "splash-pad" && <p>Water operation is seasonal and not verified. A mapped splash pad is not a drinking-water source or a guarantee that water is running.</p>}
+            {["playground", "sports-court", "skatepark"].includes(selected.category) && <p>Mapped facilities do not establish current condition, age suitability, opening hours or availability. School and managed sites may have restricted access; check posted rules and reservations.</p>}
+            {["public-garden", "nature-reserve", "viewpoint"].includes(selected.category) && <p>Use designated public entrances and paths. Conservation restrictions, tickets and seasonal closures may apply; this point does not establish a safe or accessible approach.</p>}
+            {["historic-site", "public-art"].includes(selected.category) && <p>View only from lawful public access. A source classification is not verified historic designation, an artwork title or permission to enter a building or site.</p>}
           </section>}
           {selected.category === "farmers-market" && <section aria-label="Market schedule">
             <h3>Source-listed schedule</h3>

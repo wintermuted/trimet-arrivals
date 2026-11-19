@@ -62,11 +62,17 @@ describe("Viewport-loaded walking and street-tree context", () => {
           crossings: { ...source, loading: true }, "crossing-deficiencies": source },
         mapErrors: DEFAULT_CONTEXT_OVERLAYS, onShown, onRetry }} /></MemoryRouter>));
     expect(container.textContent).toContain("Zoom in to level 14");
-    expect(container.textContent).toContain("Loading pedpdx crossings in this map area");
-    expect(container.textContent).toContain("not live closures");
+    const warning = container.querySelector<HTMLButtonElement>('button[aria-label="Street trees warning"]');
+    expect(warning.closest(".transit-places-layer-row").querySelector('button[aria-label^="Retry"]')).toBeNull();
+    expect(container.querySelector(".transit-places-map-layers > p")).toBeNull();
+    act(() => warning.focus());
+    expect(document.querySelector('[role="tooltip"]').textContent).toBe("Zoom in to level 14 or closer to see street trees.");
+    expect(container.querySelector('[role="status"][aria-label="Loading pedpdx crossings..."]')).not.toBeNull();
+    act(() => container.querySelector<HTMLButtonElement>('button[aria-label="About crossing deficiencies"]').focus());
+    expect(document.querySelector('[role="tooltip"]').textContent).toContain("not live closures");
     act(() => container.querySelector<HTMLInputElement>(".transit-places-context-toggle input").click());
     expect(onShown).toHaveBeenCalledWith("street-trees", false);
-    act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry sidewalks").click());
+    act(() => container.querySelector<HTMLButtonElement>('button[aria-label="Retry sidewalks"]').click());
     expect(onRetry).toHaveBeenCalledWith("sidewalks");
     expect(onFilters).not.toHaveBeenCalled();
   });

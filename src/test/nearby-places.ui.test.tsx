@@ -2,8 +2,8 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import {
-  CULTURE_PLACE_CATEGORIES, DEFAULT_PLACE_FILTERS, emptyPlaceSources, filterPlaces, InterestPlace, parsePlaceSnapshot, placeCategoryForId, PLACE_CATEGORIES,
-  placeDetailLink, placeInBounds, placePlannerLink, PlaceSnapshot
+  CULTURE_PLACE_CATEGORIES, OUTING_PLACE_CATEGORIES, OSM_PLACE_CATEGORIES, DEFAULT_PLACE_FILTERS, emptyPlaceSources, filterPlaces, InterestPlace, parsePlaceSnapshot, placeCategoryForId, PLACE_CATEGORIES,
+  placeDetailLink, placeInBounds, placePlannerLink, PlaceSnapshot, usePlaceCatalog
 } from "../api/places/places";
 import { Popup } from "mapbox-gl";
 import NearbyPlaces from "../view/nearby/components/NearbyPlaces";
@@ -61,6 +61,9 @@ const amenities: InterestPlace[] = [
 ];
 const culturalPlaces: InterestPlace[] = CULTURE_PLACE_CATEGORIES.map((category, i) => ({
   ...pod, id: `osm:${category}:node:${i + 1}`, category, name: `Example ${category}`
+}));
+const outingPlaces: InterestPlace[] = OUTING_PLACE_CATEGORIES.map((category, i) => ({
+  ...pod, id: `osm:${category}:way:${i + 1}`, category, name: `Example ${category}`, siteType: "Example source type"
 }));
 const snapshot: PlaceSnapshot = {
   version: 1, category: "park", retrievedAt: "2026-11-18T12:00:00Z",
@@ -149,12 +152,13 @@ describe("Places filtering, selection and map layers", () => {
     }
     await act(async () => root.render(<Harness />));
     const disclosures = () => [...container.querySelectorAll<HTMLDetailsElement>(".transit-places-section")];
-    expect(disclosures().map(section => section.querySelector("summary").textContent))
+    expect(disclosures().map(section => section.querySelector("summary").firstChild.textContent))
       .toEqual(["Discovery tools", "Place categories", "Map layers"]);
     expect(disclosures().every(section => !section.open)).toBe(true);
     expect(container.querySelector('input[type="search"]').closest("details")).toBeNull();
     expect(container.querySelector(".transit-places-list").closest("details")).toBeNull();
-    expect(container.querySelector('[role="alert"]').closest("details")).toBeNull();
+    expect(container.querySelector('[role="alert"]').closest("summary").textContent).toContain("Map layers");
+    expect(container.querySelector(".transit-places-message")).toBeNull();
     await act(async () => {
       disclosures()[1].open = true;
       disclosures()[1].dispatchEvent(new Event("toggle"));
@@ -200,6 +204,118 @@ describe("Places filtering, selection and map layers", () => {
       places: [{ ...culturalPlaces[0], id: "osm:art-gallery:node:1" }] }, "museum")).toThrow();
   });
 
+  it("validates and searches every outing category while leaving cafes and bakeries opt-in", () => {
+    for (const place of outingPlaces) {
+      expect(placeCategoryForId(place.id)).toBe(place.category);
+      expect(parsePlaceSnapshot({ ...snapshot, category: place.category, places: [place] }, place.category).places).toEqual([place]);
+      expect(filterPlaces([place], { ...DEFAULT_PLACE_FILTERS, [place.category]: true, search: "source type" })).toEqual([place]);
+    }
+    expect(filterPlaces(outingPlaces, DEFAULT_PLACE_FILTERS).map(place => place.category)).not.toEqual(
+      expect.arrayContaining(["cafe", "bakery"]));
+    expect(DEFAULT_PLACE_FILTERS.cafe).toBe(false);
+    expect(DEFAULT_PLACE_FILTERS.bakery).toBe(false);
+    expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, siteType: "mural" }] }, "park")).toThrow();
+    expect(() => parsePlaceSnapshot({ ...snapshot, category: "viewpoint",
+      places: [{ ...outingPlaces[0], siteType: 123 }] }, "viewpoint")).toThrow();
+  });
+
+  it("retries only the requested failed place source and retains its last snapshot on a subsequent failure", async () => {
+    const originalFetch = global.fetch;
+    const fetch = jest.fn().mockRejectedValue(new Error("Unavailable source"));
+    global.fetch = fetch;
+    let catalog: ReturnType<typeof usePlaceCatalog>;
+    function Harness() {
+      catalog = usePlaceCatalog(true);
+      return null;
+    }
+    try {
+      await act(async () => root.render(<Harness />));
+      expect(fetch).toHaveBeenCalledTimes(PLACE_CATEGORIES.length);
+      expect(catalog.sources.playground.error).toBe(true);
+      const place = outingPlaces.find(place => place.category === "playground");
+      const loaded = { ...snapshot, category: place.category, places: [place] };
+      fetch.mockResolvedValueOnce({ ok: true, json: async () => loaded });
+      await act(async () => catalog.retry("playground"));
+      expect(fetch).toHaveBeenCalledTimes(PLACE_CATEGORIES.length + 1);
+      expect(fetch).toHaveBeenLastCalledWith(expect.stringContaining("/data/places/playgrounds.json"),
+        expect.objectContaining({ cache: "reload" }));
+      expect(catalog.sources.playground.snapshot.places).toEqual([place]);
+      expect(catalog.sources.cafe.error).toBe(true);
+      await act(async () => catalog.retry("playground"));
+      expect(catalog.sources.playground.error).toBe(true);
+      expect(catalog.sources.playground.snapshot.places).toEqual([place]);
+      expect(fetch).toHaveBeenCalledTimes(PLACE_CATEGORIES.length + 2);
+    } finally { global.fetch = originalFetch; }
+  });
+
+  it("deduplicates equivalent named park/art destinations without hiding separate assets, disabled-source alternatives or saved records", () => {
+    const reserve: InterestPlace = { ...park, id: "osm:nature-reserve:way:2", category: "nature-reserve" };
+    const artwork: InterestPlace = { ...park, id: "portland:park-artwork:3", category: "park-artwork", name: "Example Sculpture" };
+    const osmArt: InterestPlace = { ...artwork, id: "osm:public-art:node:4", category: "public-art" };
+    const otherArt: InterestPlace = { ...osmArt, id: "osm:public-art:node:5", name: "Separate mural" };
+    const farReserve: InterestPlace = { ...reserve, id: "osm:nature-reserve:way:6", coordinates: [-122.6, 45.52] };
+    expect(filterPlaces([park, reserve, artwork, osmArt, otherArt, farReserve], DEFAULT_PLACE_FILTERS))
+      .toEqual([park, artwork, otherArt, farReserve]);
+    expect(filterPlaces([park, reserve], { ...DEFAULT_PLACE_FILTERS, park: false })).toEqual([reserve]);
+    expect(filterPlaces([artwork, osmArt], { ...DEFAULT_PLACE_FILTERS, "park-artwork": false })).toEqual([osmArt]);
+    expect(filterPlaces([park, reserve], DEFAULT_PLACE_FILTERS, false)).toEqual([park, reserve]);
+  });
+
+  it("keeps source errors beside collapsed sections, groups and category rows with exact-message tooltips and isolated retries", async () => {
+    const retry = jest.fn(), onFilters = jest.fn();
+    const sources = { ...emptyPlaceSources(), cafe: { loading: false, error: true } };
+    await act(async () => root.render(<MemoryRouter><NearbyPlaces sources={sources} filters={DEFAULT_PLACE_FILTERS}
+      onFilters={onFilters} visiblePlaces={[]} onSelect={jest.fn()} onRetry={retry} mapReady mapError={false} /></MemoryRouter>));
+    const section = container.querySelector<HTMLDetailsElement>("details");
+    const summaryRetry = section.querySelector<HTMLButtonElement>('summary button[aria-label="Retry place categories"]');
+    await act(async () => summaryRetry.click());
+    expect(retry).toHaveBeenLastCalledWith("cafe");
+    expect(section.open).toBe(false);
+    await act(async () => { section.open = true; section.dispatchEvent(new Event("toggle")); });
+    const group = [...container.querySelectorAll(".transit-places-category-group")]
+      .find(el => el.querySelector("legend").textContent === "Food & markets");
+    const groupRetry = group.querySelector<HTMLButtonElement>('button[aria-label="Retry food & markets"]');
+    await act(async () => groupRetry.click());
+    expect(group.querySelector("button[aria-expanded]").getAttribute("aria-expanded")).toBe("false");
+    await act(async () => group.querySelector<HTMLButtonElement>("button[aria-expanded]").click());
+    const row = group.querySelector(".transit-places-category--cafe").closest(".transit-places-layer-row");
+    const error = row.querySelector<HTMLButtonElement>('button[aria-label="Cafés error"]');
+    await act(async () => error.focus());
+    expect(document.querySelector('[role="tooltip"]').textContent)
+      .toBe("Cafés could not be loaded. Other available places remain usable.");
+    expect(error.closest("label")).toBeNull();
+    await act(async () => row.querySelector<HTMLButtonElement>('button[aria-label="Retry cafés"]').click());
+    expect(retry).toHaveBeenCalledTimes(3);
+    expect(onFilters).not.toHaveBeenCalled();
+    expect(container.querySelector(".transit-places-message")).toBeNull();
+  });
+
+  it("shows a layer's retained-snapshot or drawing failure only at its row and exposes a real marker retry", async () => {
+    const retry = jest.fn(), retryMap = jest.fn();
+    const sources = {
+      "park-trails": { loading: false, error: true, snapshot: overlaySnapshot("park-trails"), retry: jest.fn() },
+      "bicycle-network": { loading: false, error: false, retry: jest.fn() },
+      "recommended-bike-routes": { loading: false, error: false, retry: jest.fn() }
+    };
+    await act(async () => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()} filters={DEFAULT_PLACE_FILTERS}
+      onFilters={jest.fn()} visiblePlaces={[]} onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError onRetryMap={retryMap}
+      neighborhoods={{ shown: false, onShown: jest.fn(), polygonsShown: false, onPolygonsShown: jest.fn(),
+        loading: false, error: false, mapError: false, onRetry: jest.fn() }}
+      lineOverlays={{ shown: { ...DEFAULT_LINE_OVERLAYS, "park-trails": true }, sources,
+        mapErrors: DEFAULT_LINE_OVERLAYS, onShown: jest.fn(), onRetry: retry }} /></MemoryRouter>));
+    const markerRetry = container.querySelector<HTMLButtonElement>('button[aria-label="Retry place categories"]');
+    await act(async () => markerRetry.click());
+    expect(retryMap).toHaveBeenCalledTimes(1);
+    const layerRetry = container.querySelector<HTMLButtonElement>('button[aria-label="Retry map layers"]');
+    await act(async () => layerRetry.click());
+    expect(retry).toHaveBeenCalledWith("park-trails");
+    const row = container.querySelector('button[aria-label="Park trails error"]').closest(".transit-places-layer-row");
+    await act(async () => row.querySelector<HTMLButtonElement>('button[aria-label="Park trails error"]').focus());
+    expect(document.querySelector('[role="tooltip"]').textContent)
+      .toBe("Park trails could not be loaded. Other map layers and places remain usable. The previously loaded snapshot is still shown.");
+    expect(container.querySelector(".transit-places-message")).toBeNull();
+  });
+
   it("bulk toggles nested category groups and derives mixed state from children and external filters", () => {
     let updateFilters: React.Dispatch<React.SetStateAction<typeof DEFAULT_PLACE_FILTERS>>;
     let currentFilters = { ...DEFAULT_PLACE_FILTERS, search: "garden" };
@@ -213,7 +329,7 @@ describe("Places filtering, selection and map layers", () => {
     act(() => root.render(<Harness />));
     const groups = [...container.querySelectorAll<HTMLFieldSetElement>(".transit-places-category-group")];
     expect(groups.map(group => group.querySelector("legend").textContent))
-      .toEqual(["Parks & nature", "Food & markets", "Community & resources", "Arts & culture", "Trip amenities"]);
+      .toEqual(["Parks & nature", "Food & markets", "Community & resources", "Arts & culture", "Play & recreation", "Trip amenities"]);
     const childCategories = [...container.querySelectorAll(".transit-places-group-children label")]
       .map(label => PLACE_CATEGORIES.find(category => label.classList.contains(`transit-places-category--${category}`)));
     expect([...childCategories].sort()).toEqual([...PLACE_CATEGORIES].sort());
@@ -315,7 +431,7 @@ describe("Places filtering, selection and map layers", () => {
       lineOverlays={{ shown: { "park-trails": true, "bicycle-network": true, "recommended-bike-routes": true },
         sources, mapErrors: DEFAULT_LINE_OVERLAYS, onShown, onRetry }}
     /></MemoryRouter>));
-    expect(container.textContent).toContain("Loading park trails");
+    expect(container.querySelector('[role="status"][aria-label="Loading park trails..."]')).not.toBeNull();
     expect(container.textContent).toContain("Bicycle network could not be loaded");
     expect(container.querySelector("#place-line-overlay-help")).toBeNull();
     const help = container.querySelector<HTMLButtonElement>('button[aria-label="About recommended bike routes"]');
@@ -333,7 +449,7 @@ describe("Places filtering, selection and map layers", () => {
     const toggle = container.querySelector<HTMLInputElement>(".transit-places-line-toggle input");
     act(() => toggle.click());
     expect(onShown).toHaveBeenCalledWith("park-trails", false);
-    act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry bicycle network").click());
+    act(() => container.querySelector<HTMLButtonElement>('button[aria-label="Retry bicycle network"]').click());
     expect(onRetry).toHaveBeenCalledWith("bicycle-network");
     expect(onFilters).not.toHaveBeenCalled();
   });
@@ -408,7 +524,7 @@ describe("Places filtering, selection and map layers", () => {
     expect(control.checked).toBe(true);
     expect(container.textContent).toContain("Neighborhood boundaries could not be loaded");
     expect(container.querySelector(".transit-place-result").textContent).toContain(park.name);
-    act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry neighborhoods").click());
+    act(() => container.querySelector<HTMLButtonElement>('button[aria-label="Retry neighborhoods"]').click());
     expect(onRetry).toHaveBeenCalledTimes(1);
     act(() => container.querySelector<HTMLInputElement>(".transit-places-polygon-toggle input").click());
     expect(onPolygonsShown).toHaveBeenCalledWith(true);
@@ -561,12 +677,23 @@ describe("Places filtering, selection and map layers", () => {
     require("../../public/data/places/museums.json"),
     require("../../public/data/places/art-galleries.json"),
     require("../../public/data/places/theatres.json"),
-    require("../../public/data/places/arts-centres.json")
+    require("../../public/data/places/arts-centres.json"),
+    require("../../public/data/places/viewpoints.json"),
+    require("../../public/data/places/playgrounds.json"),
+    require("../../public/data/places/splash-pads.json"),
+    require("../../public/data/places/historic-sites.json"),
+    require("../../public/data/places/public-art.json"),
+    require("../../public/data/places/sports-courts.json"),
+    require("../../public/data/places/skateparks.json"),
+    require("../../public/data/places/public-gardens.json"),
+    require("../../public/data/places/nature-reserves.json"),
+    require("../../public/data/places/cafes.json"),
+    require("../../public/data/places/bakeries.json")
   ])("accepts every published $category record in the actual catalog parser", data => {
     expect(parsePlaceSnapshot(data, data.category).places).toHaveLength(data.places.length);
   });
 
-  it.each([garden, market, restroom, tree, ...everydayPlaces, ...amenities, ...culturalPlaces])("shows $category details, caveats, and an approximate named planner destination", place => {
+  it.each([garden, market, restroom, tree, ...everydayPlaces, ...amenities, ...culturalPlaces, ...outingPlaces])("shows $category details, caveats, and an approximate named planner destination", place => {
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
       filters={DEFAULT_PLACE_FILTERS} onFilters={jest.fn()} visiblePlaces={[place]} selected={place}
       onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false} /></MemoryRouter>));
@@ -615,6 +742,10 @@ describe("Places filtering, selection and map layers", () => {
     } else if (CULTURE_PLACE_CATEGORIES.includes(place.category)) {
       expect(container.textContent).toContain("not live opening information");
       expect(container.textContent).toContain("Admission, tickets, reservations, accessibility and public access are not verified");
+    } else if (OUTING_PLACE_CATEGORIES.includes(place.category)) {
+      expect(container.textContent).toContain("not live opening or availability information");
+      expect(container.textContent).toContain(place.siteType);
+      if (place.category === "splash-pad") expect(container.textContent).toContain("not a drinking-water source");
     }
   });
 
@@ -646,10 +777,10 @@ describe("Places filtering, selection and map layers", () => {
     const link = container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]');
     expect(link.search).toContain("toPlaceId=portland%3Apark%3A1");
     expect(container.textContent).toContain("not a verified public entrance");
-    act(() => Array.from(container.querySelectorAll("button")).find(item => item.textContent === "Retry food-cart pods").click());
+    act(() => clearSelection());
+    act(() => container.querySelector<HTMLButtonElement>('button[aria-label="Retry food-cart pods"]').click());
     expect(retry).toHaveBeenCalledWith("food-cart-pod");
-    expect(document.activeElement.id).toBe("selected-place-heading");
-    expect(container.querySelector(".transit-places-list")).toBeNull();
+    expect(container.querySelector(".transit-places-list")).not.toBeNull();
     expect(container.textContent).not.toContain("Back to places");
     act(() => clearSelection());
     expect(container.querySelector(".transit-places-list")).not.toBeNull();
@@ -704,7 +835,7 @@ describe("Places filtering, selection and map layers", () => {
         id: `nearby-places-${category}-counts`,
         layout: expect.objectContaining({ "icon-image": `nearby-places-${category}-icon` })
       }));
-      if (["museum", "art-gallery", "theatre", "arts-centre"].includes(category)) {
+      if (OSM_PLACE_CATEGORIES.includes(category)) {
         expect(fakeMap.addSource).toHaveBeenCalledWith(`nearby-places-${category}`,
           expect.objectContaining({ attribution: expect.stringContaining("OpenStreetMap contributors (ODbL)") }));
       }

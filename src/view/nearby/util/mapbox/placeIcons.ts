@@ -1,13 +1,17 @@
 import { faBook, faLeaf, faBasketShopping, faRestroom, faSeedling, faTree, faUsers, faUtensils,
   faCartShopping, faRecycle, faCarrot, faBicycle, faFaucetDrip, faChair, faPalette,
-  faLandmark, faImages, faMasksTheater, faPaintbrush } from "@fortawesome/free-solid-svg-icons";
+  faLandmark, faImages, faMasksTheater, faPaintbrush, faBinoculars, faChildReaching, faWater,
+  faMonument, faSprayCan, faBasketball, faPersonSkating, faSpa, faMountainSun, faMugSaucer, faBreadSlice } from "@fortawesome/free-solid-svg-icons";
 import { PlaceCategory } from "../../../../api/places/places";
 
 const definitions = { park: faTree, "food-cart-pod": faUtensils, "community-center": faUsers, library: faBook,
   "community-garden": faLeaf, "farmers-market": faBasketShopping, "public-restroom": faRestroom, "heritage-tree": faSeedling,
   "grocery-store": faCartShopping, "reuse-repair": faRecycle, "csa-pickup": faCarrot, "bicycle-parking": faBicycle,
   "drinking-fountain": faFaucetDrip, "picnic-seating": faChair, "park-artwork": faPalette,
-  museum: faLandmark, "art-gallery": faImages, theatre: faMasksTheater, "arts-centre": faPaintbrush };
+  museum: faLandmark, "art-gallery": faImages, theatre: faMasksTheater, "arts-centre": faPaintbrush,
+  viewpoint: faBinoculars, playground: faChildReaching, "splash-pad": faWater, "historic-site": faMonument,
+  "public-art": faSprayCan, "sports-court": faBasketball, skatepark: faPersonSkating, "public-garden": faSpa,
+  "nature-reserve": faMountainSun, cafe: faMugSaucer, bakery: faBreadSlice };
 export const placeIconDefinition = (category: PlaceCategory) => definitions[category];
 
 export function createPlaceIconImage(category: PlaceCategory): ImageData {

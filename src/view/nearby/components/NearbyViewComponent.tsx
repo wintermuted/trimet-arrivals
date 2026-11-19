@@ -353,6 +353,7 @@ export default function NearbyViewComponent() {
   const [placeBounds, setPlaceBounds] = useState<[number, number, number, number]>();
   const [placeZoom, setPlaceZoom] = useState(0);
   const [placeMapError, setPlaceMapError] = useState(false);
+  const [placeMapRevision, setPlaceMapRevision] = useState(0);
   const [neighborhoodsShown, setNeighborhoodsShown] = useState(sharedPlacesView.view?.neighborhoods ?? false);
   const [neighborhoodPolygonsShown, setNeighborhoodPolygonsShown] = useState(sharedPlacesView.view?.polygons ?? false);
   const neighborhoods = useNeighborhoods(isPlaces && neighborhoodsShown);
@@ -387,7 +388,7 @@ export default function NearbyViewComponent() {
   const placeViewport = useRef<PlacesViewport>(sharedPlacesView.viewport);
   const nearTrip = useMemo(() => tripCorridor && alongTrip
     ? tripCorridorMatcher(tripCorridor.lines, tripDistance) : undefined, [tripCorridor, alongTrip, tripDistance]);
-  const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters)
+  const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters, !savedOnly)
     .filter(place => (!savedOnly || Boolean(savedPlaces.saved[place.id])) && (!nearTrip || nearTrip(place.coordinates))),
     [placeCatalog.sources, placeFilters, savedOnly, savedPlaces.saved, nearTrip]);
   const visiblePlaces = useMemo(() => savedOnly || nearTrip ? filteredPlaces : placeBounds
@@ -796,7 +797,8 @@ export default function NearbyViewComponent() {
                       neighborhoods.retry();
                       setNeighborhoodLayerRevision(value => value + 1);
                     } }}
-                  origin={currentLocation} originMode={searchMode} onRetry={placeCatalog.retry} mapError={placeMapError} mapReady={Boolean(placeBounds)} />}
+                  origin={currentLocation} originMode={searchMode} onRetry={placeCatalog.retry} mapError={placeMapError}
+                  onRetryMap={() => setPlaceMapRevision(value => value + 1)} mapReady={Boolean(placeBounds)} />}
               </>
             ) : isStopDetail ? (
               <Outlet context={context} />
@@ -882,7 +884,7 @@ export default function NearbyViewComponent() {
             contextShown[category] && contextSources[category].snapshot &&
             <NearbyContextMap key={`${category}-${contextRevisions[category]}`} map={mapRef.current}
               snapshot={contextSources[category].snapshot} onError={handleContextError} />)}
-          {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={mappedPlaces}
+          {isPlaces && isMapLoaded && <NearbyPlacesMap key={`places-${placeMapRevision}`} map={mapRef.current} places={mappedPlaces}
             selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
             onBounds={updatePlaceBounds} onError={setPlaceMapError} />}
           {isPlaces && isMapLoaded && alongTrip && tripCorridor &&

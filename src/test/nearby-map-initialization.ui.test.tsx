@@ -537,7 +537,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     ["museum", "osm:museum:node:4"],
     ["art-gallery", "osm:art-gallery:way:5"],
     ["theatre", "osm:theatre:relation:6"],
-    ["arts-centre", "osm:arts-centre:node:7"]
+    ["arts-centre", "osm:arts-centre:node:7"],
+    ...placesApi.OUTING_PLACE_CATEGORIES.map(category => [category, `osm:${category}:way:123`] as const)
   ] as const)("opens a directly linked %s without GPS and returns to Places using only the header", async (category, id) => {
     const place: placesApi.InterestPlace = { id, category, name: "Directly linked place",
       coordinates: [-122.67, 45.52], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/" };

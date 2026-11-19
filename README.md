@@ -131,9 +131,11 @@ visible in the link but are not added to Recent trips.
 **Places** starts with Parks, Food-cart pods, Community centers, Libraries,
 Community gardens, Farmers markets, Public restrooms, Heritage trees, Grocery
 stores, Reuse & repair, CSA pickups, Drinking fountains, Park artwork, Museums,
-Art galleries, Theatres and Arts & cultural centres enabled.
-**Bicycle parking** and **Picnic & seating** are opt-in categories so thousands
-of individual racks, benches and tables do not obscure other places. Its list follows the
+Art galleries, Theatres, Arts & cultural centres, Viewpoints & observation decks,
+Playgrounds, Splash pads, Historic landmarks & monuments, Public art & murals,
+Sports courts, Skateparks, Visitor gardens and Nature reserves enabled.
+**Bicycle parking**, **Picnic & seating**, **Cafés** and **Bakeries** are opt-in
+categories so dense inventories and commercial listings do not obscure other places. Its list follows the
 visible map area after a pan or zoom, independently of transit's search radius.
 Category toggles and name/address search filter both the map and list. Numbered
 clusters pair the category icon with a count and expand when selected; green
@@ -141,7 +143,10 @@ tree, orange food, purple community, blue book, olive leaf, berry basket,
 teal restroom, brown seedling, brick shopping cart, forest-green recycle,
 ochre carrot, royal-blue bicycle, gold landmark, plum gallery, rose theatre masks
 and indigo paintbrush icons
-identify individual locations. Category controls use a compact wrapped layout. Overlapping markers
+identify individual locations. The added outing categories have their own colored
+icons, including binoculars, playground child, water, monument, spray can,
+basketball, skater, spa, mountain, coffee and bread. Category controls use compact
+single-line rows. Overlapping markers
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
 reveals additional results without silently limiting the catalog.
@@ -165,27 +170,33 @@ and trip-corridor filtering without moving the map.
 keyboard-accessible collapsible sections, initially closed to keep search and
 results accessible. Expanding or collapsing them does not change active filters,
 saved places, overlays or the map. Their open state is retained through place
-details and header Back within the mounted Places view. Search, results and
-source/drawing errors remain outside these sections.
+details and header Back within the mounted Places view. Search and results remain
+outside these sections. Source/drawing failures appear as an inline warning and
+retry button beside the affected category or layer, not a separate error paragraph.
+Collapsed groups/sections retain an aggregate indicator and retry only their failed
+sources. The tooltip preserves the full failure message, including any retained
+snapshot; individual retries leave other filters and layers unchanged.
 
 Place categories are nested under **Parks & nature**, **Food & markets**,
-**Community & resources**, **Arts & culture** and **Trip amenities**. Each group checkbox enables or
+**Community & resources**, **Arts & culture**, **Play & recreation** and **Trip amenities**. Each group checkbox enables or
 disables all its categories without changing other groups, search or map layers.
 A mixed checkbox means only some child categories are enabled; selecting it
 enables the whole group. Individual category toggles remain available, and group
 states follow presets and shared views without changing existing defaults.
 Each group starts collapsed. Its title/chevron button independently shows or hides
 the children; the adjacent bulk checkbox works without expanding the group.
-Tree, basket, people, landmark and signpost icons distinguish the five group headers,
-using theme-aware green, orange, purple, gold and blue place colors.
+Tree, basket, people, landmark, runner and signpost icons distinguish the six group
+headers, using theme-aware category colors.
 Children use a consistent single-column layout, indentation and spacing.
 The Places header's **About Places** help tooltip contains the browsing
 description; the list does not repeat the visible header title or introduction.
 Map-layer descriptions and cautions are available from right-aligned help buttons
 beside each toggle. Help opens over the map to the right of the sidebar (over the
 map below on narrow screens), outside the sidebar's scroll clipping. It supports
-hover, focus and touch, and dismisses with Escape or an outside tap. Loading,
-zoom requirements and errors remain visible rather than hidden in tooltips.
+hover, focus and touch, and dismisses with Escape or an outside tap. Loading uses
+an inline spinner. Zoom requirements use an amber warning beside the layer, with
+the exact zoom message in its tooltip and no misleading retry button. These
+warnings also remain discoverable on the collapsed Map layers section.
 
 Save places from a result row or its detail view. **Saved places only** shows
 matching saves across Portland, not just the visible map; category and search
@@ -498,6 +509,37 @@ missing timestamps, malformed venues and empty categories fail before publishing
 Only names, mapped points, source links, street addresses and safe venue websites
 are published; personal contacts and arbitrary OSM tags are not copied.
 
+The eleven outing snapshots also use OpenStreetMap within Portland's administrative
+boundary: viewpoints/observation towers, playgrounds/splash pads, named historic
+sites/monuments, artwork/murals, sports courts/skateparks, visitor-oriented gardens,
+nature reserves, cafés and bakeries. `OUTING_OSM_QUERY` and the explicit source-tag
+whitelists are in `scripts\refresh-places.mjs`. Generic private/residential gardens,
+explicit access restrictions and known inactive/proposed features are excluded.
+Visitor gardens require public/visitor access or botanical/arboretum tagging.
+Unnamed mapped play, court and artwork assets retain honest category-and-OSM-ID
+labels, not invented park names. Adjacent courts and separate café branches remain
+distinct; only nearby same-name node/footprint duplicates without conflicting
+addresses are combined. Source-listed activity/artwork types are searchable.
+
+All eleven snapshots retain ODbL attribution, source dates and category-qualified
+identities. When both sources are enabled, same-name nearby OSM art/garden/reserve
+records are hidden behind matching City park/art/garden destinations in discovery.
+Different names, distant places and uncertain generic artwork remain distinct.
+Direct links and explicitly saved source records are retained. Café/bakery filters
+are off by default, but are included in group toggles, saves and shared views.
+Refresh only these destinations without changing existing snapshots:
+
+```powershell
+npm run places:refresh -- --outings-only
+```
+
+`--outings-only --osm-input` accepts a complete raw `OUTING_OSM_QUERY` response,
+including its OSM database timestamp. Missing/partial categories fail before
+publication. The full refresh includes outings too. Listings are not live hours,
+equipment status, seasonal splash-pad operation, water potability, court availability,
+public access or accessibility guarantees. Garden admission, bookings and café
+customer restrictions can apply; verify arrangements and entrances before traveling.
+
 Refresh manually when maintaining the catalog (monthly is a reasonable starting
 cadence), and review names, counts, additions/removals, source dates, and arrival
 points before publishing. Retrieval dates are not source update dates. Overpass
@@ -514,8 +556,9 @@ to the same query**, retain its `osm3s.timestamp_osm_base` and use:
 npm run places:refresh -- --osm-input "C:\path\to\portland-overpass-response.json"
 ```
 
-Without `--culture-only`, `--osm-input` supplies the food-pod query; City, Metro
-and cultural data are still fetched and validated in that full-refresh mode. `npm run test:places-data`
+Without `--culture-only` or `--outings-only`, `--osm-input` supplies the food-pod query;
+City, Metro, cultural and outing data are still fetched and validated in that
+full-refresh mode. `npm run test:places-data`
 checks ingestion and safe replacement without querying external services.
 The checked-in initial food-pod response is from July 2026; it is not represented
 as a current November directory. Cultural snapshots carry their own retrieval

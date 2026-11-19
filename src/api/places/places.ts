@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const PLACE_INFO = {
   park: { label: "Parks", singular: "Parks system site", icon: "tree", file: "parks.json", color: "#197346" },
@@ -19,7 +19,18 @@ export const PLACE_INFO = {
   museum: { label: "Museums", singular: "Museum", icon: "landmark", file: "museums.json", color: "#856019" },
   "art-gallery": { label: "Art galleries", singular: "Art gallery", icon: "images", file: "art-galleries.json", color: "#995388" },
   theatre: { label: "Theatres", singular: "Theatre / performing arts venue", icon: "masks-theater", file: "theatres.json", color: "#884758" },
-  "arts-centre": { label: "Arts & cultural centres", singular: "Arts / cultural centre", icon: "paintbrush", file: "arts-centres.json", color: "#4f5c99" }
+  "arts-centre": { label: "Arts & cultural centres", singular: "Arts / cultural centre", icon: "paintbrush", file: "arts-centres.json", color: "#4f5c99" },
+  viewpoint: { label: "Viewpoints & observation decks", singular: "Viewpoint / observation deck", icon: "binoculars", file: "viewpoints.json", color: "#296678" },
+  playground: { label: "Playgrounds", singular: "Playground", icon: "child-reaching", file: "playgrounds.json", color: "#a44c12" },
+  "splash-pad": { label: "Splash pads", singular: "Splash pad", icon: "water", file: "splash-pads.json", color: "#176b95" },
+  "historic-site": { label: "Historic landmarks & monuments", singular: "Historic landmark / monument", icon: "monument", file: "historic-sites.json", color: "#805e32" },
+  "public-art": { label: "Public art & murals", singular: "Source-mapped artwork / mural", icon: "spray-can", file: "public-art.json", color: "#8a4389" },
+  "sports-court": { label: "Sports courts", singular: "Sports court", icon: "basketball", file: "sports-courts.json", color: "#9d3e2f" },
+  skatepark: { label: "Skateparks", singular: "Skatepark", icon: "person-skating", file: "skateparks.json", color: "#4f5c99" },
+  "public-garden": { label: "Visitor gardens", singular: "Visitor garden", icon: "spa", file: "public-gardens.json", color: "#526d16" },
+  "nature-reserve": { label: "Nature reserves", singular: "Nature reserve", icon: "mountain-sun", file: "nature-reserves.json", color: "#336b43" },
+  cafe: { label: "Cafés", singular: "Café", icon: "mug-saucer", file: "cafes.json", color: "#82561d" },
+  bakery: { label: "Bakeries", singular: "Bakery", icon: "bread-slice", file: "bakeries.json", color: "#8a6413" }
 } as const;
 export type PlaceCategory = keyof typeof PLACE_INFO;
 export type PlacePoint = [number, number];
@@ -48,6 +59,7 @@ export interface InterestPlace {
   bikeCovered?: "yes" | "no" | "unknown";
   amenityType?: "Drinking Fountain" | "Picnic Table" | "Bench" | "Art Work";
   amenityStyle?: string;
+  siteType?: string;
 }
 export interface PlaceSnapshot {
   version: 1;
@@ -68,6 +80,9 @@ export interface PlaceSourceState {
 }
 export const PLACE_CATEGORIES = Object.keys(PLACE_INFO) as PlaceCategory[];
 export const CULTURE_PLACE_CATEGORIES: PlaceCategory[] = ["museum", "art-gallery", "theatre", "arts-centre"];
+export const OUTING_PLACE_CATEGORIES: PlaceCategory[] = ["viewpoint", "playground", "splash-pad", "historic-site", "public-art",
+  "sports-court", "skatepark", "public-garden", "nature-reserve", "cafe", "bakery"];
+export const OSM_PLACE_CATEGORIES: PlaceCategory[] = ["food-cart-pod", ...CULTURE_PLACE_CATEGORIES, ...OUTING_PLACE_CATEGORIES];
 export const categoryName = (category: PlaceCategory) => PLACE_INFO[category].label;
 export const categoryIcon = (category: PlaceCategory) => PLACE_INFO[category].icon;
 export const emptyPlaceSources = (): Record<PlaceCategory, PlaceSourceState> => ({
@@ -80,7 +95,12 @@ export const emptyPlaceSources = (): Record<PlaceCategory, PlaceSourceState> => 
   "drinking-fountain": { loading: false, error: false }, "picnic-seating": { loading: false, error: false },
   "park-artwork": { loading: false, error: false },
   museum: { loading: false, error: false }, "art-gallery": { loading: false, error: false },
-  theatre: { loading: false, error: false }, "arts-centre": { loading: false, error: false }
+  theatre: { loading: false, error: false }, "arts-centre": { loading: false, error: false },
+  viewpoint: { loading: false, error: false }, playground: { loading: false, error: false },
+  "splash-pad": { loading: false, error: false }, "historic-site": { loading: false, error: false },
+  "public-art": { loading: false, error: false }, "sports-court": { loading: false, error: false },
+  skatepark: { loading: false, error: false }, "public-garden": { loading: false, error: false },
+  "nature-reserve": { loading: false, error: false }, cafe: { loading: false, error: false }, bakery: { loading: false, error: false }
 });
 export function placeCategoryForId(id: string): PlaceCategory | undefined {
   if (id?.startsWith("portland:park:")) return "park";
@@ -96,8 +116,10 @@ export function placeCategoryForId(id: string): PlaceCategory | undefined {
   if (/^portland:bike:[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(id || "")) return "bicycle-parking";
   const amenity = /^portland:(drinking-fountain|picnic-seating|park-artwork):[1-9]\d*$/.exec(id || "");
   if (amenity) return amenity[1] as PlaceCategory;
-  const cultural = /^osm:(museum|art-gallery|theatre|arts-centre):(node|way|relation):([1-9]\d*)$/.exec(id || "");
-  if (cultural && Number.isSafeInteger(Number(cultural[3]))) return cultural[1] as PlaceCategory;
+  const osm = /^osm:([a-z-]+):(node|way|relation):([1-9]\d*)$/.exec(id || "");
+  if (osm && Number.isSafeInteger(Number(osm[3]))) {
+    return [...CULTURE_PLACE_CATEGORIES, ...OUTING_PLACE_CATEGORIES].find(category => category === osm[1]);
+  }
   if (/^osm:(node|way|relation):\d+$/.test(id || "")) return "food-cart-pod";
   return undefined;
 }
@@ -140,7 +162,9 @@ function isPlace(value: unknown, category: PlaceCategory): value is InterestPlac
       category === "picnic-seating" ? ["Picnic Table", "Bench"].includes(String(value.amenityType)) :
       category === "park-artwork" && value.amenityType === "Art Work")) &&
     (value.amenityStyle === undefined || (["drinking-fountain", "picnic-seating", "park-artwork"].includes(category) &&
-      typeof value.amenityStyle === "string"));
+      typeof value.amenityStyle === "string")) &&
+    (value.siteType === undefined || (OUTING_PLACE_CATEGORIES.includes(category) &&
+      typeof value.siteType === "string" && Boolean(value.siteType.trim())));
 }
 
 export function parsePlaceSnapshot(value: unknown, category: PlaceCategory): PlaceSnapshot {
@@ -178,34 +202,34 @@ export async function loadPlaceSnapshot(category: PlaceCategory, signal?: AbortS
 
 export function usePlaceCatalog(enabled: boolean) {
   const [sources, setSources] = useState(emptyPlaceSources);
-  const [retries, setRetries] = useState({ park: 0, "food-cart-pod": 0, "community-center": 0, library: 0,
-    "community-garden": 0, "farmers-market": 0, "public-restroom": 0, "heritage-tree": 0,
-    "grocery-store": 0, "reuse-repair": 0, "csa-pickup": 0, "bicycle-parking": 0,
-    "drinking-fountain": 0, "picnic-seating": 0, "park-artwork": 0,
-    museum: 0, "art-gallery": 0, theatre: 0, "arts-centre": 0 });
+  const requests = useRef(new Map<PlaceCategory, AbortController>());
+  const load = useCallback((category: PlaceCategory, refresh = false) => {
+    requests.current.get(category)?.abort();
+    const controller = new AbortController();
+    requests.current.set(category, controller);
+    setSources(previous => ({ ...previous, [category]: { ...previous[category], loading: true, error: false } }));
+    loadPlaceSnapshot(category, controller.signal, refresh)
+      .then(snapshot => {
+        if (!controller.signal.aborted) {
+          setSources(previous => ({ ...previous, [category]: { snapshot, loading: false, error: false } }));
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setSources(previous => ({ ...previous, [category]: { ...previous[category], loading: false, error: true } }));
+        }
+      });
+  }, []);
   useEffect(() => {
     if (!enabled) return;
-    const controller = new AbortController();
-    PLACE_CATEGORIES.forEach(category => {
-      setSources(previous => ({ ...previous, [category]: { ...previous[category], loading: true, error: false } }));
-      loadPlaceSnapshot(category, controller.signal, retries[category] > 0)
-        .then(snapshot => {
-          if (!controller.signal.aborted) {
-            setSources(previous => ({ ...previous, [category]: { snapshot, loading: false, error: false } }));
-          }
-        })
-        .catch(() => {
-          if (!controller.signal.aborted) {
-            setSources(previous => ({ ...previous, [category]: { ...previous[category], loading: false, error: true } }));
-          }
-        });
-    });
-    return () => controller.abort();
-  }, [enabled, retries]);
+    PLACE_CATEGORIES.forEach(category => load(category));
+    const active = requests.current;
+    return () => { active.forEach(controller => controller.abort()); active.clear(); };
+  }, [enabled, load]);
   return {
     sources,
     places: PLACE_CATEGORIES.flatMap(category => sources[category].snapshot?.places ?? []),
-    retry: (category: PlaceCategory) => setRetries(previous => ({ ...previous, [category]: previous[category] + 1 }))
+    retry: (category: PlaceCategory) => load(category, true)
   };
 }
 
@@ -214,16 +238,28 @@ export const DEFAULT_PLACE_FILTERS: PlaceFilters = { park: true, "food-cart-pod"
   library: true, "community-garden": true, "farmers-market": true, "public-restroom": true, "heritage-tree": true,
   "grocery-store": true, "reuse-repair": true, "csa-pickup": true, "bicycle-parking": false,
   "drinking-fountain": true, "picnic-seating": false, "park-artwork": true,
-  museum: true, "art-gallery": true, theatre: true, "arts-centre": true, search: "" };
-export function filterPlaces(places: InterestPlace[], filters: PlaceFilters) {
+  museum: true, "art-gallery": true, theatre: true, "arts-centre": true,
+  viewpoint: true, playground: true, "splash-pad": true, "historic-site": true, "public-art": true,
+  "sports-court": true, skatepark: true, "public-garden": true, "nature-reserve": true, cafe: false, bakery: false, search: "" };
+export function filterPlaces(places: InterestPlace[], filters: PlaceFilters, deduplicate = true) {
   const query = filters.search.trim().toLocaleLowerCase();
   const gardenProperties = new Set(places.filter(place => place.category === "community-garden")
     .map(place => place.parkPropertyId).filter(id => id !== undefined));
-  return places.filter(place => !(place.category === "park" && /\bcommunity garden\b/i.test(place.name) &&
+  const matches = places.filter(place => !(place.category === "park" && /\bcommunity garden\b/i.test(place.name) &&
       gardenProperties.has(Number(place.id.replace("portland:park:", "")))) &&
     filters[place.category] &&
-    `${place.name} ${place.address || ""} ${place.scientificName || ""} ${place.reuseServices || ""} ${place.reuseItems || ""} ${place.pickupProducts || ""} ${place.amenityType || ""} ${place.amenityStyle || ""}`
+    `${place.name} ${place.address || ""} ${place.scientificName || ""} ${place.reuseServices || ""} ${place.reuseItems || ""} ${place.pickupProducts || ""} ${place.amenityType || ""} ${place.amenityStyle || ""} ${place.siteType || ""}`
       .toLocaleLowerCase().includes(query));
+  if (!deduplicate) return matches;
+  const existing = matches.filter(place => ["park", "community-garden", "park-artwork"].includes(place.category));
+  const normalizedName = (name: string) => name.toLocaleLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]/g, "");
+  return matches.filter(place => {
+    const equivalents: PlaceCategory[] = place.category === "public-art" ? ["park-artwork"] :
+      ["public-garden", "nature-reserve"].includes(place.category) ? ["park", "community-garden"] : [];
+    if (!equivalents.length) return true;
+    return !existing.some(other => equivalents.includes(other.category) && normalizedName(place.name) === normalizedName(other.name) &&
+      Math.hypot((place.coordinates[0] - other.coordinates[0]) * 78000, (place.coordinates[1] - other.coordinates[1]) * 111000) <= 120);
+  });
 }
 export function placeInBounds(place: InterestPlace, bounds: [number, number, number, number]) {
   const [lng, lat] = place.coordinates;

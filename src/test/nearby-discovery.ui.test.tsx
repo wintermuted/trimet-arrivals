@@ -2,7 +2,7 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { currentPlacePreset, placesPreset, placesViewSearch, readPlacesView, tripCorridorMatcher } from "../api/places/discovery";
-import { InterestPlace, PLACE_CATEGORIES } from "../api/places/places";
+import { InterestPlace, OUTING_PLACE_CATEGORIES, PLACE_CATEGORIES } from "../api/places/places";
 import { readSavedPlaces, SAVED_PLACES_KEY, useSavedPlaces } from "../api/places/savedPlaces";
 import NearbyDiscoveryControls from "../view/nearby/components/NearbyDiscoveryControls";
 import NearbyPlannerPaths from "../view/nearby/components/NearbyPlannerPaths";
@@ -51,6 +51,15 @@ describe("Places discovery tools", () => {
     expect(readPlacesView(placesViewSearch(view)).view).toEqual(view);
     const saved = cultures.map((category, i) => ({ id: `osm:${category}:node:${i + 1}`, name: `Example ${category}` }));
     saved.push({ id: "osm:node:1", name: "Existing food carts" });
+    localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(saved));
+    expect(readSavedPlaces()).toEqual(Object.fromEntries(saved.map(place => [place.id, place.name])));
+  });
+
+  it("round-trips all outing filters and stable saved identities", () => {
+    const view = placesPreset("default");
+    PLACE_CATEGORIES.forEach(category => { view.filters[category] = OUTING_PLACE_CATEGORIES.includes(category); });
+    expect(readPlacesView(placesViewSearch(view)).view).toEqual(view);
+    const saved = OUTING_PLACE_CATEGORIES.map((category, i) => ({ id: `osm:${category}:way:${i + 1}`, name: `Example ${category}` }));
     localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(saved));
     expect(readSavedPlaces()).toEqual(Object.fromEntries(saved.map(place => [place.id, place.name])));
   });
