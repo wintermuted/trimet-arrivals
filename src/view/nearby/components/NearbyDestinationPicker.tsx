@@ -11,6 +11,7 @@ export default function NearbyDestinationPicker({
   stops,
   destination,
   routeId,
+  open,
   onSelect,
   onOpenChange,
   onStopHighlightChanged,
@@ -18,11 +19,11 @@ export default function NearbyDestinationPicker({
   stops: RouteDirectionStop[];
   destination?: RouteDirectionStop;
   routeId: number;
+  open: boolean;
   onSelect: (stop: RouteDirectionStop) => void;
   onOpenChange: (open: boolean) => void;
   onStopHighlightChanged?: (stopId?: number) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [routes, setRoutes] = useState<TrimetRoute[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -46,7 +47,6 @@ export default function NearbyDestinationPicker({
     wasOpen.current = open;
   }, [open]);
 
-  useEffect(() => () => onOpenChange(false), [onOpenChange]);
 
   useEffect(() => {
     if (!open || routes) {
@@ -127,7 +127,6 @@ export default function NearbyDestinationPicker({
   }
 
   function close() {
-    setOpen(false);
     onOpenChange(false);
     clearHighlight();
   }
@@ -146,7 +145,6 @@ export default function NearbyDestinationPicker({
             close();
           } else {
             setSearch("");
-            setOpen(true);
             onOpenChange(true);
           }
         }}

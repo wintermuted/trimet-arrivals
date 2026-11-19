@@ -10,6 +10,7 @@ export interface DirectionsSelection {
   origin: RouteDirectionStop;
   destination?: RouteDirectionStop;
   destinationStops?: RouteDirectionStop[];
+  showDestinationChoices?: boolean;
   onChooseDestination?: (stop: RouteDirectionStop) => void;
 }
 
@@ -29,13 +30,14 @@ export function highlightDirectionsStop(map: MapboxMap, stopId?: number) {
 
 export function showDirectionsSelection(
   map: MapboxMap,
-  { routeId, direction, origin, destination, destinationStops, onChooseDestination }: DirectionsSelection,
+  { routeId, direction, origin, destination, destinationStops, showDestinationChoices, onChooseDestination }: DirectionsSelection,
   onError: () => void
 ): () => void {
   const request = new AbortController();
   let closed = false;
   let removeStopPopover: (() => void) | undefined;
-  const stops = destination && !destinationStops ? [origin, destination] : [origin];
+  const candidateStops = !destination || showDestinationChoices ? destinationStops : undefined;
+  const stops = destination && !candidateStops ? [origin, destination] : [origin];
   const markers = stops.map((stop, index) => {
     const label = index === 0 ? "Board at" : "Get off at";
     const marker = new Marker({ color: index === 0 ? "#4264fb" : "#c55316" })
@@ -46,9 +48,9 @@ export function showDirectionsSelection(
     return marker;
   });
 
-  if (destinationStops) {
+  if (candidateStops) {
     const stopsById = new Map<number, RouteDirectionStop>(
-      destinationStops.map(stop => [stop.locid, stop])
+      candidateStops.map(stop => [stop.locid, stop])
     );
     const data: FeatureCollection<Point> = {
       features: Array.from(stopsById.values(), stop => ({
@@ -77,7 +79,15 @@ export function showDirectionsSelection(
 
     if (onChooseDestination && stopsById.size) {
       let popup: Popup | undefined;
-      const openStop = (event: MapLayerMouseEvent) => {
+      let activeStopId: number | undefined;
+      let pinned = false;
+      let dismissTimer: ReturnType<typeof setTimeout> | undefined;
+      const cancelDismiss = () => clearTimeout(dismissTimer);
+      const scheduleDismiss = () => {
+        cancelDismiss();
+        if (!pinned) dismissTimer = setTimeout(() => popup?.remove(), 300);
+      };
+      const showStop = (event: MapLayerMouseEvent, pin: boolean) => {
         let stop: RouteDirectionStop | undefined;
         let closestDistance = Infinity;
         const features = event.features ?? [];
@@ -93,6 +103,12 @@ export function showDirectionsSelection(
         }
         if (!stop) return;
 
+        cancelDismiss();
+        if (activeStopId === stop.locid) {
+          pinned = pinned || pin;
+          return;
+        }
+        if (pinned && !pin) return;
         popup?.remove();
         const content = document.createElement("div");
         content.className = "transit-directions-stop-popover";
@@ -103,9 +119,8 @@ export function showDirectionsSelection(
         const action = document.createElement("button");
         action.type = "button";
         action.className = "wm-btn wm-btn-primary wm-btn-sm";
-        action.textContent = stop.locid === destination?.locid ? "Selected destination" : "Set as destination";
-        action.disabled = stop.locid === destination?.locid;
-        const stopPopup = new Popup({ offset: 12, maxWidth: "min(15rem, 75vw)" })
+        action.textContent = "Set as destination";
+        const stopPopup = new Popup({ offset: 8, maxWidth: "min(15rem, 75vw)", focusAfterOpen: false })
           .setLngLat([stop.lng, stop.lat])
           .setDOMContent(content);
         action.addEventListener("click", () => {
@@ -113,22 +128,42 @@ export function showDirectionsSelection(
           onChooseDestination(stop);
         });
         content.append(name, info, action);
-        content.addEventListener("keydown", event => {
-          if (event.key === "Escape") stopPopup.remove();
+        stopPopup.on("close", () => {
+          cancelDismiss();
+          popup = undefined;
+          activeStopId = undefined;
+          pinned = false;
         });
         popup = stopPopup.addTo(map);
+        activeStopId = stop.locid;
+        pinned = pin;
+        stopPopup.getElement().addEventListener("mouseenter", cancelDismiss);
+        stopPopup.getElement().addEventListener("mouseleave", scheduleDismiss);
       };
+      const openStop = (event: MapLayerMouseEvent) => showStop(event, true);
+      const hoverStop = (event: MapLayerMouseEvent) => showStop(event, false);
       const enter = () => { map.getCanvas().style.cursor = "pointer"; };
-      const leave = () => { map.getCanvas().style.cursor = ""; };
+      const leave = () => {
+        map.getCanvas().style.cursor = "";
+        scheduleDismiss();
+      };
+      const dismissOnEscape = (event: KeyboardEvent) => {
+        if (event.key === "Escape") popup?.remove();
+      };
       map.on("click", DIRECTIONS_STOPS, openStop);
+      map.on("mousemove", DIRECTIONS_STOPS, hoverStop);
       map.on("mouseenter", DIRECTIONS_STOPS, enter);
       map.on("mouseleave", DIRECTIONS_STOPS, leave);
+      document.addEventListener("keydown", dismissOnEscape);
       removeStopPopover = () => {
+        cancelDismiss();
         popup?.remove();
-        leave();
+        map.getCanvas().style.cursor = "";
         map.off("click", DIRECTIONS_STOPS, openStop);
+        map.off("mousemove", DIRECTIONS_STOPS, hoverStop);
         map.off("mouseenter", DIRECTIONS_STOPS, enter);
         map.off("mouseleave", DIRECTIONS_STOPS, leave);
+        document.removeEventListener("keydown", dismissOnEscape);
       };
     }
   }
@@ -146,9 +181,9 @@ export function showDirectionsSelection(
   }
 
   const bounds = new LngLatBounds([origin.lng, origin.lat], [origin.lng, origin.lat]);
-  if (destinationStops || destination) {
-    if (destinationStops) {
-      destinationStops.forEach(stop => bounds.extend([stop.lng, stop.lat]));
+  if (candidateStops || destination) {
+    if (candidateStops) {
+      candidateStops.forEach(stop => bounds.extend([stop.lng, stop.lat]));
     } else if (destination) {
       bounds.extend([destination.lng, destination.lat]);
     }
@@ -160,8 +195,8 @@ export function showDirectionsSelection(
   getRouteGeometry(String(routeId), direction, request.signal)
     .then(feature => {
       if (!closed) {
-        const routeEnd = destinationStops
-          ? destinationStops[destinationStops.length - 1] ?? origin
+        const routeEnd = candidateStops
+          ? candidateStops[candidateStops.length - 1] ?? origin
           : destination;
         const selected = routeEnd
           ? getSelectedRouteSegment(feature, origin, routeEnd)
@@ -171,10 +206,10 @@ export function showDirectionsSelection(
           "line-opacity": 1,
           "line-width": 4
         });
-        if (destinationStops) {
+        if (candidateStops) {
           map.moveLayer(DIRECTIONS_ROUTE, DIRECTIONS_STOPS);
         }
-        if (destinationStops || destination) {
+        if (candidateStops || destination) {
           const lines = selected.geometry.type === "LineString"
             ? [selected.geometry.coordinates]
             : selected.geometry.coordinates;
@@ -194,6 +229,6 @@ export function showDirectionsSelection(
     request.abort();
     removeStopPopover?.();
     markers.forEach(marker => marker.remove());
-    removeRoutes(map, destinationStops ? [DIRECTIONS_ROUTE, DIRECTIONS_STOPS] : [DIRECTIONS_ROUTE]);
+    removeRoutes(map, candidateStops ? [DIRECTIONS_ROUTE, DIRECTIONS_STOPS] : [DIRECTIONS_ROUTE]);
   };
 }
