@@ -17,11 +17,11 @@ import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextControls } from "../..
 import { SavedPlaceControls } from "../../../api/places/savedPlaces";
 import PlacesHelp from "./PlacesHelp";
 
-const CATEGORY_GROUPS: { label: string; icon: IconDefinition; categories: PlaceCategory[] }[] = [
-  { label: "Parks & nature", icon: faTree, categories: ["park", "community-garden", "heritage-tree", "park-artwork"] },
-  { label: "Food & markets", icon: faBasketShopping, categories: ["food-cart-pod", "farmers-market", "grocery-store", "csa-pickup"] },
-  { label: "Community & resources", icon: faUsers, categories: ["community-center", "library", "reuse-repair"] },
-  { label: "Trip amenities", icon: faSignsPost, categories: ["public-restroom", "bicycle-parking", "drinking-fountain", "picnic-seating"] }
+const CATEGORY_GROUPS: { label: string; icon: IconDefinition; colorCategory: PlaceCategory; categories: PlaceCategory[] }[] = [
+  { label: "Parks & nature", icon: faTree, colorCategory: "park", categories: ["park", "community-garden", "heritage-tree", "park-artwork"] },
+  { label: "Food & markets", icon: faBasketShopping, colorCategory: "food-cart-pod", categories: ["food-cart-pod", "farmers-market", "grocery-store", "csa-pickup"] },
+  { label: "Community & resources", icon: faUsers, colorCategory: "community-center", categories: ["community-center", "library", "reuse-repair"] },
+  { label: "Trip amenities", icon: faSignsPost, colorCategory: "bicycle-parking", categories: ["public-restroom", "bicycle-parking", "drinking-fountain", "picnic-seating"] }
 ];
 
 const LINE_OVERLAY_HELP = "Optional reference lines, not turn-by-turn routes. Trail access, bike permissions, directions, and closures are not verified.";
@@ -129,7 +129,8 @@ export default function NearbyPlaces({
               <button type="button" className="transit-places-group-toggle" aria-expanded={expanded}
                 aria-controls={childrenId} onClick={() => setExpandedGroups(previous => expanded
                   ? previous.filter(label => label !== group.label) : [...previous, group.label])}>
-                <FontAwesomeIcon className="transit-places-group-icon" icon={group.icon} aria-hidden="true" />
+                <FontAwesomeIcon className={`transit-places-group-icon transit-place-icon--${group.colorCategory}`}
+                  icon={group.icon} aria-hidden="true" />
                 <span className="transit-places-group-label">{group.label}</span>
                 <FontAwesome name={expanded ? "caret-down" : "caret-right"} aria-hidden="true" />
               </button>
