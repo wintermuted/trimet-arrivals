@@ -45,6 +45,8 @@ jest.mock("mapbox-gl", () => {
   });
   const createPopup = () => ({
     addTo: jest.fn().mockReturnThis(),
+    getElement: jest.fn(() => global.document.createElement("div")),
+    on: jest.fn().mockReturnThis(),
     remove: jest.fn().mockReturnThis(),
     setDOMContent: jest.fn().mockReturnThis(),
     setHTML: jest.fn().mockReturnThis(),
@@ -96,16 +98,16 @@ describe("directions route line and endpoint framing", () => {
     global.fetch = originalFetch;
   });
 
-  it("opens a downstream stop popover and chooses the exact destination", async () => {
+  it("opens a downstream stop popover on hover and chooses the exact destination", async () => {
     const stop = { ...selection.destination, desc: "<Example stop>" };
     const onChooseDestination = jest.fn();
     const close = showDirectionsSelection(map, {
       ...selection, destination: undefined, destinationStops: [stop], onChooseDestination
     }, onError);
-    const click = map.on.mock.calls.find(([event, layer]) => event === "click" && layer === "directions-stops")[2];
-    click({ features: [{ properties: { locid: selection.origin.locid } }] } as Parameters<typeof click>[0]);
+    const hover = map.on.mock.calls.find(([event, layer]) => event === "mousemove" && layer === "directions-stops")[2];
+    hover({ features: [{ properties: { locid: selection.origin.locid } }] } as Parameters<typeof hover>[0]);
     expect(Popup).toHaveBeenCalledTimes(1); // Boarding marker only.
-    click({ features: [{ properties: { locid: stop.locid } }] } as Parameters<typeof click>[0]);
+    hover({ features: [{ properties: { locid: stop.locid } }] } as Parameters<typeof hover>[0]);
     const popup = jest.mocked(Popup).mock.results[1].value;
     const content = popup.setDOMContent.mock.calls[0][0] as HTMLElement;
     expect(content.querySelector("strong")?.textContent).toBe("<Example stop>");
@@ -114,7 +116,7 @@ describe("directions route line and endpoint framing", () => {
     expect(onChooseDestination).toHaveBeenCalledWith(stop);
     expect(popup.remove).toHaveBeenCalled();
     close();
-    expect(map.off).toHaveBeenCalledWith("click", "directions-stops", click);
+    expect(map.off).toHaveBeenCalledWith("mousemove", "directions-stops", hover);
     await act(async () => {});
   });
 
@@ -445,7 +447,7 @@ describe("directions route line and endpoint framing", () => {
     await act(async () => {
       close = showDirectionsSelection(map, {
         ...selection,
-        destination: middle,
+        destination: undefined,
         destinationStops
       }, onError);
     });
@@ -455,7 +457,7 @@ describe("directions route line and endpoint framing", () => {
         features: [middle, selection.destination].map(stop => ({
           geometry: { coordinates: [stop.lng, stop.lat], type: "Point" },
           properties: {
-            color: stop.locid === middle.locid ? "#c55316" : "#4264fb",
+            color: "#4264fb",
             locid: stop.locid
           },
           type: "Feature"
@@ -481,10 +483,32 @@ describe("directions route line and endpoint framing", () => {
     expect(map.removeSource).toHaveBeenCalledWith("directions-stops");
   });
 
+  it("shows only the two endpoint pins and the selected segment once a destination is chosen", async () => {
+    const middle = { ...selection.destination, locid: 102, seq: 20, lng: 1, lat: 0 };
+    await act(async () => showDirectionsSelection(map, {
+      ...selection,
+      destination: middle,
+      destinationStops: [middle, selection.destination]
+    }, onError));
+
+    expect(map.addSource).not.toHaveBeenCalledWith("directions-stops", expect.anything());
+    expect(map.addSource).toHaveBeenCalledWith("directions-route", expect.objectContaining({
+      data: expect.objectContaining({ geometry: { type: "LineString", coordinates: [[0, 0], [1, 0]] } })
+    }));
+    expect(jest.mocked(Marker).mock.results.map(({ value }) => value.setLngLat.mock.calls[0][0]))
+      .toEqual([[0, 0], [1, 0]]);
+    expect(jest.mocked(LngLatBounds).mock.results[0].value.extend).not.toHaveBeenCalledWith([2, 1]);
+  });
+
   it("highlights and restores a stop without refetching geometry or moving the camera", async () => {
     await act(async () => showDirectionsSelection(map, {
-      ...selection, destinationStops: [selection.destination]
+      ...selection, showDestinationChoices: true, destinationStops: [selection.destination]
     }, onError));
+    expect(map.addSource).toHaveBeenCalledWith("directions-stops", expect.objectContaining({
+      data: expect.objectContaining({ features: [expect.objectContaining({
+        properties: { locid: 103, color: "#c55316" }
+      })] })
+    }));
     const fits = map.fitBounds.mock.calls.length;
     highlightDirectionsStop(map, 103);
     expect(map.setPaintProperty).toHaveBeenCalledWith(

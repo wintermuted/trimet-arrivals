@@ -131,7 +131,7 @@ Departure rows support mouse and keyboard selection, with a highlight and caret
 identifying the selected departure. Selection persists across updates while that
 departure remains available; otherwise the first departure is selected.
 
-On the Nearby Directions map, click or tap a downstream stop to see its name,
+On the Nearby Directions map, hover over or tap a downstream stop to see its name,
 stop ID, and route, then choose **Set as destination** to update the sidebar.
 
 The Nearby route list groups stops by route, then direction; route headings use
@@ -259,10 +259,11 @@ Other-route metadata loads when the picker expands and is reused while it
 remains mounted. Loading failures offer retry without blocking stop selection;
 Cancel or Escape keeps the existing destination and restores button focus.
 The Cancel action stays visible while scrolling the stop list.
-The destination-selection map matches the open picker: it shows downstream stop
-markers and fits the route from the boarding stop to the terminus, both before
-and after a destination is chosen. The boarding pin stays visible for context;
-neither earlier stops nor the boarding stop appear as destination choices.
+Before a destination is chosen, the map shows downstream stop markers and fits
+the route from the boarding stop to the terminus. Once you choose a destination,
+the map shows only the boarding and arrival pins and the route between them.
+Reopen **Get off at** to show all eligible downstream stops again. Canceling
+returns to the selected route without changing the destination.
 Searching the list does not hide map markers. Hovering or
 keyboard-focusing a destination highlights and enlarges its map marker without
 moving the map. Highlights clear when no stop is hovered or focused, or when

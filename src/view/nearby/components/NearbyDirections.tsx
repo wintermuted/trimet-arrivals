@@ -56,6 +56,7 @@ export default function NearbyDirections({
   const [mapRetry, setMapRetry] = useState(0);
   const [choosingDestination, setChoosingDestination] = useState(false);
   const changeDestination = useCallback((stop: RouteDirectionStop) => {
+    setChoosingDestination(false);
     setSearchParams(previous => {
       const next = new URLSearchParams(previous);
       next.set("to", String(stop.locid));
@@ -103,6 +104,7 @@ export default function NearbyDirections({
   ) ?? -1;
   const origin = route?.stops[originIndex];
   const destination = origin && route?.stops[destinationIndex];
+  const showDestinationChoices = Boolean(destination && choosingDestination);
   useEffect(() => {
     setMapError(false);
     if (validRoute && origin) {
@@ -111,13 +113,14 @@ export default function NearbyDirections({
           routeId, direction, origin, destination,
           ...(!showTripTimes && !showTrip ? {
             destinationStops: route.stops.slice(originIndex + 1),
+            ...(showDestinationChoices ? { showDestinationChoices: true } : {}),
             onChooseDestination: changeDestination
           } : {})
         },
         () => setMapError(true)
       );
     }
-  }, [routeId, direction, validRoute, origin, originIndex, destination, onSelectionChanged, mapRetry, route, showTripTimes, showTrip, changeDestination]);
+  }, [routeId, direction, validRoute, origin, originIndex, destination, onSelectionChanged, mapRetry, route, showTripTimes, showTrip, changeDestination, showDestinationChoices]);
 
   if (!validRoute) {
     return (
@@ -240,6 +243,7 @@ export default function NearbyDirections({
           stops={remainingStops}
           destination={destination}
           routeId={routeId}
+          open={choosingDestination}
           onOpenChange={setChoosingDestination}
           onStopHighlightChanged={onStopHighlightChanged}
           onSelect={changeDestination}

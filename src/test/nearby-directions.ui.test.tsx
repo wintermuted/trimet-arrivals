@@ -187,9 +187,14 @@ describe("route-aware destination selection", () => {
   });
 
   it("uses a map stop choice as the destination without changing the route or boarding stop", async () => {
-    await render("route=54&direction=1&from=101");
+    await render("route=54&direction=1&from=101&to=103");
+    openDestinations();
     const [selection] = onSelectionChanged.mock.calls.slice(-1)[0];
+    expect(selection.showDestinationChoices).toBe(true);
+    expect(selection.destinationStops).toEqual(stops.slice(1));
     act(() => selection.onChooseDestination(stops[1]));
+    expect(container.querySelector("#trip-destination-options")).toBeNull();
+    expect(onSelectionChanged.mock.calls.slice(-1)[0][0].showDestinationChoices).toBeUndefined();
     expect(container.querySelector("#trip-destination").textContent).toBe("Example Middle (102)");
     expect(container.querySelector("output").textContent).toContain("route=54&direction=1&from=101&to=102");
   });
@@ -200,7 +205,7 @@ describe("route-aware destination selection", () => {
     expect(Array.from(container.querySelectorAll("[data-stop-id]"))
       .map(row => row.getAttribute("data-stop-id"))).toEqual(["103"]);
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
-      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2], destinationStops: [stops[2]], onChooseDestination: expect.any(Function) },
+      { routeId: 54, direction: 1, origin: stops[1], destination: stops[2], destinationStops: [stops[2]], showDestinationChoices: true, onChooseDestination: expect.any(Function) },
       expect.any(Function)
     );
     const selections = onSelectionChanged.mock.calls.length;
@@ -224,7 +229,7 @@ describe("route-aware destination selection", () => {
     act(() => container.querySelector<HTMLInputElement>('input[type="search"]')
       .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
     expect(onStopHighlightChanged).toHaveBeenLastCalledWith();
-    expect(onSelectionChanged).toHaveBeenCalledTimes(selections);
+    expect(onSelectionChanged).toHaveBeenCalledTimes(selections + 1);
     expect(onSelectionChanged).toHaveBeenLastCalledWith(
       { routeId: 54, direction: 1, origin: stops[1], destination: stops[2], destinationStops: [stops[2]], onChooseDestination: expect.any(Function) },
       expect.any(Function)
