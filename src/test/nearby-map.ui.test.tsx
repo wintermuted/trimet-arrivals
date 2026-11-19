@@ -18,6 +18,7 @@ it("resizes the map when its available panel changes and disposes it on unmount"
   const resize = jest.fn();
   const remove = jest.fn();
   const onRadiusChange = jest.fn();
+  const onVehiclesToggle = jest.fn();
   const initializeMap = jest.fn(() => {
     expect(mapContainerRef.current).not.toBeNull();
   });
@@ -37,6 +38,11 @@ it("resizes the map when its available panel changes and disposes it on unmount"
           isLocating={false}
           isMapLoading={false}
           searchMode="device"
+          vehiclesEnabled={true}
+          onVehiclesToggle={onVehiclesToggle}
+          vehicleFeed={{ vehicles: [], rejected: 0, status: "empty" }}
+          vehicleMapError={false}
+          onVehiclesRetry={jest.fn()}
         />
       )
     );
@@ -53,6 +59,11 @@ it("resizes the map when its available panel changes and disposes it on unmount"
     });
     expect(onRadiusChange).toHaveBeenCalledTimes(1);
     expect(toolbar.querySelectorAll(".transit-map-control-button")).toHaveLength(3);
+    const vehicles = container.querySelector<HTMLButtonElement>(".transit-map-vehicles-toggle");
+    expect(vehicles.getAttribute("aria-pressed")).toBe("true");
+    act(() => vehicles.click());
+    expect(onVehiclesToggle).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("No vehicles in this view.");
     act(() => notifyResize());
     expect(resize).toHaveBeenCalledTimes(1);
     act(() => root.render(null));

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Button } from "@wintermuted/ui-theme/react";
 import FontAwesome from "react-fontawesome";
 import { SearchRadiusSelection } from "./SearchRadiusSelection";
+import { VehicleFeed } from "../util/useVehiclePositions";
 
 export type LatLngCoords = number[];
 
@@ -17,6 +18,11 @@ interface Props {
   isLocating: boolean;
   isMapLoading: boolean;
   searchMode: "none" | "device" | "area" | "pin";
+  vehiclesEnabled: boolean;
+  onVehiclesToggle: () => void;
+  vehicleFeed: VehicleFeed;
+  vehicleMapError: boolean;
+  onVehiclesRetry: () => void;
 }
 
 export function NearbyMapSkeleton({ message }: { message: string }) {
@@ -38,7 +44,12 @@ function NearbyMapV2({
   onRadiusChange,
   isLocating,
   isMapLoading,
-  searchMode
+  searchMode,
+  vehiclesEnabled,
+  onVehiclesToggle,
+  vehicleFeed,
+  vehicleMapError,
+  onVehiclesRetry
 }: Props) {
   // Initialize Map
   useEffect(() => {
@@ -51,6 +62,17 @@ function NearbyMapV2({
       map.remove();
     };
   }, []);
+
+  const vehicleProblem = vehicleMapError || vehicleFeed.status === "error" || vehicleFeed.status === "delayed";
+  const vehicleMessage = vehicleMapError ? "Vehicle symbols could not be displayed." :
+    vehicleFeed.message || {
+      loading: "Loading vehicle positions...",
+      current: "Reported vehicle positions",
+      empty: "No vehicles in this view.",
+      delayed: "Waiting for fresh vehicle reports.",
+      error: "Vehicle updates are unavailable.",
+      paused: "Vehicle updates paused.",
+    }[vehicleFeed.status];
 
   return (
     <div className="transit-nearby-map">
@@ -69,6 +91,11 @@ function NearbyMapV2({
               searchMode === "device" ? "Near me" : "Choose area"}
         </span>
         <div className="transit-nearby-map-actions">
+          <Button type="button" variant={vehiclesEnabled ? "primary" : "secondary"}
+            className="transit-map-vehicles-toggle" aria-pressed={vehiclesEnabled}
+            onClick={onVehiclesToggle}>
+            <FontAwesome name="bus" aria-hidden="true" /> Vehicles
+          </Button>
           <SearchRadiusSelection
             compact
             radiusSize={radiusSize}
@@ -85,6 +112,21 @@ function NearbyMapV2({
           </Button>
         </div>
       </div>
+      {vehiclesEnabled && (
+        <div className="transit-vehicle-status">
+            <span role="status">{vehicleMessage}</span>
+            {vehicleFeed.updatedAt && !vehicleMapError && (
+              <small>Updated <time dateTime={new Date(vehicleFeed.updatedAt).toISOString()}>
+                {new Date(vehicleFeed.updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}
+              </time></small>
+            )}
+            {vehicleProblem && <Button type="button" size="sm" variant="secondary" onClick={onVehiclesRetry}>Retry vehicles</Button>}
+            <span className="transit-vehicle-legend" aria-label="Vehicle symbols: bus and train">
+              <FontAwesome name="bus" aria-hidden="true" /> Bus
+              <FontAwesome name="train" aria-hidden="true" /> Train
+            </span>
+        </div>
+      )}
     </div>
   );
 }
