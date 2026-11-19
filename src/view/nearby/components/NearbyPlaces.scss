@@ -61,10 +61,10 @@
   padding: 0;
   margin: 0;
   min-width: 0;
-  & + & { margin-block-start: var(--wm-space-2); }
+  & + & { margin-block-start: var(--wm-space-1); }
   legend { padding: 0; }
   input { margin: 0; flex-shrink: 0; }
-  .transit-places-group-bulk { min-height: 44px; padding-inline-end: var(--wm-space-2); }
+  .transit-places-group-bulk { min-height: 32px; padding-inline-end: var(--wm-space-2); }
 }
 .transit-places-group-header { display: flex; align-items: center; }
 .transit-places-group-toggle {
@@ -74,7 +74,7 @@
   gap: var(--wm-space-2);
   flex: 1;
   min-width: 0;
-  min-height: 44px;
+  min-height: 32px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -89,8 +89,8 @@
 }
 .transit-places-group-children {
   display: grid;
-  gap: var(--wm-space-1);
-  margin-block: var(--wm-space-2);
+  gap: 0;
+  margin-block: var(--wm-space-1);
   padding-inline-start: calc(1rem + var(--wm-space-2));
   &[hidden] { display: none; }
 }
