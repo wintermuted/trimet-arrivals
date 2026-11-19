@@ -119,6 +119,25 @@ export default function NearbyPlaces({
           <p><FontAwesomeIcon icon={placeIconDefinition(selected.category)} aria-hidden="true" />{" "}
             {PLACE_INFO[selected.category].singular}</p>
           {selected.address && <p>{selected.address}</p>}
+          {selected.category === "grocery-store" && <p>Source-listed grocery store, not live opening or stock information. Confirm the current location and hours before traveling.</p>}
+          {selected.category === "reuse-repair" && <section aria-label="Reuse and repair services">
+            <h3>Source-listed services</h3>
+            {selected.reuseServices && <p>{selected.reuseServices}</p>}
+            {selected.reuseItems && <p><strong>Items:</strong> {selected.reuseItems}</p>}
+            <p>This listing may be out of date. Confirm hours, eligibility, appointments, accepted items, and fees before visiting or bringing donations.</p>
+          </section>}
+          {selected.category === "csa-pickup" && <section aria-label="CSA pickup information">
+            <h3>Source-listed pickup</h3>
+            {selected.pickupSeason && <p><strong>Season:</strong> {selected.pickupSeason}</p>}
+            {selected.pickupProducts && <p><strong>Products:</strong> {selected.pickupProducts}</p>}
+            <p>Community-supported agriculture (CSA) pickups may require membership, scheduled collection, and permission to access the site. This is not a public market or a live schedule. Confirm the current pickup location and arrangements with the farm; do not enter private property without permission.</p>
+          </section>}
+          {selected.category === "bicycle-parking" && <section aria-label="Bicycle rack information">
+            <h3>Source-listed rack</h3>
+            <p><strong>Capacity:</strong> {selected.bikeSpaces === undefined ? "Unknown" : `${selected.bikeSpaces} spaces`}</p>
+            <p><strong>Covered:</strong> {selected.bikeCovered === "yes" ? "Yes" : selected.bikeCovered === "no" ? "No" : "Unknown"}</p>
+            <p>Markers and cluster counts represent racks, not spaces. This is not live availability or a guarantee of condition, security, or access. Check the rack and local signs before parking. Trip planning does not reserve parking or select a cycling route.</p>
+          </section>}
           {selected.category === "public-restroom" && <section aria-label="Restroom access">
             <h3>Source-listed access</h3>
             <p><strong>Status:</strong> {selected.restroomStatus === "listed-24-7" ? "Listed 24/7 in the source; not verified." : "Opening status unknown."}</p>

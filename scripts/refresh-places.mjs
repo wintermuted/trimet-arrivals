@@ -24,8 +24,36 @@ export const CITY_PLACE_SOURCES = {
     metadataId: 52455, file: "heritage-trees.json", bureau: "Bureau of Parks and Recreation",
     fields: "OBJECTID,TREEID,STATUS,COMMON,SCIENTIFIC,SITE_ADDRESS,Ownership,Delist_Date",
     coverage: "Source-designated Heritage trees only; removed, merit and delisted records are excluded. Points mark trunks, not public entrances. Some trees are on private land or not visible from public paths. View only from lawful public access; do not enter private property."
+  },
+  "grocery-store": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/40",
+    metadataId: 54182, file: "grocery-stores.json", bureau: "Bureau of Planning and Sustainability",
+    fields: "OBJECTID,NAME,ADDRESS,STATUS",
+    coverage: "City full-service grocery inventory, including nearby locations. Source-closed stores are excluded. Existing status does not verify current operation, hours, stock or entrances."
+  },
+  "reuse-repair": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/1426",
+    sourceUrl: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/1426",
+    file: "reuse-repair.json", bureau: "Bureau of Planning and Sustainability",
+    fields: "OBJECTID,Organization,Address,Website,Service,Additional_service,What_they_offer_accept,What_they_offer_accept_2,What_they_offer_accept_3",
+    coverage: "Mapped Resourceful PDX reuse, repair, donation, swap and lending organizations within the app's Portland-area coverage. Unmapped records are omitted with refresh warnings. Not a complete or live directory. Confirm hours, eligibility, appointments, accepted items and fees before visiting or donating."
+  },
+  "csa-pickup": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/188",
+    metadataId: 54388, file: "csa-pickups.json", bureau: "Bureau of Planning and Sustainability",
+    fields: "OBJECTID,Farm_Name,Location,Status,Website,Season,Main_Products",
+    coverage: "Source-active CSA drop-offs with numbered site addresses within the app's Portland-area coverage. City-only, street-only and out-of-coverage records are omitted with refresh warnings. Separate farm offerings at the same site remain distinct. Membership, scheduled pickup and permission may be required; not a public market or live schedule."
+  },
+  "bicycle-parking": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/62",
+    metadataId: 52921, file: "bicycle-parking.json", bureau: "Bureau of Transportation",
+    fields: "OBJECTID,AssetID,NumSpaces,Covered",
+    coverage: "Mapped bicycle-rack assets in the public right-of-way, not all bicycle parking. Each marker and cluster count represents racks, not spaces or parking areas. Separate racks at one location remain distinct. Capacity and cover are source-listed, not live availability, condition or security."
   }
 };
+const citySourceUrl = source => source.sourceUrl ||
+  `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${source.metadataId}`;
+const EVERYDAY_CATEGORIES = ["grocery-store", "reuse-repair", "csa-pickup", "bicycle-parking"];
 export const OSM_QUERY = '[out:json][timeout:60];area["boundary"="administrative"]["admin_level"="8"]["name"="Portland"]["wikidata"="Q6106"]->.p;nwr(area.p)["amenity"="food_court"];out center tags;';
 export const METRO_SOURCES = {
   "community-center": {
@@ -225,6 +253,7 @@ export async function fetchParks(request = json) {
 
 export function normalizeCityPlaces(features, category) {
   if (!features.length) throw new Error(`City ${category} response was empty`);
+  if (EVERYDAY_CATEGORIES.includes(category)) return normalizeEverydayPlaces(features, category);
   if (category === "public-restroom" || category === "heritage-tree") return normalizeCityDestinations(features, category);
   const places = new Map();
   for (const feature of features) {
@@ -260,6 +289,65 @@ export function normalizeCityPlaces(features, category) {
     places.set(place.id, place);
   }
   if (!places.size) throw new Error(`No active ${category} records`);
+  return [...places.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function normalizeEverydayPlaces(features, category) {
+  const places = new Map();
+  const text = value => typeof value === "string" ? value.trim() || undefined : undefined;
+  for (const feature of features) {
+    const p = feature.properties || {};
+    if (category === "grocery-store" || category === "csa-pickup") {
+      const status = text(category === "grocery-store" ? p.STATUS : p.Status)?.toLowerCase();
+      const statuses = category === "grocery-store" ? ["existing", "closed"] : ["active", "inactive", "closed"];
+      if (!statuses.includes(status)) throw new Error(`Unrecognized ${category} status`);
+      if (status !== statuses[0]) continue;
+    }
+    const bike = category === "bicycle-parking";
+    const sourceId = bike ? text(p.AssetID) : p.OBJECTID;
+    const name = bike ? `Bicycle rack ${sourceId}` :
+      text(category === "grocery-store" ? p.NAME : category === "csa-pickup" ? p.Farm_Name : p.Organization);
+    if (!name || (bike ? !/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(sourceId || "") :
+      !Number.isInteger(sourceId) || sourceId <= 0)) throw new Error(`Missing ${category} name or source ID`);
+    const address = text(category === "grocery-store" ? p.ADDRESS : category === "csa-pickup" ? p.Location : p.Address);
+    if (category === "csa-pickup" && !/^\d+\s+\S/.test(address || "")) {
+      console.warn(`Omitted CSA pickup ${sourceId}: source does not identify a numbered pickup-site address.`);
+      continue;
+    }
+    const coordinates = feature.geometry?.coordinates;
+    if (feature.geometry?.type === "Point" && Array.isArray(coordinates) && !coordinates.length) {
+      console.warn(`Omitted ${category} ${sourceId}: source has no mapped coordinates.`);
+      continue;
+    }
+    if (feature.geometry?.type !== "Point" || !Array.isArray(coordinates) ||
+      coordinates.length !== 2 || !coordinates.every(Number.isFinite) || Math.abs(coordinates[0]) > 180 ||
+      Math.abs(coordinates[1]) > 90) throw new Error(`Invalid ${category} geometry`);
+    if (!validPoint(coordinates)) {
+      console.warn(`Omitted ${category} ${sourceId}: outside Portland-area map coverage.`);
+      continue;
+    }
+    const prefix = { "grocery-store": "grocery", "reuse-repair": "reuse", "csa-pickup": "csa", "bicycle-parking": "bike" }[category];
+    const id = `portland:${prefix}:${sourceId}`;
+    if (places.has(id)) throw new Error(`Duplicate ${category} source ID`);
+    const covered = text(p.Covered);
+    if (bike && (p.NumSpaces != null && (!Number.isInteger(p.NumSpaces) || p.NumSpaces < 0) ||
+      !["Y", "N", "U", undefined].includes(covered))) throw new Error(`Invalid bicycle-parking capacity or cover for ${sourceId}`);
+    const website = text(p.Website);
+    places.set(id, {
+      id, name, category, coordinates, address, arrival: "approximate",
+      sourceUrl: citySourceUrl(CITY_PLACE_SOURCES[category]), website: safeUrl(website) ||
+        (website && /^(?:www\.)?[a-z0-9][a-z0-9.-]+\.[a-z]{2,}(?:\/\S*)?$/i.test(website) ? `https://${website}` : undefined),
+      ...(category === "reuse-repair" ? {
+        reuseServices: [...new Set([text(p.Service), text(p.Additional_service)].filter(Boolean))].join(", ") || undefined,
+        reuseItems: [...new Set([text(p.What_they_offer_accept), text(p.What_they_offer_accept_2), text(p.What_they_offer_accept_3)].filter(Boolean))].join(", ") || undefined
+      } : category === "csa-pickup" ? {
+        pickupSeason: text(p.Season), pickupProducts: text(p.Main_Products)
+      } : bike ? {
+        bikeSpaces: p.NumSpaces ?? undefined, bikeCovered: covered === "Y" ? "yes" : covered === "N" ? "no" : "unknown"
+      } : {})
+    });
+  }
+  if (!places.size) throw new Error(`No eligible ${category} records`);
   return [...places.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
@@ -328,7 +416,7 @@ export async function fetchCityPlaces(category, request = json) {
   return {
     version: 1, category, retrievedAt: new Date().toISOString(),
     source: `City of Portland, ${source.bureau}`,
-    sourceUrl: `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${source.metadataId}`,
+    sourceUrl: citySourceUrl(source),
     license: "PDDL-1.0", licenseUrl: "https://www.portlandmaps.com/bps/arpa/tos.pdf",
     coverage: source.coverage || (category === "community-garden"
       ? "City-managed community garden areas listed active in the source. Plots may require registration or have restricted access. Display points are not verified entrances."
@@ -416,6 +504,13 @@ export async function writeSnapshots(directory, snapshots) {
 }
 
 async function main() {
+  if (process.argv.includes("--everyday-only")) {
+    const snapshots = {};
+    for (const category of EVERYDAY_CATEGORIES) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
+    console.log(`Refreshed ${Object.values(snapshots).map(snapshot => `${snapshot.places.length} ${snapshot.category}`).join(", ")} records. Review site access and source-listed information before publishing.`);
+    return;
+  }
   if (process.argv.includes("--restrooms-trees-only")) {
     const restrooms = await fetchCityPlaces("public-restroom");
     const trees = await fetchCityPlaces("heritage-tree");
@@ -480,6 +575,7 @@ async function main() {
       places: pods
     }
   };
+  for (const category of EVERYDAY_CATEGORIES) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
   for (const [category, data] of [["community-center", centers], ["library", libraries]]) {
     snapshots[METRO_SOURCES[category].file] = {
       version: 1, category, retrievedAt, sourceUpdatedAt: data.sourceUpdatedAt,
@@ -494,7 +590,7 @@ async function main() {
     };
   }
   await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
-  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, ${libraries.places.length} libraries, ${gardens.places.length} community gardens, ${markets.places.length} farmers markets, ${restrooms.places.length} restroom rooms, ${trees.places.length} heritage trees, and ${neighborhoods.features.length} neighborhood boundary areas. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
+  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, ${libraries.places.length} libraries, ${gardens.places.length} community gardens, ${markets.places.length} farmers markets, ${restrooms.places.length} restroom rooms, ${trees.places.length} heritage trees, ${EVERYDAY_CATEGORIES.map(category => `${snapshots[CITY_PLACE_SOURCES[category].file].places.length} ${category}`).join(", ")} records, and ${neighborhoods.features.length} neighborhood boundary areas. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

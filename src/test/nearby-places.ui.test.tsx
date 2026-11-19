@@ -40,6 +40,15 @@ const tree: InterestPlace = {
   ...park, id: "portland:tree:51", name: "Oregon white oak (Heritage Tree #51)", category: "heritage-tree",
   scientificName: "Quercus garryana", treeOwnership: "Private, Front Yard"
 };
+const everydayPlaces: InterestPlace[] = [
+  { ...park, id: "portland:grocery:1", name: "Example Grocer", category: "grocery-store" },
+  { ...park, id: "portland:reuse:1", name: "Example Reuse", category: "reuse-repair",
+    reuseServices: "Lending Library", reuseItems: "Tools" },
+  { ...park, id: "portland:csa:1", name: "Example Farm", category: "csa-pickup",
+    pickupSeason: "June - November", pickupProducts: "vegetables" },
+  { ...park, id: "portland:bike:5220-1", name: "Bicycle rack 5220-1", category: "bicycle-parking",
+    bikeSpaces: 2, bikeCovered: "yes" }
+];
 const snapshot: PlaceSnapshot = {
   version: 1, category: "park", retrievedAt: "2026-11-18T12:00:00Z",
   source: "City of Portland", sourceUrl: "https://www.portlandmaps.com/",
@@ -194,11 +203,11 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it("classifies new destinations, validates schedule metadata and removes only duplicate garden-specific parks", () => {
-    for (const place of [garden, market, restroom, tree]) {
+    for (const place of [garden, market, restroom, tree, ...everydayPlaces]) {
       expect(placeCategoryForId(place.id)).toBe(place.category);
       expect(parsePlaceSnapshot({ ...snapshot, category: place.category, places: [place] }, place.category).places).toEqual([place]);
-      expect(placeFeatures([garden, market, restroom, tree], place.category).features).toHaveLength(1);
-      expect(filterPlaces([garden, market, restroom, tree], { ...DEFAULT_PLACE_FILTERS, [place.category]: false })).not.toContain(place);
+      expect(placeFeatures([garden, market, restroom, tree, ...everydayPlaces], place.category).features).toHaveLength(1);
+      expect(filterPlaces([garden, market, restroom, tree, ...everydayPlaces], { ...DEFAULT_PLACE_FILTERS, [place.category]: false })).not.toContain(place);
     }
     expect(() => parsePlaceSnapshot({ ...snapshot, category: "farmers-market",
       places: [{ ...market, marketHours: 9 }] }, "farmers-market")).toThrow();
@@ -217,7 +226,32 @@ describe("Places filtering, selection and map layers", () => {
     expect(filterPlaces([garden, { ...garden, id: `${garden.id.slice(0, -1)}6` }], DEFAULT_PLACE_FILTERS)).toHaveLength(2);
   });
 
-  it.each([garden, market, restroom, tree])("shows $category details, caveats, and an approximate named planner destination", place => {
+  it("validates category-specific everyday metadata and searches services, materials and pickup products", () => {
+    const invalid = [
+      { ...everydayPlaces[0], reuseServices: "Not grocery metadata" },
+      { ...everydayPlaces[1], reuseItems: 7 }, { ...everydayPlaces[2], pickupSeason: false },
+      { ...everydayPlaces[3], bikeSpaces: -1 }, { ...everydayPlaces[3], bikeCovered: "available" }
+    ];
+    for (const place of invalid) {
+      expect(() => parsePlaceSnapshot({ ...snapshot, category: place.category, places: [place] }, place.category)).toThrow();
+    }
+    expect(filterPlaces(everydayPlaces, { ...DEFAULT_PLACE_FILTERS, search: "tools" })).toEqual([everydayPlaces[1]]);
+    expect(filterPlaces(everydayPlaces, { ...DEFAULT_PLACE_FILTERS, search: "lending" })).toEqual([everydayPlaces[1]]);
+    expect(filterPlaces(everydayPlaces, { ...DEFAULT_PLACE_FILTERS, search: "vegetables" })).toEqual([everydayPlaces[2]]);
+    expect(filterPlaces(everydayPlaces, DEFAULT_PLACE_FILTERS)).not.toContain(everydayPlaces[3]);
+    expect(filterPlaces(everydayPlaces, { ...DEFAULT_PLACE_FILTERS, "bicycle-parking": true })).toContain(everydayPlaces[3]);
+  });
+
+  it.each([
+    require("../../public/data/places/grocery-stores.json"),
+    require("../../public/data/places/reuse-repair.json"),
+    require("../../public/data/places/csa-pickups.json"),
+    require("../../public/data/places/bicycle-parking.json")
+  ])("accepts every published $category record in the actual catalog parser", data => {
+    expect(parsePlaceSnapshot(data, data.category).places).toHaveLength(data.places.length);
+  });
+
+  it.each([garden, market, restroom, tree, ...everydayPlaces])("shows $category details, caveats, and an approximate named planner destination", place => {
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
       filters={DEFAULT_PLACE_FILTERS} onFilters={jest.fn()} visiblePlaces={[place]} selected={place}
       onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false} /></MemoryRouter>));
@@ -236,10 +270,26 @@ describe("Places filtering, selection and map layers", () => {
       expect(container.textContent).toContain("Listed 24/7 in the source; not verified");
       expect(container.textContent).toContain("ADA designation: Unknown");
       expect(container.textContent).toContain("Not live availability or a verified accessible route");
-    } else {
+    } else if (place.category === "heritage-tree") {
       expect(container.textContent).toContain("Quercus garryana");
       expect(container.textContent).toContain("Private, Front Yard");
       expect(container.textContent).toContain("do not enter private property");
+    } else if (place.category === "grocery-store") {
+      expect(container.textContent).toContain("not live opening or stock information");
+    } else if (place.category === "reuse-repair") {
+      expect(container.textContent).toContain("Lending Library");
+      expect(container.textContent).toContain("Items: Tools");
+      expect(container.textContent).toContain("accepted items");
+    } else if (place.category === "csa-pickup") {
+      expect(container.textContent).toContain("June - November");
+      expect(container.textContent).toContain("vegetables");
+      expect(container.textContent).toContain("not a public market or a live schedule");
+      expect(container.textContent).toContain("do not enter private property");
+    } else if (place.category === "bicycle-parking") {
+      expect(container.textContent).toContain("Capacity: 2 spaces");
+      expect(container.textContent).toContain("Covered: Yes");
+      expect(container.textContent).toContain("racks, not spaces");
+      expect(container.textContent).toContain("does not reserve parking or select a cycling route");
     }
   });
 
@@ -263,7 +313,7 @@ describe("Places filtering, selection and map layers", () => {
     }
     act(() => root.render(<Harness />));
     expect(container.textContent).toContain("Food-cart pods could not be loaded");
-    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(8);
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(12);
     const result = container.querySelector<HTMLAnchorElement>(".transit-place-result");
     expect(result.getAttribute("href")).toBe(placeDetailLink(park.id));
     act(() => result.click());
@@ -314,7 +364,7 @@ describe("Places filtering, selection and map layers", () => {
     act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace, pod]} selectedId={park.id}
       onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
     expect(fakeMap.addSource).toHaveBeenCalledWith("nearby-places-park", expect.objectContaining({ cluster: true }));
-    expect(images.size).toBe(8);
+    expect(images.size).toBe(12);
     expect(fakeMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({
       id: "nearby-places-park-counts",
       layout: expect.objectContaining({ "icon-image": "nearby-places-park-icon", "text-field": ["get", "point_count_abbreviated"] })
@@ -323,7 +373,8 @@ describe("Places filtering, selection and map layers", () => {
       id: "nearby-places-food-cart-pod-icons",
       layout: expect.objectContaining({ "icon-image": "nearby-places-food-cart-pod-icon" })
     }));
-    for (const category of ["community-center", "library", "community-garden", "farmers-market", "public-restroom", "heritage-tree"]) {
+    for (const category of ["community-center", "library", "community-garden", "farmers-market", "public-restroom", "heritage-tree",
+      "grocery-store", "reuse-repair", "csa-pickup", "bicycle-parking"]) {
       expect(fakeMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({
         id: `nearby-places-${category}-counts`,
         layout: expect.objectContaining({ "icon-image": `nearby-places-${category}-icon` })
@@ -368,7 +419,7 @@ describe("Places filtering, selection and map layers", () => {
     expect(onCoincident).toHaveBeenCalledWith([park.id, pod.id]);
     sources.clear(); layers.clear(); images.clear();
     act(() => listeners.get("style.load")());
-    expect(sources.size).toBe(8);
+    expect(sources.size).toBe(12);
     expect(onError).not.toHaveBeenCalledWith(true);
     act(() => root.render(null));
     expect(sources.size).toBe(0);

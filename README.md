@@ -129,13 +129,15 @@ visible in the link but are not added to Recent trips.
 ### Nearby places
 
 **Places** starts with Parks, Food-cart pods, Community centers, Libraries,
-Community gardens, Farmers markets, Public restrooms, and Heritage trees
-enabled. Its list follows the
+Community gardens, Farmers markets, Public restrooms, Heritage trees, Grocery
+stores, Reuse & repair, and CSA pickups enabled. **Bicycle parking** is available
+as an opt-in category so thousands of racks do not obscure other places. Its list follows the
 visible map area after a pan or zoom, independently of transit's search radius.
 Category toggles and name/address search filter both the map and list. Numbered
 clusters pair the category icon with a count and expand when selected; green
 tree, orange food, purple community, blue book, olive leaf, berry basket,
-teal restroom, and brown seedling icons
+teal restroom, brown seedling, brick shopping cart, forest-green recycle,
+ochre carrot, and royal-blue bicycle icons
 identify individual locations. Category controls use a compact wrapped layout. Overlapping markers
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
@@ -154,8 +156,8 @@ while navigating within the mounted Nearby view.
 Hovering a marker previews its name, category, and any available address;
 cluster previews show the category and count. Clicking a marker or selecting a
 list result opens a focused sidebar detail view with its source, any available
-address/website, source date when available, and **Plan a trip here**. **Back to
-places** restores browsing without resetting filters and returns keyboard focus
+address/website, source date when available, and **Plan a trip here**. The **header
+Back** restores browsing without resetting filters and returns keyboard focus
 to the result when it is still listed. Planning preloads the sidebar planner with a named coordinate destination.
 `fromPlaceId`/`toPlaceId` retain identity only when the linked coordinates match
 the local snapshot; changing a coordinate clears that identity. Swapping the
@@ -189,6 +191,22 @@ excluded. Search also matches scientific names. Points mark trunks, not public
 entrances: trees may be on private land or not visible from public paths. View only
 from lawful public access; do not enter private property. Tree-owner names and
 contact information are not requested or published.
+
+Grocery stores exclude source-closed records; their hours and stock are not live.
+Resourceful PDX organizations show source-listed services and items for reuse,
+repair, lending, swaps, and donations; confirm eligibility, accepted items,
+appointments, fees, and access before visiting.
+CSA (community-supported agriculture) pickups retain farm names, specific numbered
+site addresses, and listed seasons/products. Vague city, ZIP-code, street-only,
+or unnamed-site entries are not turned into routable destinations. Membership,
+arranged collection, and site permission may be required: these are not public
+markets or verified current schedules.
+Bicycle parking uses individual public-right-of-way rack assets, not a second
+overlay of parking areas or bike-share stations that could double-count racks.
+Counts mean **racks, not spaces**; capacity and cover are source-listed and unknown
+values stay unknown. Neither availability, condition, security, nor access is
+guaranteed. Planning routes to an approximate point; it does not reserve parking
+or switch the transit planner to cycling mode.
 
 An existing explicitly selected Nearby origin is reused and identified as a
 device location, search center, or dropped pin; simply panning Places never
@@ -279,6 +297,26 @@ empty source coordinates are omitted with an explicit refresh warning rather
 than assigned invented locations; other invalid geometry fails the refresh.
 Review closures and public-access caveats before publishing.
 
+Grocery stores, Resourceful PDX organizations, CSA farm drop-offs, and bicycle
+racks use the City's Important Places and Transportation layers. Grocery and
+CSA records must be source-listed existing/active. CSA records additionally
+need a numbered pickup-site address; nonspecific city/ZIP-code locations are
+omitted rather than sending users to geocoded area centers. Reuse/repair records
+without mapped coordinates are omitted. These omissions and out-of-coverage
+points produce explicit refresh warnings. Other malformed geometry, duplicate
+identities, unrecognized statuses, and incomplete pages fail the refresh.
+Grocery, reuse, and CSA identities retain their source object IDs; bicycle racks
+retain their asset IDs. Co-located farms and racks remain individually selectable.
+Personal/contact fields such as CSA email and organization phone are not requested.
+Refresh only these four categories without touching existing snapshots:
+
+```powershell
+npm run places:refresh -- --everyday-only
+```
+
+The full refresh includes these four sources too. Review listed services,
+pickup arrangements, source age, and rack metadata before publishing.
+
 Refresh manually when maintaining the catalog (monthly is a reasonable starting
 cadence), and review names, counts, additions/removals, source dates, and arrival
 points before publishing. Retrieval dates are not source update dates. Overpass
@@ -307,7 +345,8 @@ License Agreement). Each retains its source, license, retrieval date and limitat
 `neighborhoods.json` is a separate City of Portland polygon snapshot under the
 same City PDDL default terms.
 `community-gardens.json`, `farmers-markets.json`, `public-restrooms.json` and
-`heritage-trees.json` also retain their City bureau
+`heritage-trees.json`, plus `grocery-stores.json`, `reuse-repair.json`,
+`csa-pickups.json`, and `bicycle-parking.json`, also retain their City bureau
 attribution and PDDL default terms.
 OSM and Metro snapshots also retain the source database/data-edit date. See
 `public\data\places\NOTICE.txt`. These data licenses are separate from the app code's

@@ -236,7 +236,11 @@ describe("TripPlannerView", () => {
     ["community-garden", "portland:garden:37d4ec75-92b5-47dd-8b36-b8717e7a2cc5", "Community Garden"],
     ["farmers-market", "portland:market:1", "Farmers Market"],
     ["public-restroom", "portland:restroom:1", "Public Restroom"],
-    ["heritage-tree", "portland:tree:51", "Heritage Tree"]
+    ["heritage-tree", "portland:tree:51", "Heritage Tree"],
+    ["grocery-store", "portland:grocery:1", "Grocery Store"],
+    ["reuse-repair", "portland:reuse:1", "Reuse Organization"],
+    ["csa-pickup", "portland:csa:1", "CSA Pickup"],
+    ["bicycle-parking", "portland:bike:5220-1", "Bicycle Rack"]
   ])("leaves origin empty for a linked %s and clears stale identity when editing coordinates", async (category, id, name) => {
     const place: placesApi.InterestPlace = {
       id, name, category,
