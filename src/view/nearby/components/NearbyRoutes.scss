@@ -313,76 +313,28 @@
   gap: var(--wm-space-2);
 }
 
-.transit-trip-times-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-
-  th,
-  td {
-    padding: var(--wm-space-3) var(--wm-space-1);
-    border-bottom: 1px solid var(--wm-color-border);
-    text-align: left;
-    vertical-align: top;
-    overflow-wrap: anywhere;
-  }
-
-  time,
-  small {
-    display: block;
-  }
-
-  time {
-    font-size: 1.125rem;
-    font-weight: 600;
-  }
-
-  th small {
-    font-weight: normal;
-  }
-}
-
-.transit-trip-note,
-.transit-trip-times-table small {
+.transit-trip-note {
   color: var(--wm-color-text-muted);
   font-size: 0.875rem;
 }
 
-.transit-trip-selectable {
-  position: relative;
+.transit-upcoming-trips {
+  margin-block-start: 0;
 
-  &:hover,
-  &:focus-within {
-    background: var(--wm-color-surface-muted);
+  .transit-trip-link {
+    overflow-wrap: anywhere;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .transit-planner-option-timing {
+    font-size: 0.9375rem;
   }
 }
 
-.transit-trip-link {
-  display: block;
-  min-height: 44px;
-  color: inherit;
-  text-decoration: none;
-
-  &::after {
-    position: absolute;
-    inset: 0;
-    content: "";
-  }
-
-  &:focus-visible {
-    outline: none;
-  }
-
-  &:focus-visible::after {
-    outline: 2px solid var(--wm-color-accent);
-    outline-offset: -2px;
-  }
-}
-
-.transit-trip-times-table .transit-trip-action {
+.transit-upcoming-trip-icon {
+  flex-shrink: 0;
   color: var(--wm-color-accent);
-  text-decoration: underline;
 }
 
 .route-header {

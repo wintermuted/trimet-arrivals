@@ -1080,6 +1080,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
                     <li key={itinerary.id || index}>
                       <button
                         type="button"
+                        className="transit-planner-option"
                         aria-current={selectedItinerary === index ? "true" : undefined}
                         ref={selectedItinerary === index ? currentTripOption : undefined}
                         onPointerEnter={event => {

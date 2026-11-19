@@ -128,10 +128,13 @@ describe("selected-stop trip times view", () => {
     expect(loadArrivals).toHaveBeenCalledWith("101,103", 60);
     expect(container.textContent).toContain("Boarding Stop (101)");
     expect(container.textContent).toContain("Destination Stop (103)");
-    expect(container.querySelector("tbody").textContent).toMatch(/10:10 PM.*10:24 PM.*14 min ride/);
-    expect(Array.from(container.querySelectorAll("thead th")).map(th => th.textContent))
-      .toEqual(["DepartureBoarding Stop", "ArrivalDestination Stop"]);
-    expect(container.querySelectorAll("tbody td")).toHaveLength(2);
+    const list = container.querySelector(".transit-upcoming-trips");
+    const card = list.querySelector("li > a");
+    expect(list.getAttribute("aria-label")).toContain("Upcoming trips from Boarding Stop to Destination Stop");
+    expect(card.querySelector(".transit-planner-option-timing").textContent)
+      .toMatch(/10:10 PM to 10:24 PM.*14 min ride/);
+    expect(card.textContent).toContain("54 Example Route");
+    expect(container.querySelector("table")).toBeNull();
     expect(container.querySelector("a").getAttribute("href"))
       .toBe("/nearby/directions?route=54&direction=1&from=101&to=103");
   });
@@ -142,10 +145,9 @@ describe("selected-stop trip times view", () => {
       arrival({ locid: 103, status: "scheduled", estimated: undefined, scheduled: now + 130 * minute })
     ]));
     await render();
-    expect(container.querySelector("tbody").textContent).toContain("11:55 PM");
-    expect(container.querySelector("tbody").textContent).toContain("12:10 AM");
-    expect(container.querySelector("tbody").textContent).toContain("Sun, Nov 15");
-    expect(container.querySelector("tbody").textContent).toContain("Scheduled");
+    const card = container.querySelector(".transit-trip-link");
+    expect(card.textContent).toContain("11:55 PM to 12:10 AM");
+    expect(card.textContent).toContain("Arrival: Scheduled · Sun, Nov 15");
   });
 
   it.each([false, true])("links each trip to a bookmarkable detail view (inline: %s)", async inline => {
@@ -163,9 +165,8 @@ describe("selected-stop trip times view", () => {
       route: "54", direction: "1", from: "101", to: "103",
       departure: id, trip: tripID, ...(inline ? {} : { source: "arrivals" })
     });
-    expect(link.getAttribute("aria-label")).toContain("View trip departing at 10:10 PM");
-    expect(link.textContent).toContain("View trip");
-    expect(container.querySelectorAll("tbody a")).toHaveLength(1);
+    expect(link.textContent).toContain("View trip departing at 10:10 PM");
+    expect(container.querySelectorAll(".transit-upcoming-trips a")).toHaveLength(1);
   });
 
   it("shows only the chosen departure and keeps its identity as estimates refresh", async () => {
@@ -179,7 +180,7 @@ describe("selected-stop trip times view", () => {
     expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Destination Stop");
     expect(container.textContent).toContain("Trip details");
     expect(container.textContent).toContain("Trip trip-later");
-    expect(container.querySelector("table")).toBeNull();
+    expect(container.querySelector(".transit-upcoming-trips")).toBeNull();
     const details = container.querySelector(".transit-selected-trip");
     expect(details.textContent).toMatch(/10:20 PM.*10:40 PM.*20 min ride/);
     expect(container.querySelector(".transit-trip-link")).toBeNull();
@@ -202,7 +203,7 @@ describe("selected-stop trip times view", () => {
       departureId: reason === "unknown departure" ? "missing" : departure.id,
       tripId: reason === "different trip" ? "different" : departure.tripID
     });
-    expect(container.querySelector("table")).toBeNull();
+    expect(container.querySelector(".transit-upcoming-trips")).toBeNull();
     expect(container.querySelector('[role="status"]').textContent).toContain("This trip is no longer reported");
     expect(container.querySelector('[role="status"] a').getAttribute("href"))
       .toBe("/nearby/directions?route=54&direction=1&from=101&to=103");
@@ -230,8 +231,10 @@ describe("selected-stop trip times view", () => {
   it("explains an unmatched destination without displaying a made-up duration", async () => {
     loadArrivals.mockResolvedValue(response([departure]));
     await render();
-    expect(container.querySelector("tbody").textContent).toContain("Travel time unavailable");
-    expect(container.querySelector("tbody").textContent).toContain("Not reported");
+    const card = container.querySelector(".transit-trip-link");
+    expect(card.textContent).toContain("Travel time unavailable");
+    expect(card.textContent).toContain("Arrival not reported");
+    expect(card.querySelectorAll("time")).toHaveLength(1);
     expect(container.textContent).toContain("destination times are not yet reported");
   });
 
@@ -249,7 +252,7 @@ describe("selected-stop trip times view", () => {
     loadArrivals.mockRejectedValueOnce(new Error("Offline"));
     await act(async () => container.querySelector<HTMLButtonElement>("button").click());
     expect(container.querySelector('[role="alert"]').textContent).toContain("last received");
-    expect(container.querySelector("tbody")).not.toBeNull();
+    expect(container.querySelector(".transit-trip-link")).not.toBeNull();
     loadArrivals.mockResolvedValueOnce(response([]));
     await act(async () => container.querySelector<HTMLButtonElement>("button").click());
     expect(container.querySelector('[role="alert"]')).toBeNull();
@@ -262,7 +265,7 @@ describe("selected-stop trip times view", () => {
     await render();
     expect(container.querySelector('[role="alert"]').textContent).toContain("Could not load trip times");
     await act(async () => container.querySelector<HTMLButtonElement>("button").click());
-    expect(container.querySelector("tbody")).not.toBeNull();
+    expect(container.querySelector(".transit-trip-link")).not.toBeNull();
   });
 
   it("ignores an older response after changing the selected destination", async () => {
@@ -276,7 +279,7 @@ describe("selected-stop trip times view", () => {
     await render({ ...destination, locid: 102, desc: "New Destination" });
     await act(async () => resolveOld(response()));
     expect(container.textContent).toContain("New Destination (102)");
-    expect(container.querySelector("tbody").textContent).toContain("20 min");
-    expect(container.querySelector("tbody").textContent).not.toContain("14 min");
+    expect(container.querySelector(".transit-trip-link").textContent).toContain("20 min");
+    expect(container.querySelector(".transit-trip-link").textContent).not.toContain("14 min");
   });
 });
