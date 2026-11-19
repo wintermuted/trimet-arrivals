@@ -223,6 +223,18 @@
   position: relative;
 }
 
+.transit-directions-stop-popover {
+  display: grid;
+  gap: var(--wm-space-2);
+  padding-inline-end: var(--wm-space-3);
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+
+  small {
+    color: var(--wm-color-text-secondary);
+  }
+}
+
 .transit-nearby-map-stage {
   display: flex;
   flex: 1;

@@ -46,6 +46,7 @@ jest.mock("mapbox-gl", () => {
   const createPopup = () => ({
     addTo: jest.fn().mockReturnThis(),
     remove: jest.fn().mockReturnThis(),
+    setDOMContent: jest.fn().mockReturnThis(),
     setHTML: jest.fn().mockReturnThis(),
     setLngLat: jest.fn().mockReturnThis(),
     setText: jest.fn().mockReturnThis()
@@ -93,6 +94,28 @@ describe("directions route line and endpoint framing", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  it("opens a downstream stop popover and chooses the exact destination", async () => {
+    const stop = { ...selection.destination, desc: "<Example stop>" };
+    const onChooseDestination = jest.fn();
+    const close = showDirectionsSelection(map, {
+      ...selection, destination: undefined, destinationStops: [stop], onChooseDestination
+    }, onError);
+    const click = map.on.mock.calls.find(([event, layer]) => event === "click" && layer === "directions-stops")[2];
+    click({ features: [{ properties: { locid: selection.origin.locid } }] } as Parameters<typeof click>[0]);
+    expect(Popup).toHaveBeenCalledTimes(1); // Boarding marker only.
+    click({ features: [{ properties: { locid: stop.locid } }] } as Parameters<typeof click>[0]);
+    const popup = jest.mocked(Popup).mock.results[1].value;
+    const content = popup.setDOMContent.mock.calls[0][0] as HTMLElement;
+    expect(content.querySelector("strong")?.textContent).toBe("<Example stop>");
+    expect(content.textContent).toContain("Stop ID: 103");
+    content.querySelector("button")?.click();
+    expect(onChooseDestination).toHaveBeenCalledWith(stop);
+    expect(popup.remove).toHaveBeenCalled();
+    close();
+    expect(map.off).toHaveBeenCalledWith("click", "directions-stops", click);
+    await act(async () => {});
   });
 
   it("shows a selected-stop marker and its popup independently of nearby markers, then removes both", () => {
