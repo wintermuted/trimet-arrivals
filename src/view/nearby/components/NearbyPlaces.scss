@@ -26,6 +26,16 @@
   input { accent-color: var(--wm-color-accent); width: 1rem; height: 1rem; }
 }
 
+.transit-places-map-layers {
+  border: 0;
+  border-top: 1px solid var(--wm-color-border);
+  padding: var(--wm-space-2) 0 0;
+  margin: 0 0 var(--wm-space-4);
+  legend { padding-inline-end: var(--wm-space-2); font-size: 0.875rem; }
+  p { color: var(--wm-color-text-muted); font-size: 0.875rem; margin: 0; }
+  .transit-places-polygon-toggle { display: flex; padding-inline-start: var(--wm-space-3); font-size: 0.875rem; }
+}
+
 .transit-place-icon--park,
 .transit-places-category--park .fa { color: #197346; }
 .transit-place-icon--food-cart-pod,

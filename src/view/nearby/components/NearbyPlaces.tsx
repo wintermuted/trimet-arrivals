@@ -7,6 +7,7 @@ import {
   PlaceFilters, PlaceSourceState, placePlannerLink
 } from "../../../api/places/places";
 import "./NearbyPlaces.scss";
+import { NeighborhoodState } from "../../../api/places/neighborhoods";
 
 interface Props {
   sources: Record<PlaceCategory, PlaceSourceState>;
@@ -20,10 +21,18 @@ interface Props {
   onRetry: (category: PlaceCategory) => void;
   mapError: boolean;
   mapReady: boolean;
+  neighborhoods?: NeighborhoodState & {
+    shown: boolean;
+    onShown: (shown: boolean) => void;
+    polygonsShown: boolean;
+    onPolygonsShown: (shown: boolean) => void;
+    mapError: boolean;
+    onRetry: () => void;
+  };
 }
 
 export default function NearbyPlaces({
-  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady
+  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods
 }: Props) {
   const [limit, setLimit] = useState(40);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -62,11 +71,34 @@ export default function NearbyPlaces({
           </label>
         ))}
       </fieldset>
+      {neighborhoods && <fieldset className="transit-places-map-layers">
+        <legend>Map layers</legend>
+        <label className="transit-places-category">
+          <input type="checkbox" checked={neighborhoods.shown} aria-describedby="neighborhood-layer-help"
+            onChange={event => neighborhoods.onShown(event.target.checked)} />
+          <FontAwesome name="map-o" aria-hidden="true" />
+          Portland neighborhoods
+        </label>
+        <p id="neighborhood-layer-help">Boundaries and names; shared areas may overlap.</p>
+        {neighborhoods.shown && <label className="transit-places-category transit-places-polygon-toggle">
+          <input type="checkbox" checked={neighborhoods.polygonsShown}
+            onChange={event => neighborhoods.onPolygonsShown(event.target.checked)} />
+          Show neighborhood polygons
+        </label>}
+      </fieldset>}
       <label className="transit-places-search">
         Search places in this map area
         <input type="search" className="wm-input" value={filters.search} maxLength={200}
           onChange={event => onFilters({ ...filters, search: event.target.value })} />
       </label>
+      </>}
+      {neighborhoods?.shown && <>
+        {neighborhoods.loading && <p role="status">Loading neighborhood boundaries...</p>}
+        {(neighborhoods.error || neighborhoods.mapError) && <div role="alert" className="transit-places-message">
+          <p>Neighborhood boundaries could not be {neighborhoods.error ? "loaded" : "drawn"}. Other places remain usable.
+            {neighborhoods.error && neighborhoods.snapshot && " The previously loaded boundaries are still shown."}</p>
+          <Button size="sm" variant="secondary" onClick={neighborhoods.onRetry}>Retry neighborhoods</Button>
+        </div>}
       </>}
       {PLACE_CATEGORIES.map(category => sources[category].error && (
         <div role="alert" key={category} className="transit-places-message">
@@ -139,6 +171,12 @@ export default function NearbyPlaces({
             {" "}{snapshot.coverage}
           </p>;
         })}
+        {neighborhoods?.snapshot && <p>
+          <strong>Portland neighborhoods</strong><br />
+          <a href={neighborhoods.snapshot.sourceUrl} target="_blank" rel="noreferrer">{neighborhoods.snapshot.source}</a>
+          {" · "}<a href={neighborhoods.snapshot.licenseUrl} target="_blank" rel="noreferrer">{neighborhoods.snapshot.license}</a><br />
+          Retrieved {new Date(neighborhoods.snapshot.retrievedAt).toLocaleDateString()}. {neighborhoods.snapshot.coverage}
+        </p>}
       </details>
     </section>
   );

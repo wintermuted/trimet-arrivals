@@ -159,6 +159,18 @@ selection, and Places viewport survive switching between Nearby tabs. Browsing
 downloads same-origin static snapshots, not live third-party place searches.
 Planning retains the existing coordinate-link privacy and walking-estimates opt-in.
 
+In Places, **Map layers > Portland neighborhoods** adds labeled neighborhood
+association boundaries beneath place markers. It is off by default and loads
+only when enabled; the setting survives Nearby/planner navigation. It does not
+filter places or change routing. Shared boundary areas can overlap, and labels
+appear when zoomed in. These are bylaw boundary areas for context, not legal
+boundaries or destinations. Layer errors have an independent retry and do not
+disable place discovery.
+Enable **Show neighborhood polygons** for visibly tinted areas and stronger
+colored outlines in addition to the labels. Turn it off for labels/outlines
+without area fills. Both controls are independent of place categories and
+retain their settings while navigating Nearby; shared areas may overlap.
+
 #### Refreshing place snapshots
 
 ```powershell
@@ -188,6 +200,18 @@ official page lists a construction closure. Recheck these corrections and the
 Hillsdale exclusion against <https://multcolib.org/hours-and-locations> on refresh.
 Do not treat any snapshot or corrected point as live access/entrance information.
 
+Neighborhood polygons come from the City's **Neighborhood Boundaries** layer
+(Bureau of Planning and Sustainability), including shared areas. All object IDs
+are fetched in validated batches and preserved as polygon/multipolygon geometry
+at six decimal places, not replaced with bounding boxes or display points.
+To refresh only this layer without querying OSM or changing place snapshots:
+
+```powershell
+npm run places:refresh -- --neighborhoods-only
+```
+
+The normal full refresh includes neighborhoods too.
+
 Refresh manually when maintaining the catalog (monthly is a reasonable starting
 cadence), and review names, counts, additions/removals, source dates, and arrival
 points before publishing. Retrieval dates are not source update dates. Overpass
@@ -213,6 +237,8 @@ Snapshots live separately under `public\data\places\parks.json` (City of Portlan
 PDDL default terms), `food-cart-pods.json` (OpenStreetMap contributors, ODbL),
 and `community-centers.json` / `libraries.json` (Metro, RLIS Open Database End User
 License Agreement). Each retains its source, license, retrieval date and limitations;
+`neighborhoods.json` is a separate City of Portland polygon snapshot under the
+same City PDDL default terms.
 OSM and Metro snapshots also retain the source database/data-edit date. See
 `public\data\places\NOTICE.txt`. These data licenses are separate from the app code's
 MIT license. Recheck upstream metadata/terms before future redistribution.

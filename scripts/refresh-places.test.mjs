@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fetchMetroPlaces, fetchParks, normalizeMetroPlaces, normalizeParks, normalizePods, polygonPoint, writeSnapshots } from "./refresh-places.mjs";
+import {
+  fetchMetroPlaces, fetchNeighborhoods, fetchParks, normalizeMetroPlaces, normalizeNeighborhoods,
+  normalizeParks, normalizePods, polygonPoint, writeSnapshots
+} from "./refresh-places.mjs";
 
 const geometry = { type: "Polygon", coordinates: [[[-122.7, 45.5], [-122.6, 45.5], [-122.6, 45.6], [-122.7, 45.5]]] };
 const park = id => ({ properties: { OBJECTID: id, PROPERTYID: id, NAME: `Park ${id}` }, geometry });
@@ -88,4 +91,45 @@ test("rejects incomplete Metro pages and uses data edits rather than schema edit
   assert.equal(result.places.length, 2);
   assert.equal(result.sourceUpdatedAt, new Date(1660000000000).toISOString());
   await assert.rejects(fetchMetroPlaces("library", async url => url.includes("objectIds=") ? { features: [metro(1, "Central Library")] } : request(url)), /omitted/);
+});
+
+const neighborhood = id => ({ type: "Feature", geometry,
+  properties: { OBJECTID: id, ID: id, NAME: "EXAMPLE", MAPLABEL: "Example", SHARED: "N" } });
+
+test("preserves neighborhood polygons, holes, multipolygons and shared boundary areas", () => {
+  const withHole = { type: "Polygon", coordinates: [...geometry.coordinates, geometry.coordinates[0]] };
+  const input = [
+    { ...neighborhood(1), geometry: withHole },
+    { ...neighborhood(2), geometry: { type: "MultiPolygon", coordinates: [geometry.coordinates, geometry.coordinates] },
+      properties: { ...neighborhood(2).properties, SHARED: "Y", MAPLABEL: "Example/Neighbor" } }
+  ];
+  const result = normalizeNeighborhoods(input);
+  assert.deepEqual(result[0].geometry, withHole);
+  assert.deepEqual(result[1].geometry, input[1].geometry);
+  assert.equal(result[1].properties.shared, true);
+  assert.equal(result[1].properties.areaId, 2);
+  assert.equal(result[1].properties.name, "Example/Neighbor");
+  assert.throws(() => normalizeNeighborhoods([neighborhood(1), neighborhood(1)]), /duplicate/);
+  assert.throws(() => normalizeNeighborhoods([{ ...neighborhood(1), geometry: { type: "Point", coordinates: [-122.67, 45.52] } }]), /polygon/);
+  assert.throws(() => normalizeNeighborhoods([{ ...neighborhood(1), geometry: {
+    type: "Polygon", coordinates: [geometry.coordinates[0].slice(0, -1)]
+  } }]), /polygon/);
+});
+
+test("retrieves all neighborhood areas and rejects truncated or incomplete source responses", async () => {
+  const ids = Array.from({ length: 125 }, (_, i) => i + 1);
+  let pages = 0;
+  const request = async url => {
+    const params = new URL(url).searchParams;
+    if (params.has("returnIdsOnly")) return { objectIds: ids };
+    pages++;
+    assert.equal(params.get("outSR"), "4326");
+    return { features: params.get("objectIds").split(",").map(Number).map(neighborhood) };
+  };
+  assert.equal((await fetchNeighborhoods(request)).features.length, ids.length);
+  assert.equal(pages, 2);
+  await assert.rejects(fetchNeighborhoods(async url => url.includes("returnIdsOnly")
+    ? { objectIds: [1, 2] } : { features: [neighborhood(1)] }), /omitted/);
+  await assert.rejects(fetchNeighborhoods(async url => url.includes("returnIdsOnly")
+    ? { objectIds: [1] } : { features: [neighborhood(1)], exceededTransferLimit: true }), /Incomplete/);
 });
