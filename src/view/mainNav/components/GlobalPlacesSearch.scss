@@ -1,0 +1,70 @@
+.transit-global-place-search {
+  position: relative;
+  order: 2;
+  flex: 0 1 16rem;
+  min-width: 12rem;
+  form { position: relative; }
+  input { width: 100%; padding-inline-start: calc(var(--wm-space-6) + var(--wm-space-3)); }
+}
+.transit-global-search-icon {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: var(--wm-space-3);
+  transform: translateY(-50%);
+  color: var(--wm-color-text-muted);
+  pointer-events: none;
+}
+.transit-global-search-popover {
+  position: absolute;
+  z-index: 20;
+  inset-inline-end: 0;
+  top: calc(100% + var(--wm-space-2));
+  width: min(28rem, calc(100vw - 2 * var(--transit-shell-gutter)));
+  max-height: min(65dvh, 36rem);
+  overflow: auto;
+  padding: var(--wm-space-3);
+  border: 1px solid var(--wm-color-border);
+  border-radius: var(--wm-radius-base);
+  background: var(--wm-color-bg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+}
+.transit-global-search-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-2);
+  h2 { flex: 1; margin: 0; font-size: 1rem; }
+  > .wm-btn { min-width: 32px; min-height: 32px; padding: 0; }
+}
+.transit-global-search-scope,
+.transit-global-search-count {
+  margin: var(--wm-space-2) 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--wm-color-text-secondary);
+}
+.transit-global-search-results {
+  margin: var(--wm-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  li + li { border-top: 1px solid var(--wm-color-border); }
+  a {
+    display: block;
+    min-height: 44px;
+    padding: var(--wm-space-2);
+    border-radius: var(--wm-radius-xs);
+    color: var(--wm-color-text);
+    text-decoration: none;
+    &:hover { background: var(--wm-color-surface); }
+    &:focus-visible { outline: 2px solid var(--wm-color-accent); outline-offset: -2px; }
+  }
+  strong, small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  strong { font-size: 0.875rem; font-weight: 600; }
+  small { font-size: 0.8rem; color: var(--wm-color-text-secondary); }
+}
+.transit-global-search-more { margin-block-start: var(--wm-space-3); width: 100%; }
+
+@media (max-width: 72rem) {
+  .transit-header-inner { flex-wrap: wrap; }
+  .transit-global-place-search { flex: 1 0 100%; order: 4; min-width: 0; }
+  .transit-global-search-popover { width: 100%; }
+}

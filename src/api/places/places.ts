@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export const PLACE_INFO = {
   park: { label: "Parks", singular: "Parks system site", icon: "tree", file: "parks.json", color: "#197346" },
@@ -226,9 +226,10 @@ export function usePlaceCatalog(enabled: boolean) {
     const active = requests.current;
     return () => { active.forEach(controller => controller.abort()); active.clear(); };
   }, [enabled, load]);
+  const places = useMemo(() => PLACE_CATEGORIES.flatMap(category => sources[category].snapshot?.places ?? []), [sources]);
   return {
     sources,
-    places: PLACE_CATEGORIES.flatMap(category => sources[category].snapshot?.places ?? []),
+    places,
     retry: (category: PlaceCategory) => load(category, true)
   };
 }
@@ -241,6 +242,24 @@ export const DEFAULT_PLACE_FILTERS: PlaceFilters = { park: true, "food-cart-pod"
   museum: true, "art-gallery": true, theatre: true, "arts-centre": true,
   viewpoint: true, playground: true, "splash-pad": true, "historic-site": true, "public-art": true,
   "sports-court": true, skatepark: true, "public-garden": true, "nature-reserve": true, cafe: false, bakery: false, search: "" };
+const placeSearchText = (place: InterestPlace) =>
+  `${place.name} ${place.address || ""} ${place.scientificName || ""} ${place.reuseServices || ""} ${place.reuseItems || ""} ${place.pickupProducts || ""} ${place.amenityType || ""} ${place.amenityStyle || ""} ${place.siteType || ""}`;
+
+export function searchPlaces(places: InterestPlace[], search: string) {
+  const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+  const query = normalize(search.trim());
+  if (!query) return [];
+  const terms = query.split(/\s+/);
+  const rank = (place: InterestPlace) => {
+    const name = normalize(place.name);
+    return name === query ? 0 : name.startsWith(query) ? 1 : name.includes(query) ? 2 : 3;
+  };
+  return places.filter(place => {
+    const text = normalize(`${placeSearchText(place)} ${PLACE_INFO[place.category].label} ${PLACE_INFO[place.category].singular}`);
+    return terms.every(term => text.includes(term));
+  }).sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+}
+
 export function filterPlaces(places: InterestPlace[], filters: PlaceFilters, deduplicate = true) {
   const query = filters.search.trim().toLocaleLowerCase();
   const gardenProperties = new Set(places.filter(place => place.category === "community-garden")
@@ -248,8 +267,7 @@ export function filterPlaces(places: InterestPlace[], filters: PlaceFilters, ded
   const matches = places.filter(place => !(place.category === "park" && /\bcommunity garden\b/i.test(place.name) &&
       gardenProperties.has(Number(place.id.replace("portland:park:", "")))) &&
     filters[place.category] &&
-    `${place.name} ${place.address || ""} ${place.scientificName || ""} ${place.reuseServices || ""} ${place.reuseItems || ""} ${place.pickupProducts || ""} ${place.amenityType || ""} ${place.amenityStyle || ""} ${place.siteType || ""}`
-      .toLocaleLowerCase().includes(query));
+    placeSearchText(place).toLocaleLowerCase().includes(query));
   if (!deduplicate) return matches;
   const existing = matches.filter(place => ["park", "community-garden", "park-artwork"].includes(place.category));
   const normalizedName = (name: string) => name.toLocaleLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]/g, "");

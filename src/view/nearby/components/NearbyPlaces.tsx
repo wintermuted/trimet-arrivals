@@ -16,6 +16,7 @@ import { LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from 
 import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextControls } from "../../../api/places/contextOverlays";
 import { SavedPlaceControls } from "../../../api/places/savedPlaces";
 import PlacesHelp from "./PlacesHelp";
+import LoadStatus, { LoadIssue, placeSourceIssues } from "./PlacesLoadStatus";
 
 const CATEGORY_GROUPS: { label: string; icon: IconDefinition; colorCategory: PlaceCategory; categories: PlaceCategory[] }[] = [
   { label: "Parks & nature", icon: faTree, colorCategory: "park", categories: ["park", "community-garden", "heritage-tree", "park-artwork", "viewpoint", "public-garden", "nature-reserve"] },
@@ -37,30 +38,6 @@ const CONTEXT_LAYER_HELP = {
 function MapLayerHelp({ label, text }: { label: string; text: string }) {
   return <span className="transit-places-layer-help">
     <PlacesHelp label={label.toLowerCase()} text={text} />
-  </span>;
-}
-
-type LoadIssue = { label: string; message: string; retry?: () => void };
-function LoadStatus({ label, issues, loading = false, warnings = [] }: {
-  label: string; issues: LoadIssue[]; loading?: boolean; warnings?: string[]
-}) {
-  if (!issues.length && !loading && !warnings.length) return null;
-  const message = [...issues.map(issue => issue.message), ...warnings].join(" ");
-  return <span className={`transit-places-load-status${issues.length ? "" : " transit-places-load-status--warning"}`}
-    onClick={event => event.stopPropagation()}
-    onKeyDown={event => event.stopPropagation()}>
-    {(issues.length > 0 || warnings.length > 0) && <>
-      <span role={issues.length ? "alert" : "status"} className="wm-sr-only">{message}</span>
-      <PlacesHelp label={label} triggerLabel={`${label} ${issues.length ? "error" : "warning"}`} icon="exclamation-triangle"
-        text={message} />
-      {issues.some(issue => issue.retry) && <Button size="sm" variant="ghost" aria-label={`Retry ${label.toLowerCase()}`} disabled={loading}
-        onClick={event => { event.preventDefault(); issues.forEach(issue => issue.retry?.()); }}>
-        <FontAwesome name="refresh" spin={loading} aria-hidden="true" />
-      </Button>}
-    </>}
-    {loading && !issues.length && <span role="status" aria-label={`Loading ${label.toLowerCase()}...`}>
-      <FontAwesome name="spinner" spin aria-hidden="true" />
-    </span>}
   </span>;
 }
 
@@ -121,12 +98,7 @@ export default function NearbyPlaces({
   useEffect(() => setLimit(40), [filters]);
   const loading = PLACE_CATEGORIES.some(category => sources[category].loading && filters[category]);
   const available = PLACE_CATEGORIES.some(category => sources[category].snapshot && filters[category]);
-  const placeIssues: LoadIssue[] = PLACE_CATEGORIES.filter(category => sources[category].error).map(category => ({
-    label: categoryName(category),
-    message: `${categoryName(category)} could not be loaded.${sources[category].snapshot
-      ? " The previously loaded snapshot is still shown." : " Other available places remain usable."}`,
-    retry: () => onRetry(category)
-  }));
+  const placeIssues = placeSourceIssues(sources, onRetry);
   const markerIssues: LoadIssue[] = mapError ? [{
     label: "Place markers", message: "Place markers could not be drawn. You can still select places from this list.",
     retry: onRetryMap

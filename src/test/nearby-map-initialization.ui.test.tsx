@@ -1,5 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { Simulate } from "react-dom/test-utils";
 import { Provider } from "react-redux";
 import { createStore } from "redux";
 import { MemoryRouter, Route, Routes, useLocation, useNavigate, useOutletContext } from "react-router-dom";
@@ -21,6 +22,7 @@ import NearbyVehicles from "../view/nearby/components/NearbyVehicles";
 import * as placesApi from "../api/places/places";
 import { placesPreset, placesViewSearch, readPlacesView } from "../api/places/discovery";
 import { SAVED_PLACES_KEY } from "../api/places/savedPlaces";
+import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
 
 function StopDetailWithStore() {
   const [store] = React.useState(() => createStore(reducers));
@@ -251,13 +253,14 @@ describe("Nearby map initialization independently of the sidebar", () => {
     localStorage.removeItem(SAVED_PLACES_KEY);
   });
 
-  function render(path: string, withExplore = false) {
+  function render(path: string, withExplore = false, withGlobalSearch = false) {
     return act(async () =>
       root.render(
         <FeatureFlagsProvider>
           <WalkingToggle />
           <MemoryRouter initialEntries={[path]}>
             <NavigationProbe />
+            {withGlobalSearch && <GlobalPlacesSearch />}
             <Routes>
               <Route path="/nearby" element={<NearbyViewComponent />}>
                 <Route path="places" element={null} />
@@ -372,6 +375,31 @@ describe("Nearby map initialization independently of the sidebar", () => {
   }
   const discoveryPark: placesApi.InterestPlace = { id: "portland:park:1", category: "park", name: "Example Park",
     coordinates: [-122.67, 45.55], sourceUrl: "https://www.portlandmaps.com/", arrival: "approximate" };
+
+  it("opens a globally searched off-map cafe without enabling its category or replacing local filters", async () => {
+    const cafe: placesApi.InterestPlace = { ...discoveryPark, id: "osm:cafe:node:12", category: "cafe",
+      name: "Outside Cafe", coordinates: [-122.85, 45.55] };
+    discoveryCatalog([discoveryPark, cafe]);
+    const view = placesPreset("parks");
+    view.filters.search = "Example";
+    await render(`/nearby/places${placesViewSearch(view)}`, false, true);
+    finishMapLoading();
+    expect(container.querySelector<HTMLInputElement>('.transit-places-category--cafe input').checked).toBe(false);
+    expect(container.querySelector(".transit-places-list").textContent).not.toContain(cafe.name);
+    const input = container.querySelector<HTMLInputElement>('.transit-global-place-search input[type="search"]');
+    await act(async () => input.focus());
+    input.value = cafe.name;
+    await act(async () => Simulate.change(input));
+    await act(async () => container.querySelector<HTMLAnchorElement>("a[data-global-place]").click());
+    expect(container.querySelector(".transit-place-detail").textContent).toContain(cafe.name);
+    expect(map.jumpTo).toHaveBeenLastCalledWith({ center: cafe.coordinates, zoom: 15 });
+    expect(container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').search).toContain("toPlaceId=osm%3Acafe%3Anode%3A12");
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-detail-back").click());
+    expect(container.querySelector<HTMLInputElement>('.transit-places-category--cafe input').checked).toBe(false);
+    expect(container.querySelector<HTMLInputElement>('.transit-places input[type="search"]').value).toBe("Example");
+    expect(container.querySelector(".transit-places-list").textContent).not.toContain(cafe.name);
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+  });
 
   it("restores shared filters, reference layers and map position and retains the view through detail/planner header Back", async () => {
     discoveryCatalog([discoveryPark]);

@@ -3,15 +3,6 @@
   overflow-wrap: anywhere;
 }
 
-.wm-tooltip.transit-places-tooltip {
-  position: fixed;
-  inset: auto;
-  max-width: min(20rem, calc(100vw - 1rem));
-  max-height: calc(100vh - 1rem);
-  overflow: auto;
-  overflow-wrap: anywhere;
-}
-
 .transit-places-section {
   border-top: 1px solid var(--wm-color-border);
   > summary {
@@ -149,15 +140,6 @@
   text-overflow: ellipsis;
 }
 
-.transit-places-load-status {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  color: var(--wm-color-danger);
-  .wm-btn { min-width: 28px; min-height: 32px; padding: 0; color: inherit; }
-  &--warning { color: #946000; }
-  [role="status"] { color: var(--wm-color-text-muted); padding-inline: var(--wm-space-1); }
-}
 .transit-places-section > summary > .transit-places-load-status { float: inline-end; margin-block: -6px; }
 .transit-places-group-children .transit-places-category { min-width: 0; }
 .transit-places-group-children .svg-inline--fa { flex-shrink: 0; }
@@ -243,7 +225,6 @@
 .transit-place-icon--viewpoint,
 .transit-places-category--viewpoint .svg-inline--fa { color: #296678; }
 [data-theme="dark"] {
-  .transit-places-load-status--warning { color: var(--wm-color-warning); }
   .transit-place-icon--park,
   .transit-places-category--park .svg-inline--fa { color: #75d7a2; }
   .transit-place-icon--food-cart-pod,

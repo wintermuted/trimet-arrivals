@@ -2,6 +2,7 @@ import { Button } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";
+import "./PlacesHelp.scss";
 
 export default function PlacesHelp({ label, text, icon = "info-circle", triggerLabel }: {
   label: string; text: string; icon?: string; triggerLabel?: string

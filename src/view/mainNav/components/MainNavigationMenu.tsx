@@ -4,6 +4,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { Link, useLocation } from "react-router-dom";
 import TimeDisplayMenu from "../../../component/time/TimeDisplayMenu";
+import GlobalPlacesSearch from "./GlobalPlacesSearch";
 import "./MainNavigationMenu.scss";
 
 interface Props {
@@ -174,6 +175,7 @@ export default function MainNavigationMenu(props: Props) {
             </Link>
           </Nav>
         </div>
+        <GlobalPlacesSearch />
         <TimeDisplayMenu />
       </div>
     </header>
