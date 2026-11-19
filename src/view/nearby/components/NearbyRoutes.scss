@@ -135,7 +135,7 @@
   gap: var(--wm-space-3);
 }
 
-.transit-destination-panel > .transit-detail-header,
+.transit-destination-toolbar,
 .transit-destination-panel-header {
   position: sticky;
   top: 0;
@@ -191,10 +191,12 @@
   }
 }
 
-.transit-destination-search {
+.transit-destination-toolbar {
   display: flex;
   flex-direction: column;
-  gap: var(--wm-space-1);
+  gap: var(--wm-space-2);
+  padding-block-end: var(--wm-space-2);
+  background: var(--wm-color-surface-solid);
 
   input {
     width: 100%;

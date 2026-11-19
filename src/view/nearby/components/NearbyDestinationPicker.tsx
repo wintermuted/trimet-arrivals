@@ -167,12 +167,13 @@ export default function NearbyDestinationPicker({
             }
           }}
         >
-          <TopNavBar id="Choose a destination" onBack={close} />
-          <label className="transit-destination-search">
-            Search stops or routes
+          <div className="transit-destination-toolbar">
+            <TopNavBar id="Choose a destination" onBack={close} />
             <input
               type="search"
               className="wm-input"
+              aria-label="Search stops or routes"
+              placeholder="Search stops or routes"
               ref={searchInput}
               value={search}
               onChange={(event) => {
@@ -180,7 +181,7 @@ export default function NearbyDestinationPicker({
                 clearHighlight();
               }}
             />
-          </label>
+          </div>
           {loading && (
             <p role="status">Loading other routes serving these stops...</p>
           )}
