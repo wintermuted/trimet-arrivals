@@ -265,7 +265,7 @@ route, then select a stop to update the destination and collapse the picker.
 Other-route metadata loads when the picker expands and is reused while it
 remains mounted. Loading failures offer retry without blocking stop selection;
 Back or Escape keeps the existing destination and restores focus to **Get off at**.
-The picker header stays visible while scrolling the stop list.
+The picker header and search field stay visible while scrolling the stop list.
 Before a destination is chosen, the map shows downstream stop markers and fits
 the route from the boarding stop to the terminus. Once you choose a destination,
 the map shows only the boarding and arrival pins and the route between them.
