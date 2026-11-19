@@ -363,6 +363,15 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(getNearbyStops).not.toHaveBeenCalled();
     expect(container.textContent).toContain("Example Park");
     expect(container.textContent).toContain("Food-cart pods could not be loaded");
+    const neighborhoodToggle = () => container.querySelector<HTMLInputElement>(".transit-places-map-layers input");
+    expect(neighborhoodToggle().checked).toBe(false);
+    expect(global.fetch).not.toHaveBeenCalledWith(expect.stringContaining("neighborhoods.json"), expect.anything());
+    await act(async () => neighborhoodToggle().click());
+    expect(container.textContent).toContain("Neighborhood boundaries could not be loaded");
+    expect(container.querySelector(".transit-place-result")).not.toBeNull();
+    const polygonToggle = () => container.querySelector<HTMLInputElement>(".transit-places-polygon-toggle input");
+    expect(polygonToggle().checked).toBe(false);
+    act(() => polygonToggle().click());
     act(() => container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').click());
     act(() => container.querySelector<HTMLButtonElement>(".transit-place-result").click());
     expect(container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').search).toContain("confirmPlace=1");
@@ -375,6 +384,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector("#selected-place-heading").textContent).toBe("Example Park");
     act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent.includes("Back to places")).click());
     expect(container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').checked).toBe(false);
+    expect(neighborhoodToggle().checked).toBe(true);
+    expect(polygonToggle().checked).toBe(true);
     expect(map.jumpTo).toHaveBeenCalled();
     expect(getCurrentPosition).not.toHaveBeenCalled();
   });

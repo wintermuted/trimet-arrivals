@@ -60,8 +60,10 @@ import FollowedVehicleTrip from "./FollowedVehicleTrip";
 import { VehicleFollowView } from "../util/mapbox/vehicleLayer";
 import NearbyPlaces from "./NearbyPlaces";
 import NearbyPlacesMap from "./NearbyPlacesMap";
+import NearbyNeighborhoodsMap from "./NearbyNeighborhoodsMap";
 import NearbyPlaceDestination from "./NearbyPlaceDestination";
 import { DEFAULT_PLACE_FILTERS, filterPlaces, placeInBounds, PlaceFilters, usePlaceCatalog } from "../../../api/places/places";
+import { useNeighborhoods } from "../../../api/places/neighborhoods";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
@@ -325,6 +327,11 @@ export default function NearbyViewComponent() {
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>();
   const [placeBounds, setPlaceBounds] = useState<[number, number, number, number]>();
   const [placeMapError, setPlaceMapError] = useState(false);
+  const [neighborhoodsShown, setNeighborhoodsShown] = useState(false);
+  const [neighborhoodPolygonsShown, setNeighborhoodPolygonsShown] = useState(false);
+  const neighborhoods = useNeighborhoods(isPlaces && neighborhoodsShown);
+  const [neighborhoodMapError, setNeighborhoodMapError] = useState(false);
+  const [neighborhoodLayerRevision, setNeighborhoodLayerRevision] = useState(0);
   const [coincidentIds, setCoincidentIds] = useState<string[]>([]);
   const placeViewport = useRef<{ center: [number, number]; zoom: number }>();
   const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters),
@@ -644,6 +651,12 @@ export default function NearbyViewComponent() {
                 </section>}
                 <NearbyPlaces sources={placeCatalog.sources} filters={placeFilters} onFilters={setPlaceFilters}
                   visiblePlaces={visiblePlaces} selected={selectedPlace} onSelect={selectPlace}
+                  neighborhoods={{ ...neighborhoods, shown: neighborhoodsShown, onShown: setNeighborhoodsShown,
+                    polygonsShown: neighborhoodPolygonsShown, onPolygonsShown: setNeighborhoodPolygonsShown,
+                    mapError: neighborhoodMapError, onRetry: () => {
+                      neighborhoods.retry();
+                      setNeighborhoodLayerRevision(value => value + 1);
+                    } }}
                   origin={currentLocation} originMode={searchMode} onRetry={placeCatalog.retry} mapError={placeMapError} mapReady={Boolean(placeBounds)} />
               </>
             ) : isStopDetail ? (
@@ -718,6 +731,9 @@ export default function NearbyViewComponent() {
             />
           )}
           </NearbyMapV2>
+          {isPlaces && isMapLoaded && neighborhoodsShown && neighborhoods.snapshot &&
+            <NearbyNeighborhoodsMap key={neighborhoodLayerRevision} map={mapRef.current}
+              snapshot={neighborhoods.snapshot} polygonsShown={neighborhoodPolygonsShown} onError={setNeighborhoodMapError} />}
           {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={filteredPlaces}
             selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
             onBounds={updatePlaceBounds} onError={setPlaceMapError} />}

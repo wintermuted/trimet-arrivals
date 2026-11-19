@@ -13,6 +13,21 @@ Changes: converted boundaries to approximate display points; consolidated
 property parts; retained source property IDs and names. These are parks-system
 properties, not a guarantee of public entrances, park status, access or hours.
 
+neighborhoods.json
+Source: City of Portland, Bureau of Planning and Sustainability.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=53509
+Terms: https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Changes: converted to WGS84 GeoJSON with six-decimal coordinate precision;
+retained neighborhood polygon/multipolygon rings and shared areas; normalized
+display labels and stable source IDs; removed unrelated source attributes.
+These are neighborhood association bylaw boundary areas, not necessarily
+disjoint regions or legal boundaries. They provide map context only and are
+not routing destinations. The retrieval date is not a source modification date.
+
 food-cart-pods.json
 Copyright OpenStreetMap contributors.
 Source: https://www.openstreetmap.org/copyright

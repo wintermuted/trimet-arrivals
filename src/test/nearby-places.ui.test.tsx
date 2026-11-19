@@ -8,6 +8,8 @@ import {
 import { Popup } from "mapbox-gl";
 import NearbyPlaces from "../view/nearby/components/NearbyPlaces";
 import NearbyPlacesMap, { placeFeatures } from "../view/nearby/components/NearbyPlacesMap";
+import NearbyNeighborhoodsMap, { NEIGHBORHOOD_LAYERS, NEIGHBORHOOD_SOURCE } from "../view/nearby/components/NearbyNeighborhoodsMap";
+import { NeighborhoodSnapshot, parseNeighborhoodSnapshot, useNeighborhoods } from "../api/places/neighborhoods";
 jest.mock("../view/nearby/util/mapbox/placeIcons", () => ({
   createPlaceIconImage: jest.fn(() => ({ width: 48, height: 48, data: new Uint8Array(48 * 48 * 4) }))
 }));
@@ -26,6 +28,13 @@ const snapshot: PlaceSnapshot = {
   source: "City of Portland", sourceUrl: "https://www.portlandmaps.com/",
   license: "PDDL-1.0", licenseUrl: "https://opendatacommons.org/licenses/pddl/1-0/",
   coverage: "Test parks", places: [park]
+};
+const neighborhoodSnapshot: NeighborhoodSnapshot = {
+  type: "FeatureCollection", version: 1, retrievedAt: snapshot.retrievedAt,
+  source: snapshot.source, sourceUrl: snapshot.sourceUrl, license: snapshot.license,
+  licenseUrl: snapshot.licenseUrl, coverage: "Neighborhood bylaw boundaries, including shared areas",
+  features: [{ type: "Feature", id: "portland:neighborhood:1", properties: { name: "Example", shared: false, areaId: 1 },
+    geometry: { type: "Polygon", coordinates: [[[-122.7, 45.5], [-122.6, 45.5], [-122.6, 45.6], [-122.7, 45.5]]] } }]
 };
 
 describe("Places filtering, selection and map layers", () => {
@@ -50,6 +59,102 @@ describe("Places filtering, selection and map layers", () => {
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [park, park] }, "park")).toThrow();
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, coordinates: [45.52, -122.67] }] }, "park")).toThrow();
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, website: "javascript:alert(1)" }] }, "park")).toThrow();
+  });
+
+  it("validates neighborhood polygons and rejects malformed geometry or duplicate IDs", () => {
+    expect(parseNeighborhoodSnapshot(neighborhoodSnapshot)).toEqual(neighborhoodSnapshot);
+    expect(() => parseNeighborhoodSnapshot({ ...neighborhoodSnapshot,
+      features: [...neighborhoodSnapshot.features, ...neighborhoodSnapshot.features] })).toThrow();
+    expect(() => parseNeighborhoodSnapshot({ ...neighborhoodSnapshot,
+      features: [{ ...neighborhoodSnapshot.features[0], geometry: { type: "Point", coordinates: [-122.67, 45.52] } }] })).toThrow();
+    expect(() => parseNeighborhoodSnapshot({ ...neighborhoodSnapshot,
+      features: [{ ...neighborhoodSnapshot.features[0], geometry: { type: "Polygon", coordinates: [[[1, 2], [3, 4], [5, 6], [1, 2]]] } }] })).toThrow();
+  });
+
+  it("keeps the neighborhood toggle and retry independent of place categories and results", () => {
+    const onFilters = jest.fn();
+    const onShown = jest.fn();
+    const onPolygonsShown = jest.fn();
+    const onRetry = jest.fn();
+    act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
+      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[park]} onSelect={jest.fn()}
+      onRetry={jest.fn()} mapReady mapError={false}
+      neighborhoods={{ shown: true, onShown, polygonsShown: false, onPolygonsShown,
+        loading: false, error: true, mapError: false, onRetry }}
+    /></MemoryRouter>));
+    const control = container.querySelector<HTMLInputElement>(".transit-places-map-layers input");
+    expect(control.checked).toBe(true);
+    expect(container.textContent).toContain("Neighborhood boundaries could not be loaded");
+    expect(container.querySelector(".transit-place-result").textContent).toContain(park.name);
+    act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry neighborhoods").click());
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    act(() => container.querySelector<HTMLInputElement>(".transit-places-polygon-toggle input").click());
+    expect(onPolygonsShown).toHaveBeenCalledWith(true);
+    expect(onShown).not.toHaveBeenCalled();
+    act(() => control.click());
+    expect(onShown).toHaveBeenCalledWith(false);
+    expect(onFilters).not.toHaveBeenCalled();
+  });
+
+  it("loads neighborhoods only when enabled and recovers after an independent fetch failure", async () => {
+    const originalFetch = global.fetch;
+    const fetch = jest.fn().mockRejectedValueOnce(new Error("network"))
+      .mockResolvedValue({ ok: true, json: async () => neighborhoodSnapshot });
+    global.fetch = fetch;
+    function Harness({ enabled }: { enabled: boolean }) {
+      const { snapshot, error, retry } = useNeighborhoods(enabled);
+      return <button onClick={retry}>{error ? "Failed" : snapshot ? snapshot.features[0].properties.name : "Waiting"}</button>;
+    }
+    try {
+      await act(async () => root.render(<Harness enabled={false} />));
+      expect(fetch).not.toHaveBeenCalled();
+      await act(async () => root.render(<Harness enabled />));
+      expect(container.textContent).toBe("Failed");
+      await act(async () => container.querySelector("button").click());
+      expect(container.textContent).toBe("Example");
+      expect(fetch).toHaveBeenLastCalledWith(expect.stringContaining("/data/places/neighborhoods.json"),
+        expect.objectContaining({ cache: "reload" }));
+      await act(async () => root.render(<Harness enabled={false} />));
+      expect(fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it("keeps neighborhoods beneath POIs, restores after style changes and removes only its own layers", () => {
+    const sources = new Set<string>();
+    const layers = new Set<string>(["nearby-places-park-points"]);
+    const listeners = new Map<string, () => void>();
+    const map = {
+      getSource: jest.fn(id => sources.has(id)), addSource: jest.fn(id => sources.add(id)),
+      getLayer: jest.fn(id => layers.has(id)), addLayer: jest.fn((layer, _before?: string) => layers.add(layer.id)),
+      getStyle: () => ({ layers: [...layers].map(id => ({ id })) }),
+      setLayoutProperty: jest.fn(), setPaintProperty: jest.fn(),
+      on: jest.fn((name, handler) => listeners.set(name, handler)), off: jest.fn(),
+      removeLayer: jest.fn(id => layers.delete(id)), removeSource: jest.fn(id => sources.delete(id))
+    };
+    const onError = jest.fn();
+    act(() => root.render(<NearbyNeighborhoodsMap map={map as never} snapshot={neighborhoodSnapshot} polygonsShown={false} onError={onError} />));
+    expect(map.addSource).toHaveBeenCalledWith(NEIGHBORHOOD_SOURCE, expect.objectContaining({ data: neighborhoodSnapshot }));
+    expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ type: "symbol",
+      layout: expect.objectContaining({ "text-field": ["get", "name"] }) }), "nearby-places-park-points");
+    expect(map.addLayer.mock.calls.every(call => call[1] === "nearby-places-park-points")).toBe(true);
+    expect(map.setLayoutProperty).toHaveBeenLastCalledWith(NEIGHBORHOOD_LAYERS[0], "visibility", "none");
+    act(() => root.render(<NearbyNeighborhoodsMap map={map as never} snapshot={neighborhoodSnapshot} polygonsShown onError={onError} />));
+    expect(map.setLayoutProperty).toHaveBeenLastCalledWith(NEIGHBORHOOD_LAYERS[0], "visibility", "visible");
+    expect(map.setPaintProperty).toHaveBeenCalledWith(NEIGHBORHOOD_LAYERS[1], "line-width", 2);
+    expect(map.setLayoutProperty.mock.calls.every(call => call[0] === NEIGHBORHOOD_LAYERS[0])).toBe(true);
+    expect(map.addSource).toHaveBeenCalledTimes(1);
+    sources.clear();
+    NEIGHBORHOOD_LAYERS.forEach(id => layers.delete(id));
+    act(() => listeners.get("style.load")());
+    expect(sources.has(NEIGHBORHOOD_SOURCE)).toBe(true);
+    expect(map.setLayoutProperty).toHaveBeenLastCalledWith(NEIGHBORHOOD_LAYERS[0], "visibility", "visible");
+    expect(onError).not.toHaveBeenCalledWith(true);
+    act(() => root.render(null));
+    expect(sources.size).toBe(0);
+    expect([...layers]).toEqual(["nearby-places-park-points"]);
+    expect(map.off).toHaveBeenCalledWith("style.load", expect.any(Function));
   });
 
   it("filters before clustering, using viewport bounds only for individual sidebar results", () => {

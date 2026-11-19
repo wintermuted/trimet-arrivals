@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 export const PARKS_URL = "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/35";
+export const NEIGHBORHOODS_URL = "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3";
 export const OSM_QUERY = '[out:json][timeout:60];area["boundary"="administrative"]["admin_level"="8"]["name"="Portland"]["wikidata"="Q6106"]->.p;nwr(area.p)["amenity"="food_court"];out center tags;';
 export const METRO_SOURCES = {
   "community-center": {
@@ -200,6 +201,56 @@ export async function fetchParks(request = json) {
   return normalizeParks(features);
 }
 
+export function normalizeNeighborhoods(features) {
+  if (!features.length) throw new Error("City neighborhood response was empty");
+  const ids = new Set();
+  return features.map(feature => {
+    const { ID: id, MAPLABEL: label, NAME: name, SHARED: shared } = feature.properties || {};
+    const geometry = feature.geometry;
+    const polygons = geometry?.type === "MultiPolygon" ? geometry.coordinates :
+      geometry?.type === "Polygon" ? [geometry.coordinates] : [];
+    if (!Number.isInteger(id) || id < 0 || ids.has(id) || !(label || name)?.trim() ||
+        !["Y", "N"].includes(shared) || !polygons.length || !polygons.every(polygon =>
+          Array.isArray(polygon) && polygon.length && polygon.every(ring =>
+            Array.isArray(ring) && ring.length >= 4 && ring.every(validPoint) &&
+            ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]))) {
+      throw new Error(`Invalid or duplicate neighborhood polygon ${id}`);
+    }
+    ids.add(id);
+    return { type: "Feature", id: `portland:neighborhood:${id}`,
+      properties: { name: (label || name).trim(), shared: shared === "Y", areaId: id }, geometry };
+  }).sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export async function fetchNeighborhoods(request = json) {
+  const ids = await request(`${NEIGHBORHOODS_URL}/query?where=1%3D1&returnIdsOnly=true&f=json`);
+  if (!Array.isArray(ids.objectIds) || !ids.objectIds.length) throw new Error("City returned no neighborhood IDs");
+  const uniqueIds = [...new Set(ids.objectIds)].sort((a, b) => a - b);
+  const features = [];
+  for (let offset = 0; offset < uniqueIds.length; offset += 100) {
+    const params = new URLSearchParams({
+      objectIds: uniqueIds.slice(offset, offset + 100).join(","),
+      outFields: "OBJECTID,ID,NAME,MAPLABEL,SHARED", outSR: "4326",
+      geometryPrecision: "6", returnGeometry: "true", f: "geojson"
+    });
+    const page = await request(`${NEIGHBORHOODS_URL}/query?${params}`);
+    if (!Array.isArray(page.features) || page.exceededTransferLimit) throw new Error("Incomplete city neighborhood page");
+    features.push(...page.features);
+  }
+  const returnedIds = new Set(features.map(feature => feature.properties?.OBJECTID));
+  if (returnedIds.size !== uniqueIds.length || uniqueIds.some(id => !returnedIds.has(id))) {
+    throw new Error("City neighborhood query omitted records");
+  }
+  return {
+    type: "FeatureCollection", version: 1, retrievedAt: new Date().toISOString(),
+    source: "City of Portland, Bureau of Planning and Sustainability",
+    sourceUrl: "https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=53509",
+    license: "PDDL-1.0", licenseUrl: "https://www.portlandmaps.com/bps/arpa/tos.pdf",
+    coverage: "Neighborhood association bylaw boundaries, including shared areas. For map context, not legal boundaries, entrances, or routing destinations.",
+    features: normalizeNeighborhoods(features)
+  };
+}
+
 export async function writeSnapshots(directory, snapshots) {
   await mkdir(directory, { recursive: true });
   const old = new Map();
@@ -229,6 +280,12 @@ export async function writeSnapshots(directory, snapshots) {
 }
 
 async function main() {
+  if (process.argv.includes("--neighborhoods-only")) {
+    const neighborhoods = await fetchNeighborhoods();
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), { "neighborhoods.json": neighborhoods });
+    console.log(`Refreshed ${neighborhoods.features.length} neighborhood boundary areas, including shared areas.`);
+    return;
+  }
   const endpoint = process.env.OVERPASS_URL || "https://overpass.kumi.systems/api/interpreter";
   const parks = await fetchParks();
   const inputIndex = process.argv.indexOf("--osm-input");
@@ -243,9 +300,11 @@ async function main() {
   const pods = normalizePods(osm.elements || []);
   const centers = await fetchMetroPlaces("community-center");
   const libraries = await fetchMetroPlaces("library");
+  const neighborhoods = await fetchNeighborhoods();
   const retrievedAt = new Date().toISOString();
   if (!Number.isFinite(Date.parse(osm.osm3s?.timestamp_osm_base))) throw new Error("OSM source timestamp missing");
   const snapshots = {
+    "neighborhoods.json": neighborhoods,
     "parks.json": {
       version: 1, category: "park", retrievedAt, source: "City of Portland, Bureau of Parks and Recreation",
       sourceUrl: "https://gis-pdx.opendata.arcgis.com/datasets/parks/about",
@@ -275,7 +334,7 @@ async function main() {
     };
   }
   await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
-  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, and ${libraries.places.length} libraries. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
+  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, ${libraries.places.length} libraries, and ${neighborhoods.features.length} neighborhood boundary areas. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
