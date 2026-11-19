@@ -35,7 +35,20 @@
   legend { padding-inline-end: var(--wm-space-2); font-size: 0.875rem; }
   p { color: var(--wm-color-text-muted); font-size: 0.875rem; margin: 0; }
   .transit-places-polygon-toggle { display: flex; padding-inline-start: var(--wm-space-3); font-size: 0.875rem; }
+  .transit-places-line-toggle { display: flex; min-height: 32px; font-size: 0.875rem; gap: var(--wm-space-1); }
+  p + .transit-places-line-toggle { margin-block-start: var(--wm-space-2); }
+  p { margin-block-end: var(--wm-space-2); }
 }
+
+.transit-place-line-swatch {
+  display: inline-block;
+  width: 1.25rem;
+  flex-shrink: 0;
+  border-top: 3px solid;
+  vertical-align: middle;
+}
+.transit-place-line-swatch--park-trails,
+.transit-place-line-swatch--caution { border-top-style: dashed; }
 
 .transit-place-icon--park,
 .transit-places-category--park .svg-inline--fa { color: #197346; }

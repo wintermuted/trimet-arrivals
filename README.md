@@ -228,6 +228,33 @@ colored outlines in addition to the labels. Turn it off for labels/outlines
 without area fills. Both controls are independent of place categories and
 retain their settings while navigating Nearby; shared areas may overlap.
 
+Three additional **Map layers** are independent, off by default, and downloaded
+only when enabled:
+
+- **Park trails**: green dashed existing trail centerlines. Water trails,
+  maintenance roads, retired CAT roads, proposed/informal/closed segments and
+  unmapped records are excluded. Unspecified trail types remain identified in
+  the source data. A trail line does not establish public access, accessibility,
+  or permission to cycle.
+- **Bicycle network**: blue active infrastructure, including different facility
+  types, not only protected lanes. Planned, future-development recommendations,
+  retired segments and undefined statuses are excluded.
+- **Recommended bike routes**: the City's separate recommended cycling map,
+  in amber. Red dashed connections are difficult, moderate/high-traffic, or
+  unclassified, not an assurance of a comfortable or protected ride.
+
+The Bicycle Network source's `RECOMM` status means **recommended for future
+development**, not the recommended-routes map. These are deliberately not mixed.
+All line layers are reference overlays, not selectable place destinations or a
+turn-by-turn/cycling routing engine. Verify signs, legal direction, trail rules,
+closures and current access. Directions may differ by travel direction; no
+one-way permission is inferred from line geometry. No live-condition, safety or
+accessible-route guarantee is made.
+Layer controls carry color/pattern swatches; point discovery and transit planning
+are unchanged. Enabled lines sit above neighborhood fills and below POI markers,
+retain their settings during Nearby navigation, recover on map-style reloads,
+and have independent loading/errors/retry. Loaded data are cached for the session.
+
 #### Refreshing place snapshots
 
 ```powershell
@@ -316,6 +343,22 @@ npm run places:refresh -- --everyday-only
 
 The full refresh includes these four sources too. Review listed services,
 pickup arrangements, source age, and rack metadata before publishing.
+
+Refresh only trail/network/recommended-route line snapshots:
+
+```powershell
+npm run places:refresh -- --overlays-only
+```
+
+The full refresh includes these overlays. All matching object IDs are retrieved
+in validated batches of at most 200, with complete LineString/MultiLineString
+geometry at six-decimal WGS84 precision. The active-network query excludes future
+or retired infrastructure at the source, and normalization rechecks status.
+Missing geometry and out-of-coverage segments are omitted with explicit warnings;
+other invalid geometry, unknown status/connection codes, duplicate identities,
+and truncated pages fail without partially replacing snapshots.
+`park-trails.json`, `bicycle-network.json`, and `recommended-bike-routes.json`
+carry City bureau attribution, metadata, coverage, retrieval dates and PDDL terms.
 
 Refresh manually when maintaining the catalog (monthly is a reasonable starting
 cadence), and review names, counts, additions/removals, source dates, and arrival

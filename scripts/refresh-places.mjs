@@ -54,6 +54,26 @@ export const CITY_PLACE_SOURCES = {
 const citySourceUrl = source => source.sourceUrl ||
   `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${source.metadataId}`;
 const EVERYDAY_CATEGORIES = ["grocery-store", "reuse-repair", "csa-pickup", "bicycle-parking"];
+export const LINE_OVERLAY_SOURCES = {
+  "park-trails": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/27",
+    metadataId: 52963, file: "park-trails.json", bureau: "Bureau of Parks and Recreation",
+    fields: "OBJECTID,Local_Name,TYPE,STATUS,SURFACE", where: "1=1",
+    coverage: "Existing mapped park trail centerlines in the Portland area. Excludes proposed, informal, closed, water, maintenance and retired CAT roads. Unspecified trail types are retained. Not verified current access, accessibility or permission to cycle."
+  },
+  "bicycle-network": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/75",
+    metadataId: 53123, file: "bicycle-network.json", bureau: "Bureau of Transportation",
+    fields: "OBJECTID,SegmentName,Status,Facility,YearRetired", where: "Status = 'ACTIVE' AND YearRetired IS NULL",
+    coverage: "Source-active bicycle network segments without a retirement year. Includes mixed facility types, not only protected lanes. Planned, future-development recommendations, retired and undefined-status segments are excluded. Not live condition, direction or safety information."
+  },
+  "recommended-bike-routes": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/183",
+    metadataId: 54399, file: "recommended-bike-routes.json", bureau: "Bureau of Transportation",
+    fields: "OBJECTID,StreetName,ConnectionType", where: "1=1",
+    coverage: "The City's recommended cycling map, distinct from future-development recommendations in the Bicycle Network layer. Includes difficult and higher-traffic connections and direction-dependent facilities. Difficult, moderate/high-traffic and unclassified connections are marked for caution. Not a guarantee of low stress, protection, legal direction, current access or safety."
+  }
+};
 export const OSM_QUERY = '[out:json][timeout:60];area["boundary"="administrative"]["admin_level"="8"]["name"="Portland"]["wikidata"="Q6106"]->.p;nwr(area.p)["amenity"="food_court"];out center tags;';
 export const METRO_SOURCES = {
   "community-center": {
@@ -425,6 +445,83 @@ export async function fetchCityPlaces(category, request = json) {
   };
 }
 
+export function normalizeLineOverlay(features, category) {
+  const source = LINE_OVERLAY_SOURCES[category];
+  if (!source || !features.length) throw new Error(`Empty or unsupported line overlay ${category}`);
+  const ids = new Set();
+  const text = value => typeof value === "string" ? value.trim() : "";
+  const lines = [];
+  for (const feature of features) {
+    const p = feature.properties || {};
+    if (!Number.isInteger(p.OBJECTID) || p.OBJECTID <= 0 || ids.has(p.OBJECTID)) throw new Error(`Invalid or duplicate ${category} ID`);
+    ids.add(p.OBJECTID);
+    if (category === "park-trails") {
+      if (!["existing", "proposed", "informal", "closed"].includes(text(p.STATUS).toLowerCase())) throw new Error("Unrecognized trail status");
+      if (text(p.STATUS).toLowerCase() !== "existing" ||
+        ["water trail", "Maintenance Road", "CAT Road (retired)"].includes(text(p.TYPE))) continue;
+    }
+    if (category === "bicycle-network") {
+      if (!["ACTIVE", "PLANNED", "RECOMM", "NONE", "RETIRED"].includes(text(p.Status))) throw new Error("Unrecognized bicycle network status");
+      if (text(p.Status) !== "ACTIVE" || p.YearRetired != null) continue;
+    }
+    const geometry = feature.geometry;
+    if (geometry == null) {
+      console.warn(`Omitted ${category} segment ${p.OBJECTID}: source has no mapped geometry.`);
+      continue;
+    }
+    const parts = geometry?.type === "LineString" ? [geometry.coordinates] :
+      geometry?.type === "MultiLineString" ? geometry.coordinates : undefined;
+    if (!Array.isArray(parts) || !parts.length || !parts.every(part => Array.isArray(part) && part.length >= 2 &&
+      part.every(point => Array.isArray(point) && point.length === 2 && point.every(Number.isFinite) &&
+        Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90))) throw new Error(`Invalid ${category} line geometry`);
+    if (!parts.every(part => part.every(validPoint))) {
+      console.warn(`Omitted ${category} segment ${p.OBJECTID}: outside Portland-area map coverage.`);
+      continue;
+    }
+    const connection = text(p.ConnectionType);
+    const knownConnections = ["BBL", "BL", "BL_VHT", "BL-DC", "BL-MUP", "BL-SR_LT", "BL-SR_MT",
+      "DC", "MUP_P", "MUP_U", "NG", "SC", "SR_DC", "SR_LT", "SR_MT", "SR_MT-DC"];
+    if (category === "recommended-bike-routes" && connection && !knownConnections.includes(connection)) {
+      throw new Error(`Unrecognized recommended route connection ${connection}`);
+    }
+    lines.push({ type: "Feature", id: `portland:${category}:${p.OBJECTID}`, geometry,
+      properties: {
+        name: text(category === "park-trails" ? p.Local_Name : category === "bicycle-network" ? p.SegmentName : p.StreetName) ||
+          (category === "park-trails" ? "Unnamed park trail" : "Unnamed bicycle segment"),
+        kind: category === "recommended-bike-routes" && (!connection || /DC|VHT|SR_MT/.test(connection)) ? "caution" : "standard",
+        detail: category === "park-trails" ? [text(p.TYPE), text(p.SURFACE)].filter(Boolean).join(" / ") :
+          category === "bicycle-network" ? text(p.Facility) : connection || "Unclassified connection"
+      } });
+  }
+  if (!lines.length) throw new Error(`No eligible ${category} segments`);
+  return lines.sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export async function fetchLineOverlay(category, request = json) {
+  const source = LINE_OVERLAY_SOURCES[category];
+  if (!source) throw new Error(`Unsupported line overlay ${category}`);
+  const ids = await request(`${source.url}/query?${new URLSearchParams({ where: source.where, returnIdsOnly: "true", f: "json" })}`);
+  if (!Array.isArray(ids.objectIds) || !ids.objectIds.length) throw new Error(`No ${category} IDs`);
+  const unique = [...new Set(ids.objectIds)].sort((a, b) => a - b);
+  const features = [];
+  for (let offset = 0; offset < unique.length; offset += 200) {
+    const params = new URLSearchParams({ objectIds: unique.slice(offset, offset + 200).join(","),
+      outFields: source.fields, outSR: "4326", geometryPrecision: "6", returnGeometry: "true", f: "geojson" });
+    const page = await request(`${source.url}/query?${params}`);
+    if (!Array.isArray(page.features) || page.exceededTransferLimit) throw new Error(`Incomplete ${category} page`);
+    features.push(...page.features);
+  }
+  const returned = new Set(features.map(feature => feature.properties?.OBJECTID));
+  if (features.length !== unique.length || returned.size !== unique.length || unique.some(id => !returned.has(id))) {
+    throw new Error(`${category} query omitted or duplicated records`);
+  }
+  return { type: "FeatureCollection", version: 1, category, retrievedAt: new Date().toISOString(),
+    source: `City of Portland, ${source.bureau}`, sourceUrl: citySourceUrl(source),
+    license: "PDDL-1.0", licenseUrl: "https://www.portlandmaps.com/bps/arpa/tos.pdf",
+    coverage: `${source.coverage} Unmapped and out-of-coverage segments are omitted with refresh warnings.`,
+    features: normalizeLineOverlay(features, category) };
+}
+
 export function normalizeNeighborhoods(features) {
   if (!features.length) throw new Error("City neighborhood response was empty");
   const ids = new Set();
@@ -504,6 +601,13 @@ export async function writeSnapshots(directory, snapshots) {
 }
 
 async function main() {
+  if (process.argv.includes("--overlays-only")) {
+    const snapshots = {};
+    for (const category of Object.keys(LINE_OVERLAY_SOURCES)) snapshots[LINE_OVERLAY_SOURCES[category].file] = await fetchLineOverlay(category);
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
+    console.log(`Refreshed ${Object.values(snapshots).map(snapshot => `${snapshot.features.length} ${snapshot.category}`).join(", ")} segments. Review access and source-listed conditions before publishing.`);
+    return;
+  }
   if (process.argv.includes("--everyday-only")) {
     const snapshots = {};
     for (const category of EVERYDAY_CATEGORIES) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
@@ -576,6 +680,7 @@ async function main() {
     }
   };
   for (const category of EVERYDAY_CATEGORIES) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
+  for (const category of Object.keys(LINE_OVERLAY_SOURCES)) snapshots[LINE_OVERLAY_SOURCES[category].file] = await fetchLineOverlay(category);
   for (const [category, data] of [["community-center", centers], ["library", libraries]]) {
     snapshots[METRO_SOURCES[category].file] = {
       version: 1, category, retrievedAt, sourceUpdatedAt: data.sourceUpdatedAt,

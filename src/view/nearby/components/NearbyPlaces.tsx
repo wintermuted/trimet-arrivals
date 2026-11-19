@@ -10,6 +10,7 @@ import {
 } from "../../../api/places/places";
 import "./NearbyPlaces.scss";
 import { NeighborhoodState } from "../../../api/places/neighborhoods";
+import { LINE_CAUTION_COLOR, LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "../../../api/places/lineOverlays";
 
 interface Props {
   sources: Record<PlaceCategory, PlaceSourceState>;
@@ -23,6 +24,7 @@ interface Props {
   onRetry: (category: PlaceCategory) => void;
   mapError: boolean;
   mapReady: boolean;
+  lineOverlays?: LineOverlayControls;
   neighborhoods?: NeighborhoodState & {
     shown: boolean;
     onShown: (shown: boolean) => void;
@@ -34,7 +36,7 @@ interface Props {
 }
 
 export default function NearbyPlaces({
-  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods
+  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods, lineOverlays
 }: Props) {
   const [limit, setLimit] = useState(40);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -87,6 +89,20 @@ export default function NearbyPlaces({
             onChange={event => neighborhoods.onPolygonsShown(event.target.checked)} />
           Show neighborhood polygons
         </label>}
+        {lineOverlays && LINE_OVERLAY_CATEGORIES.map(category => <label key={category}
+          className="transit-places-category transit-places-line-toggle">
+          <input type="checkbox" checked={lineOverlays.shown[category]} aria-describedby="place-line-overlay-help"
+            onChange={event => lineOverlays.onShown(category, event.target.checked)} />
+          <span aria-hidden="true" className={`transit-place-line-swatch transit-place-line-swatch--${category}`}
+            style={{ borderColor: LINE_OVERLAY_INFO[category].color }} />
+          {LINE_OVERLAY_INFO[category].label}
+        </label>)}
+        {lineOverlays && <p id="place-line-overlay-help">Optional reference lines, not turn-by-turn routes. Trail access, bike permissions, directions, and closures are not verified.</p>}
+        {lineOverlays?.shown["bicycle-network"] && <p>Blue shows active mixed bicycle facilities only; future and retired segments are excluded.</p>}
+        {lineOverlays?.shown["recommended-bike-routes"] && <p>
+          <span aria-hidden="true" className="transit-place-line-swatch transit-place-line-swatch--caution" style={{ borderColor: LINE_CAUTION_COLOR }} />
+          {" "}Red dashes: difficult, higher-traffic or unclassified connections. A recommendation is not a safety guarantee.
+        </p>}
       </fieldset>}
       <label className="transit-places-search">
         Search places in this map area
@@ -110,6 +126,14 @@ export default function NearbyPlaces({
         </div>
       ))}
       {loading && <p role="status">Loading places...</p>}
+      {lineOverlays && LINE_OVERLAY_CATEGORIES.map(category => lineOverlays.shown[category] && <React.Fragment key={category}>
+        {lineOverlays.sources[category].loading && <p role="status">Loading {LINE_OVERLAY_INFO[category].label.toLowerCase()}...</p>}
+        {(lineOverlays.sources[category].error || lineOverlays.mapErrors[category]) && <div role="alert" className="transit-places-message">
+          <p>{LINE_OVERLAY_INFO[category].label} could not be {lineOverlays.sources[category].error ? "loaded" : "drawn"}. Other map layers and places remain usable.
+            {lineOverlays.sources[category].error && lineOverlays.sources[category].snapshot && " The previously loaded snapshot is still shown."}</p>
+          <Button size="sm" variant="secondary" onClick={() => lineOverlays.onRetry(category)}>Retry {LINE_OVERLAY_INFO[category].label.toLowerCase()}</Button>
+        </div>}
+      </React.Fragment>)}
       {mapError && <p role="alert">Place markers could not be drawn. You can still select places from this list. Reopen Places to retry the map layer.</p>}
       {selected && (
         <section className="transit-place-detail" aria-labelledby="selected-place-heading">
@@ -218,6 +242,15 @@ export default function NearbyPlaces({
           {" · "}<a href={neighborhoods.snapshot.licenseUrl} target="_blank" rel="noreferrer">{neighborhoods.snapshot.license}</a><br />
           Retrieved {new Date(neighborhoods.snapshot.retrievedAt).toLocaleDateString()}. {neighborhoods.snapshot.coverage}
         </p>}
+        {lineOverlays && LINE_OVERLAY_CATEGORIES.map(category => {
+          const snapshot = lineOverlays.sources[category].snapshot;
+          return snapshot && <p key={category}>
+            <strong>{LINE_OVERLAY_INFO[category].label}</strong><br />
+            <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">{snapshot.source}</a>
+            {" · "}<a href={snapshot.licenseUrl} target="_blank" rel="noreferrer">{snapshot.license}</a><br />
+            Retrieved {new Date(snapshot.retrievedAt).toLocaleDateString()}. {snapshot.coverage}
+          </p>;
+        })}
       </details>
     </section>
   );
