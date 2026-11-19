@@ -252,6 +252,7 @@ export default function NearbyViewComponent() {
   const navigate = useNavigate();
   const location = useLocation();
   const isPlanner = Boolean(matchPath("/nearby/planner", location.pathname));
+  const isChoosingDirectionStop = Boolean(matchPath("/nearby/directions", location.pathname));
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &&
     new URLSearchParams(location.search).getAll("referrer").length === 1 &&
@@ -347,10 +348,10 @@ export default function NearbyViewComponent() {
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeStopLocationLayers(mapRef.current);
-    if (!isPlanner && stopLocations && nearbyRouteIds) {
+    if (!isPlanner && !isChoosingDirectionStop && stopLocations && nearbyRouteIds) {
       setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     }
-  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner]);
+  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isChoosingDirectionStop]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;

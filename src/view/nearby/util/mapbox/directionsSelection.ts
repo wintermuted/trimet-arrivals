@@ -1,5 +1,5 @@
 import { FeatureCollection, Point } from "geojson";
-import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
+import { LngLatBounds, Map as MapboxMap, MapLayerMouseEvent, Marker, Popup } from "mapbox-gl";
 import { RouteDirectionStop } from "../../../../api/trimet/interfaces/routes";
 import { addMapboxLayer, getRouteGeometry, removeRoutes } from "./routeLines";
 import { getSelectedRouteSegment } from "./routeSegment";
@@ -10,6 +10,7 @@ export interface DirectionsSelection {
   origin: RouteDirectionStop;
   destination?: RouteDirectionStop;
   destinationStops?: RouteDirectionStop[];
+  onChooseDestination?: (stop: RouteDirectionStop) => void;
 }
 
 const DIRECTIONS_ROUTE = "directions-route";
@@ -28,11 +29,12 @@ export function highlightDirectionsStop(map: MapboxMap, stopId?: number) {
 
 export function showDirectionsSelection(
   map: MapboxMap,
-  { routeId, direction, origin, destination, destinationStops }: DirectionsSelection,
+  { routeId, direction, origin, destination, destinationStops, onChooseDestination }: DirectionsSelection,
   onError: () => void
 ): () => void {
   const request = new AbortController();
   let closed = false;
+  let removeStopPopover: (() => void) | undefined;
   const stops = destination && !destinationStops ? [origin, destination] : [origin];
   const markers = stops.map((stop, index) => {
     const label = index === 0 ? "Board at" : "Get off at";
@@ -45,11 +47,11 @@ export function showDirectionsSelection(
   });
 
   if (destinationStops) {
-    const uniqueStops = Array.from(new Map<number, RouteDirectionStop>(
+    const stopsById = new Map<number, RouteDirectionStop>(
       destinationStops.map(stop => [stop.locid, stop])
-    ).values());
+    );
     const data: FeatureCollection<Point> = {
-      features: uniqueStops.map(stop => ({
+      features: Array.from(stopsById.values(), stop => ({
         geometry: { type: "Point", coordinates: [stop.lng, stop.lat] },
         properties: {
           color: stop.locid === destination?.locid ? "#c55316" : "#4264fb",
@@ -72,6 +74,63 @@ export function showDirectionsSelection(
       source: DIRECTIONS_STOPS,
       type: "circle"
     });
+
+    if (onChooseDestination && stopsById.size) {
+      let popup: Popup | undefined;
+      const openStop = (event: MapLayerMouseEvent) => {
+        let stop: RouteDirectionStop | undefined;
+        let closestDistance = Infinity;
+        const features = event.features ?? [];
+        for (const feature of features) {
+          const candidate = stopsById.get(feature.properties?.locid);
+          if (!candidate) continue;
+          const distance = features.length === 1 ? 0 :
+            map.project([candidate.lng, candidate.lat]).distSqr(event.point);
+          if (distance < closestDistance) {
+            stop = candidate;
+            closestDistance = distance;
+          }
+        }
+        if (!stop) return;
+
+        popup?.remove();
+        const content = document.createElement("div");
+        content.className = "transit-directions-stop-popover";
+        const name = document.createElement("strong");
+        name.textContent = stop.desc;
+        const info = document.createElement("small");
+        info.textContent = `Stop ID: ${stop.locid} · Route ${routeId}`;
+        const action = document.createElement("button");
+        action.type = "button";
+        action.className = "wm-btn wm-btn-primary wm-btn-sm";
+        action.textContent = stop.locid === destination?.locid ? "Selected destination" : "Set as destination";
+        action.disabled = stop.locid === destination?.locid;
+        const stopPopup = new Popup({ offset: 12, maxWidth: "min(15rem, 75vw)" })
+          .setLngLat([stop.lng, stop.lat])
+          .setDOMContent(content);
+        action.addEventListener("click", () => {
+          stopPopup.remove();
+          onChooseDestination(stop);
+        });
+        content.append(name, info, action);
+        content.addEventListener("keydown", event => {
+          if (event.key === "Escape") stopPopup.remove();
+        });
+        popup = stopPopup.addTo(map);
+      };
+      const enter = () => { map.getCanvas().style.cursor = "pointer"; };
+      const leave = () => { map.getCanvas().style.cursor = ""; };
+      map.on("click", DIRECTIONS_STOPS, openStop);
+      map.on("mouseenter", DIRECTIONS_STOPS, enter);
+      map.on("mouseleave", DIRECTIONS_STOPS, leave);
+      removeStopPopover = () => {
+        popup?.remove();
+        leave();
+        map.off("click", DIRECTIONS_STOPS, openStop);
+        map.off("mouseenter", DIRECTIONS_STOPS, enter);
+        map.off("mouseleave", DIRECTIONS_STOPS, leave);
+      };
+    }
   }
 
   function fitSelection(bounds: LngLatBounds) {
@@ -133,6 +192,7 @@ export function showDirectionsSelection(
   return () => {
     closed = true;
     request.abort();
+    removeStopPopover?.();
     markers.forEach(marker => marker.remove());
     removeRoutes(map, destinationStops ? [DIRECTIONS_ROUTE, DIRECTIONS_STOPS] : [DIRECTIONS_ROUTE]);
   };

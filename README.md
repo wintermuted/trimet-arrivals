@@ -131,6 +131,9 @@ Departure rows support mouse and keyboard selection, with a highlight and caret
 identifying the selected departure. Selection persists across updates while that
 departure remains available; otherwise the first departure is selected.
 
+On the Nearby Directions map, click or tap a downstream stop to see its name,
+stop ID, and route, then choose **Set as destination** to update the sidebar.
+
 The Nearby route list groups stops by route, then direction; route headings use
 the number alone (for example, 56 rather than Route 56).
 Route and direction headings are independent keyboard-accessible disclosures,

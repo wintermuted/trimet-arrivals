@@ -1,5 +1,5 @@
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
@@ -55,6 +55,13 @@ export default function NearbyDirections({
   const [mapError, setMapError] = useState(false);
   const [mapRetry, setMapRetry] = useState(0);
   const [choosingDestination, setChoosingDestination] = useState(false);
+  const changeDestination = useCallback((stop: RouteDirectionStop) => {
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      next.set("to", String(stop.locid));
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   useEffect(() => {
     if (!validRoute) {
@@ -103,13 +110,14 @@ export default function NearbyDirections({
         {
           routeId, direction, origin, destination,
           ...(!showTripTimes && !showTrip ? {
-            destinationStops: route.stops.slice(originIndex + 1)
+            destinationStops: route.stops.slice(originIndex + 1),
+            onChooseDestination: changeDestination
           } : {})
         },
         () => setMapError(true)
       );
     }
-  }, [routeId, direction, validRoute, origin, originIndex, destination, onSelectionChanged, mapRetry, route, showTripTimes, showTrip]);
+  }, [routeId, direction, validRoute, origin, originIndex, destination, onSelectionChanged, mapRetry, route, showTripTimes, showTrip, changeDestination]);
 
   if (!validRoute) {
     return (
@@ -196,12 +204,6 @@ export default function NearbyDirections({
     );
   }
 
-  function changeDestination(value: string) {
-    const next = new URLSearchParams(searchParams);
-    next.set("to", value);
-    setSearchParams(next, { replace: true });
-  }
-
   return (
     <div className={`scrollarea transit-directions${choosingDestination ? " transit-directions-picking" : ""}`}>
       <TopNavBar
@@ -240,7 +242,7 @@ export default function NearbyDirections({
           routeId={routeId}
           onOpenChange={setChoosingDestination}
           onStopHighlightChanged={onStopHighlightChanged}
-          onSelect={stop => changeDestination(String(stop.locid))}
+          onSelect={changeDestination}
         />
       </FieldGroup>
       {origin && !remainingStops.length && (
