@@ -281,6 +281,31 @@
   }
 }
 
+.transit-selected-trip {
+  .transit-selected-trip-label {
+    display: block;
+    color: var(--wm-color-text-secondary);
+  }
+
+  .transit-selected-trip-time {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--wm-space-2);
+    color: var(--wm-color-text-secondary);
+    font-variant-numeric: tabular-nums;
+
+    time {
+      color: var(--wm-color-text);
+      font-weight: 600;
+    }
+  }
+
+  .transit-planner-leg-duration {
+    margin: var(--wm-space-2) 0 0 1.5rem;
+  }
+}
+
 .transit-trip-refresh {
   display: flex;
   align-items: center;

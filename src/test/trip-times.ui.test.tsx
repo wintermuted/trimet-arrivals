@@ -179,8 +179,9 @@ describe("selected-stop trip times view", () => {
     expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Destination Stop");
     expect(container.textContent).toContain("Trip details");
     expect(container.textContent).toContain("Trip trip-later");
-    expect(container.querySelectorAll("tbody tr")).toHaveLength(1);
-    expect(container.querySelector("tbody").textContent).toMatch(/10:20 PM.*10:40 PM.*20 min ride/);
+    expect(container.querySelector("table")).toBeNull();
+    const details = container.querySelector(".transit-selected-trip");
+    expect(details.textContent).toMatch(/10:20 PM.*10:40 PM.*20 min ride/);
     expect(container.querySelector(".transit-trip-link")).toBeNull();
 
     loadArrivals.mockResolvedValueOnce(response([
@@ -189,8 +190,8 @@ describe("selected-stop trip times view", () => {
       { ...laterDestination, estimated: now + 43 * minute }
     ]));
     await act(async () => container.querySelector<HTMLButtonElement>("button").click());
-    expect(container.querySelector("tbody").textContent).toMatch(/10:22 PM.*10:43 PM.*21 min ride/);
-    expect(container.querySelector("tbody").textContent).not.toContain("10:10 PM");
+    expect(details.textContent).toMatch(/10:22 PM.*10:43 PM.*21 min ride/);
+    expect(details.textContent).not.toContain("10:10 PM");
   });
 
   it.each(["unknown departure", "different trip", "no longer reported"])("does not substitute another trip for %s", async reason => {
@@ -212,8 +213,7 @@ describe("selected-stop trip times view", () => {
       { ...departure, estimated: now - minute }, atDestination
     ]));
     await render(destination, { departureId: departure.id, tripId: departure.tripID });
-    expect(container.querySelector("tbody").textContent).toContain("9:59 PM");
-    expect(container.querySelector("tbody").textContent).toContain("10:24 PM");
+    expect(container.querySelector(".transit-selected-trip").textContent).toMatch(/9:59 PM.*10:24 PM/);
   });
 
   it("can select a departure without a trip ID but never invents destination times", async () => {
@@ -224,7 +224,7 @@ describe("selected-stop trip times view", () => {
     expect(url.searchParams.has("trip")).toBe(false);
     await render(destination, { departureId: departure.id });
     expect(container.textContent).toContain("Trip ID not reported");
-    expect(container.querySelector("tbody").textContent).toContain("Not reported");
+    expect(container.querySelector(".transit-selected-trip").textContent).toContain("Arrival not reported");
   });
 
   it("explains an unmatched destination without displaying a made-up duration", async () => {

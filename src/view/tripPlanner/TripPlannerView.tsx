@@ -25,7 +25,7 @@ import {
 } from "../../api/trimet/tripplanner";
 import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
 import PlannerStopSelect, { SavedPlannerStop } from "./PlannerStopSelect";
-import "./TripPlannerView.scss";
+import { DirectionsStopPair, EndpointMarker } from "./DirectionsStopPair";
 
 const EMPTY_STOPS: StopCatalogStop[] = [];
 
@@ -56,14 +56,6 @@ type PlannerEndpoint =
   | { kind: "stop"; stop: StopCatalogStop }
   | { kind: "place" | "coord"; value: string };
 type EndpointField = "from" | "to";
-
-function EndpointMarker({ field }: { field: EndpointField }) {
-  return (
-    <span className={`transit-planner-endpoint-marker transit-planner-endpoint-marker--${field}`} aria-hidden="true">
-      {field === "to" && <FontAwesome name="map-marker" />}
-    </span>
-  );
-}
 
 function endpointLabel(endpoint: PlannerEndpoint, resolved?: TripPlannerResponse["from"]) {
   if (endpoint.kind === "stop") return `${endpoint.stop.desc} (${endpoint.stop.locid})`;
@@ -333,14 +325,7 @@ function ItineraryDetails({
                   <strong>{legTitle(leg)}</strong>
                   {leg.direction && <span> · {leg.direction}</span>}
                 </div>
-                <p className="transit-planner-leg-stops transit-planner-endpoint-pair transit-planner-endpoint-pair--rail">
-                  <span className="transit-planner-endpoint">
-                    <EndpointMarker field="from" />{formatStop(leg.from)}
-                  </span>{" "}
-                  <span className="transit-planner-endpoint">
-                    <EndpointMarker field="to" />{formatStop(leg.to)}
-                  </span>
-                </p>
+                <DirectionsStopPair from={formatStop(leg.from)} to={formatStop(leg.to)} />
                 {(leg.startTime || leg.endTime) && (
                   <p className="transit-planner-leg-time">
                     {leg.startTime || "Time unavailable"}

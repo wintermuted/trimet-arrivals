@@ -293,7 +293,8 @@ boarding times use TriMet stop predictions rather than guaranteed departures.
 Each trip row is a keyboard-accessible link; selecting anywhere on it opens
 `/nearby/directions/trip` for that specific departure. The URL retains the route,
 direction, boarding stop, destination, departure ID, and reported trip ID.
-The trip view shows only that departure's matched times and ride duration, with
+The trip view uses the planner's connected boarding and destination stops, with
+that departure's matched times shown at each stop and the ride duration below. It includes
 refresh/retry and a back link to the originating trip list. A missing or no-longer
 reported departure never silently selects another trip. Reported departures
 remain visible in the trip view after their departure time passes.
