@@ -429,12 +429,8 @@
   }
 }
 
-.transit-nearby-follow-nav {
-  padding: var(--wm-space-2) var(--transit-nearby-sidebar-gutter);
-}
-
 .transit-follow-trip {
-  padding-block: var(--wm-space-3);
+  padding-block-end: var(--wm-space-3);
 
   summary {
     min-height: 44px;

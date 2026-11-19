@@ -545,9 +545,6 @@ export default function NearbyViewComponent() {
             aria-label="Nearby transit"
             tabIndex={0}
           >
-            {following && <div className="transit-nearby-follow-nav">
-              <Button type="button" variant="secondary" onClick={() => setFollowing(undefined)}>Stop following</Button>
-            </div>}
             {sectionTitle && !following && <TopNavBar id={sectionTitle} backTo="/nearby" />}
             {locationError && !isLanding && !isPlanner && !following && (
               <div role="alert" className="transit-route-list-message">
@@ -557,7 +554,7 @@ export default function NearbyViewComponent() {
             )}
             {isPlanner && <div hidden={Boolean(following)}><Outlet context={context} /></div>}
             {following ? <FollowedVehicleTrip selection={following} feed={vehicleFeed}
-              view={followView} onViewChange={setFollowView} /> : isLanding ? (
+              view={followView} onViewChange={setFollowView} onBack={() => setFollowing(undefined)} /> : isLanding ? (
               <nav aria-label="Nearby options" className="transit-nearby-launcher">
                 <h2>Nearby</h2>
                 <Link to="/nearby/simple-routes" className="transit-nearby-tile">
