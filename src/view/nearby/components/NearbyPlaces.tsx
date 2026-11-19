@@ -155,14 +155,14 @@ export default function NearbyPlaces({
           <input type="checkbox" checked={neighborhoods.shown}
             onChange={event => neighborhoods.onShown(event.target.checked)} />
           <FontAwesome name="map-o" aria-hidden="true" />
-          Portland neighborhoods
+          <span className="transit-places-layer-label">Portland neighborhoods</span>
         </label>
         <MapLayerHelp label="Portland neighborhoods" text="Boundaries and names; shared areas may overlap." />
         </div>
         {neighborhoods.shown && <label className="transit-places-category transit-places-polygon-toggle">
           <input type="checkbox" checked={neighborhoods.polygonsShown}
             onChange={event => neighborhoods.onPolygonsShown(event.target.checked)} />
-          Show neighborhood polygons
+          <span className="transit-places-layer-label">Show neighborhood polygons</span>
         </label>}
         {lineOverlays && LINE_OVERLAY_CATEGORIES.map(category => <div key={category} className="transit-places-layer-row">
           <label className="transit-places-category transit-places-line-toggle">
@@ -170,7 +170,7 @@ export default function NearbyPlaces({
             onChange={event => lineOverlays.onShown(category, event.target.checked)} />
           <span aria-hidden="true" className={`transit-place-line-swatch transit-place-line-swatch--${category}`}
             style={{ borderColor: LINE_OVERLAY_INFO[category].color }} />
-          {LINE_OVERLAY_INFO[category].label}
+          <span className="transit-places-layer-label">{LINE_OVERLAY_INFO[category].label}</span>
           </label>
           <MapLayerHelp label={LINE_OVERLAY_INFO[category].label} text={LINE_OVERLAY_HELP + (
             category === "bicycle-network" ? " Blue shows active mixed bicycle facilities only; future and retired segments are excluded." :
@@ -184,7 +184,7 @@ export default function NearbyPlaces({
               onChange={event => contextOverlays.onShown(category, event.target.checked)} />
             <span aria-hidden="true" className={`transit-place-context-swatch transit-place-context-swatch--${category}`}
               style={{ color: CONTEXT_OVERLAY_INFO[category].color }} />
-            {CONTEXT_OVERLAY_INFO[category].label}
+            <span className="transit-places-layer-label">{CONTEXT_OVERLAY_INFO[category].label}</span>
           </label>
           <MapLayerHelp label={CONTEXT_OVERLAY_INFO[category].label}
             text={`Inventory context, not routing destinations. Hover for source details. ${CONTEXT_LAYER_HELP[category]}`} />
