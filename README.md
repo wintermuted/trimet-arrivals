@@ -172,6 +172,11 @@ disables all its categories without changing other groups, search or map layers.
 A mixed checkbox means only some child categories are enabled; selecting it
 enables the whole group. Individual category toggles remain available, and group
 states follow presets and shared views without changing existing defaults.
+Each group starts collapsed. Its title/chevron button independently shows or hides
+the children; the adjacent bulk checkbox works without expanding the group.
+Children use a consistent single-column layout, indentation and spacing.
+The Places header's **About Places** help tooltip contains the browsing
+description; the list does not repeat the visible header title or introduction.
 
 Save places from a result row or its detail view. **Saved places only** shows
 matching saves across Portland, not just the visible map; category and search

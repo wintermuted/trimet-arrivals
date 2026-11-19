@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button, Tooltip } from "@wintermuted/ui-theme/react";
 import mapboxgl, { LngLatBounds, Map } from "mapbox-gl";
 import { Feature, LineString } from "geojson";
 import { clearWalkingCache, setWalkingAccessToken } from "../../../api/mapbox/walking";
@@ -709,7 +709,14 @@ export default function NearbyViewComponent() {
             aria-label={isPlaces ? "Nearby places" : "Nearby transit"}
             tabIndex={0}
           >
-            {sectionTitle && !following && <TopNavBar id={sectionTitle} backTo={sectionBackTo} />}
+            {sectionTitle && !following && <TopNavBar id={sectionTitle} backTo={sectionBackTo}
+              action={isPlaces && <span className="transit-places-help">
+                <Tooltip text="Explore Portland places and practical stops. Filter by category or move the map to explore another area.">
+                  <Button size="sm" variant="ghost" aria-label="About Places">
+                    <FontAwesome name="info-circle" aria-hidden="true" />
+                  </Button>
+                </Tooltip>
+              </span>} />}
             {locationError && !isLanding && !isPlanner && !isPlaces && !following && (
               <div role="alert" className="transit-route-list-message">
                 <p>Location unavailable. Check your browser permissions and try again, or search the map.</p>

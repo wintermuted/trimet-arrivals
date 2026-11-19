@@ -122,6 +122,7 @@ describe("Places filtering, selection and map layers", () => {
       disclosures()[1].dispatchEvent(new Event("toggle"));
     });
     await act(async () => container.querySelector<HTMLInputElement>(".transit-places-category--park input").click());
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-places-group-toggle").click());
     expect(disclosures().map(section => section.open)).toEqual([false, true, false]);
     await act(async () => {
       disclosures()[1].open = false;
@@ -135,6 +136,7 @@ describe("Places filtering, selection and map layers", () => {
     expect(disclosures()).toHaveLength(0);
     await act(async () => detail().click());
     expect(disclosures().map(section => section.open)).toEqual([false, false, true]);
+    expect(container.querySelector(".transit-places-group-toggle").getAttribute("aria-expanded")).toBe("true");
     expect(container.querySelector<HTMLInputElement>(".transit-places-category--park input").checked).toBe(false);
     expect(container.querySelector<HTMLInputElement>(".transit-places-map-layers input").checked).toBe(true);
   });
@@ -164,7 +166,12 @@ describe("Places filtering, selection and map layers", () => {
       .map(label => PLACE_CATEGORIES.find(category => label.classList.contains(`transit-places-category--${category}`)));
     expect([...childCategories].sort()).toEqual([...PLACE_CATEGORIES].sort());
     for (const group of groups) {
-      const toggle = group.querySelector<HTMLInputElement>("legend input");
+      const toggle = group.querySelector<HTMLInputElement>(".transit-places-group-header input");
+      const disclosure = group.querySelector<HTMLButtonElement>(".transit-places-group-toggle");
+      const childRegion = group.querySelector<HTMLDivElement>(".transit-places-group-children");
+      expect(disclosure.getAttribute("aria-expanded")).toBe("false");
+      expect(disclosure.getAttribute("aria-controls")).toBe(childRegion.id);
+      expect(childRegion.hidden).toBe(true);
       const children = [...group.querySelectorAll<HTMLInputElement>(".transit-places-group-children input")];
       const before = currentFilters;
       const expected = { ...before };
@@ -174,6 +181,12 @@ describe("Places filtering, selection and map layers", () => {
       if (toggle.checked) act(() => toggle.click());
       act(() => toggle.click());
       expect(currentFilters).toEqual(expected);
+      expect(childRegion.hidden).toBe(true);
+      const beforeExpansion = currentFilters;
+      act(() => disclosure.click());
+      expect(currentFilters).toEqual(beforeExpansion);
+      expect(disclosure.getAttribute("aria-expanded")).toBe("true");
+      expect(childRegion.hidden).toBe(false);
       expect(children.every(input => input.checked)).toBe(true);
       expect(toggle.indeterminate).toBe(false);
       act(() => children[0].click());
@@ -185,9 +198,12 @@ describe("Places filtering, selection and map layers", () => {
       expect(children.every(input => !input.checked)).toBe(true);
       expect(toggle.checked).toBe(false);
       expect(toggle.indeterminate).toBe(false);
+      act(() => disclosure.click());
+      expect(childRegion.hidden).toBe(true);
+      expect(currentFilters.search).toBe("garden");
     }
     act(() => updateFilters({ ...DEFAULT_PLACE_FILTERS, search: "garden" }));
-    const amenitiesToggle = groups[3].querySelector<HTMLInputElement>("legend input");
+    const amenitiesToggle = groups[3].querySelector<HTMLInputElement>(".transit-places-group-header input");
     expect(amenitiesToggle.checked).toBe(false);
     expect(amenitiesToggle.indeterminate).toBe(true);
     expect(currentFilters.search).toBe("garden");
