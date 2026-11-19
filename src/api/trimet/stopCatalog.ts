@@ -41,8 +41,8 @@ function routeName(route: TrimetRoute): string {
   return `${route.desc || "Unknown route"} (${route.route})`;
 }
 
-function stopMode(route: TrimetRoute): StopMode | undefined {
-  if (route.type === "B") return "Bus";
+export function stopMode(route: Pick<TrimetRoute, "type" | "route" | "desc">): StopMode | undefined {
+  if (route.type === "B" || route.type === "bus") return "Bus";
   if (route.type === "S") return "Streetcar";
   if (route.type === "R") {
     if (route.route === 208) return "Aerial tram";

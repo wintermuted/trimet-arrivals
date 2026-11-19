@@ -168,7 +168,6 @@ export function NearbySimpleRoutesComp() {
 
   return (
     <div>
-      <br />
       <NearbySimpleRoutes
         nearbyStops={nearbyStops}
         currentLocation={currentLocation}

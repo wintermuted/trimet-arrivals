@@ -1,15 +1,20 @@
 import {
+  Badge,
   Button,
   ListGroup,
   ListItem,
   Select,
 } from "@wintermuted/ui-theme/react";
+import { faBus, faCableCar, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import { each, filter, groupBy, join, map } from "lodash";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { Link, useSearchParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
+import { PLANNER_BUS_COLOR } from "../../../api/trimet/plannerRouteColors";
+import { stopMode } from "../../../api/trimet/stopCatalog";
 import { WalkingEstimate } from "../../../api/mapbox/walking";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import {
@@ -29,6 +34,30 @@ import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
 import NearbyRouteInfo from "./NearbyRouteInfo";
 import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
+
+const SERVICE_ICONS = {
+  Bus: faBus,
+  Rail: faTrain,
+  Streetcar: faTrainTram,
+  "Aerial tram": faCableCar
+};
+
+function ExploreRouteBadge({ route }: { route: TrimetRoute }) {
+  const mode = stopMode(route);
+  const isFx = /^\s*FX\s*\d+\b/i.test(route.desc);
+  const color = mode === "Bus" && !isFx ? PLANNER_BUS_COLOR : undefined;
+
+  return (
+    <Badge className="transit-explore-route-badge" style={color ? {
+      borderColor: color,
+      backgroundColor: `color-mix(in srgb, ${color} 12%, var(--wm-color-surface-solid))`
+    } : undefined}>
+      {mode && <FontAwesomeIcon icon={SERVICE_ICONS[mode]} aria-hidden="true" />}
+      <span className="wm-sr-only">{isFx ? "FX bus" : mode ? `${mode} route` : "Route"} </span>
+      <strong>{route.route}</strong>
+    </Badge>
+  );
+}
 
 interface Props {
   nearbyStops: StopData;
@@ -432,9 +461,8 @@ export default function NearbySimpleRoutes({
       </section>
     )}
     <div hidden={infoRouteId !== undefined || invalidRoute}>
-    <div id="nearby-view-routes" className="scrollarea">
+    <div id="nearby-view-routes" className="scrollarea transit-explore-routes">
       <NearbySubNav routeCount={routeCount} stopCount={stopCount} />
-      <br />
       {walkingEnabled && walking.status === "loading" && (
         <p role="status">Calculating walking distances...</p>
       )}
@@ -562,7 +590,7 @@ export default function NearbySimpleRoutes({
                       className="transit-simple-route-heading"
                     >
                       <FontAwesome name="caret-right" aria-hidden="true" />
-                      <strong>{route.route}</strong>
+                      <ExploreRouteBadge route={route} />
                       <span title={routeName}>{routeName}</span>
                     </summary>
                     {directions.map((direction) => (
@@ -615,7 +643,8 @@ export default function NearbySimpleRoutes({
                                     to={`/nearby/simple-routes/${route.route}?stop=${stop.locid}&direction=${direction.direction.dir}`}
                                   >
                                     <span className="transit-simple-route-stop-name">
-                                      {stop.desc} ({stop.locid})
+                                      {stop.desc}
+                                      <small className="transit-simple-route-stop-id">Stop {stop.locid}</small>
                                     </span>
                                     <span className="transit-simple-route-arrivals">
                                       <strong>{arrivalLabel}</strong>

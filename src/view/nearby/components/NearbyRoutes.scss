@@ -615,6 +615,16 @@
 .transit-simple-route {
   position: relative;
   min-width: 0;
+  border-block-start: 1px solid var(--wm-color-border);
+}
+
+.transit-explore-routes {
+  padding-block: var(--wm-space-3);
+
+  .transit-route-controls {
+    justify-content: flex-start;
+    margin-block: var(--wm-space-3);
+  }
 }
 
 .transit-simple-route-group {
@@ -669,6 +679,8 @@
   > summary {
     @include disclosure.label;
     margin: 0 0 var(--wm-space-2);
+    color: var(--wm-color-text-secondary);
+    font-weight: 600;
   }
 }
 
@@ -727,30 +739,33 @@
   padding-inline-end: calc(var(--wm-control-height) + var(--wm-space-2));
   font-size: 1rem;
 
-  > strong {
+  .transit-explore-route-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
     flex-shrink: 0;
-    font-weight: 700;
+    gap: var(--wm-space-1);
+    color: var(--wm-color-text);
+    font-variant-numeric: tabular-nums;
   }
 
-  > span {
+  > span[title] {
     flex: 1 1 0;
     min-width: 0;
-    overflow: hidden;
-    color: var(--wm-color-text-muted);
+    color: var(--wm-color-text);
     font-size: 0.875rem;
-    font-weight: 400;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-weight: 600;
+    overflow-wrap: anywhere;
   }
 }
 
 .transit-simple-route-stop {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--wm-space-2);
+  gap: var(--wm-space-1);
   min-height: var(--wm-control-height);
   min-width: 0;
-  padding: var(--wm-space-3) var(--wm-space-4);
+  padding: var(--wm-space-2) var(--wm-space-3);
   color: var(--wm-color-text);
   text-decoration: none;
 
@@ -765,10 +780,21 @@
 }
 
 .transit-simple-route-stop-name {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0 var(--wm-space-2);
   min-width: 0;
-  overflow: hidden;
+  font-size: 0.875rem;
   font-weight: 600;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+}
+
+.transit-simple-route-stop-id {
+  color: var(--wm-color-text-secondary);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
