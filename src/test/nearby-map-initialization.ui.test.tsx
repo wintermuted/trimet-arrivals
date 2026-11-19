@@ -15,7 +15,7 @@ import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.ut
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 import { buildStopCatalog, getStopCatalog } from "../api/trimet/stopCatalog";
 import { planTrip } from "../api/trimet/tripplanner";
-import { getRouteGeometry } from "../view/nearby/util/mapbox/routeLines";
+import { getRouteGeometry, NEARBY_ROUTE_LINES } from "../view/nearby/util/mapbox/routeLines";
 import reducers from "../store/reducers";
 
 function StopDetailWithStore() {
@@ -127,9 +127,16 @@ describe("Nearby map initialization independently of the sidebar", () => {
     on: jest.fn(), off: jest.fn(), remove: jest.fn()
   };
   const previousResizeObserver = global.ResizeObserver;
+  const originalFetch = global.fetch;
+  const routeGeometry = {
+    type: "Feature",
+    properties: {},
+    geometry: { type: "LineString", coordinates: [[0, 0], [1, 1]] }
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => routeGeometry });
     sources.clear();
     layers.clear();
     map.getContainer.mockReturnValue({ clientWidth: 390, clientHeight: 230 });
@@ -197,6 +204,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     act(() => root.unmount());
     container.remove();
     global.ResizeObserver = previousResizeObserver;
+    global.fetch = originalFetch;
   });
 
   function render(path: string) {
@@ -588,8 +596,50 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(setNearbyStops).toHaveBeenCalled();
     expect(transferPopup.isConnected).toBe(false);
     expect(marker.remove).toHaveBeenCalledTimes(Marker.mock.calls.length);
-    expect(layers.size).toBe(0);
+    expect([...layers]).toEqual([NEARBY_ROUTE_LINES]);
     expect(map.remove).not.toHaveBeenCalled();
+  });
+
+  it("draws nearby route directions once and clears them for empty results without moving the map", async () => {
+    jest.mocked(getNearbyStops).mockResolvedValueOnce({
+      ...stops,
+      location: [...stops.location, { ...stops.location[0], locid: 102 }]
+    });
+    await render("/nearby/simple-routes");
+    map.flyTo.mockClear();
+    await act(async () => finishMapLoading());
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/56/56_0.json"), expect.objectContaining({ signal: expect.anything() })
+    );
+    expect(map.addSource).toHaveBeenCalledWith(NEARBY_ROUTE_LINES, {
+      type: "geojson", data: { type: "FeatureCollection", features: [routeGeometry] }
+    });
+    expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: NEARBY_ROUTE_LINES, type: "line" }));
+
+    jest.mocked(getNearbyStops).mockResolvedValueOnce({ ...stops, location: [] });
+    await act(async () => button("Search this area").click());
+    expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
+    expect(sources.has(NEARBY_ROUTE_LINES)).toBe(false);
+    expect(map.fitBounds).not.toHaveBeenCalled();
+    expect(map.flyTo).not.toHaveBeenCalled();
+    expect(map.setZoom).not.toHaveBeenCalled();
+  });
+
+  it("ignores an old route response after searching a different area", async () => {
+    const fetchGeometry = jest.mocked(global.fetch);
+    let resolveOlder: (response: Pick<Response, "ok" | "json">) => void;
+    fetchGeometry.mockImplementationOnce(() => new Promise(resolve => {
+      resolveOlder = response => resolve(response as Response);
+    }));
+    await render("/nearby/simple-routes");
+    await act(async () => finishMapLoading());
+    const signal = fetchGeometry.mock.calls[0][1].signal;
+    jest.mocked(getNearbyStops).mockResolvedValueOnce({ ...stops, location: [] });
+    await act(async () => button("Search this area").click());
+    expect(signal.aborted).toBe(true);
+    await act(async () => resolveOlder({ ok: true, json: async () => routeGeometry }));
+    expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
   });
 
   it("searches the map center, moves a dropped pin, and returns to a fresh device location", async () => {
@@ -687,6 +737,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(cleanup).toHaveBeenCalled();
     expect(container.querySelector('[aria-label="Route 56 details"]')).not.toBeNull();
     expect(showRouteInfo).toHaveBeenCalledTimes(2);
+    expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
   });
 
   it.each(["/nearby/stops", "/nearby/simple-routes"])(

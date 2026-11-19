@@ -52,6 +52,44 @@ export async function getRouteGeometry(
   return { ...feature, geometry };
 }
 
+export const NEARBY_ROUTE_LINES = "nearby-route-lines";
+
+export function showNearbyRouteLines(map: Map, routes: NearbyRoutesDictionary): () => void {
+  const controller = new AbortController();
+  const { signal } = controller;
+  const requests = Object.entries(routes).flatMap(([routeId, route]) =>
+    [...new Set(route.directions)].map(async direction => {
+      try {
+        return await getRouteGeometry(routeId, direction, signal);
+      } catch (error) {
+        if (!signal.aborted) console.warn(`Could not load nearby route ${routeId}, direction ${direction}`, error);
+        return undefined;
+      }
+    })
+  );
+  void Promise.all(requests).then(results => {
+    if (signal.aborted) return;
+    const features = results.filter((feature): feature is Feature<LineString | MultiLineString> => feature !== undefined);
+    if (!features.length) return;
+    map.addSource(NEARBY_ROUTE_LINES, { type: "geojson", data: { type: "FeatureCollection", features } });
+    map.addLayer({
+      id: NEARBY_ROUTE_LINES,
+      source: NEARBY_ROUTE_LINES,
+      type: "line",
+      slot: "middle",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#0080ff", "line-emissive-strength": 1, "line-opacity": 0.6, "line-width": 3 }
+    });
+  }).catch(error => {
+    console.warn("Could not display nearby route lines", error);
+  });
+
+  return () => {
+    controller.abort();
+    removeRoutes(map, [NEARBY_ROUTE_LINES]);
+  };
+}
+
 export function addMapboxLayer(
   map: Map,
   feature: Feature<LineString | MultiLineString>,

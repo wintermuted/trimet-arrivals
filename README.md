@@ -206,8 +206,10 @@ show the same markers without first visiting Nearby Routes.
 
 The info button on a Nearby route opens its details in the sidebar without
 leaving the map. Both directions and their stops are listed and shown on the
-map; closing restores the nearby markers and previous map view. The route lines
-use the checked-in geometry snapshot, which may lag current stop information.
+map; closing restores the nearby markers and previous map view. Nearby also
+draws the routes serving the loaded stops without changing the map center or
+zoom. The route lines use the checked-in geometry snapshot, which may lag
+current stop information.
 Route details can be shared or reopened at `/nearby/simple-routes?route=54`
 (substitute the desired route number); browser back and forward navigate the
 panel, and closing it preserves other query parameters.
