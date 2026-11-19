@@ -293,14 +293,14 @@ export default function NearbyViewComponent() {
   const [vehiclesEnabled, setVehiclesEnabled] = useState(true);
   const [vehicleMapError, setVehicleMapError] = useState(false);
   const [vehicleLayerAttempt, setVehicleLayerAttempt] = useState(0);
-  const [following, setFollowing] = useState<VehiclePosition>();
+  const [following, setFollowing] = useState<VehiclePosition & { referrer: string }>();
   const [followView, setFollowView] = useState<VehicleFollowView>("north-up");
   const vehicleMap = isMapLoaded ? mapRef.current : undefined;
   const vehicleFeed = useVehiclePositions(vehicleMap, vehiclesEnabled, following?.id);
   const handleVehicleFollow = useCallback((vehicle: VehiclePosition) => {
-    setFollowing(vehicle);
+    setFollowing({ ...vehicle, referrer: `${location.pathname}${location.search}${location.hash}` });
     setVehiclesEnabled(true);
-  }, []);
+  }, [location.pathname, location.search, location.hash]);
   const [nearbyDataError, setNearbyDataError] = useState(false);
   const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
   const { walkingEnabled } = useFeatureFlags();
@@ -554,7 +554,8 @@ export default function NearbyViewComponent() {
             )}
             {isPlanner && <div hidden={Boolean(following)}><Outlet context={context} /></div>}
             {following ? <FollowedVehicleTrip selection={following} feed={vehicleFeed}
-              view={followView} onViewChange={setFollowView} onBack={() => setFollowing(undefined)} /> : isLanding ? (
+              view={followView} onViewChange={setFollowView} backTo={following.referrer}
+              onBack={() => setFollowing(undefined)} /> : isLanding ? (
               <nav aria-label="Nearby options" className="transit-nearby-launcher">
                 <h2>Nearby</h2>
                 <Link to="/nearby/simple-routes" className="transit-nearby-tile">
