@@ -290,7 +290,8 @@ destination predictions remain explicitly unavailable; unrelated buses, canceled
 trips, uncertain predictions and drop-off-only boarding stops are never used to
 invent a journey. This is a same-route stop-time comparison, not a transfer planner;
 boarding times use TriMet stop predictions rather than guaranteed departures.
-Each trip row is a keyboard-accessible link; selecting anywhere on it opens
+Upcoming trips use the planner's card layout, with the time range and ride duration
+above the route and prediction status. Each card is a keyboard-accessible link that opens
 `/nearby/directions/trip` for that specific departure. The URL retains the route,
 direction, boarding stop, destination, departure ID, and reported trip ID.
 The trip view uses the planner's connected boarding and destination stops, with

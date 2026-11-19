@@ -347,17 +347,18 @@ describe("route-aware destination selection", () => {
     await render("route=54&direction=1&from=101&to=103");
     expect(loadArrivals).toHaveBeenCalledWith("101,103", 60);
     expect(container.textContent).toContain("Departure and arrival times");
-    const times = Array.from(container.querySelectorAll("tbody time"));
+    const card = container.querySelector(".transit-upcoming-trips li > a");
+    const times = Array.from(card.querySelectorAll("time"));
     expect(times.map(time => time.getAttribute("datetime"))).toEqual([
       new Date(departureAt).toISOString(),
       new Date(arrivalAt).toISOString()
     ]);
-    expect(container.querySelector("tbody").textContent).toContain("14 min");
-    expect(container.querySelector("tbody").textContent).toContain("Estimated");
+    expect(card.textContent).toContain("14 min");
+    expect(card.textContent).toContain("Departure: Estimated");
     expect(container.querySelectorAll(".scrollarea")).toHaveLength(1);
 
     chooseDestination("102");
-    expect(container.querySelector("table")).toBeNull();
+    expect(container.querySelector(".transit-upcoming-trips")).toBeNull();
     expect(container.querySelector("output").textContent).toContain("from=101&to=102");
   });
 
@@ -365,7 +366,7 @@ describe("route-aware destination selection", () => {
     await render("route=54&direction=1&from=102&to=101", true);
     expect(container.querySelector('[role="alert"]').textContent).toContain("downstream destination");
     expect(container.querySelector(".wm-btn-primary").textContent).toBe("Choose stops");
-    expect(container.querySelector("table")).toBeNull();
+    expect(container.querySelector(".transit-upcoming-trips")).toBeNull();
   });
 
   it("opens a selected trip from its URL with a return path to the originating list", async () => {
@@ -384,7 +385,7 @@ describe("route-aware destination selection", () => {
     expect(container.querySelector("header h3").textContent).toBe("54 Example route");
     const details = container.querySelector(".transit-selected-trip");
     const [boarding, destination] = Array.from(details.querySelectorAll(".transit-planner-endpoint"));
-    expect(container.querySelector("table")).toBeNull();
+    expect(container.querySelector(".transit-upcoming-trips")).toBeNull();
     expect(boarding.textContent).toContain("Board at");
     expect(boarding.textContent).toContain(`${stops[0].desc} (101)`);
     expect(boarding.querySelector("time").dateTime).toBe(new Date(at).toISOString());

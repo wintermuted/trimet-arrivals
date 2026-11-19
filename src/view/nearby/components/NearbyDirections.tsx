@@ -7,6 +7,7 @@ import { TopNavBar } from "./common/TopNavBar";
 import { DirectionsSelection } from "../util/mapbox/directionsSelection";
 import NearbyTripTimes from "./NearbyTripTimes";
 import NearbyDestinationPicker from "./NearbyDestinationPicker";
+import { stopMode, StopMode } from "../../../api/trimet/stopCatalog";
 import "./NearbyRoutes.scss";
 
 type RouteState =
@@ -16,6 +17,7 @@ type RouteState =
       status: "ready";
       key: string;
       name: string;
+      mode?: StopMode;
       directionName: string;
       stops: RouteDirectionStop[];
     };
@@ -82,6 +84,7 @@ export default function NearbyDirections({
             status: "ready",
             key,
             name: route.desc,
+            mode: stopMode(route),
             directionName: routeDirection.desc,
             stops: [...routeDirection.stop].sort((a, b) => a.seq - b.seq)
           });
@@ -197,6 +200,7 @@ export default function NearbyDirections({
           origin={origin}
           destination={destination}
           routeName={state.name}
+          routeMode={state.mode}
           directionName={state.directionName}
           backTo={tripBackTo}
           selectedTrip={showTrip && departureId ? {
@@ -269,6 +273,7 @@ export default function NearbyDirections({
             origin={origin}
             destination={destination}
             routeName={state.name}
+            routeMode={state.mode}
             directionName={state.directionName}
             backTo={selectionUrl}
           />

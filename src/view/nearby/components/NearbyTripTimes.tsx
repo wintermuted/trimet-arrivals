@@ -1,24 +1,37 @@
 import { Button } from "@wintermuted/ui-theme/react";
+import { faBus, faCableCar, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
+import type { StopMode } from "../../../api/trimet/stopCatalog";
 import { getTripTimes, StopTime, TripTime } from "../util/tripTimes";
 import { TopNavBar } from "./common/TopNavBar";
 import { useTimeDisplay } from "../../../component/time/TimeDisplay";
 import { DirectionsStopPair } from "../../tripPlanner/DirectionsStopPair";
 
-function TripStopTime({ time, today }: { time: StopTime; today: string }) {
-  const { formatTime, formatDay } = useTimeDisplay();
+const routeIcons: Record<StopMode, typeof faBus> = {
+  Bus: faBus, Rail: faTrain, Streetcar: faTrainTram, "Aerial tram": faCableCar
+};
+
+function TripClock({ time }: { time: StopTime }) {
+  const { formatTime } = useTimeDisplay();
+  return <time dateTime={new Date(time.at).toISOString()}>{formatTime(time.at, "America/Los_Angeles")}</time>;
+}
+
+function TripTimeStatus({ time, today }: { time: StopTime; today: string }) {
+  const { formatDay } = useTimeDisplay();
   const day = formatDay(time.at, "America/Los_Angeles");
+  return <>{time.kind}{day !== today && ` · ${day}`}</>;
+}
+
+function TripStopTime({ time, today }: { time: StopTime; today: string }) {
   return (
     <>
-      <time dateTime={new Date(time.at).toISOString()}>
-        {formatTime(time.at, "America/Los_Angeles")}
-      </time>
-      {day !== today && <small>{day}</small>}
-      <small>{time.kind}</small>
+      <TripClock time={time} />
+      <small><TripTimeStatus time={time} today={today} /></small>
     </>
   );
 }
@@ -32,17 +45,18 @@ interface TimesState {
 
 function rideDuration(trip: TripTime): string {
   if (trip.durationMs === undefined) return "Travel time unavailable";
-  return trip.durationMs < 60000 ? "<1 min ride" : `${Math.round(trip.durationMs / 60000)} min ride`;
+  return trip.durationMs < 60000 ? "<1 min" : `${Math.round(trip.durationMs / 60000)} min`;
 }
 
 export default function NearbyTripTimes({
-  routeId, direction, origin, destination, routeName, directionName, backTo, inline = false, selectedTrip
+  routeId, direction, origin, destination, routeName, routeMode, directionName, backTo, inline = false, selectedTrip
 }: {
   routeId: number;
   direction: number;
   origin: RouteDirectionStop;
   destination: RouteDirectionStop;
   routeName: string;
+  routeMode?: StopMode;
   directionName: string;
   backTo: string;
   inline?: boolean;
@@ -171,7 +185,7 @@ export default function NearbyTripTimes({
             </>}
           />
           {selected && <p className="transit-planner-leg-duration transit-planner-leg-distance">
-            {rideDuration(selected)}
+            {rideDuration(selected)}{selected.durationMs !== undefined && " ride"}
           </p>}
         </div>
       )}
@@ -200,39 +214,41 @@ export default function NearbyTripTimes({
       {data && (
         <>
           {!selectedTrip && trips.length > 0 && (
-            <table className="transit-trip-times-table">
-              <caption className="wm-sr-only">
-                Departures from {origin.desc} and corresponding arrivals at {destination.desc}
-              </caption>
-              <thead><tr>
-                <th scope="col">Departure<small>{origin.desc}</small></th>
-                <th scope="col">Arrival<small>{destination.desc}</small></th>
-              </tr></thead>
-              <tbody>
-                {trips.map(trip => (
-                  <tr key={trip.id} className="transit-trip-selectable">
-                    <td>
-                      <Link
-                        className="transit-trip-link"
-                        to={tripUrl(trip)}
-                        aria-label={`View trip departing at ${formatTime(trip.departure.at, "America/Los_Angeles")} ${timezoneLabel} from ${origin.desc} to ${destination.desc}`}
-                      >
-                        <TripStopTime time={trip.departure} today={today} />
-                        <small className="transit-trip-action">View trip</small>
-                      </Link>
-                    </td>
-                    <td>
-                      {trip.arrival
-                        ? <TripStopTime time={trip.arrival} today={today} />
-                        : <span>Not reported</span>}
-                      <small>
-                        {rideDuration(trip)}
-                      </small>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ol className="transit-planner-options transit-upcoming-trips" role="list"
+              aria-label={`Upcoming trips from ${origin.desc} to ${destination.desc} (times in ${timezoneLabel})`}>
+              {trips.map(trip => (
+                <li key={trip.id}>
+                  <Link className="transit-planner-option transit-trip-link" to={tripUrl(trip)}>
+                    <span className="transit-planner-option-timing">
+                      <strong>
+                        <span className="wm-sr-only">View trip departing at </span>
+                        <TripClock time={trip.departure} />
+                        {trip.arrival && <> to <TripClock time={trip.arrival} /></>}
+                      </strong>
+                      {trip.durationMs !== undefined && (
+                        <span className="transit-planner-option-duration">
+                          {rideDuration(trip)}<span className="wm-sr-only"> ride</span>
+                        </span>
+                      )}
+                    </span>
+                    <span className="transit-planner-option-route">
+                      <span className="transit-planner-option-leg">
+                        <FontAwesomeIcon className="transit-upcoming-trip-icon"
+                          icon={routeMode ? routeIcons[routeMode] : faRoute} aria-hidden="true" />
+                        <span>{routeName}</span>
+                      </span>
+                    </span>
+                    <span className="transit-planner-option-meta">
+                      Departure: <TripTimeStatus time={trip.departure} today={today} />
+                      {" · "}
+                      {trip.arrival ? <>Arrival: <TripTimeStatus time={trip.arrival} today={today} /></>
+                        : "Arrival not reported"}
+                      {trip.durationMs === undefined && <> · {rideDuration(trip)}</>}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
           )}
           {(selectedTrip ? !selected : trips.length === 0) && (
             selectedTrip ? (
