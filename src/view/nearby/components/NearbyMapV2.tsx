@@ -15,7 +15,16 @@ interface Props {
   radiusSize: number;
   onRadiusChange: React.ChangeEventHandler<HTMLSelectElement>;
   isLocating: boolean;
+  isMapLoading: boolean;
   searchMode: "none" | "device" | "area" | "pin";
+}
+
+export function NearbyMapSkeleton({ message }: { message: string }) {
+  return (
+    <div className="transit-nearby-map-skeleton" role="status">
+      <span>{message}</span>
+    </div>
+  );
 }
 
 function NearbyMapV2({
@@ -28,6 +37,7 @@ function NearbyMapV2({
   radiusSize,
   onRadiusChange,
   isLocating,
+  isMapLoading,
   searchMode
 }: Props) {
   // Initialize Map
@@ -42,13 +52,12 @@ function NearbyMapV2({
     };
   }, []);
 
-  const mapBoxMap = (
-    <div className="transit-nearby-map-canvas" ref={mapContainerRef} />
-  );
-
   return (
     <div className="transit-nearby-map">
-      {mapBoxMap}
+      <div className="transit-nearby-map-stage">
+        <div className="transit-nearby-map-canvas" ref={mapContainerRef} />
+        {isMapLoading && <NearbyMapSkeleton message="Loading map…" />}
+      </div>
       <div className="sidebar transit-nearby-map-controls">
         <span className="transit-map-location-status" role="status">
           <FontAwesome

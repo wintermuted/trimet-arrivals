@@ -35,6 +35,7 @@ it("resizes the map when its available panel changes and disposes it on unmount"
           radiusSize={1000}
           onRadiusChange={onRadiusChange}
           isLocating={false}
+          isMapLoading={false}
           searchMode="device"
         />
       )
@@ -42,7 +43,7 @@ it("resizes the map when its available panel changes and disposes it on unmount"
     expect(initializeMap).toHaveBeenCalledTimes(1);
     expect(observe).toHaveBeenCalledWith(mapContainerRef.current);
     const toolbar = container.querySelector(".transit-nearby-map-controls");
-    expect(mapContainerRef.current.nextElementSibling).toBe(toolbar);
+    expect(mapContainerRef.current.parentElement.nextElementSibling).toBe(toolbar);
     expect(toolbar.textContent).toContain("Near me");
     const radius = container.querySelector<HTMLSelectElement>('[aria-label="Search radius"]');
     expect(radius.value).toBe("1000");
