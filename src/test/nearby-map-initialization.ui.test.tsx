@@ -382,6 +382,17 @@ describe("Nearby map initialization independently of the sidebar", () => {
     const search = placesViewSearch(view, { center: [-122.67, 45.55], zoom: 14 });
     await render(`/nearby/places${search}`);
     finishMapLoading();
+    expect(container.querySelector(".transit-places-header")).toBeNull();
+    expect(container.querySelector("#nearby-places-heading").classList.contains("wm-sr-only")).toBe(true);
+    const help = container.querySelector<HTMLButtonElement>('.transit-detail-header button[aria-label="About Places"]');
+    expect(container.querySelector('[role="tooltip"]')).toBeNull();
+    await act(async () => help.focus());
+    const tooltip = container.querySelector('[role="tooltip"]');
+    expect(tooltip.textContent).toBe("Explore Portland places and practical stops. Filter by category or move the map to explore another area.");
+    expect(help.getAttribute("aria-describedby")).toBe(tooltip.id);
+    await act(async () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    expect(container.querySelector('[role="tooltip"]')).toBeNull();
+    await act(async () => help.blur());
     expect(container.querySelector<HTMLInputElement>('input[type="search"]').value).toBe("Example");
     expect(container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').checked).toBe(false);
     expect(container.querySelector<HTMLInputElement>('.transit-places-category--picnic-seating input').checked).toBe(true);

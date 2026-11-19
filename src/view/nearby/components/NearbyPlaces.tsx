@@ -1,5 +1,5 @@
 import { Button } from "@wintermuted/ui-theme/react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { placeIconDefinition } from "../util/mapbox/placeIcons";
@@ -55,6 +55,8 @@ export default function NearbyPlaces({
 }: Props) {
   const [limit, setLimit] = useState(40);
   const [sections, setSections] = useState({ discovery: false, categories: false, layers: false });
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const groupId = useId();
   function toggleSection(section: keyof typeof sections, open: boolean) {
     setSections(previous => previous[section] === open ? previous : { ...previous, [section]: open });
   }
@@ -79,10 +81,7 @@ export default function NearbyPlaces({
   return (
     <section className="transit-places" aria-labelledby={selected ? "selected-place-heading" : "nearby-places-heading"}>
       {!selected && <>
-      <header className="transit-places-header">
-        <h2 id="nearby-places-heading" ref={browseHeading} tabIndex={-1}>Places nearby</h2>
-        <p>Explore Portland places and practical stops. Filter by category or move the map to explore another area.</p>
-      </header>
+      <h2 id="nearby-places-heading" className="wm-sr-only" ref={browseHeading} tabIndex={-1}>Places nearby</h2>
       {discovery && <details className="transit-places-section" open={sections.discovery}
         onToggle={event => toggleSection("discovery", event.currentTarget.open)}>
         <summary>Discovery tools</summary>
@@ -93,23 +92,31 @@ export default function NearbyPlaces({
       <summary>Place categories</summary>
       <fieldset className="transit-places-filters">
         <legend className="wm-sr-only">Place categories</legend>
-        {CATEGORY_GROUPS.map(group => {
+        {CATEGORY_GROUPS.map((group, index) => {
           const all = group.categories.every(category => filters[category]);
           const some = group.categories.some(category => filters[category]);
+          const expanded = expandedGroups.includes(group.label);
+          const childrenId = `${groupId}-categories-${index}`;
           return <fieldset key={group.label} className="transit-places-category-group">
-            <legend>
-              <label className="transit-places-category transit-places-group-toggle">
-                <input type="checkbox" checked={all}
+            <legend className="wm-sr-only">{group.label}</legend>
+            <div className="transit-places-group-header">
+              <label className="transit-places-category transit-places-group-bulk">
+                <input type="checkbox" checked={all} aria-label={`Toggle all ${group.label.toLowerCase()}`}
                   ref={input => { if (input) input.indeterminate = some && !all; }}
                   onChange={event => {
                     const next = { ...filters };
                     group.categories.forEach(category => { next[category] = event.target.checked; });
                     onFilters(next);
                   }} />
-                {group.label}
               </label>
-            </legend>
-            <div className="transit-places-group-children">
+              <button type="button" className="transit-places-group-toggle" aria-expanded={expanded}
+                aria-controls={childrenId} onClick={() => setExpandedGroups(previous => expanded
+                  ? previous.filter(label => label !== group.label) : [...previous, group.label])}>
+                {group.label}
+                <FontAwesome name={expanded ? "caret-down" : "caret-right"} aria-hidden="true" />
+              </button>
+            </div>
+            <div id={childrenId} className="transit-places-group-children" hidden={!expanded}>
               {group.categories.map(category => (
                 <label key={category} className={`transit-places-category transit-places-category--${category}`}>
                   <input type="checkbox" checked={filters[category]}
