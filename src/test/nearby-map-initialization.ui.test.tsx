@@ -19,6 +19,8 @@ import { getRouteGeometry, NEARBY_ROUTE_LINES } from "../view/nearby/util/mapbox
 import reducers from "../store/reducers";
 import NearbyVehicles from "../view/nearby/components/NearbyVehicles";
 import * as placesApi from "../api/places/places";
+import { placesPreset, placesViewSearch, readPlacesView } from "../api/places/discovery";
+import { SAVED_PLACES_KEY } from "../api/places/savedPlaces";
 
 function StopDetailWithStore() {
   const [store] = React.useState(() => createStore(reducers));
@@ -153,6 +155,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     addSource: jest.fn((id, _data) => sources.add(id)),
     addLayer: jest.fn(({ id }) => layers.add(id)),
     getSource: jest.fn(id => sources.has(id)),
+    getStyle: jest.fn(() => ({ layers: [...layers].map(id => ({ id })) })),
     getLayer: jest.fn(id => layers.has(id)),
     removeLayer: jest.fn(id => layers.delete(id)),
     removeSource: jest.fn(id => sources.delete(id)),
@@ -183,6 +186,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     map.removeLayer.mockImplementation(id => layers.delete(id));
     map.removeSource.mockImplementation(id => sources.delete(id));
     map.getCenter.mockReturnValue({ lng: 1, lat: 2 });
+    map.getZoom.mockReturnValue(12);
+    map.getStyle.mockImplementation(() => ({ layers: [...layers].map(id => ({ id })) }));
     marker.getLngLat.mockReturnValue({ lng: 3, lat: 4 });
     marker.setLngLat.mockReturnValue(marker);
     marker.setPopup.mockReturnValue(marker);
@@ -243,6 +248,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     global.ResizeObserver = previousResizeObserver;
     global.fetch = originalFetch;
     jest.restoreAllMocks();
+    localStorage.removeItem(SAVED_PLACES_KEY);
   });
 
   function render(path: string, withExplore = false) {
@@ -354,6 +360,86 @@ describe("Nearby map initialization independently of the sidebar", () => {
       item.title.includes(label)
     );
   }
+
+  function discoveryCatalog(places: placesApi.InterestPlace[]) {
+    const snapshot: placesApi.PlaceSnapshot = {
+      version: 1, category: "park", retrievedAt: "2026-11-19T12:00:00Z",
+      source: "City of Portland", sourceUrl: "https://www.portlandmaps.com/", license: "PDDL-1.0",
+      licenseUrl: "https://opendatacommons.org/licenses/pddl/1-0/", coverage: "Test", places
+    };
+    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({ places,
+      sources: { ...placesApi.emptyPlaceSources(), park: { snapshot, loading: false, error: false } }, retry: jest.fn() });
+  }
+  const discoveryPark: placesApi.InterestPlace = { id: "portland:park:1", category: "park", name: "Example Park",
+    coordinates: [-122.67, 45.55], sourceUrl: "https://www.portlandmaps.com/", arrival: "approximate" };
+
+  it("restores shared filters, reference layers and map position and retains the view through detail/planner header Back", async () => {
+    discoveryCatalog([discoveryPark]);
+    jest.mocked(getStopCatalog).mockRejectedValue(new Error("catalog unavailable"));
+    const view = placesPreset("parks");
+    view.filters.search = "Example";
+    view.context.crossings = true;
+    const search = placesViewSearch(view, { center: [-122.67, 45.55], zoom: 14 });
+    await render(`/nearby/places${search}`);
+    finishMapLoading();
+    expect(container.querySelector<HTMLInputElement>('input[type="search"]').value).toBe("Example");
+    expect(container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').checked).toBe(false);
+    expect(container.querySelector<HTMLInputElement>('.transit-places-category--picnic-seating input').checked).toBe(true);
+    expect(map.jumpTo).toHaveBeenCalledWith({ center: [-122.67, 45.55], zoom: 14 });
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-place-result").click());
+    const plannerLink = container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]');
+    expect(readPlacesView(new URLSearchParams(plannerLink.search).get("placesView")).view).toEqual(view);
+    await act(async () => plannerLink.click());
+    expect(container.querySelector<HTMLAnchorElement>(".transit-detail-back").search).toContain("view=1");
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-detail-back").click());
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-detail-back").click());
+    expect(container.querySelector<HTMLInputElement>('input[type="search"]').value).toBe("Example");
+    expect(container.querySelector<HTMLInputElement>('.transit-places-category--picnic-seating input').checked).toBe(true);
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+  });
+
+  it("finds a saved place outside the viewport and removes it without navigating", async () => {
+    const outside = { ...discoveryPark, id: "portland:park:2", name: "Outside Park", coordinates: [-122.85, 45.55] as [number, number] };
+    discoveryCatalog([discoveryPark, outside]);
+    localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify([{ id: outside.id, name: outside.name }]));
+    await render("/nearby/places");
+    finishMapLoading();
+    expect(container.querySelector(".transit-places-list").textContent).not.toContain("Outside Park");
+    await act(async () => container.querySelector<HTMLInputElement>('.transit-places-discovery input[type="checkbox"]').click());
+    expect(container.querySelector(".transit-places-list").textContent).toContain("Outside Park");
+    expect(container.querySelector(".transit-places-list").textContent).not.toContain("Example Park");
+    expect(container.querySelector(".transit-map-location-status").textContent).toBe("Places in saved view");
+    await act(async () => container.querySelector<HTMLButtonElement>(".transit-place-save").click());
+    expect(JSON.parse(localStorage.getItem(SAVED_PLACES_KEY))).toEqual([]);
+    expect(container.querySelector(".transit-places-list").textContent).not.toContain("Outside Park");
+    expect(container.querySelector('[data-testid="current-url"]').textContent).toBe("/nearby/places");
+  });
+
+  it("filters places along mapped trip segments, changes distance and retains the originating planner link", async () => {
+    discoveryCatalog([discoveryPark, { ...discoveryPark, id: "portland:park:2", name: "Farther Park", coordinates: [-122.67, 45.556] }]);
+    function DiscoverTrip() {
+      const { discoverPlacesAlongTrip } = useOutletContext<NearbyViewComponentOutletContextProps>();
+      return <button onClick={() => discoverPlacesAlongTrip?.({
+        lines: [[[-122.7, 45.55], [-122.65, 45.55]]], incomplete: true, returnTo: "/nearby/planner?from=101&to=202"
+      })}>Discover trip places</button>;
+    }
+    await act(async () => root.render(<FeatureFlagsProvider><MemoryRouter initialEntries={["/nearby/planner?from=101&to=202"]}>
+      <Routes><Route path="/nearby" element={<NearbyViewComponent />}>
+        <Route path="planner" element={<DiscoverTrip />} /><Route path="places" element={null} />
+      </Route></Routes>
+    </MemoryRouter></FeatureFlagsProvider>));
+    finishMapLoading();
+    await act(async () => button("Discover trip places").click());
+    expect(container.querySelector(".transit-places-list").textContent).toContain("Example Park");
+    expect(container.querySelector(".transit-places-list").textContent).not.toContain("Farther Park");
+    expect(container.textContent).toContain("Some trip legs have no mapped geometry");
+    expect(container.querySelector(".transit-map-location-status").textContent).toBe("Places in trip corridor");
+    const distance = container.querySelector<HTMLSelectElement>(".transit-places-trip-filter select");
+    await act(async () => { distance.value = "1000"; distance.dispatchEvent(new Event("change", { bubbles: true })); });
+    expect(container.querySelector(".transit-places-list").textContent).toContain("Farther Park");
+    expect(container.querySelector<HTMLAnchorElement>('.transit-places-trip-filter a').getAttribute("href")).toBe("/nearby/planner?from=101&to=202");
+    expect(layers.has("nearby-trip-corridor")).toBe(true);
+  });
 
   it("uses header Back for Places, preserves filters, and restores URL selection through browser and planner navigation", async () => {
     const place: placesApi.InterestPlace = {

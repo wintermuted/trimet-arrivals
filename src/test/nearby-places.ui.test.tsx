@@ -492,6 +492,7 @@ describe("Places filtering, selection and map layers", () => {
       getLayer: jest.fn(id => layers.has(id)),
       addLayer: jest.fn(layer => layers.add(layer.id)),
       setFilter: jest.fn(),
+      setLayoutProperty: jest.fn(),
       hasImage: jest.fn(id => images.has(id)),
       addImage: jest.fn(id => images.add(id)),
       removeImage: jest.fn(id => images.delete(id)),
@@ -564,6 +565,18 @@ describe("Places filtering, selection and map layers", () => {
     fakeMap.queryRenderedFeatures.mockReturnValue([{ properties: { id: park.id } }, { properties: { id: pod.id } }]);
     await act(async () => listeners.get("click")({ point: { x: 1, y: 1 } }));
     expect(onCoincident).toHaveBeenCalledWith([park.id, pod.id]);
+    act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace]} selectedId={park.id}
+      onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
+    for (const suffix of ["clusters", "counts", "points", "icons", "selection"]) {
+      expect(fakeMap.setLayoutProperty).toHaveBeenCalledWith(`nearby-places-food-cart-pod-${suffix}`, "visibility", "none");
+    }
+    expect(fakeMap.setLayoutProperty).toHaveBeenCalledWith("nearby-places-park-points", "visibility", "visible");
+    fakeMap.setLayoutProperty.mockClear();
+    act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace, pod]} selectedId={park.id}
+      onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
+    for (const suffix of ["clusters", "counts", "points", "icons", "selection"]) {
+      expect(fakeMap.setLayoutProperty).toHaveBeenCalledWith(`nearby-places-food-cart-pod-${suffix}`, "visibility", "visible");
+    }
     sources.clear(); layers.clear(); images.clear();
     act(() => listeners.get("style.load")());
     expect(sources.size).toBe(15);

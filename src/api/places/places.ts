@@ -218,13 +218,14 @@ export function placeInBounds(place: InterestPlace, bounds: [number, number, num
   const [lng, lat] = place.coordinates;
   return lng >= bounds[0] && lng <= bounds[2] && lat >= bounds[1] && lat <= bounds[3];
 }
-export function placeDetailLink(id: string) {
-  return `/nearby/places/${encodeURIComponent(id)}`;
+export function placeDetailLink(id: string, viewSearch = "") {
+  return `/nearby/places/${encodeURIComponent(id)}${viewSearch}`;
 }
-export function placePlannerLink(place: InterestPlace, origin?: number[], originMode?: string) {
+export function placePlannerLink(place: InterestPlace, origin?: number[], originMode?: string, viewSearch?: string) {
   const params = new URLSearchParams({
     toPlaceId: place.id, toCoord: place.coordinates.join(","), confirmPlace: "1"
   });
+  if (viewSearch) params.set("placesView", viewSearch);
   if (origin?.length === 2 && origin.every(Number.isFinite)) {
     params.set("fromCoord", origin.join(","));
     if (originMode && ["device", "area", "pin"].includes(originMode)) params.set("fromOrigin", originMode);

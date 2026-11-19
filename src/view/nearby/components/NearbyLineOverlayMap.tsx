@@ -26,7 +26,7 @@ export default function NearbyLineOverlayMap({ map, snapshot, onError }: {
         const order: LineOverlayCategory[] = ["bicycle-network", "park-trails", "recommended-bike-routes"];
         const next = order.slice(order.indexOf(category) + 1).map(item => lineOverlaySource(item) + "-halo")
           .find(id => map.getLayer(id));
-        const before = next || map.getStyle()?.layers?.find(layer => layer.id.startsWith("nearby-places-"))?.id;
+        const before = next || map.getStyle()?.layers?.find(layer => layer.id === "nearby-trip-corridor" || layer.id.startsWith("nearby-places-"))?.id;
         if (!map.getLayer(layerIds[0])) map.addLayer({
           id: layerIds[0], type: "line", source,
           paint: { "line-color": "#ffffff", "line-opacity": 0.75,

@@ -3,6 +3,8 @@ import { LngLatBounds, Map as MapboxMap, MapMouseEvent, Marker, Popup } from "ma
 import { TripPlannerItinerary } from "../../../api/trimet/tripplanner";
 import { PlannerRouteColors } from "../../../api/trimet/plannerRouteColors";
 import { loadPlannerPaths } from "../util/mapbox/plannerPaths";
+import { Button } from "@wintermuted/ui-theme/react";
+import { TripCorridor } from "../../../api/places/discovery";
 
 const SOURCE = "planner-itineraries";
 const OTHER = `${SOURCE}-alternatives`;
@@ -42,7 +44,7 @@ function itineraryStops(itinerary: TripPlannerItinerary) {
   return Array.from(stops.values());
 }
 
-export default function NearbyPlannerPaths({ map: plannerMap, suspended, itineraries, selected, previewTrip, walkingEnabled, highlightedLeg, onMapLeg, routeColors }: {
+export default function NearbyPlannerPaths({ map: plannerMap, suspended, itineraries, selected, previewTrip, walkingEnabled, highlightedLeg, onMapLeg, routeColors, onDiscoverPlaces }: {
   map?: MapboxMap;
   suspended?: boolean;
   itineraries: TripPlannerItinerary[];
@@ -52,6 +54,7 @@ export default function NearbyPlannerPaths({ map: plannerMap, suspended, itinera
   highlightedLeg?: number;
   onMapLeg: (leg?: number) => void;
   routeColors?: PlannerRouteColors;
+  onDiscoverPlaces?: (corridor: Pick<TripCorridor, "lines" | "incomplete">) => void;
 }) {
   const map = suspended ? undefined : plannerMap;
   const includeWalking = walkingEnabled && Boolean(plannerMap);
@@ -279,5 +282,15 @@ export default function NearbyPlannerPaths({ map: plannerMap, suspended, itinera
     map.fitBounds(bounds, { padding, maxZoom: 16, duration: 0 });
   }, [map, result, stopsByTrip, itineraries, includeWalking, routeColors]);
 
-  return mapError ? <small role="alert">Trip paths could not be displayed.</small> : null;
+  const selectedPaths = result?.data.features.filter(feature => feature.properties.trip === selected) || [];
+  return <>
+    {mapError && <small role="alert">Trip paths could not be displayed.</small>}
+    {onDiscoverPlaces && selected >= 0 && <div className="transit-planner-places">
+      <Button size="sm" variant="secondary" disabled={!selectedPaths.length} onClick={() => onDiscoverPlaces({
+        lines: selectedPaths.flatMap(({ geometry }) => geometry.type === "LineString" ? [geometry.coordinates] : geometry.coordinates),
+        incomplete: new Set(selectedPaths.map(feature => feature.properties.legIndex)).size < itineraries[selected].legs.length
+      })}>Places along this trip</Button>
+      {!selectedPaths.length && <p role="status">Mapped trip geometry is not available yet. Walking-only trips need walking routes enabled.</p>}
+    </div>}
+  </>;
 }

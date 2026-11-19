@@ -12,6 +12,7 @@ import "./NearbyPlaces.scss";
 import { NeighborhoodState } from "../../../api/places/neighborhoods";
 import { LINE_CAUTION_COLOR, LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "../../../api/places/lineOverlays";
 import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextControls } from "../../../api/places/contextOverlays";
+import { SavedPlaceControls } from "../../../api/places/savedPlaces";
 
 interface Props {
   sources: Record<PlaceCategory, PlaceSourceState>;
@@ -27,6 +28,10 @@ interface Props {
   mapReady: boolean;
   lineOverlays?: LineOverlayControls;
   contextOverlays?: ContextControls;
+  discovery?: React.ReactNode;
+  savedPlaces?: SavedPlaceControls;
+  viewSearch?: string;
+  areaLabel?: string;
   neighborhoods?: NeighborhoodState & {
     shown: boolean;
     onShown: (shown: boolean) => void;
@@ -38,7 +43,8 @@ interface Props {
 }
 
 export default function NearbyPlaces({
-  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods, lineOverlays, contextOverlays
+  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods, lineOverlays, contextOverlays,
+  discovery, savedPlaces, viewSearch = "", areaLabel = "map area"
 }: Props) {
   const [limit, setLimit] = useState(40);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -66,6 +72,7 @@ export default function NearbyPlaces({
         <h2 id="nearby-places-heading" ref={browseHeading} tabIndex={-1}>Places nearby</h2>
         <p>Explore Portland places and practical stops. Filter by category or move the map to explore another area.</p>
       </header>
+      {discovery}
       <fieldset className="transit-places-filters">
         <legend className="wm-sr-only">Place categories</legend>
         {PLACE_CATEGORIES.map(category => (
@@ -119,11 +126,15 @@ export default function NearbyPlaces({
         {contextOverlays && <p id="place-context-help">Inventory context, not routing destinations. Hover for source details. Sidewalk gaps do not prove absence; crossing points do not guarantee safety or accessibility. Orange points mark planning deficiencies, not live closures. Street trees do not establish shade or public access.</p>}
       </fieldset>}
       <label className="transit-places-search">
-        Search places in this map area
+        Search places in this {areaLabel}
         <input type="search" className="wm-input" value={filters.search} maxLength={200}
           onChange={event => onFilters({ ...filters, search: event.target.value })} />
       </label>
       </>}
+      {savedPlaces?.error && <div role="alert" className="transit-places-message">
+        <p>{savedPlaces.error}</p>
+        <Button size="sm" variant="secondary" onClick={savedPlaces.retry}>Retry saved places</Button>
+      </div>}
       {neighborhoods?.shown && <>
         {neighborhoods.loading && <p role="status">Loading neighborhood boundaries...</p>}
         {(neighborhoods.error || neighborhoods.mapError) && <div role="alert" className="transit-places-message">
@@ -164,6 +175,11 @@ export default function NearbyPlaces({
           </div>
           <p><FontAwesomeIcon icon={placeIconDefinition(selected.category)} aria-hidden="true" />{" "}
             {PLACE_INFO[selected.category].singular}</p>
+          {savedPlaces && <Button size="sm" variant="secondary" aria-pressed={Boolean(savedPlaces.saved[selected.id])}
+            onClick={() => savedPlaces.toggle(selected)}>
+            <FontAwesome name={savedPlaces.saved[selected.id] ? "bookmark" : "bookmark-o"} aria-hidden="true" />{" "}
+            {savedPlaces.saved[selected.id] ? "Remove saved place" : "Save place"}
+          </Button>}
           {selected.address && <p>{selected.address}</p>}
           {["drinking-fountain", "picnic-seating", "park-artwork"].includes(selected.category) && <section aria-label="Park amenity information">
             <h3>Source-listed amenity</h3>
@@ -213,7 +229,7 @@ export default function NearbyPlaces({
             {selected.marketHours && <p><strong>Hours:</strong> {selected.marketHours}</p>}
           </section>}
           <p>Approximate map location, not a verified public entrance. Confirm your arrival point before finding trips.</p>
-          <Link className="wm-btn wm-btn-primary" to={placePlannerLink(selected, origin, originMode)}>Plan a trip here</Link>
+          <Link className="wm-btn wm-btn-primary" to={placePlannerLink(selected, origin, originMode, viewSearch)}>Plan a trip here</Link>
           <p className="transit-place-source">
             <a href={selected.sourceUrl} target="_blank" rel="noreferrer">View source location</a>
             {selected.website && <> · <a href={selected.website} target="_blank" rel="noreferrer">Website</a></>}
@@ -229,13 +245,13 @@ export default function NearbyPlaces({
       ) : !mapReady ? (
         <p role="status">Preparing the map area...</p>
       ) : available && !loading && sorted.length === 0 ? (
-        <p role="status">No matching places in this map area. Try a wider map view, another search, or enable more categories. Coverage is limited to the Portland parks system and mapped Portland places.</p>
+        <p role="status">No matching places in this {areaLabel}. Try another search, enable more categories, or change the discovery filters. Coverage is limited to the Portland parks system and mapped Portland places.</p>
       ) : null}
-      <p className="transit-places-count" role="status">{sorted.length} {sorted.length === 1 ? "place" : "places"} in map area</p>
-      <ul ref={results} className="transit-places-list" aria-label="Places in map area">
+      <p className="transit-places-count" role="status">{sorted.length} {sorted.length === 1 ? "place" : "places"} in {areaLabel}</p>
+      <ul ref={results} className="transit-places-list" aria-label={`Places in ${areaLabel}`}>
         {sorted.slice(0, limit).map(place => (
           <li key={place.id}>
-            <Link to={placeDetailLink(place.id)} className="transit-place-result" data-place-id={place.id}
+            <Link to={placeDetailLink(place.id, viewSearch)} className="transit-place-result" data-place-id={place.id}
               onClick={event => {
                 if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                 event.preventDefault();
@@ -246,6 +262,11 @@ export default function NearbyPlaces({
               <span><strong>{place.name}</strong><small>{place.address || PLACE_INFO[place.category].singular}</small></span>
               <FontAwesome name="angle-right" aria-hidden="true" />
             </Link>
+            {savedPlaces && <Button size="sm" variant="ghost" className="transit-place-save"
+              aria-label={`${savedPlaces.saved[place.id] ? "Unsave" : "Save"} ${place.name}`}
+              aria-pressed={Boolean(savedPlaces.saved[place.id])} onClick={() => savedPlaces.toggle(place)}>
+              <FontAwesome name={savedPlaces.saved[place.id] ? "bookmark" : "bookmark-o"} aria-hidden="true" />
+            </Button>}
           </li>
         ))}
       </ul>
