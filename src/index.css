@@ -71,6 +71,13 @@
   text-decoration: none;
 }
 
+button.transit-detail-back {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .transit-detail-back:hover {
   color: var(--wm-color-accent);
 }

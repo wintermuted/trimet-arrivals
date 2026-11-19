@@ -135,10 +135,14 @@
   gap: var(--wm-space-3);
 }
 
+.transit-destination-panel > .transit-detail-header,
 .transit-destination-panel-header {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+.transit-destination-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
