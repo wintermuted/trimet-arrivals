@@ -1,5 +1,5 @@
 import { Button } from "@wintermuted/ui-theme/react";
-import mapboxgl, { Map } from "mapbox-gl";
+import mapboxgl, { LngLatBounds, Map } from "mapbox-gl";
 import { Feature, LineString } from "geojson";
 import { clearWalkingCache, setWalkingAccessToken } from "../../../api/mapbox/walking";
 import { showWalkingRoute } from "../util/mapbox/walkingRoute";
@@ -68,6 +68,10 @@ import { DEFAULT_LINE_OVERLAYS, LINE_OVERLAY_CATEGORIES, LineOverlayCategory, us
 import NearbyLineOverlayMap from "./NearbyLineOverlayMap";
 import { CONTEXT_CATEGORIES, ContextCategory, DEFAULT_CONTEXT_OVERLAYS, useContextOverlay } from "../../../api/places/contextOverlays";
 import NearbyContextMap from "./NearbyContextMap";
+import { placesPreset, placesViewSearch, PlacesView, PlacesViewport, readPlacesView, TripCorridor, tripCorridorMatcher } from "../../../api/places/discovery";
+import { useSavedPlaces } from "../../../api/places/savedPlaces";
+import NearbyDiscoveryControls from "./NearbyDiscoveryControls";
+import NearbyTripCorridorMap from "./NearbyTripCorridorMap";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
@@ -95,10 +99,12 @@ export interface NearbyViewComponentOutletContextProps {
   handleWalkingRouteChanged: (feature: Feature<LineString>) => () => void;
   handleRouteInfoChanged: (route: DetailedRoute, onError: () => void) => () => void;
   handleRouteInfoStopHighlighted: (stopId?: number) => void;
+  discoverPlacesAlongTrip?: (trip: TripCorridor) => void;
 }
 
 export function NearbyTripPlannerComponent() {
-  const { plannerMap, plannerMapSuspended, plannerFooter, walkingEnabled } = useOutletContext<NearbyViewComponentOutletContextProps>();
+  const { plannerMap, plannerMapSuspended, plannerFooter, walkingEnabled, discoverPlacesAlongTrip } = useOutletContext<NearbyViewComponentOutletContextProps>();
+  const location = useLocation();
   return (
     <ConnectedTripPlannerView
       inSidebar
@@ -115,6 +121,9 @@ export function NearbyTripPlannerComponent() {
           highlightedLeg={highlightedLeg}
           onMapLeg={onMapLeg}
           routeColors={routeColors}
+          onDiscoverPlaces={discoverPlacesAlongTrip ? trip => discoverPlacesAlongTrip({
+            ...trip, returnTo: `${location.pathname}${location.search}`
+          }) : undefined}
         />
       )}
     />
@@ -272,6 +281,8 @@ export default function NearbyViewComponent() {
   const mapRef = useRef<Map>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const sharedPlacesView = useMemo(() => readPlacesView(location.search), [location.search]);
+  const lastSharedSearch = useRef(location.search);
   const isLanding = Boolean(matchPath("/nearby", location.pathname));
   const wasLanding = useRef(isLanding);
   const isExplore = Boolean(matchPath("/nearby/simple-routes", location.pathname));
@@ -329,16 +340,24 @@ export default function NearbyViewComponent() {
   const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
   const { walkingEnabled } = useFeatureFlags();
   const placeCatalog = usePlaceCatalog(isPlaces);
-  const [placeFilters, setPlaceFilters] = useState<PlaceFilters>(DEFAULT_PLACE_FILTERS);
+  const [placeFilters, setPlaceFilters] = useState<PlaceFilters>(sharedPlacesView.view?.filters ?? DEFAULT_PLACE_FILTERS);
+  const savedPlaces = useSavedPlaces();
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [tripCorridor, setTripCorridor] = useState<TripCorridor>();
+  const [alongTrip, setAlongTrip] = useState(false);
+  const [tripDistance, setTripDistance] = useState(500);
+  const [tripMapError, setTripMapError] = useState(false);
+  const [tripMapRevision, setTripMapRevision] = useState(0);
+  const fitTrip = useRef(false);
   const [placeBounds, setPlaceBounds] = useState<[number, number, number, number]>();
   const [placeZoom, setPlaceZoom] = useState(0);
   const [placeMapError, setPlaceMapError] = useState(false);
-  const [neighborhoodsShown, setNeighborhoodsShown] = useState(false);
-  const [neighborhoodPolygonsShown, setNeighborhoodPolygonsShown] = useState(false);
+  const [neighborhoodsShown, setNeighborhoodsShown] = useState(sharedPlacesView.view?.neighborhoods ?? false);
+  const [neighborhoodPolygonsShown, setNeighborhoodPolygonsShown] = useState(sharedPlacesView.view?.polygons ?? false);
   const neighborhoods = useNeighborhoods(isPlaces && neighborhoodsShown);
   const [neighborhoodMapError, setNeighborhoodMapError] = useState(false);
   const [neighborhoodLayerRevision, setNeighborhoodLayerRevision] = useState(0);
-  const [lineOverlaysShown, setLineOverlaysShown] = useState(DEFAULT_LINE_OVERLAYS);
+  const [lineOverlaysShown, setLineOverlaysShown] = useState(sharedPlacesView.view?.lines ?? DEFAULT_LINE_OVERLAYS);
   const [lineOverlayErrors, setLineOverlayErrors] = useState(DEFAULT_LINE_OVERLAYS);
   const [lineOverlayRevisions, setLineOverlayRevisions] = useState({
     "park-trails": 0, "bicycle-network": 0, "recommended-bike-routes": 0
@@ -350,7 +369,7 @@ export default function NearbyViewComponent() {
   };
   const handleLineOverlayError = useCallback((category: LineOverlayCategory, error: boolean) =>
     setLineOverlayErrors(previous => previous[category] === error ? previous : { ...previous, [category]: error }), []);
-  const [contextShown, setContextShown] = useState(DEFAULT_CONTEXT_OVERLAYS);
+  const [contextShown, setContextShown] = useState(sharedPlacesView.view?.context ?? DEFAULT_CONTEXT_OVERLAYS);
   const [contextErrors, setContextErrors] = useState(DEFAULT_CONTEXT_OVERLAYS);
   const [contextRevisions, setContextRevisions] = useState({
     "street-trees": 0, sidewalks: 0, crossings: 0, "crossing-deficiencies": 0
@@ -364,11 +383,41 @@ export default function NearbyViewComponent() {
   const handleContextError = useCallback((category: ContextCategory, error: boolean) =>
     setContextErrors(previous => previous[category] === error ? previous : { ...previous, [category]: error }), []);
   const [coincidentIds, setCoincidentIds] = useState<string[]>([]);
-  const placeViewport = useRef<{ center: [number, number]; zoom: number }>();
-  const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters),
-    [placeCatalog.sources, placeFilters]);
-  const visiblePlaces = useMemo(() => placeBounds
-    ? filteredPlaces.filter(place => placeInBounds(place, placeBounds)) : [], [filteredPlaces, placeBounds]);
+  const placeViewport = useRef<PlacesViewport>(sharedPlacesView.viewport);
+  const nearTrip = useMemo(() => tripCorridor && alongTrip
+    ? tripCorridorMatcher(tripCorridor.lines, tripDistance) : undefined, [tripCorridor, alongTrip, tripDistance]);
+  const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters)
+    .filter(place => (!savedOnly || Boolean(savedPlaces.saved[place.id])) && (!nearTrip || nearTrip(place.coordinates))),
+    [placeCatalog.sources, placeFilters, savedOnly, savedPlaces.saved, nearTrip]);
+  const visiblePlaces = useMemo(() => savedOnly || nearTrip ? filteredPlaces : placeBounds
+    ? filteredPlaces.filter(place => placeInBounds(place, placeBounds)) : [], [filteredPlaces, placeBounds, savedOnly, nearTrip]);
+  const placesScope = nearTrip ? "trip corridor" : savedOnly ? "saved view" : "map area";
+  const currentPlacesView: PlacesView = { filters: placeFilters, neighborhoods: neighborhoodsShown,
+    polygons: neighborhoodPolygonsShown, lines: lineOverlaysShown, context: contextShown };
+  const shareSearch = placesViewSearch(currentPlacesView, placeViewport.current);
+  const retainedViewSearch = sharedPlacesView.view ? shareSearch : "";
+  const unavailableSaved = useMemo(() => {
+    if (!Object.values(placeCatalog.sources).every(source => source.snapshot && !source.error)) return [];
+    const ids = new Set(placeCatalog.places.map(place => place.id));
+    return Object.entries(savedPlaces.saved).filter(([id]) => !ids.has(id));
+  }, [placeCatalog.sources, savedPlaces.saved]);
+  function applyPlacesView(view: PlacesView) {
+    setPlaceFilters(view.filters);
+    setNeighborhoodsShown(view.neighborhoods);
+    setNeighborhoodPolygonsShown(view.polygons);
+    setLineOverlaysShown(view.lines);
+    setContextShown(view.context);
+  }
+  useEffect(() => {
+    if (!isPlaces || lastSharedSearch.current === location.search) return;
+    lastSharedSearch.current = location.search;
+    if (!sharedPlacesView.view) return;
+    applyPlacesView(sharedPlacesView.view);
+    if (sharedPlacesView.viewport) {
+      placeViewport.current = sharedPlacesView.viewport;
+      if (!selectedPlaceId) mapRef.current?.jumpTo(sharedPlacesView.viewport);
+    }
+  }, [isPlaces, location.search, sharedPlacesView, selectedPlaceId]);
   const selectedPlace = placeCatalog.places.find(place => place.id === selectedPlaceId);
   const selectedCategory = placeCategoryForId(selectedPlaceId || "");
   const selectedSource = selectedCategory ? placeCatalog.sources[selectedCategory] : undefined;
@@ -379,7 +428,13 @@ export default function NearbyViewComponent() {
   }, [placeFilters, selectedPlaceId, isPlaces]);
   const selectPlace = useCallback((id?: string) => {
     setCoincidentIds([]);
-    navigate(id ? placeDetailLink(id) : "/nearby/places");
+    navigate(id ? placeDetailLink(id, retainedViewSearch) : `/nearby/places${retainedViewSearch}`);
+  }, [navigate, retainedViewSearch]);
+  const discoverPlacesAlongTrip = useCallback((trip: TripCorridor) => {
+    setTripCorridor(trip);
+    setAlongTrip(true);
+    fitTrip.current = true;
+    navigate("/nearby/places");
   }, [navigate]);
   const updatePlaceBounds = useCallback((bounds: [number, number, number, number]) => {
     setPlaceBounds(bounds);
@@ -393,9 +448,14 @@ export default function NearbyViewComponent() {
   useLayoutEffect(() => {
     if (isPlaces && isMapLoaded) {
       if (selectedPlace) mapRef.current?.jumpTo({ center: selectedPlace.coordinates, zoom: 15 });
-      else if (!selectedPlaceId) mapRef.current?.jumpTo(placeViewport.current ?? { center: SERVICE_AREA_CENTER, zoom: 12 });
+      else if (!selectedPlaceId && fitTrip.current && tripCorridor) {
+        const bounds = new LngLatBounds();
+        tripCorridor.lines.forEach(line => line.forEach(([lng, lat]) => bounds.extend([lng, lat])));
+        mapRef.current?.fitBounds(bounds, { padding: 32, maxZoom: 14, duration: 0 });
+        fitTrip.current = false;
+      } else if (!selectedPlaceId) mapRef.current?.jumpTo(placeViewport.current ?? { center: SERVICE_AREA_CENTER, zoom: 12 });
     }
-  }, [isPlaces, isMapLoaded, selectedPlaceId, selectedPlace]);
+  }, [isPlaces, isMapLoaded, selectedPlaceId, selectedPlace, tripCorridor]);
 
   useEffect(() => () => clearWalkingCache(), []);
 
@@ -620,7 +680,8 @@ export default function NearbyViewComponent() {
     walkingEnabled,
     handleWalkingRouteChanged,
     handleRouteInfoChanged,
-    handleRouteInfoStopHighlighted
+    handleRouteInfoStopHighlighted,
+    discoverPlacesAlongTrip
   };
 
   const waitingForLocation = !userLocation && isLocating;
@@ -631,9 +692,11 @@ export default function NearbyViewComponent() {
   const sectionTitle = isPlaces ? "Places" : isPlanner ? "Plan a trip" :
     isExplore && !(isRouteInfo && canShowNearbyResults) ? "Explore" : undefined;
   const plannerPlaceId = searchParams.get("toPlaceId");
-  const sectionBackTo = selectedPlaceId ? "/nearby/places" :
-    isPlanner && searchParams.get("confirmPlace") === "1" && placeCategoryForId(plannerPlaceId || "")
-      ? placeDetailLink(plannerPlaceId) : "/nearby";
+  const plannerSharedView = readPlacesView(searchParams.get("placesView") || "");
+  const plannerViewSearch = plannerSharedView.view ? placesViewSearch(plannerSharedView.view, plannerSharedView.viewport) : "";
+  const sectionBackTo = selectedPlaceId ? `/nearby/places${retainedViewSearch}` :
+    isPlanner && (searchParams.get("confirmPlace") === "1" || plannerSharedView.view) && placeCategoryForId(plannerPlaceId || "")
+      ? placeDetailLink(plannerPlaceId, plannerViewSearch) : "/nearby";
 
   return (
     <div className="transit-container transit-nearby-view">
@@ -682,7 +745,7 @@ export default function NearbyViewComponent() {
                 {coincidentIds.length > 1 && <section aria-label="Locations at this point">
                   <h3>Locations at this point</h3>
                   {mappedPlaces.filter(place => coincidentIds.includes(place.id)).map(place =>
-                    <Link key={place.id} className="wm-btn wm-btn-secondary" to={placeDetailLink(place.id)}>{place.name}</Link>)}
+                    <Link key={place.id} className="wm-btn wm-btn-secondary" to={placeDetailLink(place.id, retainedViewSearch)}>{place.name}</Link>)}
                   <Button variant="ghost" onClick={() => setCoincidentIds([])}>Dismiss locations</Button>
                 </section>}
                 {selectedPlaceId && !selectedPlace ? <section className="transit-places" aria-label="Place details">
@@ -696,6 +759,22 @@ export default function NearbyViewComponent() {
                   ) : <p role="alert">Place not found. This location may no longer be in the current catalog.</p>}
                 </section> : <NearbyPlaces sources={placeCatalog.sources} filters={placeFilters} onFilters={setPlaceFilters}
                   visiblePlaces={visiblePlaces} selected={selectedPlace} onSelect={selectPlace}
+                  savedPlaces={savedPlaces} viewSearch={retainedViewSearch}
+                  areaLabel={placesScope}
+                  discovery={<>
+                    <NearbyDiscoveryControls view={currentPlacesView} onPreset={preset => {
+                      applyPlacesView(placesPreset(preset));
+                      if (preset === "default") { setSavedOnly(false); setAlongTrip(false); }
+                      if (sharedPlacesView.error) navigate(location.pathname, { replace: true });
+                    }} viewError={sharedPlacesView.error} shareHref={`/nearby/places${shareSearch}`}
+                      savedPlaces={savedPlaces} savedOnly={savedOnly} onSavedOnly={setSavedOnly}
+                      unavailable={unavailableSaved}
+                      trip={tripCorridor} alongTrip={alongTrip} onAlongTrip={setAlongTrip}
+                      distance={tripDistance} onDistance={setTripDistance} />
+                    {alongTrip && tripMapError && <p role="alert">The mapped trip could not be drawn. Distance filtering still uses its geometry.{" "}
+                      <Button size="sm" variant="secondary" onClick={() => setTripMapRevision(value => value + 1)}>Retry trip line</Button>
+                    </p>}
+                  </>}
                   contextOverlays={{ shown: contextShown, sources: contextSources, mapErrors: contextErrors,
                     onShown: (category, shown) => setContextShown(previous => ({ ...previous, [category]: shown })),
                     onRetry: category => {
@@ -763,6 +842,7 @@ export default function NearbyViewComponent() {
             isMapLoading={!isMapLoaded}
             searchMode={searchMode}
             placesMode={isPlaces}
+            placesScope={placesScope}
             vehiclesEnabled={vehiclesEnabled}
             onVehiclesToggle={() => {
               if (vehiclesEnabled) stopFollowing();
@@ -802,6 +882,8 @@ export default function NearbyViewComponent() {
           {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={mappedPlaces}
             selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
             onBounds={updatePlaceBounds} onError={setPlaceMapError} />}
+          {isPlaces && isMapLoaded && alongTrip && tripCorridor &&
+            <NearbyTripCorridorMap key={tripMapRevision} map={mapRef.current} lines={tripCorridor.lines} onError={setTripMapError} />}
         </div>
       </div>
     </div>

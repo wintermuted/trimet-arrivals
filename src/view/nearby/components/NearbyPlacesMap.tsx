@@ -48,7 +48,12 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
       hidePreview();
       for (const category of PLACE_CATEGORIES) {
         const source = map.getSource(sourceId(category)) as GeoJSONSource | undefined;
-        source?.setData(placeFeatures(latest.current.places, category));
+        const data = placeFeatures(latest.current.places, category);
+        source?.setData(data);
+        // Hide empty categories even while Mapbox retains previously rendered tiles.
+        for (const id of layerIds(category)) {
+          if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", data.features.length ? "visible" : "none");
+        }
         const selection = layerIds(category)[4];
         if (map.getLayer(selection)) map.setFilter(selection, ["==", ["get", "id"], latest.current.selectedId || ""]);
       }

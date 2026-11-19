@@ -154,6 +154,40 @@ Browser Back/Forward restores URL-selected details, and a place-linked planner's
 header Back returns to that place. Filters and neighborhood settings are kept
 while navigating within the mounted Nearby view.
 
+**Discovery preset** offers **Park day**, **Errands** and **Bike outing** category
+and reference-layer combinations. Manual changes show **Custom filters**.
+**Reset filters** restores the default categories/layers and clears saved-only
+and trip-corridor filtering without moving the map.
+
+Save places from a result row or its detail view. **Saved places only** shows
+matching saves across Portland, not just the visible map; category and search
+filters still apply. Saves contain only source IDs and display names in this
+device's local storage (`SAVED_PLACES_V1`), with cross-tab updates and explicit
+storage-error/retry controls. Unavailable saved records can be removed once the
+catalog has loaded. Saves are separate from transit stop/route bookmarks.
+
+**Copy view link** captures a snapshot of categories, search, optional layers
+and the current map position. Reopening it restores those public settings;
+the address bar is not rewritten on every pan or filter change. Shared settings
+also survive place details and the place-linked planner's header Back.
+Saved IDs, device location and current trip geometry are not included. Search
+text and viewport coordinates are included, so check them before sharing.
+If clipboard access fails, a selectable link is shown. Unsupported or malformed
+settings show an error instead of partially applying filters.
+
+Select a planner itinerary and use **Places along this trip** to discover places
+within approximately **250 m**, **500 m** (default), or **1 km** of its mapped
+segments. The blue trip line and results use the selected itinerary's existing
+geometry, never a hovered alternative or an invented line across missing legs.
+This is straight-line proximity, **not walking distance, verified access, or a
+reachable detour**. Missing leg geometry is excluded and disclosed; walking
+geometry still requires the existing walking-routing opt-in. The trip button is
+unavailable when no usable geometry exists. Corridor filtering covers the full
+mapped trip rather than only the viewport, and can intersect saved/category/search
+filters. **Return to trip planner** retains the planner query; it may reload trips
+and does not preserve the exact selected itinerary. The corridor lasts only in
+the mounted Nearby session, not across reloads or shared links.
+
 Hovering a marker previews its name, category, and any available address;
 cluster previews show the category and count. Clicking a marker or selecting a
 list result opens a focused sidebar detail view with its source, any available

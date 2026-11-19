@@ -27,7 +27,7 @@ export default function NearbyContextMap({ map, snapshot, onError }: {
         const next = order.slice(order.indexOf(category) + 1).map(item => contextSource(item) + "-features")
           .find(id => map.getLayer(id));
         const before = next || map.getStyle()?.layers?.find(item =>
-          item.id.startsWith("nearby-lines-") || item.id.startsWith("nearby-places-"))?.id;
+          item.id.startsWith("nearby-lines-") || item.id === "nearby-trip-corridor" || item.id.startsWith("nearby-places-"))?.id;
         if (!map.getLayer(layer)) {
           if (category === "sidewalks") map.addLayer({
             id: layer, type: "fill", source,

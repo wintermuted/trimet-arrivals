@@ -25,6 +25,7 @@ interface Props {
   onVehiclesRetry: () => void;
   children?: React.ReactNode;
   placesMode?: boolean;
+  placesScope?: "map area" | "saved view" | "trip corridor";
 }
 
 export function NearbyMapSkeleton({ message }: { message: string }) {
@@ -53,7 +54,8 @@ function NearbyMapV2({
   vehicleMapError,
   onVehiclesRetry,
   children,
-  placesMode = false
+  placesMode = false,
+  placesScope = "map area"
 }: Props) {
   // Initialize Map
   useEffect(() => {
@@ -90,7 +92,7 @@ function NearbyMapV2({
             name={searchMode === "pin" ? "map-marker" : searchMode === "device" ? "location-arrow" : "map"}
             aria-hidden="true"
           />
-          {placesMode ? "Places in map area" : searchMode === "pin" ? "Dropped pin" :
+          {placesMode ? `Places in ${placesScope}` : searchMode === "pin" ? "Dropped pin" :
             searchMode === "area" ? "Map center" :
               searchMode === "device" ? "Near me" : "Choose area"}
         </span>

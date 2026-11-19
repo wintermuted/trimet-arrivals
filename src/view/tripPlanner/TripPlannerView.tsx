@@ -734,7 +734,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     if (to.kind !== "stop" && toInterestPlace?.coordinates.join(",") === to.value) to.interestPlace = toInterestPlace;
 
     focusStopSummary.current = true;
-    const params = { ...endpointParams(from, "from"), ...endpointParams(to, "to") };
+    const params = { ...endpointParams(from, "from"), ...endpointParams(to, "to"),
+      ...(searchParams.get("placesView") ? { placesView: searchParams.get("placesView") } : {}) };
     if (new URLSearchParams(params).toString() === searchParams.toString()) {
       setTripRetry(value => value + 1);
     } else {

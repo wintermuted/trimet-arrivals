@@ -8,6 +8,29 @@
   p { color: var(--wm-color-text-muted); margin-block: var(--wm-space-2) var(--wm-space-4); }
 }
 
+.transit-places-discovery {
+  margin-block-end: var(--wm-space-4);
+  font-size: 0.875rem;
+  p { color: var(--wm-color-text-muted); margin-block: var(--wm-space-2); }
+  label:not(.transit-places-category) { display: grid; gap: var(--wm-space-1); }
+  input:not([type="checkbox"]), select { width: 100%; min-width: 0; }
+  .transit-places-category { min-height: 32px; }
+}
+.transit-places-discovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wm-space-2);
+  margin-block: var(--wm-space-2);
+}
+.transit-places-trip-filter {
+  margin-block-start: var(--wm-space-3);
+  padding-block-start: var(--wm-space-2);
+  border-top: 1px solid var(--wm-color-border);
+}
+.transit-places-list > li { display: flex; align-items: center; }
+.transit-place-save { flex-shrink: 0; min-height: 44px; min-width: 44px; }
+.transit-planner-places { margin-block: var(--wm-space-3); font-size: 0.875rem; }
+
 .transit-places-filters {
   border: 0;
   padding: 0;
