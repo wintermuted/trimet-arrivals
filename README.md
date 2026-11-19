@@ -112,7 +112,7 @@ gutter. The sidebar detail header spans the full available sidebar width while i
 contents align with the padded content below. Other pages keep the standard content spacing.
 The Nearby landing screen offers **Explore** (`/nearby/simple-routes`) and
 **Plan a trip** (`/nearby/planner`), plus **Places** (`/nearby/places`) for parks,
-food-cart pods, community centers, and libraries as tiles. Each view has a back link to the
+food-cart pods, community centers, libraries, community gardens, and farmers markets as tiles. Each view has a back link to the
 landing screen. Going back clears the nearby stops, route lines, and location
 circle and restores the Portland overview without remounting the map. The sidebar planner
 uses the service-wide stop catalog and works without a nearby location or
@@ -127,12 +127,14 @@ visible in the link but are not added to Recent trips.
 
 ### Nearby places
 
-**Places** starts with Parks, Food-cart pods, Community centers, and Libraries
+**Places** starts with Parks, Food-cart pods, Community centers, Libraries,
+Community gardens, and Farmers markets
 enabled. Its list follows the
 visible map area after a pan or zoom, independently of transit's search radius.
 Category toggles and name/address search filter both the map and list. Numbered
 clusters pair the category icon with a count and expand when selected; green
-tree, orange food, purple community, and blue book icons identify individual locations. Overlapping markers
+tree, orange food, purple community, blue book, olive leaf, and berry basket icons
+identify individual locations. Category controls use a compact wrapped layout. Overlapping markers
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
 reveals additional results without silently limiting the catalog.
@@ -150,6 +152,16 @@ confirmation: map points are approximate, **not verified public entrances**.
 Edit to a known public entrance/address when needed. Parks-system property data
 also includes community gardens, natural areas, plazas, and facilities; inclusion
 does not establish public access, operating hours, or accessibility.
+When the garden snapshot is available, garden-specific Parks entries sharing a
+City property ID are shown only in Community gardens, even if that category is
+disabled. Host parks remain in Parks, distinct garden areas are retained, and
+Parks entries remain available if the garden source fails to load. Existing
+park destination links still resolve against the unchanged parks snapshot.
+
+Gardens may require plot registration or have restricted access. Market details
+show **Source-listed schedule**, explicitly warning that seasonal dates and hours
+may be old; check the market website before traveling. No live open/closed state,
+current-year schedule, or benefit/payment availability is inferred.
 
 An existing explicitly selected Nearby origin is reused and identified as a
 device location, search center, or dropped pin; simply panning Places never
@@ -212,6 +224,20 @@ npm run places:refresh -- --neighborhoods-only
 
 The normal full refresh includes neighborhoods too.
 
+Community gardens use the City's dedicated polygon dataset, keeping active
+garden areas with stable GlobalID-based identities and approximate display
+points. Farmers markets use the City's point dataset, excluding records marked
+closed or inactive and retaining source-listed days, seasons, hours, and websites.
+An active source record does not verify current operation. Refresh just these
+two snapshots without changing the existing catalog or querying OSM:
+
+```powershell
+npm run places:refresh -- --gardens-markets-only
+```
+
+The normal full refresh includes both categories. Review source status,
+seasonal schedules, and garden access before publishing.
+
 Refresh manually when maintaining the catalog (monthly is a reasonable starting
 cadence), and review names, counts, additions/removals, source dates, and arrival
 points before publishing. Retrieval dates are not source update dates. Overpass
@@ -239,6 +265,8 @@ and `community-centers.json` / `libraries.json` (Metro, RLIS Open Database End U
 License Agreement). Each retains its source, license, retrieval date and limitations;
 `neighborhoods.json` is a separate City of Portland polygon snapshot under the
 same City PDDL default terms.
+`community-gardens.json` and `farmers-markets.json` also retain their City bureau
+attribution and PDDL default terms.
 OSM and Metro snapshots also retain the source database/data-edit date. See
 `public\data\places\NOTICE.txt`. These data licenses are separate from the app code's
 MIT license. Recheck upstream metadata/terms before future redistribution.

@@ -4,6 +4,16 @@ import path from "node:path";
 
 export const PARKS_URL = "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/35";
 export const NEIGHBORHOODS_URL = "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3";
+export const CITY_PLACE_SOURCES = {
+  "community-garden": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Miscellaneous/MapServer/216",
+    metadataId: 54459, file: "community-gardens.json", bureau: "Bureau of Parks and Recreation"
+  },
+  "farmers-market": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/187",
+    metadataId: 54387, file: "farmers-markets.json", bureau: "Bureau of Planning and Sustainability"
+  }
+};
 export const OSM_QUERY = '[out:json][timeout:60];area["boundary"="administrative"]["admin_level"="8"]["name"="Portland"]["wikidata"="Q6106"]->.p;nwr(area.p)["amenity"="food_court"];out center tags;';
 export const METRO_SOURCES = {
   "community-center": {
@@ -201,6 +211,79 @@ export async function fetchParks(request = json) {
   return normalizeParks(features);
 }
 
+export function normalizeCityPlaces(features, category) {
+  if (!features.length) throw new Error(`City ${category} response was empty`);
+  const places = new Map();
+  for (const feature of features) {
+    const properties = feature.properties || {};
+    const garden = category === "community-garden";
+    const status = garden ? properties.Status : properties.status;
+    if (typeof status !== "string" || !["active", "inactive", "closed"].includes(status.trim().toLowerCase())) {
+      throw new Error(`Unrecognized ${category} status`);
+    }
+    if (status.trim().toLowerCase() !== "active") continue;
+    const name = (garden ? properties.Site_Name : properties.Market)?.trim();
+    const guid = properties.GlobalID?.replace(/[{}]/g, "").toLowerCase();
+    if (!name || (garden ? !/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(guid || "") :
+      !Number.isInteger(properties.OBJECTID))) throw new Error(`Missing ${category} name or source ID`);
+    const coordinates = garden ? polygonPoint(feature.geometry) : feature.geometry?.coordinates;
+    if (!validPoint(coordinates) || (!garden && feature.geometry?.type !== "Point")) {
+      throw new Error(`Invalid ${category} geometry`);
+    }
+    const text = value => typeof value === "string" ? value.trim() || undefined : undefined;
+    const place = {
+      id: garden ? `portland:garden:${guid}` : `portland:market:${properties.OBJECTID}`,
+      name, category, coordinates, arrival: "approximate",
+      sourceUrl: `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${CITY_PLACE_SOURCES[category].metadataId}`,
+      ...(garden ? {
+        parkPropertyId: Number.isInteger(properties.PropertyID) && properties.PropertyID > 0 ? properties.PropertyID : undefined,
+        website: "https://www.portland.gov/parks/community-gardens"
+      } : {
+        address: text(properties.Location), website: safeUrl(text(properties.Website)),
+        marketDays: text(properties.Day), marketSeason: text(properties.Open_Dates), marketHours: text(properties.Open_Times)
+      })
+    };
+    if (places.has(place.id)) throw new Error(`Duplicate ${category} source ID`);
+    places.set(place.id, place);
+  }
+  if (!places.size) throw new Error(`No active ${category} records`);
+  return [...places.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export async function fetchCityPlaces(category, request = json) {
+  const source = CITY_PLACE_SOURCES[category];
+  if (!source) throw new Error(`Unsupported city place category ${category}`);
+  const ids = await request(`${source.url}/query?where=1%3D1&returnIdsOnly=true&f=json`);
+  if (!Array.isArray(ids.objectIds) || !ids.objectIds.length) throw new Error(`City returned no ${category} IDs`);
+  const uniqueIds = [...new Set(ids.objectIds)].sort((a, b) => a - b);
+  const features = [];
+  for (let offset = 0; offset < uniqueIds.length; offset += 100) {
+    const params = new URLSearchParams({
+      objectIds: uniqueIds.slice(offset, offset + 100).join(","),
+      outFields: category === "community-garden" ? "OBJECTID,GlobalID,PropertyID,Site_Name,Status" :
+        "OBJECTID,Market,Location,Day,Open_Dates,Open_Times,Website,status",
+      outSR: "4326", returnGeometry: "true", f: "geojson"
+    });
+    const page = await request(`${source.url}/query?${params}`);
+    if (!Array.isArray(page.features) || page.exceededTransferLimit) throw new Error(`Incomplete ${category} page`);
+    features.push(...page.features);
+  }
+  const returnedIds = new Set(features.map(feature => feature.properties?.OBJECTID));
+  if (returnedIds.size !== uniqueIds.length || uniqueIds.some(id => !returnedIds.has(id))) {
+    throw new Error(`City ${category} query omitted records`);
+  }
+  return {
+    version: 1, category, retrievedAt: new Date().toISOString(),
+    source: `City of Portland, ${source.bureau}`,
+    sourceUrl: `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${source.metadataId}`,
+    license: "PDDL-1.0", licenseUrl: "https://www.portlandmaps.com/bps/arpa/tos.pdf",
+    coverage: category === "community-garden"
+      ? "City-managed community garden areas listed active in the source. Plots may require registration or have restricted access. Display points are not verified entrances."
+      : "Farmers markets listed active in the City source, not a complete or live directory. Seasonal dates and hours may be old; confirm the current schedule and location on the market website.",
+    places: normalizeCityPlaces(features, category)
+  };
+}
+
 export function normalizeNeighborhoods(features) {
   if (!features.length) throw new Error("City neighborhood response was empty");
   const ids = new Set();
@@ -280,6 +363,15 @@ export async function writeSnapshots(directory, snapshots) {
 }
 
 async function main() {
+  if (process.argv.includes("--gardens-markets-only")) {
+    const gardens = await fetchCityPlaces("community-garden");
+    const markets = await fetchCityPlaces("farmers-market");
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), {
+      "community-gardens.json": gardens, "farmers-markets.json": markets
+    });
+    console.log(`Refreshed ${gardens.places.length} community gardens and ${markets.places.length} farmers markets. Review source-listed status and schedules before publishing.`);
+    return;
+  }
   if (process.argv.includes("--neighborhoods-only")) {
     const neighborhoods = await fetchNeighborhoods();
     await writeSnapshots(path.join(ROOT, "public", "data", "places"), { "neighborhoods.json": neighborhoods });
@@ -301,9 +393,12 @@ async function main() {
   const centers = await fetchMetroPlaces("community-center");
   const libraries = await fetchMetroPlaces("library");
   const neighborhoods = await fetchNeighborhoods();
+  const gardens = await fetchCityPlaces("community-garden");
+  const markets = await fetchCityPlaces("farmers-market");
   const retrievedAt = new Date().toISOString();
   if (!Number.isFinite(Date.parse(osm.osm3s?.timestamp_osm_base))) throw new Error("OSM source timestamp missing");
   const snapshots = {
+    "community-gardens.json": gardens, "farmers-markets.json": markets,
     "neighborhoods.json": neighborhoods,
     "parks.json": {
       version: 1, category: "park", retrievedAt, source: "City of Portland, Bureau of Parks and Recreation",
@@ -334,7 +429,7 @@ async function main() {
     };
   }
   await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
-  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, ${libraries.places.length} libraries, and ${neighborhoods.features.length} neighborhood boundary areas. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
+  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, ${libraries.places.length} libraries, ${gardens.places.length} community gardens, ${markets.places.length} farmers markets, and ${neighborhoods.features.length} neighborhood boundary areas. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

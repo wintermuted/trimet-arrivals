@@ -66,7 +66,8 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
           map.addSource(source, {
             type: "geojson", data: placeFeatures(latest.current.places, category),
             cluster: true, clusterRadius: 45, clusterMaxZoom: 14,
-            attribution: category === "park" ? "City of Portland, Bureau of Parks and Recreation" :
+            attribution: category === "park" || category === "community-garden" ? "City of Portland, Bureau of Parks and Recreation" :
+              category === "farmers-market" ? "City of Portland, Bureau of Planning and Sustainability" :
               category === "food-cart-pod" ? '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors (ODbL)</a>' :
                 '<a href="https://rlisdiscovery.oregonmetro.gov/pages/open-database-license">Metro RLIS data (license)</a>'
           });
@@ -162,6 +163,10 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
         title.textContent = place.name;
         description.textContent = PLACE_INFO[place.category].singular;
         if (place.address) description.append(document.createElement("br"), document.createTextNode(place.address));
+        if (place.category === "farmers-market") description.append(document.createElement("br"),
+          document.createTextNode("Schedules may be outdated; check before visiting."));
+        if (place.category === "community-garden") description.append(document.createElement("br"),
+          document.createTextNode("Plot access may require registration."));
         const hint = document.createElement("p");
         hint.textContent = "Click for details and trip planning.";
         content.append(hint);

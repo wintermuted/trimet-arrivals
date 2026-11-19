@@ -637,7 +637,7 @@ export default function NearbyViewComponent() {
                 </Link>
                 <Link to="/nearby/places" className="transit-nearby-tile">
                   <FontAwesome name="map-marker" aria-hidden="true" />
-                  <span><strong>Places</strong><small>Explore parks, food carts, community centers, and libraries</small></span>
+                  <span><strong>Places</strong><small>Explore parks, food carts, gardens, markets, and more</small></span>
                   <FontAwesome name="chevron-right" aria-hidden="true" />
                 </Link>
               </nav>

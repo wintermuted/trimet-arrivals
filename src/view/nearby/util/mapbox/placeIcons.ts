@@ -1,7 +1,8 @@
-import { faBook, faTree, faUsers, faUtensils } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faLeaf, faBasketShopping, faTree, faUsers, faUtensils } from "@fortawesome/free-solid-svg-icons";
 import { PlaceCategory } from "../../../../api/places/places";
 
-const definitions = { park: faTree, "food-cart-pod": faUtensils, "community-center": faUsers, library: faBook };
+const definitions = { park: faTree, "food-cart-pod": faUtensils, "community-center": faUsers, library: faBook,
+  "community-garden": faLeaf, "farmers-market": faBasketShopping };
 const definition = (category: PlaceCategory) => definitions[category];
 
 export function createPlaceIconImage(category: PlaceCategory): ImageData {

@@ -4,7 +4,9 @@ export const PLACE_INFO = {
   park: { label: "Parks", singular: "Parks system site", icon: "tree", file: "parks.json", color: "#197346" },
   "food-cart-pod": { label: "Food-cart pods", singular: "Food-cart pod", icon: "cutlery", file: "food-cart-pods.json", color: "#a44c12" },
   "community-center": { label: "Community centers", singular: "Community center", icon: "users", file: "community-centers.json", color: "#7448a3" },
-  library: { label: "Libraries", singular: "Public library", icon: "book", file: "libraries.json", color: "#176b95" }
+  library: { label: "Libraries", singular: "Public library", icon: "book", file: "libraries.json", color: "#176b95" },
+  "community-garden": { label: "Community gardens", singular: "Community garden", icon: "leaf", file: "community-gardens.json", color: "#526d16" },
+  "farmers-market": { label: "Farmers markets", singular: "Farmers market", icon: "shopping-basket", file: "farmers-markets.json", color: "#a32d58" }
 } as const;
 export type PlaceCategory = keyof typeof PLACE_INFO;
 export type PlacePoint = [number, number];
@@ -17,6 +19,10 @@ export interface InterestPlace {
   sourceUrl: string;
   address?: string;
   website?: string;
+  parkPropertyId?: number;
+  marketDays?: string;
+  marketSeason?: string;
+  marketHours?: string;
 }
 export interface PlaceSnapshot {
   version: 1;
@@ -40,12 +46,15 @@ export const categoryName = (category: PlaceCategory) => PLACE_INFO[category].la
 export const categoryIcon = (category: PlaceCategory) => PLACE_INFO[category].icon;
 export const emptyPlaceSources = (): Record<PlaceCategory, PlaceSourceState> => ({
   park: { loading: false, error: false }, "food-cart-pod": { loading: false, error: false },
-  "community-center": { loading: false, error: false }, library: { loading: false, error: false }
+  "community-center": { loading: false, error: false }, library: { loading: false, error: false },
+  "community-garden": { loading: false, error: false }, "farmers-market": { loading: false, error: false }
 });
 export function placeCategoryForId(id: string): PlaceCategory | undefined {
   if (id?.startsWith("portland:park:")) return "park";
   if (id?.startsWith("metro:community-center:")) return "community-center";
   if (id?.startsWith("metro:library:")) return "library";
+  if (/^portland:garden:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(id || "")) return "community-garden";
+  if (/^portland:market:\d+$/.test(id || "")) return "farmers-market";
   if (/^osm:(node|way|relation):\d+$/.test(id || "")) return "food-cart-pod";
   return undefined;
 }
@@ -64,7 +73,11 @@ function isPlace(value: unknown, category: PlaceCategory): value is InterestPlac
     value.category === category && validPlacePoint(value.coordinates) &&
     value.arrival === "approximate" && safePlaceUrl(value.sourceUrl) &&
     (value.address === undefined || typeof value.address === "string") &&
-    (value.website === undefined || safePlaceUrl(value.website));
+    (value.website === undefined || safePlaceUrl(value.website)) &&
+    (value.parkPropertyId === undefined || (category === "community-garden" &&
+      Number.isInteger(value.parkPropertyId) && Number(value.parkPropertyId) > 0)) &&
+    ["marketDays", "marketSeason", "marketHours"].every(key => value[key] === undefined ||
+      (category === "farmers-market" && typeof value[key] === "string"));
 }
 
 export function parsePlaceSnapshot(value: unknown, category: PlaceCategory): PlaceSnapshot {
@@ -102,7 +115,8 @@ export async function loadPlaceSnapshot(category: PlaceCategory, signal?: AbortS
 
 export function usePlaceCatalog(enabled: boolean) {
   const [sources, setSources] = useState(emptyPlaceSources);
-  const [retries, setRetries] = useState({ park: 0, "food-cart-pod": 0, "community-center": 0, library: 0 });
+  const [retries, setRetries] = useState({ park: 0, "food-cart-pod": 0, "community-center": 0, library: 0,
+    "community-garden": 0, "farmers-market": 0 });
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
@@ -130,10 +144,15 @@ export function usePlaceCatalog(enabled: boolean) {
 }
 
 export type PlaceFilters = Record<PlaceCategory, boolean> & { search: string };
-export const DEFAULT_PLACE_FILTERS: PlaceFilters = { park: true, "food-cart-pod": true, "community-center": true, library: true, search: "" };
+export const DEFAULT_PLACE_FILTERS: PlaceFilters = { park: true, "food-cart-pod": true, "community-center": true,
+  library: true, "community-garden": true, "farmers-market": true, search: "" };
 export function filterPlaces(places: InterestPlace[], filters: PlaceFilters) {
   const query = filters.search.trim().toLocaleLowerCase();
-  return places.filter(place => filters[place.category] &&
+  const gardenProperties = new Set(places.filter(place => place.category === "community-garden")
+    .map(place => place.parkPropertyId).filter(id => id !== undefined));
+  return places.filter(place => !(place.category === "park" && /\bcommunity garden\b/i.test(place.name) &&
+      gardenProperties.has(Number(place.id.replace("portland:park:", "")))) &&
+    filters[place.category] &&
     `${place.name} ${place.address || ""}`.toLocaleLowerCase().includes(query));
 }
 export function placeInBounds(place: InterestPlace, bounds: [number, number, number, number]) {
