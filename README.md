@@ -264,12 +264,12 @@ names available on hover and to screen readers. Search by stop name, stop number
 route, then select a stop to update the destination and collapse the picker.
 Other-route metadata loads when the picker expands and is reused while it
 remains mounted. Loading failures offer retry without blocking stop selection;
-Cancel or Escape keeps the existing destination and restores button focus.
-The Cancel action stays visible while scrolling the stop list.
+Back or Escape keeps the existing destination and restores focus to **Get off at**.
+The picker header stays visible while scrolling the stop list.
 Before a destination is chosen, the map shows downstream stop markers and fits
 the route from the boarding stop to the terminus. Once you choose a destination,
 the map shows only the boarding and arrival pins and the route between them.
-Reopen **Get off at** to show all eligible downstream stops again. Canceling
+Reopen **Get off at** to show all eligible downstream stops again. Going back
 returns to the selected route without changing the destination.
 Searching the list does not hide map markers. Hovering or
 keyboard-focusing a destination highlights and enlarges its map marker without

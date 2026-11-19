@@ -6,6 +6,7 @@ import {
   TrimetRoute,
 } from "../../../api/trimet/interfaces/routes";
 import useStopHighlight from "../util/useStopHighlight";
+import { TopNavBar } from "./common/TopNavBar";
 
 export default function NearbyDestinationPicker({
   stops,
@@ -166,16 +167,7 @@ export default function NearbyDestinationPicker({
             }
           }}
         >
-          <div className="transit-destination-panel-header">
-            <h4>Choose a destination</h4>
-            <Button variant="ghost" onClick={close}>
-              Cancel
-            </Button>
-          </div>
-          <p>
-            Stops ahead of your boarding stop, in route order. Select a stop to
-            get off at.
-          </p>
+          <TopNavBar id="Choose a destination" onBack={close} />
           <label className="transit-destination-search">
             Search stops or routes
             <input

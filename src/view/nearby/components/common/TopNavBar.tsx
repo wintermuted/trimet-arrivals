@@ -7,6 +7,7 @@ interface TopNavBarParams {
   shortSign?: string;
   subtitle?: string;
   backTo?: string;
+  onBack?: () => void;
   truncateTitle?: boolean;
   action?: React.ReactNode;
 }
@@ -17,14 +18,22 @@ export function TopNavBar({
   subtitle,
   truncateTitle = false,
   action,
+  onBack,
   backTo = "/nearby/simple-routes"
 }: TopNavBarParams) {
   const title = shortSign ? `${id} to ${shortSign}` : id;
+  const backIcon = <FontAwesome name="caret-left" aria-hidden="true" />;
   return (
     <header className="transit-detail-header">
-      <Link to={backTo} className="transit-detail-back" aria-label="Back">
-        <FontAwesome name="caret-left" aria-hidden="true" />
-      </Link>
+      {onBack ? (
+        <button type="button" className="transit-detail-back" aria-label="Back" onClick={onBack}>
+          {backIcon}
+        </button>
+      ) : (
+        <Link to={backTo} className="transit-detail-back" aria-label="Back">
+          {backIcon}
+        </Link>
+      )}
       <div className="transit-detail-heading">
         <h3
           className={truncateTitle ? "transit-detail-title-truncated" : undefined}

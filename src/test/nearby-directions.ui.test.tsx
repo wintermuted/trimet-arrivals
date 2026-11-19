@@ -268,7 +268,7 @@ describe("route-aware destination selection", () => {
     expect(container.querySelector("header .transit-detail-subtitle").textContent).toBe("To Example Middle");
   });
 
-  it.each(["Cancel", "Escape", "toggle"])("collapses with %s without changing selection and restores focus", async method => {
+  it.each(["Back", "Escape", "toggle"])("collapses with %s without changing selection and restores focus", async method => {
     await render("route=54&direction=1&from=101&to=103");
     const trigger = container.querySelector<HTMLButtonElement>("#trip-destination");
     trigger.focus();
@@ -281,9 +281,9 @@ describe("route-aware destination selection", () => {
       } else if (method === "toggle") {
         trigger.click();
       } else {
-        const cancel = Array.from(container.querySelectorAll<HTMLButtonElement>("#trip-destination-options button"))
-          .find(button => button.textContent === "Cancel");
-        cancel.click();
+        const panel = container.querySelector("#trip-destination-options");
+        expect(panel.textContent).not.toContain("Stops ahead of your boarding stop");
+        panel.querySelector<HTMLButtonElement>('header button[aria-label="Back"]').click();
       }
     });
     expect(container.querySelector("#trip-destination-options")).toBeNull();
