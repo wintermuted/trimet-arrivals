@@ -258,6 +258,37 @@ or verified operation, admission, hours, reservations, accessibility or public
 access. Paid admission does not imply private access. Confirm current visiting
 arrangements and public entrances with each venue before traveling.
 
+viewpoints.json, playgrounds.json, splash-pads.json, historic-sites.json,
+public-art.json, sports-courts.json, skateparks.json, public-gardens.json,
+nature-reserves.json, cafes.json and bakeries.json
+Copyright OpenStreetMap contributors.
+Source: https://www.openstreetmap.org/copyright
+ODbL v1.0: https://opendatacommons.org/licenses/odbl/1-0/
+These separately distributed, OSM-derived snapshots are available under ODbL,
+including attribution and share-alike requirements. Download each JSON through
+this site's data/places/<filename> URL.
+Changes: selected mapped features inside Portland's administrative boundary using
+the OUTING_SOURCES tag whitelists and OUTING_OSM_QUERY in scripts/refresh-places.mjs.
+Included viewpoints/observation towers, play/splash assets, named historic sites,
+artwork/murals, selected ball-sport courts, skateparks, visitor-oriented gardens,
+nature reserves, cafes and bakeries. Excluded explicitly restricted or inactive
+features and private/residential/community/kitchen gardens. Visitor gardens require
+visitor-access or botanical/arboretum tags. Splash pads take precedence over generic
+playgrounds; skateparks over sports courts. Retained category-qualified OSM IDs,
+mapped points/footprint centres, names, street addresses, safe websites and relevant
+activity/artwork types. Unnamed play/court/art assets use a category-and-OSM-ID label.
+Combined nearby same-name node/footprint representations without conflicting
+addresses, not adjacent courts or distinct cafe branches. No personal contacts or
+arbitrary tags were copied. The app suppresses only conservative same-name/nearby
+City-versus-OSM park/garden/art discovery duplicates; original records and direct
+identities remain available, including explicitly saved source records.
+Initial retrieval used https://ovp.dresel.systems/api-na/interpreter.
+Every file retains its actual retrieval date and OSM database timestamp.
+Incomplete community-maintained inventories, not live business hours, public
+access, accessibility, court/equipment availability or seasonal water-operation
+information. Splash pads are not drinking-water sources. Fees, bookings and
+customer-access rules may apply. Confirm current conditions and lawful entrances.
+
 community-centers.json and libraries.json
 Regional Land Information System data are a product of Metro and made publicly
 available according to the license agreement found in

@@ -99,6 +99,31 @@ export const CULTURE_SOURCES = {
 };
 export const CULTURE_OSM_QUERY = '[out:json][timeout:60];area["boundary"="administrative"]["admin_level"="8"]["name"="Portland"]["wikidata"="Q6106"]->.p;(' +
   Object.values(CULTURE_SOURCES).map(source => `nwr(area.p)["${source.key}"="${source.value}"];`).join("") + ');out center tags;';
+const COURT_SPORTS = ["basketball", "tennis", "pickleball", "volleyball", "beachvolleyball", "badminton", "netball"];
+export const OUTING_SOURCES = {
+  viewpoint: { file: "viewpoints.json", label: "Viewpoint / observation deck",
+    selectors: [{ tourism: "viewpoint" }, { man_made: "tower", "tower:type": "observation" }] },
+  "splash-pad": { file: "splash-pads.json", label: "Splash pad", unnamed: true,
+    selectors: [{ playground: "splash_pad" }, { fountain: "splash_pad" }, { leisure: "splash_pad" }] },
+  playground: { file: "playgrounds.json", label: "Playground", unnamed: true, selectors: [{ leisure: "playground" }] },
+  "historic-site": { file: "historic-sites.json", label: "Historic landmark",
+    selectors: [{ historic: ["monument", "memorial", "ruins", "archaeological_site", "building", "locomotive", "ship"] }] },
+  "public-art": { file: "public-art.json", label: "Artwork / mural", unnamed: true, selectors: [{ tourism: "artwork" }] },
+  skatepark: { file: "skateparks.json", label: "Skatepark", unnamed: true,
+    selectors: [{ leisure: "skate_park" }, { leisure: "pitch", sport: "skateboard" }] },
+  "sports-court": { file: "sports-courts.json", label: "Sports court", unnamed: true,
+    selectors: [{ leisure: "pitch", sport: COURT_SPORTS }] },
+  "public-garden": { file: "public-gardens.json", label: "Visitor garden",
+    selectors: [{ leisure: "garden", access: ["yes", "permissive", "customers"] },
+      { leisure: "garden", "garden:type": ["botanical", "arboretum"] }] },
+  "nature-reserve": { file: "nature-reserves.json", label: "Nature reserve", selectors: [{ leisure: "nature_reserve" }] },
+  cafe: { file: "cafes.json", label: "Cafe", selectors: [{ amenity: "cafe" }] },
+  bakery: { file: "bakeries.json", label: "Bakery", selectors: [{ shop: "bakery" }] }
+};
+export const OUTING_OSM_QUERY = '[out:json][timeout:90];area["boundary"="administrative"]["admin_level"="8"]["name"="Portland"]["wikidata"="Q6106"]->.p;(' +
+  Object.values(OUTING_SOURCES).flatMap(source => source.selectors.map(selector =>
+    "nwr(area.p)" + Object.entries(selector).map(([key, value]) => Array.isArray(value)
+      ? `["${key}"~"(^|;)(${value.join("|")})(;|$)"]` : `["${key}"="${value}"]`).join("") + ";")).join("") + ');out center tags;';
 export const METRO_SOURCES = {
   "community-center": {
     url: "https://services2.arcgis.com/McQ0OlIABe29rJJy/arcgis/rest/services/Community_Centers/FeatureServer/0",
@@ -208,28 +233,49 @@ export function normalizePods(elements) {
 }
 
 export function normalizeCulturePlaces(elements) {
+  return normalizeOsmDestinations(elements, CULTURE_SOURCES, tags =>
+    Object.keys(CULTURE_SOURCES).find(key => tags[CULTURE_SOURCES[key].key] === CULTURE_SOURCES[key].value));
+}
+
+export function normalizeOutingPlaces(elements) {
+  return normalizeOsmDestinations(elements, OUTING_SOURCES, tags => {
+    const category = Object.keys(OUTING_SOURCES).find(category => OUTING_SOURCES[category].selectors.some(selector =>
+      Object.entries(selector).every(([key, value]) => Array.isArray(value)
+        ? (tags[key] || "").split(";").some(part => value.includes(part.trim()))
+        : tags[key] === value)));
+    return category === "public-garden" && ["community", "residential", "kitchen"].includes(tags["garden:type"])
+      ? undefined : category;
+  });
+}
+
+function normalizeOsmDestinations(elements, sources, classify) {
   const places = [];
   const ids = new Set();
   const order = { relation: 0, way: 1, node: 2 };
   for (const element of [...elements].sort((a, b) => order[a.type] - order[b.type] || a.id - b.id)) {
     const tags = element.tags || {};
-    const category = Object.keys(CULTURE_SOURCES).find(key => tags[CULTURE_SOURCES[key].key] === CULTURE_SOURCES[key].value);
-    const name = tags.name?.trim();
-    if (!category || !name || /^(private|no)$/.test(tags.access || "") ||
+    const category = classify(tags);
+    if (!category || /^(private|no|permit|members)$/.test(tags.access || "") ||
         ["disused", "abandoned", "demolished", "closed", "razed", "proposed", "construction"].some(state =>
-          tags[state] === "yes" || tags[`${state}:amenity`] || tags[`${state}:tourism`])) continue;
+          tags[state] === "yes" || ["amenity", "tourism", "leisure", "shop", "historic", "playground", "man_made"]
+            .some(key => tags[`${state}:${key}`]))) continue;
+    const mappedName = tags.name?.trim();
+    if (!mappedName && !sources[category].unnamed) continue;
     if (!Object.hasOwn(order, element.type) || !Number.isSafeInteger(element.id) || element.id <= 0) {
-      throw new Error("Invalid OSM cultural venue identity");
+      throw new Error("Invalid OSM destination identity");
     }
     const sourceId = `${element.type}:${element.id}`;
-    if (ids.has(sourceId)) throw new Error(`Duplicate OSM cultural venue ${sourceId}`);
+    const name = mappedName || `${sources[category].label} (OSM ${element.type} ${element.id})`;
+    if (ids.has(sourceId)) throw new Error(`Duplicate OSM destination ${sourceId}`);
     ids.add(sourceId);
     const point = [element.lon ?? element.center?.lon, element.lat ?? element.center?.lat];
-    if (!validPoint(point)) throw new Error(`Invalid OSM cultural venue point ${sourceId}`);
+    if (!validPoint(point)) throw new Error(`Invalid OSM destination point ${sourceId}`);
     const address = [tags["addr:housenumber"], tags["addr:street"]].filter(Boolean).join(" ") || undefined;
     const website = safeUrl(tags.website || tags["contact:website"]);
     // Prefer a mapped site/footprint over a duplicate named node at that site.
-    const duplicate = places.find(place => place.category === category && place.name.toLowerCase() === name.toLowerCase() &&
+    const duplicate = mappedName && places.find(place => place.category === category && place.name.toLowerCase() === name.toLowerCase() &&
+      (sources !== OUTING_SOURCES || ((!place.address || !address || place.address.toLowerCase() === address.toLowerCase()) &&
+        place.id.includes(":node:") !== (element.type === "node"))) &&
       Math.hypot(place.coordinates[0] - point[0], place.coordinates[1] - point[1]) < 0.001);
     if (duplicate) {
       duplicate.address ||= address;
@@ -239,34 +285,55 @@ export function normalizeCulturePlaces(elements) {
     places.push({
       id: `osm:${category}:${sourceId}`, name, category, coordinates: point,
       sourceUrl: `https://www.openstreetmap.org/${element.type}/${element.id}`,
-      website, address, arrival: "approximate"
+      website, address, arrival: "approximate",
+      ...(sources === OUTING_SOURCES ? { siteType: category === "sports-court"
+        ? (tags.sport || "").split(";").filter(sport => COURT_SPORTS.includes(sport)).join(", ").replace(/_/g, " ") + " court"
+        : category === "historic-site" ? tags.historic.replace(/_/g, " ")
+        : category === "public-art" ? (tags.artwork_type || "artwork").replace(/_/g, " ")
+        : sources[category].label } : {})
     });
   }
   return places.sort((a, b) => a.id.localeCompare(b.id));
 }
 
 export function buildCultureSnapshots(osm) {
+  return buildOsmSnapshots(osm, CULTURE_SOURCES, normalizeCulturePlaces,
+    "Named museums, galleries, theatres and arts centres within Portland's OSM administrative boundary, classified by mapped tourism/amenity tags. " +
+    "Incomplete, community-maintained listings; unnamed, explicitly private and lifecycle-tagged inactive venues are excluded. " +
+    "Nearby same-name representations in the same category are combined. Points and footprint centres are approximate, not verified public entrances. " +
+    "Operation, hours, admission, reservations, accessibility and public access are not verified; confirm with the venue.");
+}
+
+export function buildOutingSnapshots(osm) {
+  return buildOsmSnapshots(osm, OUTING_SOURCES, normalizeOutingPlaces,
+    "OpenStreetMap outing destinations within Portland's administrative boundary. Incomplete community-maintained listings; " +
+    "explicitly restricted and lifecycle-tagged inactive sites are excluded. Gardens require visitor/public access tags or a botanical/arboretum classification; community/residential gardens are excluded. " +
+    "Courts include mapped basketball, tennis, pickleball, volleyball, badminton and netball pitches, not all sports fields. " +
+    "Unnamed playgrounds, splash pads, courts, skateparks and artwork have descriptive OSM identity labels, not invented venue names. " +
+    "Nearby same-name node/footprint representations in each category are combined when addresses do not conflict; separate assets remain distinct. " +
+    "Equivalent existing parks/gardens/artwork are preferred in discovery when their categories are enabled; direct source links remain available. " +
+    "Approximate points, not verified public entrances. Access, opening hours, admission, reservations, accessibility and seasonal water operation are not verified.");
+}
+
+function buildOsmSnapshots(osm, sources, normalize, coverage) {
   if (!osm || osm.remark || osm.error || !Array.isArray(osm.elements)) {
-    throw new Error("Overpass cultural response is incomplete or failed");
+    throw new Error("Overpass destination response is incomplete or failed");
   }
   const sourceUpdatedAt = osm.osm3s?.timestamp_osm_base;
   if (typeof sourceUpdatedAt !== "string" || !Number.isFinite(Date.parse(sourceUpdatedAt))) {
-    throw new Error("OSM cultural source timestamp missing");
+    throw new Error("OSM destination source timestamp missing");
   }
-  const places = normalizeCulturePlaces(osm.elements);
+  const places = normalize(osm.elements);
   const snapshots = {};
   const retrievedAt = new Date().toISOString();
-  for (const [category, source] of Object.entries(CULTURE_SOURCES)) {
+  for (const [category, source] of Object.entries(sources)) {
     const records = places.filter(place => place.category === category);
     if (!records.length) throw new Error(`No ${category} venues passed inclusion rules`);
     snapshots[source.file] = {
       version: 1, category, retrievedAt, sourceUpdatedAt,
       source: "OpenStreetMap contributors", sourceUrl: "https://www.openstreetmap.org/copyright",
       license: "ODbL-1.0", licenseUrl: "https://opendatacommons.org/licenses/odbl/1-0/",
-      coverage: "Named museums, galleries, theatres and arts centres within Portland's OSM administrative boundary, classified by mapped tourism/amenity tags. " +
-        "Incomplete, community-maintained listings; unnamed, explicitly private and lifecycle-tagged inactive venues are excluded. " +
-        "Nearby same-name representations in the same category are combined. Points and footprint centres are approximate, not verified public entrances. " +
-        "Operation, hours, admission, reservations, accessibility and public access are not verified; confirm with the venue.",
+      coverage,
       places: records
     };
   }
@@ -274,11 +341,19 @@ export function buildCultureSnapshots(osm) {
 }
 
 export async function fetchCultureSnapshots(request = json) {
+  return buildCultureSnapshots(await fetchOsmDestinations(CULTURE_OSM_QUERY, request));
+}
+
+export async function fetchOutingSnapshots(request = json) {
+  return buildOutingSnapshots(await fetchOsmDestinations(OUTING_OSM_QUERY, request));
+}
+
+async function fetchOsmDestinations(query, request) {
   const osm = await request(process.env.OVERPASS_URL || "https://overpass.kumi.systems/api/interpreter", {
     method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ data: CULTURE_OSM_QUERY })
+    body: new URLSearchParams({ data: query })
   });
-  return buildCultureSnapshots(osm);
+  return osm;
 }
 
 export function normalizeMetroPlaces(features, category) {
@@ -735,6 +810,16 @@ export async function writeSnapshots(directory, snapshots) {
 }
 
 async function main() {
+  if (process.argv.includes("--outings-only")) {
+    const inputIndex = process.argv.indexOf("--osm-input");
+    if (inputIndex >= 0 && !process.argv[inputIndex + 1]) throw new Error("--osm-input requires a raw Overpass JSON file");
+    const snapshots = inputIndex >= 0
+      ? buildOutingSnapshots(JSON.parse((await readFile(process.argv[inputIndex + 1], "utf8")).replace(/^\uFEFF/, "")))
+      : await fetchOutingSnapshots();
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
+    console.log(`Refreshed ${Object.values(snapshots).map(snapshot => `${snapshot.places.length} ${snapshot.category}`).join(", ")} destinations. Review coverage and public access before publishing.`);
+    return;
+  }
   if (process.argv.includes("--culture-only")) {
     const inputIndex = process.argv.indexOf("--osm-input");
     if (inputIndex >= 0 && !process.argv[inputIndex + 1]) throw new Error("--osm-input requires a raw Overpass JSON file");
@@ -836,6 +921,7 @@ async function main() {
     }
   };
   Object.assign(snapshots, await fetchCultureSnapshots());
+  Object.assign(snapshots, await fetchOutingSnapshots());
   for (const category of EVERYDAY_CATEGORIES) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);
   for (const category of Object.keys(LINE_OVERLAY_SOURCES)) snapshots[LINE_OVERLAY_SOURCES[category].file] = await fetchLineOverlay(category);
   for (const category of Object.keys(AMENITY_TYPES)) snapshots[CITY_PLACE_SOURCES[category].file] = await fetchCityPlaces(category);

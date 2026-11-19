@@ -1,7 +1,7 @@
 import { Feature, FeatureCollection, Point } from "geojson";
 import { GeoJSONSource, Map as MapboxMap, MapLayerMouseEvent, Popup } from "mapbox-gl";
 import React, { useEffect, useRef } from "react";
-import { CULTURE_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory } from "../../../api/places/places";
+import { OSM_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory } from "../../../api/places/places";
 import { createPlaceIconImage } from "../util/mapbox/placeIcons";
 
 type PlaceProperties = { id: string; name: string };
@@ -74,7 +74,7 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
             attribution: ["park", "community-garden", "public-restroom", "heritage-tree"].includes(category) ? "City of Portland, Bureau of Parks and Recreation" :
               ["farmers-market", "grocery-store", "reuse-repair", "csa-pickup"].includes(category) ? "City of Portland, Bureau of Planning and Sustainability" :
               category === "bicycle-parking" ? "City of Portland, Bureau of Transportation" :
-              category === "food-cart-pod" || CULTURE_PLACE_CATEGORIES.includes(category) ? '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors (ODbL)</a>' :
+              OSM_PLACE_CATEGORIES.includes(category) ? '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors (ODbL)</a>' :
                 '<a href="https://rlisdiscovery.oregonmetro.gov/pages/open-database-license">Metro RLIS data (license)</a>'
           });
           map.addLayer({

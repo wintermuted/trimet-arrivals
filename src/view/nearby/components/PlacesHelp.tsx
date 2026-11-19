@@ -3,7 +3,9 @@ import React, { useEffect, useId, useLayoutEffect, useRef, useState } from "reac
 import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";
 
-export default function PlacesHelp({ label, text }: { label: string; text: string }) {
+export default function PlacesHelp({ label, text, icon = "info-circle", triggerLabel }: {
+  label: string; text: string; icon?: string; triggerLabel?: string
+}) {
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
   const tooltip = useRef<HTMLSpanElement>(null);
@@ -75,12 +77,16 @@ export default function PlacesHelp({ label, text }: { label: string; text: strin
   }, [visible]);
 
   return <>
-    <Button ref={button} size="sm" variant="ghost" aria-label={`About ${label}`}
+    <Button ref={button} size="sm" variant="ghost" aria-label={triggerLabel || `About ${label}`}
       aria-describedby={visible ? id : undefined}
       onMouseEnter={enter} onMouseLeave={leave}
       onFocus={() => { setFocused(true); setDismissed(false); }}
-      onBlur={() => setFocused(false)} onClick={() => setDismissed(false)}>
-      <FontAwesome name="info-circle" aria-hidden="true" />
+      onBlur={() => setFocused(false)} onClick={event => {
+        event.preventDefault();
+        event.stopPropagation();
+        setDismissed(false);
+      }}>
+      <FontAwesome name={icon} aria-hidden="true" />
     </Button>
     {visible && createPortal(
       <span ref={tooltip} id={id} role="tooltip" className="wm-tooltip transit-places-tooltip"

@@ -9,7 +9,8 @@ import path from "node:path";
 import {
   fetchCityPlaces, fetchMetroPlaces, fetchNeighborhoods, fetchParks, normalizeCityPlaces, normalizeMetroPlaces, normalizeNeighborhoods,
   normalizeParks, normalizePods, polygonPoint, writeSnapshots, normalizeLineOverlay, fetchLineOverlay,
-  normalizeCulturePlaces, buildCultureSnapshots, fetchCultureSnapshots, CULTURE_OSM_QUERY, CULTURE_SOURCES
+  normalizeCulturePlaces, buildCultureSnapshots, fetchCultureSnapshots, CULTURE_OSM_QUERY, CULTURE_SOURCES,
+  normalizeOutingPlaces, buildOutingSnapshots, fetchOutingSnapshots, OUTING_OSM_QUERY, OUTING_SOURCES
 } from "./refresh-places.mjs";
 import { fetchArcgisFeatures } from "./arcgis.mjs";
 import { buildContextSnapshots, CONTEXT_SOURCES, fetchContextFeatures } from "./context-overlays.mjs";
@@ -20,6 +21,11 @@ const pod = (id, name, tags = {}) => ({ type: "node", id, lon: -122.67, lat: 45.
 const cultural = (id, category, extra = {}) => ({
   type: "node", id, lon: -122.67, lat: 45.52,
   tags: { [CULTURE_SOURCES[category].key]: CULTURE_SOURCES[category].value, name: `Example ${category}`, ...extra }
+});
+const outing = (id, category, extra = {}) => ({
+  type: "node", id, lon: -122.67, lat: 45.52,
+  tags: { ...Object.fromEntries(Object.entries(OUTING_SOURCES[category].selectors[0])
+    .map(([key, value]) => [key, Array.isArray(value) ? value[0] : value])), name: `Example ${category}`, ...extra }
 });
 const amenity = (id, Asset = "Drinking Fountain", Status = "Active") => ({
   type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
@@ -178,6 +184,84 @@ test("builds complete licensed cultural snapshots and rejects partial, empty and
   assert.throws(() => buildCultureSnapshots({ ...osm, osm3s: {} }), /timestamp/);
   assert.throws(() => buildCultureSnapshots({ ...osm, elements: osm.elements.slice(1) }), /No museum/);
   assert.throws(() => buildCultureSnapshots({ ...osm, elements: [] }), /No museum/);
+});
+
+test("classifies all outing sources with deterministic splash/art/skate precedence and no personal contact fields", () => {
+  const places = normalizeOutingPlaces([
+    ...Object.keys(OUTING_SOURCES).map((category, i) => outing(i + 1, category, {
+      website: "https://example.org/", phone: "DO NOT PUBLISH", email: "DO NOT PUBLISH", description: "DO NOT PUBLISH"
+    })),
+    outing(100, "splash-pad", { leisure: "playground" }),
+    outing(101, "historic-site", { tourism: "artwork" }),
+    { ...outing(102, "skatepark"), tags: { leisure: "pitch", sport: "skateboard", name: "Skate pitch" } },
+    outing(103, "sports-court", { sport: "tennis;pickleball", name: "Shared court" }),
+    { ...outing(104, "viewpoint"), tags: { man_made: "tower", "tower:type": "observation", name: "Observation tower" } },
+    outing(105, "public-garden", { access: undefined, "garden:type": "botanical", name: "Botanical garden" })
+  ]);
+  assert.equal(places.length, Object.keys(OUTING_SOURCES).length + 6);
+  assert.equal(places.find(place => place.id.endsWith(":100")).category, "splash-pad");
+  assert.equal(places.find(place => place.id.endsWith(":101")).category, "historic-site");
+  assert.equal(places.find(place => place.id.endsWith(":102")).category, "skatepark");
+  assert.equal(places.find(place => place.id.endsWith(":103")).siteType, "tennis, pickleball court");
+  assert.equal(places.find(place => place.id.endsWith(":104")).category, "viewpoint");
+  assert.ok(places.every(place => place.website === undefined || place.website === "https://example.org/"));
+  assert.ok(!JSON.stringify(places).includes("DO NOT PUBLISH"));
+  for (const [i, category] of Object.keys(OUTING_SOURCES).entries()) {
+    assert.ok(places.some(place => place.id === `osm:${category}:node:${i + 1}`));
+  }
+});
+
+test("excludes restricted/inactive outings, private gardens, non-court fields and nonspecific unnamed venues", () => {
+  assert.deepEqual(normalizeOutingPlaces([
+    outing(1, "playground", { access: "private" }), outing(2, "cafe", { access: "no" }),
+    outing(3, "sports-court", { access: "permit" }), outing(4, "skatepark", { "disused:leisure": "pitch" }),
+    outing(5, "bakery", { "abandoned:shop": "bakery" }), outing(6, "public-art", { demolished: "yes" }),
+    outing(7, "nature-reserve", { "proposed:leisure": "nature_reserve" }),
+    outing(8, "sports-court", { sport: "soccer" }), outing(9, "public-garden", { access: undefined }),
+    outing(10, "public-garden", { "garden:type": "community" }),
+    outing(11, "public-garden", { "garden:type": "residential" }),
+    outing(12, "cafe", { name: "" }), outing(13, "historic-site", { name: "" }),
+    outing(14, "viewpoint", { name: "" })
+  ]), []);
+  const unnamed = normalizeOutingPlaces(["playground", "splash-pad", "sports-court", "skatepark", "public-art"]
+    .map((category, i) => outing(i + 1, category, { name: "" })));
+  assert.equal(unnamed.length, 5);
+  assert.ok(unnamed.every(place => place.name.includes("(OSM node ")));
+  assert.throws(() => normalizeOutingPlaces([{ ...outing(1, "cafe"), type: "building" }]), /identity/);
+  assert.throws(() => normalizeOutingPlaces([{ ...outing(1, "cafe"), lon: -120 }]), /point/);
+});
+
+test("merges only equivalent node/footprint outings without collapsing adjacent courts, branches or unnamed assets", () => {
+  const places = normalizeOutingPlaces([
+    { ...outing(1, "cafe"), type: "way" },
+    outing(2, "cafe", { website: "https://example.org/" }),
+    outing(3, "cafe", { name: "Other cafe", "addr:housenumber": "100", "addr:street": "SW Main Street" }),
+    { ...outing(4, "cafe", { name: "Other cafe", "addr:housenumber": "102", "addr:street": "SW Main Street" }), type: "way" },
+    outing(5, "sports-court"), outing(6, "sports-court"),
+    outing(7, "playground", { name: "" }), { ...outing(8, "playground", { name: "" }), type: "way" }
+  ]);
+  assert.equal(places.length, 7);
+  assert.equal(places.find(place => place.name === "Example cafe").id, "osm:cafe:way:1");
+  assert.equal(places.find(place => place.name === "Example cafe").website, "https://example.org/");
+  assert.equal(places.filter(place => place.name === "Other cafe").length, 2);
+  assert.equal(places.filter(place => place.category === "sports-court").length, 2);
+  assert.equal(places.filter(place => place.category === "playground").length, 2);
+});
+
+test("fetches complete separately licensed outing snapshots and rejects partial or missing categories", async () => {
+  const osm = { osm3s: { timestamp_osm_base: "2026-11-19T12:00:00Z" },
+    elements: Object.keys(OUTING_SOURCES).map((category, i) => outing(i + 1, category)) };
+  const snapshots = await fetchOutingSnapshots(async (_url, options) => {
+    assert.equal(options.body.get("data"), OUTING_OSM_QUERY);
+    assert.match(OUTING_OSM_QUERY, /"wikidata"="Q6106"/);
+    return osm;
+  });
+  assert.equal(Object.keys(snapshots).length, Object.keys(OUTING_SOURCES).length);
+  assert.ok(Object.values(snapshots).every(snapshot => snapshot.license === "ODbL-1.0" &&
+    snapshot.sourceUpdatedAt === osm.osm3s.timestamp_osm_base && snapshot.places.length === 1));
+  assert.throws(() => buildOutingSnapshots({ ...osm, remark: "runtime timeout" }), /incomplete/);
+  assert.throws(() => buildOutingSnapshots({ ...osm, osm3s: {} }), /timestamp/);
+  assert.throws(() => buildOutingSnapshots({ ...osm, elements: osm.elements.slice(1) }), /No viewpoint/);
 });
 
 test("writes complete separate snapshots and leaves no staging files", async () => {
@@ -499,7 +583,8 @@ test("full and targeted refresh commands publish the intended snapshots without 
       streetTree: contextPoint(1), sidewalk: { ...contextPoint(1), geometry },
       crossing: contextPoint(1), deficiency: contextPoint(1),
       osm: { osm3s: { timestamp_osm_base: "2026-07-15T12:00:00Z" }, elements: [
-        pod(1, "Example Food Carts"), ...Object.keys(CULTURE_SOURCES).map((category, i) => cultural(i + 2, category))
+        pod(1, "Example Food Carts"), ...Object.keys(CULTURE_SOURCES).map((category, i) => cultural(i + 2, category)),
+        ...Object.keys(OUTING_SOURCES).map((category, i) => outing(i + 100, category))
       ] }
     };
     const amenities = ["drinking-fountain.json", "picnic-seating.json", "park-artwork.json"];
@@ -515,11 +600,13 @@ test("full and targeted refresh commands publish the intended snapshots without 
       ["--overlays-only", ["park-trails.json", "bicycle-network.json", "recommended-bike-routes.json"]],
       ["--neighborhoods-only", ["neighborhoods.json"]],
       ["--culture-only", Object.values(CULTURE_SOURCES).map(source => source.file)],
+      ["--outings-only", Object.values(OUTING_SOURCES).map(source => source.file)],
       ["", ["parks.json", "food-cart-pods.json", "community-centers.json", "libraries.json",
         "community-gardens.json", "farmers-markets.json", "public-restrooms.json", "heritage-trees.json", "neighborhoods.json",
         "grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json",
         "park-trails.json", "bicycle-network.json", "recommended-bike-routes.json",
-        ...Object.values(CULTURE_SOURCES).map(source => source.file), ...amenities, ...contexts]]
+        ...Object.values(CULTURE_SOURCES).map(source => source.file),
+        ...Object.values(OUTING_SOURCES).map(source => source.file), ...amenities, ...contexts]]
     ]) {
       const code = `
         const fixtures = ${JSON.stringify(fixtures)};
@@ -558,6 +645,8 @@ test("full and targeted refresh commands publish the intended snapshots without 
             throw new Error("Context refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--culture-only" && key !== "osm")
             throw new Error("Culture refresh queried an unrelated source");
+          if (${JSON.stringify(mode)} === "--outings-only" && key !== "osm")
+            throw new Error("Outings refresh queried an unrelated source");
           if (key === "osm") data = fixtures.osm;
           else if (parsed.searchParams.has("returnIdsOnly")) data = {objectIds: [fixtures[key].properties.OBJECTID || 1]};
           else if (pathname.endsWith("/query")) data = {features: [fixtures[key]]};
