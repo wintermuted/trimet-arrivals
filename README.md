@@ -111,7 +111,8 @@ edges; the results sidebar retains 14px horizontal padding only, with no top/bot
 gutter. The sidebar detail header spans the full available sidebar width while its
 contents align with the padded content below. Other pages keep the standard content spacing.
 The Nearby landing screen offers **Explore** (`/nearby/simple-routes`) and
-**Plan a trip** (`/nearby/planner`) as tiles. Each view has a back link to the
+**Plan a trip** (`/nearby/planner`), plus **Places** (`/nearby/places`) for parks,
+food-cart pods, community centers, and libraries as tiles. Each view has a back link to the
 landing screen. Going back clears the nearby stops, route lines, and location
 circle and restores the Portland overview without remounting the map. The sidebar planner
 uses the service-wide stop catalog and works without a nearby location or
@@ -123,6 +124,101 @@ try the street address without city or state if a full address is not recognized
 Typed endpoints can be linked with `fromPlace`/`toPlace` or
 `fromCoord`/`toCoord`, including in combination with a stop. These inputs are
 visible in the link but are not added to Recent trips.
+
+### Nearby places
+
+**Places** starts with Parks, Food-cart pods, Community centers, and Libraries
+enabled. Its list follows the
+visible map area after a pan or zoom, independently of transit's search radius.
+Category toggles and name/address search filter both the map and list. Numbered
+clusters pair the category icon with a count and expand when selected; green
+tree, orange food, purple community, and blue book icons identify individual locations. Overlapping markers
+offer a location chooser, and every in-area
+location is also selectable in the keyboard-accessible list. **Show more places**
+reveals additional results without silently limiting the catalog.
+
+Hovering a marker previews its name, category, and any available address;
+cluster previews show the category and count. Clicking a marker or selecting a
+list result opens a focused sidebar detail view with its source, any available
+address/website, source date when available, and **Plan a trip here**. **Back to
+places** restores browsing without resetting filters and returns keyboard focus
+to the result when it is still listed. Planning preloads the sidebar planner with a named coordinate destination.
+`fromPlaceId`/`toPlaceId` retain identity only when the linked coordinates match
+the local snapshot; changing a coordinate clears that identity. Swapping the
+endpoints moves the name with its coordinates. Place handoffs require **Find trips**
+confirmation: map points are approximate, **not verified public entrances**.
+Edit to a known public entrance/address when needed. Parks-system property data
+also includes community gardens, natural areas, plazas, and facilities; inclusion
+does not establish public access, operating hours, or accessibility.
+
+An existing explicitly selected Nearby origin is reused and identified as a
+device location, search center, or dropped pin; simply panning Places never
+changes that origin. With no origin, choose one in the planner. Opening Places
+does not request device location or require nearby transit results. Filters,
+selection, and Places viewport survive switching between Nearby tabs. Browsing
+downloads same-origin static snapshots, not live third-party place searches.
+Planning retains the existing coordinate-link privacy and walking-estimates opt-in.
+
+#### Refreshing place snapshots
+
+```powershell
+npm run places:refresh
+```
+
+The script queries all City of Portland park properties (object-ID batches avoid
+the service's 200-record response limit), and OSM `amenity=food_court` features
+inside Portland's named administrative boundary (`admin_level=8`, `wikidata=Q6106`).
+Pods must have explicit cart/pod/food-park naming, an outdoor retail-area mapping,
+or a separately reviewed known-pod name. Generic indoor food halls, unnamed
+courts, private/closed/disused entries and individual food vendors are excluded.
+Name/proximity duplicates are consolidated, preferring area representations.
+This intentionally conservative interpretation is **not a complete pod directory**.
+
+Community centers and public libraries use Metro's official RLIS point datasets,
+not OSM. Queries retrieve every matching object ID in validated batches and keep
+Portland-addressed Oregon records; these can include nearby unincorporated areas.
+Centers include public-serving nonprofits and social/program facilities, not only
+city recreation centers; eligibility requirements and fees may apply.
+Academic/administrative library records are excluded. The library layer is older
+than the centers layer, so its actual data-edit date is shown separately from
+schema edits and retrieval. Two known outdated branch locations (Albina and
+Northwest) have reviewed address/coordinate corrections from the official library
+pages' TriMet links, reviewed November 18, 2026. Hillsdale is omitted while its
+official page lists a construction closure. Recheck these corrections and the
+Hillsdale exclusion against <https://multcolib.org/hours-and-locations> on refresh.
+Do not treat any snapshot or corrected point as live access/entrance information.
+
+Refresh manually when maintaining the catalog (monthly is a reasonable starting
+cadence), and review names, counts, additions/removals, source dates, and arrival
+points before publishing. Retrieval dates are not source update dates. Overpass
+mirrors can be stale or rate-limited; the UI exposes the OSM database timestamp
+separately. There are no automated retries or scheduled jobs. On source errors,
+invalid data or incomplete pages, the command fails without publishing partial
+snapshots; previous files remain usable.
+
+If Overpass returns 429 or is unavailable, wait or set `OVERPASS_URL` to a trusted
+public Overpass interpreter. To import an already downloaded **complete raw response
+to the same query**, retain its `osm3s.timestamp_osm_base` and use:
+
+```powershell
+npm run places:refresh -- --osm-input "C:\path\to\portland-overpass-response.json"
+```
+
+City and Metro data are still fetched and validated in this mode. `npm run test:places-data`
+checks ingestion and safe replacement without querying external services.
+The checked-in initial OSM response is from July 2026; it is not represented as a
+current November directory.
+
+Snapshots live separately under `public\data\places\parks.json` (City of Portland,
+PDDL default terms), `food-cart-pods.json` (OpenStreetMap contributors, ODbL),
+and `community-centers.json` / `libraries.json` (Metro, RLIS Open Database End User
+License Agreement). Each retains its source, license, retrieval date and limitations;
+OSM and Metro snapshots also retain the source database/data-edit date. See
+`public\data\places\NOTICE.txt`. These data licenses are separate from the app code's
+MIT license. Recheck upstream metadata/terms before future redistribution.
+
+### Transit planning and location
+
 The location-arrow button beside either stop selector asks for device location and finds a public TriMet
 stop within one mile locally. The planner uses the selected stop ID, not the
 device coordinates, in requests, links, or Recent trips.

@@ -18,6 +18,7 @@ import { planTrip } from "../api/trimet/tripplanner";
 import { getRouteGeometry, NEARBY_ROUTE_LINES } from "../view/nearby/util/mapbox/routeLines";
 import reducers from "../store/reducers";
 import NearbyVehicles from "../view/nearby/components/NearbyVehicles";
+import * as placesApi from "../api/places/places";
 
 function StopDetailWithStore() {
   const [store] = React.useState(() => createStore(reducers));
@@ -48,6 +49,16 @@ jest.mock("../view/nearby/util/mapbox/routeInfo", () => ({
 }));
 jest.mock("../view/nearby/util/mapbox/initializeMap", () => ({
   initializeMap: jest.fn(),
+}));
+jest.mock("../view/nearby/components/NearbyPlacesMap", () => ({
+  __esModule: true,
+  default: function PlaceMap({ map, onBounds }) {
+    const React = require("react");
+    React.useEffect(() => {
+      if (map) onBounds([-122.8, 45.4, -122.5, 45.7]);
+    }, [map, onBounds]);
+    return null;
+  }
 }));
 jest.mock("../view/nearby/util/mapbox/currentLocation", () => ({
   initializeCurrentLocationMarker: jest.fn(),
@@ -123,6 +134,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   const layers = new Set<string>();
   const map = {
     on: jest.fn(), remove: jest.fn(), resize: jest.fn(), flyTo: jest.fn(),
+    getZoom: jest.fn(() => 12), jumpTo: jest.fn(), easeTo: jest.fn(),
     getCenter: jest.fn(() => ({ lng: 1, lat: 2 })), setZoom: jest.fn(),
     getContainer: jest.fn(() => ({ clientWidth: 390, clientHeight: 230 })),
     fitBounds: jest.fn(), setFilter: jest.fn(), off: jest.fn(),
@@ -218,6 +230,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     container.remove();
     global.ResizeObserver = previousResizeObserver;
     global.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 
   function render(path: string, withExplore = false) {
@@ -326,6 +339,45 @@ describe("Nearby map initialization independently of the sidebar", () => {
       item.title.includes(label)
     );
   }
+
+  it("browses Places without GPS or transit data and preserves filters and selection across planner navigation", async () => {
+    const place: placesApi.InterestPlace = {
+      id: "portland:park:1", name: "Example Park", category: "park", coordinates: [-122.67, 45.52],
+      arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/"
+    };
+    const snapshot: placesApi.PlaceSnapshot = {
+      version: 1, category: "park", retrievedAt: "2026-11-18T12:00:00Z",
+      source: "City of Portland", sourceUrl: "https://www.portlandmaps.com/", license: "PDDL-1.0",
+      licenseUrl: "https://opendatacommons.org/licenses/pddl/1-0/", coverage: "Test", places: [place]
+    };
+    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
+      places: [place], sources: { ...placesApi.emptyPlaceSources(), park: { snapshot, loading: false, error: false },
+        "food-cart-pod": { loading: false, error: true } }, retry: jest.fn()
+    });
+    jest.mocked(getCurrentPosition).mockRejectedValue(new Error("denied"));
+    jest.mocked(getNearbyStops).mockRejectedValue(new Error("unavailable"));
+    jest.mocked(getStopCatalog).mockRejectedValue(new Error("catalog unavailable"));
+    await render("/nearby/places");
+    finishMapLoading();
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getNearbyStops).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("Example Park");
+    expect(container.textContent).toContain("Food-cart pods could not be loaded");
+    act(() => container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').click());
+    act(() => container.querySelector<HTMLButtonElement>(".transit-place-result").click());
+    expect(container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').search).toContain("confirmPlace=1");
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
+    expect(container.querySelector(".transit-nearby-launcher")).not.toBeNull();
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/planner"]').click());
+    expect(container.textContent).not.toContain("Places nearby");
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/places"]').click());
+    expect(container.querySelector("#selected-place-heading").textContent).toBe("Example Park");
+    act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent.includes("Back to places")).click());
+    expect(container.querySelector<HTMLInputElement>('.transit-places-category--food-cart-pod input').checked).toBe(false);
+    expect(map.jumpTo).toHaveBeenCalled();
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+  });
 
   it("opens the sidebar planner with the exact stop detail destination and no boarding stop", async () => {
     jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));

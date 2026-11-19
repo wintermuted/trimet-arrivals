@@ -26,6 +26,8 @@ import {
 import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
 import PlannerStopSelect, { SavedPlannerStop } from "./PlannerStopSelect";
 import { DirectionsStopPair, EndpointMarker } from "./DirectionsStopPair";
+import "./TripPlannerView.scss";
+import { categoryName, InterestPlace, PLACE_CATEGORIES, placeCategoryForId, usePlaceCatalog } from "../../api/places/places";
 
 const EMPTY_STOPS: StopCatalogStop[] = [];
 
@@ -54,12 +56,12 @@ type PlannedSearch = {
 
 type PlannerEndpoint =
   | { kind: "stop"; stop: StopCatalogStop }
-  | { kind: "place" | "coord"; value: string };
+  | { kind: "place" | "coord"; value: string; interestPlace?: InterestPlace };
 type EndpointField = "from" | "to";
 
 function endpointLabel(endpoint: PlannerEndpoint, resolved?: TripPlannerResponse["from"]) {
   if (endpoint.kind === "stop") return `${endpoint.stop.desc} (${endpoint.stop.locid})`;
-  if (endpoint.kind === "coord") return endpoint.value;
+  if (endpoint.kind === "coord") return endpoint.interestPlace?.name || endpoint.value;
   return resolved?.description || endpoint.value;
 }
 
@@ -80,7 +82,10 @@ function sameEndpointMessage(from: PlannerEndpoint, to: PlannerEndpoint) {
 
 function endpointParams(endpoint: PlannerEndpoint, field: EndpointField) {
   if (endpoint.kind === "stop") return { [field]: String(endpoint.stop.locid) };
-  return { [`${field}${endpoint.kind === "coord" ? "Coord" : "Place"}`]: endpoint.value };
+  return {
+    [`${field}${endpoint.kind === "coord" ? "Coord" : "Place"}`]: endpoint.value,
+    ...(endpoint.interestPlace ? { [`${field}PlaceId`]: endpoint.interestPlace.id } : {})
+  };
 }
 
 function locationEndpoint(value: string, coordinates = false): PlannerEndpoint | undefined {
@@ -419,6 +424,7 @@ interface TripPlannerProps {
   inSidebar?: boolean;
   directionsFooter?: HTMLDivElement;
   savedStops?: SavedPlannerStop[];
+  renderPlaceDestination?: (place?: InterestPlace) => React.ReactNode;
   renderMapStatus?: (
     itineraries: TripPlannerItinerary[],
     selected: number,
@@ -439,7 +445,7 @@ export function ConnectedTripPlannerView(props: TripPlannerProps) {
   return <TripPlannerView {...props} savedStops={savedStops} />;
 }
 
-export default function TripPlannerView({ inSidebar = false, directionsFooter, renderMapStatus, savedStops }: TripPlannerProps) {
+export default function TripPlannerView({ inSidebar = false, directionsFooter, renderMapStatus, renderPlaceDestination, savedStops }: TripPlannerProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from") || "";
   const toParam = searchParams.get("to") || "";
@@ -447,6 +453,18 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   const toCoord = searchParams.get("toCoord");
   const fromPlace = searchParams.get("fromPlace");
   const toPlace = searchParams.get("toPlace");
+  const fromPlaceId = searchParams.get("fromPlaceId");
+  const toPlaceId = searchParams.get("toPlaceId");
+  const confirmPlace = searchParams.get("confirmPlace") === "1";
+  const placeCatalog = usePlaceCatalog(Boolean(fromPlaceId || toPlaceId));
+  const fromNamedPlace = placeCatalog.places.find(place => place.id === fromPlaceId && place.coordinates.join(",") === fromCoord);
+  const toNamedPlace = placeCatalog.places.find(place => place.id === toPlaceId && place.coordinates.join(",") === toCoord);
+  const requiredPlaceCategories = PLACE_CATEGORIES.filter(category =>
+    [fromPlaceId, toPlaceId].some(id => placeCategoryForId(id) === category));
+  const placesPending = requiredPlaceCategories.some(category => !placeCatalog.sources[category].snapshot && !placeCatalog.sources[category].error);
+  const placesFailed = requiredPlaceCategories.some(category => placeCatalog.sources[category].error);
+  const [fromInterestPlace, setFromInterestPlace] = useState<InterestPlace>();
+  const [toInterestPlace, setToInterestPlace] = useState<InterestPlace>();
   const fromLinkedLocation = fromCoord ?? fromPlace;
   const toLinkedLocation = toCoord ?? toPlace;
   const [catalogState, setCatalogState] = useState<CatalogState>({
@@ -521,10 +539,12 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   useEffect(() => {
     setFromLocation(fromLinkedLocation ?? undefined);
     setToLocation(toLinkedLocation ?? undefined);
+    setFromInterestPlace(fromNamedPlace);
+    setToInterestPlace(toNamedPlace);
     setValidationError("");
     setLocating(undefined);
     return () => { locationRequest.current += 1; };
-  }, [fromParam, toParam, fromLinkedLocation, toLinkedLocation]);
+  }, [fromParam, toParam, fromLinkedLocation, toLinkedLocation, fromNamedPlace, toNamedPlace]);
 
   useEffect(() => {
     if (!catalog) {
@@ -540,6 +560,14 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   useEffect(() => {
     setHistoryUnavailable(false);
     setEditingStops(true);
+    if ((fromPlaceId && !fromNamedPlace) || (toPlaceId && !toNamedPlace)) {
+      if (placesPending) {
+        setTripState({ status: "loading" });
+      } else {
+        setTripState({ status: "error", message: "The linked place could not be verified against its location snapshot. Retry loading places or enter your destination manually." });
+      }
+      return;
+    }
     if (!(fromLinkedLocation ?? fromParam) || !(toLinkedLocation ?? toParam)) {
       setTripState({ status: "idle" });
       return;
@@ -556,6 +584,12 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       return;
     }
     if (!origin || !destination) {
+      setTripState({ status: "idle" });
+      return;
+    }
+    if (origin.kind !== "stop") origin.interestPlace = fromNamedPlace;
+    if (destination.kind !== "stop") destination.interestPlace = toNamedPlace;
+    if (confirmPlace && (fromNamedPlace || toNamedPlace)) {
       setTripState({ status: "idle" });
       return;
     }
@@ -617,7 +651,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       });
 
     return () => controller.abort();
-  }, [lookupCatalog, fromParam, toParam, fromLinkedLocation, toLinkedLocation, fromCoord, toCoord, tripRetry, inSidebar]);
+  }, [lookupCatalog, fromParam, toParam, fromLinkedLocation, toLinkedLocation, fromCoord, toCoord, tripRetry, inSidebar,
+    fromPlaceId, toPlaceId, fromNamedPlace, toNamedPlace, confirmPlace, placesPending, placesFailed]);
 
   useLayoutEffect(() => {
     const field = pendingEndpointFocus.current;
@@ -637,6 +672,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     setToStop(fromStop);
     setFromLocation(toLocation);
     setToLocation(fromLocation);
+    setFromInterestPlace(toInterestPlace);
+    setToInterestPlace(fromInterestPlace);
     setValidationError("");
   }
 
@@ -693,6 +730,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       setValidationError(sameEndpointMessage(from, to));
       return;
     }
+    if (from.kind !== "stop" && fromInterestPlace?.coordinates.join(",") === from.value) from.interestPlace = fromInterestPlace;
+    if (to.kind !== "stop" && toInterestPlace?.coordinates.join(",") === to.value) to.interestPlace = toInterestPlace;
 
     focusStopSummary.current = true;
     const params = { ...endpointParams(from, "from"), ...endpointParams(to, "to") };
@@ -710,9 +749,11 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     if (field === "from") {
       setFromStop(stop ?? undefined);
       setFromLocation(undefined);
+      setFromInterestPlace(undefined);
     } else {
       setToStop(stop ?? undefined);
       setToLocation(undefined);
+      setToInterestPlace(undefined);
     }
     setValidationError("");
   }
@@ -742,6 +783,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     const id = isFrom ? "planner-from" : "planner-to";
     const location = isFrom ? fromLocation : toLocation;
     const setLocation = isFrom ? setFromLocation : setToLocation;
+    const interestPlace = isFrom ? fromInterestPlace : toInterestPlace;
+    const setInterestPlace = isFrom ? setFromInterestPlace : setToInterestPlace;
     const reference = isFrom ? fromParam : toParam;
     const referenceResolution =
       catalog && reference
@@ -758,6 +801,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
                 onChange={event => {
                   cancelLocationLookup();
                   setLocation(event.target.value);
+                  setInterestPlace(undefined);
                   setValidationError("");
                 }} />
             </FieldGroup>
@@ -787,6 +831,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         </div>
         {location !== undefined ? (
           <div className="transit-planner-location-field">
+            {interestPlace && <p><strong>{interestPlace.name}</strong><br />Approximate map point; entrance not verified. Confirm or edit these coordinates before finding trips.</p>}
             <p className="transit-planner-select-hint" id={`${id}-hint`}>
               Try a street address without city or state, a place name, or longitude, latitude.
             </p>
@@ -794,6 +839,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
               cancelLocationLookup();
               pendingEndpointFocus.current = field;
               setLocation(undefined);
+              setInterestPlace(undefined);
               setValidationError("");
             }}>Use a {isFrom ? "boarding" : "destination"} stop</Button>
           </div>
@@ -884,6 +930,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
 
   return (
     <>
+    {renderPlaceDestination?.(toInterestPlace)}
     <section
       className={`transit-planner${inSidebar ? " transit-planner--sidebar" : ""}`}
       aria-labelledby="transit-planner-title"
@@ -917,6 +964,12 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
             Plan between TriMet stops, street addresses, places, or coordinates.
           </p>
         )}
+        {confirmPlace && (fromNamedPlace || toNamedPlace) && <p role="status" className="transit-planner-message">
+          Confirm the approximate arrival point below, or enter a public entrance address. Finding trips does not verify public access.
+          {searchParams.get("fromOrigin") === "device" ? " Origin uses your previously selected device location, not live tracking." :
+            searchParams.get("fromOrigin") === "area" ? " Origin uses your previously selected map search center." :
+              searchParams.get("fromOrigin") === "pin" ? " Origin uses your previously dropped pin." : ""}
+        </p>}
 
         {recentTrips?.unavailable ? (
           <p className="transit-planner-message" role="status">Recent trips are unavailable on this device.</p>
@@ -1011,6 +1064,12 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
           </fieldset>
         )}
       </PlannerDisclosure>
+      {(fromPlaceId || toPlaceId) && PLACE_CATEGORIES.map(category => placeCatalog.sources[category].error && (
+        <p role="alert" key={category}>
+          Could not load {categoryName(category).toLowerCase()}.{" "}
+          <Button size="sm" variant="secondary" onClick={() => placeCatalog.retry(category)}>Retry loading places</Button>
+        </p>
+      ))}
 
       {tripState.status === "loading" && (
         <p className="transit-planner-message" role="status">

@@ -14,6 +14,7 @@ import {
 } from "../../api/trimet/tripplanner";
 import TripPlannerView from "./TripPlannerView";
 import type { SavedPlannerStop } from "./PlannerStopSelect";
+import * as placesApi from "../../api/places/places";
 
 jest.mock("../../api/trimet/stopCatalog", () => {
   const actual = jest.requireActual("../../api/trimet/stopCatalog");
@@ -204,6 +205,51 @@ describe("TripPlannerView", () => {
     expect(stops[0].textContent).toContain("8356");
     expect(stops[1].textContent).toContain("7777");
     expect(document.activeElement).toBe(container.querySelector("#transit-planner-title + .transit-planner-edit"));
+  });
+
+  it("requires confirmation for an approximate named destination and retains its identity through planning and swapping", async () => {
+    const place: placesApi.InterestPlace = {
+      id: "portland:park:101", name: "Example Park", category: "park",
+      coordinates: [-122.6815, 45.5231], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/"
+    };
+    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
+      places: [place], sources: placesApi.emptyPlaceSources(), retry: jest.fn()
+    });
+    await render("/nearby/planner?from=8356&toCoord=-122.6815,45.5231&toPlaceId=portland:park:101&confirmPlace=1", true);
+    expect(requestTrip).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("Example Park");
+    expect(container.textContent).toContain("Confirm the approximate arrival point");
+    await act(async () => Simulate.submit(container.querySelector("form")));
+    expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({ fromPlace: "8356", toCoord: "-122.6815,45.5231" }));
+    expect(container.querySelector('[data-test-id="query"]').textContent).toContain("toPlaceId=portland%3Apark%3A101");
+    expect(container.querySelector(".transit-planner-stop-summary").textContent).toContain("Example Park");
+    act(() => container.querySelector<HTMLButtonElement>("#transit-planner-title + .transit-planner-edit").click());
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Swap origin and destination"]').click());
+    await act(async () => Simulate.submit(container.querySelector("form")));
+    expect(requestTrip).toHaveBeenLastCalledWith(expect.objectContaining({ fromCoord: "-122.6815,45.5231", toPlace: "8356" }));
+    expect(container.querySelector('[data-test-id="query"]').textContent).toContain("fromPlaceId=portland%3Apark%3A101");
+  });
+
+  it.each<[placesApi.PlaceCategory, string, string]>([
+    ["library", "metro:library:central-library", "Central Library"],
+    ["community-center", "metro:community-center:13", "Community Center"]
+  ])("leaves origin empty for a linked %s and clears stale identity when editing coordinates", async (category, id, name) => {
+    const place: placesApi.InterestPlace = {
+      id, name, category,
+      coordinates: [-122.6815, 45.5231], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/"
+    };
+    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
+      places: [place], sources: placesApi.emptyPlaceSources(), retry: jest.fn()
+    });
+    await render(`/nearby/planner?toCoord=-122.6815,45.5231&toPlaceId=${id}&confirmPlace=1`, true);
+    expect(container.textContent).toContain(name);
+    expect(requestTrip).not.toHaveBeenCalled();
+    expect(geoLocateCurrentPosition).not.toHaveBeenCalled();
+    const input = container.querySelector<HTMLInputElement>("#planner-to");
+    act(() => Simulate.change(input, { target: { value: "-122.68,45.52" } } as never));
+    expect(container.textContent).not.toContain(name);
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Swap origin and destination"]').click());
+    expect(container.querySelector<HTMLInputElement>("#planner-from").value).toBe("-122.68,45.52");
   });
 
   it.each(["malformed", "blocked"])("keeps sidebar planning usable when recent storage is %s", async (failure) => {

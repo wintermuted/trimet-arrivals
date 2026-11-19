@@ -24,6 +24,7 @@ interface Props {
   vehicleMapError: boolean;
   onVehiclesRetry: () => void;
   children?: React.ReactNode;
+  placesMode?: boolean;
 }
 
 export function NearbyMapSkeleton({ message }: { message: string }) {
@@ -51,7 +52,8 @@ function NearbyMapV2({
   vehicleFeed,
   vehicleMapError,
   onVehiclesRetry,
-  children
+  children,
+  placesMode = false
 }: Props) {
   // Initialize Map
   useEffect(() => {
@@ -88,7 +90,7 @@ function NearbyMapV2({
             name={searchMode === "pin" ? "map-marker" : searchMode === "device" ? "location-arrow" : "map"}
             aria-hidden="true"
           />
-          {searchMode === "pin" ? "Dropped pin" :
+          {placesMode ? "Places in map area" : searchMode === "pin" ? "Dropped pin" :
             searchMode === "area" ? "Map center" :
               searchMode === "device" ? "Near me" : "Choose area"}
         </span>
@@ -98,17 +100,17 @@ function NearbyMapV2({
             onClick={onVehiclesToggle}>
             <FontAwesome name="bus" aria-hidden="true" /> Vehicles
           </Button>
-          <SearchRadiusSelection
+          {!placesMode && <SearchRadiusSelection
             compact
             radiusSize={radiusSize}
             handleRadiusSelectionChange={onRadiusChange}
-          />
-          <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onSearchArea} title="Search this area" aria-label="Search this area">
+          />}
+          {!placesMode && <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onSearchArea} title="Search this area" aria-label="Search this area">
             <FontAwesome name="search" aria-hidden="true" />
-          </Button>
-          <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onDropPin} title="Drop a pin at the map center" aria-label="Drop a pin at the map center">
+          </Button>}
+          {!placesMode && <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onDropPin} title="Drop a pin at the map center" aria-label="Drop a pin at the map center">
             <FontAwesome name="map-marker" aria-hidden="true" />
-          </Button>
+          </Button>}
           <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onFindMe} disabled={isLocating} title="Find near me" aria-label={isLocating ? "Finding your location" : "Find near me"}>
             <FontAwesome name={isLocating ? "spinner" : "location-arrow"} spin={isLocating} aria-hidden="true" />
           </Button>

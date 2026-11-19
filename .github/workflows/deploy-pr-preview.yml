@@ -27,6 +27,9 @@ jobs:
       - name: Test shared UI integration
         run: npm run test:ui
 
+      - name: Test place data refresh
+        run: npm run test:places-data
+
       - name: Build for PR preview
         env:
           PUBLIC_URL: /${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}
