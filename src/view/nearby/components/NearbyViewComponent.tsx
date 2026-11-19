@@ -5,7 +5,7 @@ import { clearWalkingCache, setWalkingAccessToken } from "../../../api/mapbox/wa
 import { showWalkingRoute } from "../util/mapbox/walkingRoute";
 import { useFeatureFlags } from "../../../component/feature-flags/FeatureFlags";
 import { Dictionary, map, set, size } from "lodash";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Outlet, useOutletContext } from "react-router";
 import { Link, matchPath, NavLink, useLocation, useNavigate } from "react-router-dom";
@@ -26,6 +26,7 @@ import NearbyMapV2, { NearbyMapSkeleton } from "./NearbyMapV2";
 import "./NearbyViewComponent.scss";
 import { setCurrentLocationMarker } from "../util/mapbox/currentLocation";
 import { initializeMap } from "../util/mapbox/initializeMap";
+import { showNearbyRouteLines } from "../util/mapbox/routeLines";
 import {
   highlightNearbyStop,
   removeCurrentLocationMarkers,
@@ -252,10 +253,18 @@ export default function NearbyViewComponent() {
   const location = useLocation();
   const isPlanner = Boolean(matchPath("/nearby/planner", location.pathname));
   const isChoosingDirectionStop = Boolean(matchPath("/nearby/directions", location.pathname));
+  const isDirections = Boolean(matchPath("/nearby/directions/*", location.pathname));
+  const searchParams = new URLSearchParams(location.search);
+  const routeInfoValues = searchParams.getAll("route");
+  const routeInfoId = routeInfoValues[0];
+  const routeDetail = matchPath("/nearby/simple-routes/:id", location.pathname);
+  const isRouteInfo = routeInfoValues.length === 1 && /^\d+$/.test(routeInfoId) &&
+    Number.isSafeInteger(Number(routeInfoId)) && Number(routeInfoId) > 0 &&
+    (Boolean(matchPath("/nearby/simple-routes", location.pathname)) ||
+      (routeDetail?.params.id === routeInfoId && /^[01]$/.test(searchParams.get("direction") ?? "")));
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &&
-    new URLSearchParams(location.search).getAll("referrer").length === 1 &&
-    new URLSearchParams(location.search).get("referrer") === "/";
+    searchParams.getAll("referrer").length === 1 && searchParams.get("referrer") === "/";
   const [zoom, setZoom] = useState(16);
   const [radiusSize, setRadiusSize] = useState<number>(DEFAULT_RADIUS);
   const [nearbyStops, setNearbyStopData] = useState<StopData>(undefined);
@@ -284,7 +293,7 @@ export default function NearbyViewComponent() {
   const lng = currentLocation[0];
   const lat = currentLocation[1];
 
-  const nearbyRouteIds = nearbyRoutes && getNearbyRouteIds(nearbyRoutes);
+  const nearbyRouteIds = useMemo(() => nearbyRoutes && getNearbyRouteIds(nearbyRoutes), [nearbyRoutes]);
   const stopLocations = nearbyStops && getStopLocations(nearbyStops);
   const locate = useCallback(async () => {
     const request = ++locationRequestRef.current;
@@ -351,6 +360,11 @@ export default function NearbyViewComponent() {
       setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     }
   }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isChoosingDirectionStop]);
+
+  useEffect(() => {
+    if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isPlanner || isDirections || isRouteInfo) return;
+    return showNearbyRouteLines(mapRef.current, nearbyRouteIds);
+  }, [isMapLoaded, nearbyRouteIds, isPlanner, isDirections, isRouteInfo]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
