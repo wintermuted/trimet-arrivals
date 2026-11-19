@@ -379,8 +379,10 @@
 
   .transit-planner-leg-stops {
     --endpoint-rail-width: 1.5rem;
+    margin: var(--wm-space-1) 0 0;
     font-size: 0.875rem;
     line-height: 1.4;
+    overflow-wrap: anywhere;
   }
 
   .transit-planner-leg-time,

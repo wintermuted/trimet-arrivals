@@ -7,6 +7,7 @@ import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import { getTripTimes, StopTime, TripTime } from "../util/tripTimes";
 import { TopNavBar } from "./common/TopNavBar";
 import { useTimeDisplay } from "../../../component/time/TimeDisplay";
+import { DirectionsStopPair } from "../../tripPlanner/DirectionsStopPair";
 
 function TripStopTime({ time, today }: { time: StopTime; today: string }) {
   const { formatTime, formatDay } = useTimeDisplay();
@@ -27,6 +28,11 @@ interface TimesState {
   data: ArrivalData | null;
   loading: boolean;
   error: boolean;
+}
+
+function rideDuration(trip: TripTime): string {
+  if (trip.durationMs === undefined) return "Travel time unavailable";
+  return trip.durationMs < 60000 ? "<1 min ride" : `${Math.round(trip.durationMs / 60000)} min ride`;
 }
 
 export default function NearbyTripTimes({
@@ -94,7 +100,6 @@ export default function NearbyTripTimes({
     trip.id === selectedTrip.departureId &&
     (!selectedTrip.tripId || trip.tripId === selectedTrip.tripId)
   );
-  const visibleTrips = selectedTrip ? selected ? [selected] : [] : trips;
   const today = formatDay(Date.now(), "America/Los_Angeles");
   const timezoneLabel = timezone === "utc"
     ? "UTC"
@@ -139,11 +144,36 @@ export default function NearbyTripTimes({
             <h4>{routeName}</h4>
             <p>{directionName}</p>
           </div>}
-          <dl className="transit-trip-stops">
+          {!selectedTrip && <dl className="transit-trip-stops">
             <div><dt>Board at</dt><dd>{origin.desc} ({from})</dd></div>
             <div><dt>Get off at</dt><dd>{destination.desc} ({to})</dd></div>
-          </dl>
+          </dl>}
         </>
+      )}
+      {selectedTrip && (
+        <div className="transit-planner-leg transit-selected-trip">
+          <DirectionsStopPair
+            from={<>
+              <span className="transit-selected-trip-label">Board at</span>
+              <strong>{origin.desc} ({from})</strong>
+              {selected && <div className="transit-selected-trip-time">
+                <TripStopTime time={selected.departure} today={today} />
+              </div>}
+            </>}
+            to={<>
+              <span className="transit-selected-trip-label">Get off at</span>
+              <strong>{destination.desc} ({to})</strong>
+              {selected && <div className="transit-selected-trip-time">
+                {selected.arrival
+                  ? <TripStopTime time={selected.arrival} today={today} />
+                  : <span>Arrival not reported</span>}
+              </div>}
+            </>}
+          />
+          {selected && <p className="transit-planner-leg-duration transit-planner-leg-distance">
+            {rideDuration(selected)}
+          </p>}
+        </div>
       )}
       <div className="transit-trip-refresh">
         <p className="transit-trip-note">
@@ -169,7 +199,7 @@ export default function NearbyTripTimes({
       )}
       {data && (
         <>
-          {visibleTrips.length > 0 ? (
+          {!selectedTrip && trips.length > 0 && (
             <table className="transit-trip-times-table">
               <caption className="wm-sr-only">
                 Departures from {origin.desc} and corresponding arrivals at {destination.desc}
@@ -179,34 +209,32 @@ export default function NearbyTripTimes({
                 <th scope="col">Arrival<small>{destination.desc}</small></th>
               </tr></thead>
               <tbody>
-                {visibleTrips.map(trip => (
-                  <tr key={trip.id} className={selectedTrip ? undefined : "transit-trip-selectable"}>
+                {trips.map(trip => (
+                  <tr key={trip.id} className="transit-trip-selectable">
                     <td>
-                      {selectedTrip ? <TripStopTime time={trip.departure} today={today} /> : (
-                        <Link
-                          className="transit-trip-link"
-                          to={tripUrl(trip)}
-                          aria-label={`View trip departing at ${formatTime(trip.departure.at, "America/Los_Angeles")} ${timezoneLabel} from ${origin.desc} to ${destination.desc}`}
-                        >
-                          <TripStopTime time={trip.departure} today={today} />
-                          <small className="transit-trip-action">View trip</small>
-                        </Link>
-                      )}
+                      <Link
+                        className="transit-trip-link"
+                        to={tripUrl(trip)}
+                        aria-label={`View trip departing at ${formatTime(trip.departure.at, "America/Los_Angeles")} ${timezoneLabel} from ${origin.desc} to ${destination.desc}`}
+                      >
+                        <TripStopTime time={trip.departure} today={today} />
+                        <small className="transit-trip-action">View trip</small>
+                      </Link>
                     </td>
                     <td>
                       {trip.arrival
                         ? <TripStopTime time={trip.arrival} today={today} />
                         : <span>Not reported</span>}
                       <small>
-                        {trip.durationMs === undefined ? "Travel time unavailable" : trip.durationMs < 60000
-                          ? "<1 min ride" : `${Math.round(trip.durationMs / 60000)} min ride`}
+                        {rideDuration(trip)}
                       </small>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          ) : (
+          )}
+          {(selectedTrip ? !selected : trips.length === 0) && (
             selectedTrip ? (
               <div role="status">
                 <p>This trip is no longer reported for these stops. It may have departed or its predictions may be unavailable.</p>
@@ -214,7 +242,7 @@ export default function NearbyTripTimes({
               </div>
             ) : <p role="status">No upcoming boardable trips with reported times. Refresh or choose different stops.</p>
           )}
-          {visibleTrips.some(trip => !trip.arrival) && (
+          {!selectedTrip && trips.some(trip => !trip.arrival) && (
             <p className="transit-trip-note">
               Some destination times are not yet reported.
             </p>

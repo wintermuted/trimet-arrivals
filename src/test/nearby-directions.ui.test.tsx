@@ -382,8 +382,17 @@ describe("route-aware destination selection", () => {
     expect(container.textContent).toContain("Trip details");
     expect(container.textContent).toContain("Trip selected-trip");
     expect(container.querySelector("header h3").textContent).toBe("54 Example route");
-    expect(container.querySelectorAll("tbody tr")).toHaveLength(1);
-    expect(container.querySelector("tbody").textContent).toContain("14 min ride");
+    const details = container.querySelector(".transit-selected-trip");
+    const [boarding, destination] = Array.from(details.querySelectorAll(".transit-planner-endpoint"));
+    expect(container.querySelector("table")).toBeNull();
+    expect(boarding.textContent).toContain("Board at");
+    expect(boarding.textContent).toContain(`${stops[0].desc} (101)`);
+    expect(boarding.querySelector("time").dateTime).toBe(new Date(at).toISOString());
+    expect(destination.textContent).toContain("Get off at");
+    expect(destination.textContent).toContain(`${stops[2].desc} (103)`);
+    expect(destination.querySelector("time").dateTime).toBe(new Date(at + 14 * 60000).toISOString());
+    expect(destination.textContent).toContain("Estimated");
+    expect(details.textContent).toContain("14 min ride");
     expect(container.querySelector("#trip-destination")).toBeNull();
     expect(container.querySelector("header a").getAttribute("href"))
       .toBe("/nearby/directions/arrivals?route=54&direction=1&from=101&to=103");
