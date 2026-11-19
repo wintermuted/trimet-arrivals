@@ -269,6 +269,41 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(sidebarSkeleton()).toBeNull();
     expect(container.querySelector(".transit-explore-routes")).not.toBeNull();
     expect(map.flyTo).toHaveBeenCalledTimes(1);
+    expect(layers.has(NEARBY_ROUTE_LINES)).toBe(true);
+
+    const { removeCurrentLocationMarkers, removeStopLocationLayers } =
+      jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util");
+    const { setCurrentLocationMarker } =
+      jest.requireMock("../view/nearby/util/mapbox/currentLocation");
+    expect(setCurrentLocationMarker).toHaveBeenCalledWith(map, 0, 0, 1000);
+    removeCurrentLocationMarkers.mockClear();
+    removeStopLocationLayers.mockClear();
+    setCurrentLocationMarker.mockClear();
+    jest.mocked(setNearbyStops).mockClear();
+
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
+    expect(map.flyTo).toHaveBeenLastCalledWith(expect.objectContaining({ center: [-122.6784, 45.5152], zoom: 10 }));
+    expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
+    expect(container.querySelector(".transit-map-location-status").textContent).toBe("Choose area");
+    expect(removeCurrentLocationMarkers).toHaveBeenCalledWith(map);
+    expect(removeStopLocationLayers).toHaveBeenCalledWith(map);
+    expect(setCurrentLocationMarker).not.toHaveBeenCalled();
+    expect(setNearbyStops).not.toHaveBeenCalled();
+    expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
+  });
+
+  it("does not restore the Explore location if it arrives after going back", async () => {
+    let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
+    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    await render("/nearby/simple-routes");
+    finishMapLoading();
+
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
+    await act(async () => resolveLocation({ coords: { latitude: 0, longitude: 0 } }));
+
+    expect(getNearbyStops).not.toHaveBeenCalled();
+    expect(map.flyTo).toHaveBeenCalledTimes(1);
+    expect(map.flyTo).toHaveBeenLastCalledWith(expect.objectContaining({ center: [-122.6784, 45.5152], zoom: 10 }));
   });
 
   function button(label: string) {

@@ -255,6 +255,7 @@ export default function NearbyViewComponent() {
   const navigate = useNavigate();
   const location = useLocation();
   const isLanding = Boolean(matchPath("/nearby", location.pathname));
+  const wasLanding = useRef(isLanding);
   const isExplore = Boolean(matchPath("/nearby/simple-routes", location.pathname));
   const isPlanner = Boolean(matchPath("/nearby/planner", location.pathname));
   const isChoosingDirectionStop = Boolean(matchPath("/nearby/directions", location.pathname));
@@ -327,6 +328,23 @@ export default function NearbyViewComponent() {
     else setIsLocating(false);
     return () => { locationRequestRef.current += 1; };
   }, [locate, shouldAutoLocate]);
+
+  useEffect(() => {
+    const returningToLanding = isLanding && !wasLanding.current;
+    wasLanding.current = isLanding;
+    if (!returningToLanding) return;
+
+    locationRequestRef.current += 1;
+    setIsLocating(false);
+    setLocationError(false);
+    setUserLocation(undefined);
+    setSearchMode("none");
+    setNearbyStopData(undefined);
+    setNearbyRoutesData(undefined);
+    setNearbyDataError(false);
+    setIsNearbyDataLoading(false);
+    mapRef.current?.flyTo({ center: SERVICE_AREA_CENTER, zoom: SERVICE_AREA_ZOOM, bearing: 0, pitch: 0 });
+  }, [isLanding]);
 
   useEffect(() => {
     if (!userLocation) return;

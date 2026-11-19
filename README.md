@@ -53,7 +53,8 @@ gutter. The sidebar detail header spans the full available sidebar width while i
 contents align with the padded content below. Other pages keep the standard content spacing.
 The Nearby landing screen offers **Explore** (`/nearby/simple-routes`) and
 **Plan a trip** (`/nearby/planner`) as tiles. Each view has a back link to the
-landing screen, and the map stays mounted. The sidebar planner
+landing screen. Going back clears the nearby stops, route lines, and location
+circle and restores the Portland overview without remounting the map. The sidebar planner
 uses the service-wide stop catalog and works without a nearby location or
 nearby results. Standalone `/planner` links still work; both planner views
 support `from` and `to` stop links. Use **Other origin options** or
