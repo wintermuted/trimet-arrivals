@@ -158,8 +158,8 @@ arrival, nearest stop, or route number without separating their directions.
 
 Nearby discovers candidates within the selected **straight-line radius**, not a
 walking catchment. The Nearby landing map opens on a Portland-area overview without
-requesting your location. **Explore** requests your device location and zooms in
-when it is available. If location is unavailable or permission is denied, use
+requesting your location. **Explore** centers and zooms the map as soon as your
+device location is available, without waiting for stops to load. If location is unavailable or permission is denied, use
 the map to search instead or retry after changing browser permissions. Move the
 map and choose **Search this area** to search its center, or **Drop pin at map center** and drag the pin to move
 the search. Both use the selected radius. **Find near me** requests a fresh
