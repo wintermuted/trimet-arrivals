@@ -134,6 +134,8 @@ departure remains available; otherwise the first departure is selected.
 On the Nearby Directions map, hover over or tap a downstream stop to see its name,
 stop ID, and route, then choose **Set as destination** to update the sidebar.
 
+Explore groups stops by route and direction, with service icons on route badges
+and stop IDs separated from stop names for easier scanning.
 The Nearby route list groups stops by route, then direction; route headings use
 the number alone (for example, 56 rather than Route 56).
 Route and direction headings are independent keyboard-accessible disclosures,
