@@ -207,7 +207,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     global.fetch = originalFetch;
   });
 
-  function render(path: string) {
+  function render(path: string, withExplore = false) {
     return act(async () =>
       root.render(
         <FeatureFlagsProvider>
@@ -221,6 +221,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
                   </Provider>
                 } />
                 <Route path="stops/:id" element={<StopDetailWithStore />} />
+                {withExplore && <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />}
                 <Route path="*" element={<p>Sidebar ready</p>} />
               </Route>
             </Routes>
@@ -241,7 +242,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
     jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveStops = resolve; }));
 
-    await render("/nearby");
+    await render("/nearby", true);
     const sidebarSkeleton = () => container.querySelector(".transit-nearby-results-skeleton");
     const mapSkeleton = () => container.querySelector(".transit-nearby-map-skeleton");
     const mapCanvas = container.querySelector(".transit-nearby-map-canvas");
@@ -266,7 +267,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
 
     await act(async () => resolveStops(stops));
     expect(sidebarSkeleton()).toBeNull();
-    expect(container.textContent).toContain("Sidebar ready");
+    expect(container.querySelector(".transit-explore-routes")).not.toBeNull();
+    expect(map.flyTo).toHaveBeenCalledTimes(1);
   });
 
   function button(label: string) {

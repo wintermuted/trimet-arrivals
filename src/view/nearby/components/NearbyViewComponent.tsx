@@ -465,7 +465,6 @@ export default function NearbyViewComponent() {
     if (!mapRef.current || !stopLocations || !nearbyRouteIds) return;
     mapRef.current = removeStopLocationLayers(mapRef.current);
     mapRef.current = setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
-    flyToCenter(lng, lat);
   }
 
   const [plannerFooter, setPlannerFooter] = useState<HTMLDivElement>();
