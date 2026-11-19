@@ -41,6 +41,36 @@ Source-listed days, seasons and hours may reflect an older year. Active source
 status and retrieval date do not verify current operation, hours, payment
 benefits, exact location or public entrances. Check each market's website.
 
+public-restrooms.json
+Source: City of Portland, Bureau of Parks and Recreation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Miscellaneous/MapServer/1304
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=60891
+Terms: https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Changes: retained mapped Parks-system restroom rooms and source IDs, building
+and room names, source opening status and ADA designation. Excluded source-closed
+rooms and rooms without coordinates; co-located rooms remain distinct.
+Not a citywide directory or live availability feed. Source-listed 24/7 and ADA
+information are not verified hours, access or an accessible route. Seasonal
+closures, fees and building restrictions may apply.
+
+heritage-trees.json
+Source: City of Portland, Bureau of Parks and Recreation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/26
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=52455
+Terms: https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Changes: retained source-designated Heritage trees with public tree numbers,
+species, site address and setting. Excluded Removed, Merit and delisted trees.
+Owner names and owner contact information are not requested or published.
+Points mark trunks, not public entrances. Some trees are on private land or
+not visible from public paths. View only from lawful public access; do not enter
+private property. Source status does not establish current condition or access.
+
 neighborhoods.json
 Source: City of Portland, Bureau of Planning and Sustainability.
 Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3

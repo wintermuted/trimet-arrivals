@@ -112,7 +112,8 @@ gutter. The sidebar detail header spans the full available sidebar width while i
 contents align with the padded content below. Other pages keep the standard content spacing.
 The Nearby landing screen offers **Explore** (`/nearby/simple-routes`) and
 **Plan a trip** (`/nearby/planner`), plus **Places** (`/nearby/places`) for parks,
-food-cart pods, community centers, libraries, community gardens, and farmers markets as tiles. Each view has a back link to the
+food-cart pods, community centers, libraries, community gardens, farmers markets,
+public restrooms, and heritage trees as tiles. Each view has a back link to the
 landing screen. Going back clears the nearby stops, route lines, and location
 circle and restores the Portland overview without remounting the map. The sidebar planner
 uses the service-wide stop catalog and works without a nearby location or
@@ -128,12 +129,13 @@ visible in the link but are not added to Recent trips.
 ### Nearby places
 
 **Places** starts with Parks, Food-cart pods, Community centers, Libraries,
-Community gardens, and Farmers markets
+Community gardens, Farmers markets, Public restrooms, and Heritage trees
 enabled. Its list follows the
 visible map area after a pan or zoom, independently of transit's search radius.
 Category toggles and name/address search filter both the map and list. Numbered
 clusters pair the category icon with a count and expand when selected; green
-tree, orange food, purple community, blue book, olive leaf, and berry basket icons
+tree, orange food, purple community, blue book, olive leaf, berry basket,
+teal restroom, and brown seedling icons
 identify individual locations. Category controls use a compact wrapped layout. Overlapping markers
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
@@ -162,6 +164,21 @@ Gardens may require plot registration or have restricted access. Market details
 show **Source-listed schedule**, explicitly warning that seasonal dates and hours
 may be old; check the market website before traveling. No live open/closed state,
 current-year schedule, or benefit/payment availability is inferred.
+
+Public restrooms currently cover **Parks-system restroom rooms**, not every
+restroom in Portland. Separate rooms at the same building remain selectable
+through clusters/the overlapping-marker chooser. Source-closed rooms and records
+without mapped coordinates are excluded. Unknown opening status remains unknown;
+even **Listed 24/7** is source information, not live availability. ADA designations
+are source-listed, not verified accessible routes. Seasonal closures, fees and
+building access restrictions may apply.
+
+Heritage trees retain their public tree number, common/scientific species name,
+source-listed setting and site address. Removed, Merit and delisted records are
+excluded. Search also matches scientific names. Points mark trunks, not public
+entrances: trees may be on private land or not visible from public paths. View only
+from lawful public access; do not enter private property. Tree-owner names and
+contact information are not requested or published.
 
 An existing explicitly selected Nearby origin is reused and identified as a
 device location, search center, or dropped pin; simply panning Places never
@@ -238,6 +255,20 @@ npm run places:refresh -- --gardens-markets-only
 The normal full refresh includes both categories. Review source status,
 seasonal schedules, and garden access before publishing.
 
+Public restrooms and heritage trees come from the City's **Public Restrooms
+(Parks)** and **Heritage Trees** point layers. Complete object-ID batches are
+validated before normalization. Restrooms use source object IDs; trees use
+official tree numbers. Refresh only these two layers:
+
+```powershell
+npm run places:refresh -- --restrooms-trees-only
+```
+
+The normal full refresh includes these categories too. Restroom records with
+empty source coordinates are omitted with an explicit refresh warning rather
+than assigned invented locations; other invalid geometry fails the refresh.
+Review closures and public-access caveats before publishing.
+
 Refresh manually when maintaining the catalog (monthly is a reasonable starting
 cadence), and review names, counts, additions/removals, source dates, and arrival
 points before publishing. Retrieval dates are not source update dates. Overpass
@@ -265,7 +296,8 @@ and `community-centers.json` / `libraries.json` (Metro, RLIS Open Database End U
 License Agreement). Each retains its source, license, retrieval date and limitations;
 `neighborhoods.json` is a separate City of Portland polygon snapshot under the
 same City PDDL default terms.
-`community-gardens.json` and `farmers-markets.json` also retain their City bureau
+`community-gardens.json`, `farmers-markets.json`, `public-restrooms.json` and
+`heritage-trees.json` also retain their City bureau
 attribution and PDDL default terms.
 OSM and Metro snapshots also retain the source database/data-edit date. See
 `public\data\places\NOTICE.txt`. These data licenses are separate from the app code's

@@ -143,6 +143,44 @@ const cityGarden = id => ({ type: "Feature", geometry,
 const cityMarket = id => ({ type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
   properties: { OBJECTID: id, Market: `Market ${id}`, status: "Active", Location: "100 Main Street",
     Day: "Saturday", Open_Dates: "May - October", Open_Times: "9 a.m. - 1 p.m.", Website: "https://example.org" } });
+const cityRestroom = id => ({ type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
+  properties: { OBJECTID: id, Property: "Example Park", Building: "Restroom A", Room: `Room ${id}`, Status: "1", ADA: "Yes" } });
+const cityTree = id => ({ type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
+  properties: { OBJECTID: id, TREEID: id + 50, STATUS: "Heritage", COMMON: "Oregon white oak", SCIENTIFIC: "Quercus garryana",
+    SITE_ADDRESS: "100 Main Street", Ownership: "Private, Front Yard", Delist_Date: null, Owner_name: "MUST NOT BE PUBLISHED" } });
+
+test("keeps open-listed and unknown restroom rooms distinct without implying live hours or accessibility", () => {
+  const unknown = { ...cityRestroom(2), properties: { ...cityRestroom(2).properties, Status: "2", ADA: null } };
+  const closed = { ...cityRestroom(3), properties: { ...cityRestroom(3).properties, Status: "3" } };
+  const places = normalizeCityPlaces([cityRestroom(1), unknown, closed], "public-restroom");
+  assert.equal(places.length, 2);
+  assert.equal(places[0].id, "portland:restroom:1");
+  assert.equal(places[0].name, "Example Park - Restroom A - Room 1");
+  assert.equal(places[0].restroomStatus, "listed-24-7");
+  assert.equal(places[1].restroomStatus, "unknown");
+  assert.equal(places[1].restroomAda, "unknown");
+  assert.equal(normalizeCityPlaces([cityRestroom(1), { ...cityRestroom(2), geometry: { type: "Point", coordinates: [] } }], "public-restroom").length, 1);
+  assert.throws(() => normalizeCityPlaces([cityRestroom(1), cityRestroom(1)], "public-restroom"), /Duplicate/);
+  assert.throws(() => normalizeCityPlaces([{ ...cityRestroom(1), properties: { ...cityRestroom(1).properties, Status: null } }], "public-restroom"), /status/);
+  assert.throws(() => normalizeCityPlaces([{ ...cityRestroom(1), geometry: null }], "public-restroom"), /geometry/);
+});
+
+test("keeps heritage tree numbers and species, excluding removed/merit/delisted trees and owner contact fields", () => {
+  const places = normalizeCityPlaces([cityTree(1),
+    { ...cityTree(2), properties: { ...cityTree(2).properties, STATUS: "Removed" } },
+    { ...cityTree(3), properties: { ...cityTree(3).properties, STATUS: "Merit" } },
+    { ...cityTree(4), properties: { ...cityTree(4).properties, Delist_Date: 1700000000000 } }], "heritage-tree");
+  assert.equal(places.length, 1);
+  assert.equal(places[0].id, "portland:tree:51");
+  assert.equal(places[0].name, "Oregon white oak (Heritage Tree #51)");
+  assert.equal(places[0].scientificName, "Quercus garryana");
+  assert.equal(places[0].treeOwnership, "Private, Front Yard");
+  assert.equal(places[0].arrival, "approximate");
+  assert.ok(!JSON.stringify(places).includes("MUST NOT BE PUBLISHED"));
+  assert.throws(() => normalizeCityPlaces([cityTree(1), cityTree(1)], "heritage-tree"), /Duplicate/);
+  assert.throws(() => normalizeCityPlaces([{ ...cityTree(1), properties: { ...cityTree(1).properties, STATUS: "Unknown" } }], "heritage-tree"), /status/);
+  assert.throws(() => normalizeCityPlaces([{ ...cityTree(1), geometry: null }], "heritage-tree"), /geometry/);
+});
 
 test("normalizes active city gardens with stable GUIDs and shared park properties without merging distinct gardens", () => {
   const result = normalizeCityPlaces([cityGarden(1), cityGarden(2),
@@ -170,11 +208,16 @@ test("excludes closed and inactive markets and retains source-listed schedules w
   assert.throws(() => normalizeCityPlaces([{ ...cityMarket(1), geometry }], "farmers-market"), /geometry/);
 });
 
-test("fetches complete city garden/market pages before normalizing, rejecting omitted records", async () => {
-  for (const [category, fixture] of [["community-garden", cityGarden], ["farmers-market", cityMarket]]) {
+test("fetches complete city place pages before normalizing, rejecting omitted records", async () => {
+  for (const [category, fixture] of [["community-garden", cityGarden], ["farmers-market", cityMarket],
+    ["public-restroom", cityRestroom], ["heritage-tree", cityTree]]) {
     const ids = Array.from({ length: 105 }, (_, i) => i + 1);
     const request = async url => {
       const params = new URL(url).searchParams;
+      if (category === "heritage-tree" && !params.has("returnIdsOnly")) {
+        assert.ok(!params.get("outFields").includes("Owner_name"));
+        assert.ok(!params.get("outFields").includes("Owner_address"));
+      }
       return params.has("returnIdsOnly") ? { objectIds: ids } :
         { features: params.get("objectIds").split(",").map(Number).map(fixture) };
     };
@@ -195,15 +238,16 @@ test("full and targeted refresh commands publish the intended snapshots without 
     const script = path.join(scripts, "refresh-places.mjs");
     await writeFile(script, await readFile(new URL("./refresh-places.mjs", import.meta.url)));
     const fixtures = {
-      park: park(1), garden: cityGarden(1), market: cityMarket(1),
+      park: park(1), garden: cityGarden(1), market: cityMarket(1), restroom: cityRestroom(1), tree: cityTree(1),
       neighborhood: neighborhood(1), metro: metro(1, "Central Library"),
       osm: { osm3s: { timestamp_osm_base: "2026-07-15T12:00:00Z" }, elements: [pod(1, "Example Food Carts")] }
     };
     for (const [mode, expected] of [
       ["--gardens-markets-only", ["community-gardens.json", "farmers-markets.json"]],
+      ["--restrooms-trees-only", ["public-restrooms.json", "heritage-trees.json"]],
       ["--neighborhoods-only", ["neighborhoods.json"]],
       ["", ["parks.json", "food-cart-pods.json", "community-centers.json", "libraries.json",
-        "community-gardens.json", "farmers-markets.json", "neighborhoods.json"]]
+        "community-gardens.json", "farmers-markets.json", "public-restrooms.json", "heritage-trees.json", "neighborhoods.json"]]
     ]) {
       const code = `
         const fixtures = ${JSON.stringify(fixtures)};
@@ -212,10 +256,13 @@ test("full and targeted refresh commands publish the intended snapshots without 
           const parsed = new URL(url);
           const pathname = parsed.pathname;
           let data;
-          const key = pathname.includes("/216") ? "garden" : pathname.includes("/187") ? "market" :
+          const key = pathname.includes("/216/") ? "garden" : pathname.includes("/187/") ? "market" :
+            pathname.includes("/1304/") ? "restroom" : pathname.includes("/26/") ? "tree" :
             pathname.includes("Boundary") ? "neighborhood" : pathname.includes("Environment") ? "park" :
             pathname.includes("arcgis") ? "metro" : "osm";
           if (${JSON.stringify(mode)} === "--gardens-markets-only" && !["garden", "market"].includes(key))
+            throw new Error("Targeted refresh queried an unrelated source");
+          if (${JSON.stringify(mode)} === "--restrooms-trees-only" && !["restroom", "tree"].includes(key))
             throw new Error("Targeted refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--neighborhoods-only" && key !== "neighborhood")
             throw new Error("Neighborhood refresh queried an unrelated source");

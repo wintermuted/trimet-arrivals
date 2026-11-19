@@ -1,9 +1,11 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { placeIconDefinition } from "../util/mapbox/placeIcons";
 import { Link } from "react-router-dom";
 import {
-  categoryIcon, categoryName, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
+  categoryName, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
   PlaceFilters, PlaceSourceState, placePlannerLink
 } from "../../../api/places/places";
 import "./NearbyPlaces.scss";
@@ -58,7 +60,7 @@ export default function NearbyPlaces({
       {!selected && <>
       <header className="transit-places-header">
         <h2 id="nearby-places-heading" ref={browseHeading} tabIndex={-1}>Places nearby</h2>
-        <p>Explore parks, food-cart pods, community centers, libraries, community gardens, and farmers markets. Move the map to explore another area.</p>
+        <p>Explore Portland places and practical stops. Filter by category or move the map to explore another area.</p>
       </header>
       <fieldset className="transit-places-filters">
         <legend className="wm-sr-only">Place categories</legend>
@@ -66,7 +68,7 @@ export default function NearbyPlaces({
           <label key={category} className={`transit-places-category transit-places-category--${category}`}>
             <input type="checkbox" checked={filters[category]}
               onChange={event => onFilters({ ...filters, [category]: event.target.checked })} />
-            <FontAwesome name={categoryIcon(category)} aria-hidden="true" />
+            <FontAwesomeIcon icon={placeIconDefinition(category)} aria-hidden="true" />
             {categoryName(category)}
           </label>
         ))}
@@ -117,9 +119,20 @@ export default function NearbyPlaces({
           <div className="transit-place-detail-heading">
             <h2 id="selected-place-heading" ref={heading} tabIndex={-1}>{selected.name}</h2>
           </div>
-          <p><FontAwesome name={categoryIcon(selected.category)} aria-hidden="true" />{" "}
+          <p><FontAwesomeIcon icon={placeIconDefinition(selected.category)} aria-hidden="true" />{" "}
             {PLACE_INFO[selected.category].singular}</p>
           {selected.address && <p>{selected.address}</p>}
+          {selected.category === "public-restroom" && <section aria-label="Restroom access">
+            <h3>Source-listed access</h3>
+            <p><strong>Status:</strong> {selected.restroomStatus === "listed-24-7" ? "Listed 24/7 in the source; not verified." : "Opening status unknown."}</p>
+            <p><strong>ADA designation:</strong> {selected.restroomAda === "yes" ? "Yes (source-listed)" : selected.restroomAda === "no" ? "No (source-listed)" : "Unknown"}</p>
+            <p>Not live availability or a verified accessible route. Seasonal closures, fees, or building access restrictions may apply. Check with Portland Parks before relying on this stop.</p>
+          </section>}
+          {selected.category === "heritage-tree" && <section aria-label="Heritage tree access">
+            {selected.scientificName && <p><em>{selected.scientificName}</em></p>}
+            {selected.treeOwnership && <p><strong>Source-listed setting:</strong> {selected.treeOwnership}</p>}
+            <p>This point marks the tree trunk, not a public entrance. Trees may be on private land or not visible from public paths. View only from lawful public access; do not enter private property.</p>
+          </section>}
           {selected.category === "community-garden" && <p>Garden plots may require registration and have restricted access. Check with Portland Parks before visiting.</p>}
           {selected.category === "farmers-market" && <section aria-label="Market schedule">
             <h3>Source-listed schedule</h3>
@@ -153,7 +166,7 @@ export default function NearbyPlaces({
           <li key={place.id}>
             <button type="button" className="transit-place-result" data-place-id={place.id}
               onClick={() => onSelect(place.id, true)}>
-              <FontAwesome name={categoryIcon(place.category)} aria-hidden="true"
+              <FontAwesomeIcon icon={placeIconDefinition(place.category)} aria-hidden="true"
                 className={`transit-place-icon transit-place-icon--${place.category}`} />
               <span><strong>{place.name}</strong><small>{place.address || PLACE_INFO[place.category].singular}</small></span>
               <FontAwesome name="angle-right" aria-hidden="true" />

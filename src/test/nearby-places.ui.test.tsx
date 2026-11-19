@@ -11,6 +11,7 @@ import NearbyPlacesMap, { placeFeatures } from "../view/nearby/components/Nearby
 import NearbyNeighborhoodsMap, { NEIGHBORHOOD_LAYERS, NEIGHBORHOOD_SOURCE } from "../view/nearby/components/NearbyNeighborhoodsMap";
 import { NeighborhoodSnapshot, parseNeighborhoodSnapshot, useNeighborhoods } from "../api/places/neighborhoods";
 jest.mock("../view/nearby/util/mapbox/placeIcons", () => ({
+  ...jest.requireActual("../view/nearby/util/mapbox/placeIcons"),
   createPlaceIconImage: jest.fn(() => ({ width: 48, height: 48, data: new Uint8Array(48 * 48 * 4) }))
 }));
 jest.mock("mapbox-gl", () => ({ Popup: jest.fn() }));
@@ -30,6 +31,14 @@ const garden: InterestPlace = {
 const market: InterestPlace = {
   ...pod, id: "portland:market:1", name: "Example Farmers Market", category: "farmers-market",
   marketDays: "Saturday", marketSeason: "May - October", marketHours: "9 a.m. - 1 p.m."
+};
+const restroom: InterestPlace = {
+  ...park, id: "portland:restroom:1", name: "Example Park - Restroom A - Room 1", category: "public-restroom",
+  restroomStatus: "listed-24-7", restroomAda: "unknown"
+};
+const tree: InterestPlace = {
+  ...park, id: "portland:tree:51", name: "Oregon white oak (Heritage Tree #51)", category: "heritage-tree",
+  scientificName: "Quercus garryana", treeOwnership: "Private, Front Yard"
 };
 const snapshot: PlaceSnapshot = {
   version: 1, category: "park", retrievedAt: "2026-11-18T12:00:00Z",
@@ -185,14 +194,21 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it("classifies new destinations, validates schedule metadata and removes only duplicate garden-specific parks", () => {
-    for (const place of [garden, market]) {
+    for (const place of [garden, market, restroom, tree]) {
       expect(placeCategoryForId(place.id)).toBe(place.category);
       expect(parsePlaceSnapshot({ ...snapshot, category: place.category, places: [place] }, place.category).places).toEqual([place]);
-      expect(placeFeatures([garden, market], place.category).features).toHaveLength(1);
-      expect(filterPlaces([garden, market], { ...DEFAULT_PLACE_FILTERS, [place.category]: false })).not.toContain(place);
+      expect(placeFeatures([garden, market, restroom, tree], place.category).features).toHaveLength(1);
+      expect(filterPlaces([garden, market, restroom, tree], { ...DEFAULT_PLACE_FILTERS, [place.category]: false })).not.toContain(place);
     }
     expect(() => parsePlaceSnapshot({ ...snapshot, category: "farmers-market",
       places: [{ ...market, marketHours: 9 }] }, "farmers-market")).toThrow();
+    expect(() => parsePlaceSnapshot({ ...snapshot, category: "public-restroom",
+      places: [{ ...restroom, restroomStatus: "open-now" }] }, "public-restroom")).toThrow();
+    expect(() => parsePlaceSnapshot({ ...snapshot, category: "heritage-tree",
+      places: [{ ...tree, scientificName: 1 }] }, "heritage-tree")).toThrow();
+    expect(() => parsePlaceSnapshot({ ...snapshot, category: "heritage-tree",
+      places: [{ ...tree, restroomAda: "yes" }] }, "heritage-tree")).toThrow();
+    expect(filterPlaces([tree, park], { ...DEFAULT_PLACE_FILTERS, search: "Quercus" })).toEqual([tree]);
     const duplicatePark = { ...park, name: "Example Community Garden" };
     expect(filterPlaces([duplicatePark, garden], DEFAULT_PLACE_FILTERS)).toEqual([garden]);
     expect(filterPlaces([duplicatePark, garden], { ...DEFAULT_PLACE_FILTERS, "community-garden": false })).toEqual([]);
@@ -201,7 +217,7 @@ describe("Places filtering, selection and map layers", () => {
     expect(filterPlaces([garden, { ...garden, id: `${garden.id.slice(0, -1)}6` }], DEFAULT_PLACE_FILTERS)).toHaveLength(2);
   });
 
-  it.each([garden, market])("shows $category details, caveats, and an approximate named planner destination", place => {
+  it.each([garden, market, restroom, tree])("shows $category details, caveats, and an approximate named planner destination", place => {
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
       filters={DEFAULT_PLACE_FILTERS} onFilters={jest.fn()} visiblePlaces={[place]} selected={place}
       onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false} /></MemoryRouter>));
@@ -214,8 +230,16 @@ describe("Places filtering, selection and map layers", () => {
       expect(container.textContent).toContain("not live opening information");
       expect(container.textContent).toContain("Saturday");
       expect(container.textContent).toContain("May - October");
-    } else {
+    } else if (place.category === "community-garden") {
       expect(container.textContent).toContain("restricted access");
+    } else if (place.category === "public-restroom") {
+      expect(container.textContent).toContain("Listed 24/7 in the source; not verified");
+      expect(container.textContent).toContain("ADA designation: Unknown");
+      expect(container.textContent).toContain("Not live availability or a verified accessible route");
+    } else {
+      expect(container.textContent).toContain("Quercus garryana");
+      expect(container.textContent).toContain("Private, Front Yard");
+      expect(container.textContent).toContain("do not enter private property");
     }
   });
 
@@ -237,7 +261,7 @@ describe("Places filtering, selection and map layers", () => {
     }
     act(() => root.render(<Harness />));
     expect(container.textContent).toContain("Food-cart pods could not be loaded");
-    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(6);
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(8);
     const button = container.querySelector<HTMLButtonElement>(".transit-place-result");
     act(() => button.click());
     expect(select).toHaveBeenCalledWith(park.id, true);
@@ -286,7 +310,7 @@ describe("Places filtering, selection and map layers", () => {
     act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace, pod]} selectedId={park.id}
       onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
     expect(fakeMap.addSource).toHaveBeenCalledWith("nearby-places-park", expect.objectContaining({ cluster: true }));
-    expect(images.size).toBe(6);
+    expect(images.size).toBe(8);
     expect(fakeMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({
       id: "nearby-places-park-counts",
       layout: expect.objectContaining({ "icon-image": "nearby-places-park-icon", "text-field": ["get", "point_count_abbreviated"] })
@@ -295,7 +319,7 @@ describe("Places filtering, selection and map layers", () => {
       id: "nearby-places-food-cart-pod-icons",
       layout: expect.objectContaining({ "icon-image": "nearby-places-food-cart-pod-icon" })
     }));
-    for (const category of ["community-center", "library", "community-garden", "farmers-market"]) {
+    for (const category of ["community-center", "library", "community-garden", "farmers-market", "public-restroom", "heritage-tree"]) {
       expect(fakeMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({
         id: `nearby-places-${category}-counts`,
         layout: expect.objectContaining({ "icon-image": `nearby-places-${category}-icon` })
@@ -340,7 +364,7 @@ describe("Places filtering, selection and map layers", () => {
     expect(onCoincident).toHaveBeenCalledWith([park.id, pod.id]);
     sources.clear(); layers.clear(); images.clear();
     act(() => listeners.get("style.load")());
-    expect(sources.size).toBe(6);
+    expect(sources.size).toBe(8);
     expect(onError).not.toHaveBeenCalledWith(true);
     act(() => root.render(null));
     expect(sources.size).toBe(0);
