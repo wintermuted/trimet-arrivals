@@ -130,7 +130,8 @@ visible in the link but are not added to Recent trips.
 
 **Places** starts with Parks, Food-cart pods, Community centers, Libraries,
 Community gardens, Farmers markets, Public restrooms, Heritage trees, Grocery
-stores, Reuse & repair, CSA pickups, Drinking fountains and Park artwork enabled.
+stores, Reuse & repair, CSA pickups, Drinking fountains, Park artwork, Museums,
+Art galleries, Theatres and Arts & cultural centres enabled.
 **Bicycle parking** and **Picnic & seating** are opt-in categories so thousands
 of individual racks, benches and tables do not obscure other places. Its list follows the
 visible map area after a pan or zoom, independently of transit's search radius.
@@ -138,7 +139,8 @@ Category toggles and name/address search filter both the map and list. Numbered
 clusters pair the category icon with a count and expand when selected; green
 tree, orange food, purple community, blue book, olive leaf, berry basket,
 teal restroom, brown seedling, brick shopping cart, forest-green recycle,
-ochre carrot, and royal-blue bicycle icons
+ochre carrot, royal-blue bicycle, gold landmark, plum gallery, rose theatre masks
+and indigo paintbrush icons
 identify individual locations. Category controls use a compact wrapped layout. Overlapping markers
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
@@ -167,15 +169,15 @@ details and header Back within the mounted Places view. Search, results and
 source/drawing errors remain outside these sections.
 
 Place categories are nested under **Parks & nature**, **Food & markets**,
-**Community & resources** and **Trip amenities**. Each group checkbox enables or
+**Community & resources**, **Arts & culture** and **Trip amenities**. Each group checkbox enables or
 disables all its categories without changing other groups, search or map layers.
 A mixed checkbox means only some child categories are enabled; selecting it
 enables the whole group. Individual category toggles remain available, and group
 states follow presets and shared views without changing existing defaults.
 Each group starts collapsed. Its title/chevron button independently shows or hides
 the children; the adjacent bulk checkbox works without expanding the group.
-Tree, basket, people and signpost icons distinguish the four group headers,
-using the existing theme-aware green, orange, purple and blue place colors.
+Tree, basket, people, landmark and signpost icons distinguish the five group headers,
+using theme-aware green, orange, purple, gold and blue place colors.
 Children use a consistent single-column layout, indentation and spacing.
 The Places header's **About Places** help tooltip contains the browsing
 description; the list does not repeat the visible header title or introduction.
@@ -471,6 +473,31 @@ and truncated pages fail without partially replacing snapshots.
 `park-trails.json`, `bicycle-network.json`, and `recommended-bike-routes.json`
 carry City bureau attribution, metadata, coverage, retrieval dates and PDDL terms.
 
+Cultural destinations use named OpenStreetMap `tourism=museum`, `tourism=gallery`,
+`amenity=theatre` and `amenity=arts_centre` features inside Portland's administrative
+boundary. Listings are incomplete and community-maintained, not a comprehensive
+directory or verified operating schedule. Explicitly private and lifecycle-tagged
+inactive venues are excluded. Nearby same-name node/footprint representations in
+the same category are combined; distinct categories and separately named venues
+remain selectable. Points and footprint centres are approximate, not public
+entrances. Confirm hours, admission, tickets, reservations and accessibility
+with the venue; paid admission is not treated as private access.
+
+The four new snapshots retain OpenStreetMap attribution and ODbL-1.0 terms,
+including the source database timestamp. Category-qualified IDs such as
+`osm:museum:way:123` keep existing `osm:way:123` food-pod links and saves intact.
+Refresh only cultural venues, without changing City, Metro or food-pod snapshots:
+
+```powershell
+npm run places:refresh -- --culture-only
+```
+
+The full refresh includes these venues too. `--culture-only --osm-input` accepts
+a complete raw response to the exported `CULTURE_OSM_QUERY`; partial responses,
+missing timestamps, malformed venues and empty categories fail before publishing.
+Only names, mapped points, source links, street addresses and safe venue websites
+are published; personal contacts and arbitrary OSM tags are not copied.
+
 Refresh manually when maintaining the catalog (monthly is a reasonable starting
 cadence), and review names, counts, additions/removals, source dates, and arrival
 points before publishing. Retrieval dates are not source update dates. Overpass
@@ -487,10 +514,12 @@ to the same query**, retain its `osm3s.timestamp_osm_base` and use:
 npm run places:refresh -- --osm-input "C:\path\to\portland-overpass-response.json"
 ```
 
-City and Metro data are still fetched and validated in this mode. `npm run test:places-data`
+Without `--culture-only`, `--osm-input` supplies the food-pod query; City, Metro
+and cultural data are still fetched and validated in that full-refresh mode. `npm run test:places-data`
 checks ingestion and safe replacement without querying external services.
-The checked-in initial OSM response is from July 2026; it is not represented as a
-current November directory.
+The checked-in initial food-pod response is from July 2026; it is not represented
+as a current November directory. Cultural snapshots carry their own retrieval
+and OSM source dates.
 
 Snapshots live separately under `public\data\places\parks.json` (City of Portland,
 PDDL default terms), `food-cart-pods.json` (OpenStreetMap contributors, ODbL),

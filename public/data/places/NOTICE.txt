@@ -235,6 +235,29 @@ Selection rules and the complete Overpass query are in scripts/refresh-places.mj
 Coverage and source tags can be incomplete or outdated. Entries do not confirm
 current operation, public entrances, operating hours or accessibility.
 
+museums.json, art-galleries.json, theatres.json and arts-centres.json
+Copyright OpenStreetMap contributors.
+Source: https://www.openstreetmap.org/copyright
+ODbL v1.0: https://opendatacommons.org/licenses/odbl/1-0/
+These separately distributed, OSM-derived snapshots are available under ODbL,
+including its attribution and share-alike requirements. Download each JSON
+through this site's data/places/<filename> URL.
+Changes: selected named tourism=museum, tourism=gallery, amenity=theatre and
+amenity=arts_centre features inside Portland's administrative boundary; excluded
+explicitly private/no-access and lifecycle-tagged inactive venues. Combined nearby
+same-name representations within a category, preferring mapped sites/footprints
+over duplicate nodes. Retained OSM feature identities with a category prefix,
+names, approximate points/area centres, street addresses and safe venue websites.
+Did not copy arbitrary tags or personal contact fields.
+Selection rules and CULTURE_OSM_QUERY are in scripts/refresh-places.mjs.
+Initial retrieval used the public North America mirror:
+https://ovp.dresel.systems/api-na/interpreter
+Each file retains the actual OSM database timestamp and retrieval date.
+Incomplete community-maintained listings, not a comprehensive cultural directory
+or verified operation, admission, hours, reservations, accessibility or public
+access. Paid admission does not imply private access. Confirm current visiting
+arrangements and public entrances with each venue before traveling.
+
 community-centers.json and libraries.json
 Regional Land Information System data are a product of Metro and made publicly
 available according to the license agreement found in

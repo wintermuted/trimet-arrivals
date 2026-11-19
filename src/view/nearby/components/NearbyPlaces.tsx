@@ -3,11 +3,11 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { faTree, faBasketShopping, faUsers, faSignsPost } from "@fortawesome/free-solid-svg-icons";
+import { faTree, faBasketShopping, faUsers, faSignsPost, faLandmark } from "@fortawesome/free-solid-svg-icons";
 import { placeIconDefinition } from "../util/mapbox/placeIcons";
 import { Link } from "react-router-dom";
 import {
-  categoryName, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
+  categoryName, CULTURE_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
   PlaceFilters, PlaceSourceState, placeDetailLink, placePlannerLink
 } from "../../../api/places/places";
 import "./NearbyPlaces.scss";
@@ -21,6 +21,7 @@ const CATEGORY_GROUPS: { label: string; icon: IconDefinition; colorCategory: Pla
   { label: "Parks & nature", icon: faTree, colorCategory: "park", categories: ["park", "community-garden", "heritage-tree", "park-artwork"] },
   { label: "Food & markets", icon: faBasketShopping, colorCategory: "food-cart-pod", categories: ["food-cart-pod", "farmers-market", "grocery-store", "csa-pickup"] },
   { label: "Community & resources", icon: faUsers, colorCategory: "community-center", categories: ["community-center", "library", "reuse-repair"] },
+  { label: "Arts & culture", icon: faLandmark, colorCategory: "museum", categories: CULTURE_PLACE_CATEGORIES },
   { label: "Trip amenities", icon: faSignsPost, colorCategory: "bicycle-parking", categories: ["public-restroom", "bicycle-parking", "drinking-fountain", "picnic-seating"] }
 ];
 
@@ -294,6 +295,10 @@ export default function NearbyPlaces({
             <p>This point marks the tree trunk, not a public entrance. Trees may be on private land or not visible from public paths. View only from lawful public access; do not enter private property.</p>
           </section>}
           {selected.category === "community-garden" && <p>Garden plots may require registration and have restricted access. Check with Portland Parks before visiting.</p>}
+          {CULTURE_PLACE_CATEGORIES.includes(selected.category) && <section aria-label="Cultural venue information">
+            <h3>Source-mapped venue</h3>
+            <p>This community-mapped listing is not live opening information. Admission, tickets, reservations, accessibility and public access are not verified. Confirm the current location, hours and visiting arrangements with the venue.</p>
+          </section>}
           {selected.category === "farmers-market" && <section aria-label="Market schedule">
             <h3>Source-listed schedule</h3>
             <p>This snapshot may contain older seasonal dates and hours. Check the market website before traveling; this is not live opening information.</p>

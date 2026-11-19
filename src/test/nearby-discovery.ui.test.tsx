@@ -44,6 +44,17 @@ describe("Places discovery tools", () => {
     expect(readPlacesView("?from=101")).toEqual({});
   });
 
+  it("round-trips cultural filters and saves without confusing qualified IDs with legacy food pods", () => {
+    const view = placesPreset("default");
+    const cultures = ["museum", "art-gallery", "theatre", "arts-centre"];
+    PLACE_CATEGORIES.forEach(category => { view.filters[category] = cultures.includes(category); });
+    expect(readPlacesView(placesViewSearch(view)).view).toEqual(view);
+    const saved = cultures.map((category, i) => ({ id: `osm:${category}:node:${i + 1}`, name: `Example ${category}` }));
+    saved.push({ id: "osm:node:1", name: "Existing food carts" });
+    localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(saved));
+    expect(readSavedPlaces()).toEqual(Object.fromEntries(saved.map(place => [place.id, place.name])));
+  });
+
   it.each([
     "?view=2&categories=park&layers=", "?view=1&view=1&categories=park&layers=",
     "?view=1&categories=park,unknown&layers=", "?view=1&categories=park,park&layers=",
