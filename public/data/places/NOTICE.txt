@@ -121,6 +121,50 @@ Unrelated attributes are not retained. All points are approximate, not verified
 public entrances. Retrieval dates do not establish current operation or access.
 Points outside the app's Portland-area coverage are omitted with refresh warnings.
 
+park-trails.json
+Source: City of Portland, Bureau of Parks and Recreation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/27
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=52963
+Changes: retained existing mapped park trail centerlines, source object IDs,
+names, trail types and surfaces. Excluded proposed, informal and closed segments,
+water trails, maintenance roads, retired CAT roads and unmapped records.
+Unspecified trail types are retained. This is not a guarantee of current public
+access, accessibility, surface condition, or permission to cycle.
+
+bicycle-network.json
+Source: City of Portland, Bureau of Transportation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/75
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=53123
+Changes: queried source-active segments with no retirement year, rechecked status,
+retained source object IDs, names and facility codes. Excluded planned, retired,
+future-development recommendations and undefined statuses. Mixed facility types
+are shown, not exclusively protected lanes. Source RECOMM status refers to future
+development and is not the recommended cycling-route layer.
+
+recommended-bike-routes.json
+Source: City of Portland, Bureau of Transportation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/183
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=54399
+Changes: retained the City's recommended cycling routes, source object IDs,
+street names and connection codes. Difficult, moderate/high-traffic and
+unclassified connections are marked caution; this includes mixed-direction
+connections. A recommendation is not a comfort, protection or safety guarantee.
+
+Terms for park-trails.json, bicycle-network.json and recommended-bike-routes.json:
+https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless the source or
+metadata states otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+All matching IDs are fetched in validated batches. LineString/MultiLineString
+geometry is converted to six-decimal WGS84 without replacing lines with points.
+Unmapped and out-of-coverage segments are omitted with refresh warnings.
+Other malformed or incomplete source data fail refresh rather than silently
+truncating the layers. Unrelated source attributes are not retained.
+These are map references, not turn-by-turn routes, a routing graph, selectable
+place destinations, or live closure/condition information. Verify legal direction,
+signs, trail bike permissions, access restrictions and closures. Retrieval dates
+are not source update dates. No current-access or accessible-route claim is made.
+
 neighborhoods.json
 Source: City of Portland, Bureau of Planning and Sustainability.
 Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3

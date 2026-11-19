@@ -10,6 +10,9 @@ import NearbyPlaces from "../view/nearby/components/NearbyPlaces";
 import NearbyPlacesMap, { placeFeatures } from "../view/nearby/components/NearbyPlacesMap";
 import NearbyNeighborhoodsMap, { NEIGHBORHOOD_LAYERS, NEIGHBORHOOD_SOURCE } from "../view/nearby/components/NearbyNeighborhoodsMap";
 import { NeighborhoodSnapshot, parseNeighborhoodSnapshot, useNeighborhoods } from "../api/places/neighborhoods";
+import { DEFAULT_LINE_OVERLAYS, LINE_CAUTION_COLOR, LineOverlayCategory, LineOverlaySnapshot,
+  parseLineOverlaySnapshot, useLineOverlay } from "../api/places/lineOverlays";
+import NearbyLineOverlayMap, { lineOverlaySource } from "../view/nearby/components/NearbyLineOverlayMap";
 jest.mock("../view/nearby/util/mapbox/placeIcons", () => ({
   ...jest.requireActual("../view/nearby/util/mapbox/placeIcons"),
   createPlaceIconImage: jest.fn(() => ({ width: 48, height: 48, data: new Uint8Array(48 * 48 * 4) }))
@@ -62,6 +65,12 @@ const neighborhoodSnapshot: NeighborhoodSnapshot = {
   features: [{ type: "Feature", id: "portland:neighborhood:1", properties: { name: "Example", shared: false, areaId: 1 },
     geometry: { type: "Polygon", coordinates: [[[-122.7, 45.5], [-122.6, 45.5], [-122.6, 45.6], [-122.7, 45.5]]] } }]
 };
+const overlaySnapshot = (category: LineOverlayCategory): LineOverlaySnapshot => ({
+  ...neighborhoodSnapshot, category,
+  features: [{ type: "Feature", id: `portland:${category}:1`,
+    properties: { name: "Example line", kind: "standard", detail: "Source-listed facility" },
+    geometry: { type: "LineString", coordinates: [[-122.7, 45.5], [-122.69, 45.51]] } }]
+});
 
 describe("Places filtering, selection and map layers", () => {
   let container: HTMLDivElement;
@@ -85,6 +94,116 @@ describe("Places filtering, selection and map layers", () => {
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [park, park] }, "park")).toThrow();
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, coordinates: [45.52, -122.67] }] }, "park")).toThrow();
     expect(() => parsePlaceSnapshot({ ...snapshot, places: [{ ...park, website: "javascript:alert(1)" }] }, "park")).toThrow();
+  });
+
+  it.each([
+    require("../../public/data/places/park-trails.json"),
+    require("../../public/data/places/bicycle-network.json"),
+    require("../../public/data/places/recommended-bike-routes.json")
+  ])("validates all published $category segments and rejects wrong geometries, categories and identities", data => {
+    expect(parseLineOverlaySnapshot(data, data.category).features).toHaveLength(data.features.length);
+    const example = overlaySnapshot(data.category);
+    expect(() => parseLineOverlaySnapshot({ ...example, features: [...example.features, ...example.features] }, data.category)).toThrow();
+    expect(() => parseLineOverlaySnapshot({ ...example,
+      features: [{ ...example.features[0], geometry: { type: "Point", coordinates: park.coordinates } }] }, data.category)).toThrow();
+    expect(() => parseLineOverlaySnapshot({ ...example,
+      features: [{ ...example.features[0], id: "portland:park:1" }] }, data.category)).toThrow();
+  });
+
+  it.each(["park-trails", "bicycle-network", "recommended-bike-routes"] as const)(
+    "loads %s only when enabled and retries failures independently", async category => {
+      const originalFetch = global.fetch;
+      const fetch = jest.fn().mockRejectedValueOnce(new Error("network"))
+        .mockResolvedValue({ ok: true, json: async () => overlaySnapshot(category) });
+      global.fetch = fetch;
+      function Harness({ enabled }: { enabled: boolean }) {
+        const state = useLineOverlay(category, enabled);
+        return <button onClick={state.retry}>{state.error ? "Failed" : state.snapshot ? "Loaded" : "Waiting"}</button>;
+      }
+      try {
+        await act(async () => root.render(<Harness enabled={false} />));
+        expect(fetch).not.toHaveBeenCalled();
+        await act(async () => root.render(<Harness enabled />));
+        expect(container.textContent).toBe("Failed");
+        await act(async () => container.querySelector("button").click());
+        expect(container.textContent).toBe("Loaded");
+        expect(fetch).toHaveBeenLastCalledWith(expect.stringContaining(`/data/places/${category}.json`),
+          expect.objectContaining({ cache: "reload" }));
+        await act(async () => root.render(<Harness enabled={false} />));
+        expect(fetch).toHaveBeenCalledTimes(2);
+      } finally { global.fetch = originalFetch; }
+    });
+
+  it("keeps line controls, legends and retries independent of place filters and neighborhood loading", () => {
+    const onFilters = jest.fn(), onShown = jest.fn(), onRetry = jest.fn();
+    const sources = {
+      "park-trails": { loading: true, error: false, retry: jest.fn() },
+      "bicycle-network": { loading: false, error: true, retry: jest.fn() },
+      "recommended-bike-routes": { loading: false, error: false, retry: jest.fn() }
+    };
+    act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
+      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[park]} onSelect={jest.fn()}
+      onRetry={jest.fn()} mapReady mapError={false}
+      neighborhoods={{ shown: false, onShown: jest.fn(), polygonsShown: false, onPolygonsShown: jest.fn(),
+        loading: false, error: false, mapError: false, onRetry: jest.fn() }}
+      lineOverlays={{ shown: { "park-trails": true, "bicycle-network": true, "recommended-bike-routes": true },
+        sources, mapErrors: DEFAULT_LINE_OVERLAYS, onShown, onRetry }}
+    /></MemoryRouter>));
+    expect(container.textContent).toContain("Loading park trails");
+    expect(container.textContent).toContain("Bicycle network could not be loaded");
+    expect(container.textContent).toContain("Red dashes: difficult, higher-traffic or unclassified connections");
+    expect(container.querySelector(".transit-place-result")).not.toBeNull();
+    const toggle = container.querySelector<HTMLInputElement>(".transit-places-line-toggle input");
+    act(() => toggle.click());
+    expect(onShown).toHaveBeenCalledWith("park-trails", false);
+    act(() => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry bicycle network").click());
+    expect(onRetry).toHaveBeenCalledWith("bicycle-network");
+    expect(onFilters).not.toHaveBeenCalled();
+  });
+
+  it("orders line overlays below POIs, restores after style reload, surfaces draw failures and cleans up its own layers", () => {
+    const category = "recommended-bike-routes";
+    const source = lineOverlaySource(category);
+    const sources = new Set<string>();
+    const layers = new Set<string>(["nearby-places-park-points"]);
+    const listeners = new Map<string, (event?: { error: Error; sourceId: string }) => void>();
+    const map = {
+      getSource: jest.fn(id => sources.has(id)), addSource: jest.fn(id => sources.add(id)),
+      getLayer: jest.fn(id => layers.has(id)), addLayer: jest.fn((layer, _before?: string) => layers.add(layer.id)),
+      getStyle: () => ({ layers: [...layers].map(id => ({ id })) }),
+      on: jest.fn((name, handler) => listeners.set(name, handler)), off: jest.fn(),
+      removeLayer: jest.fn(id => layers.delete(id)), removeSource: jest.fn(id => sources.delete(id))
+    };
+    const onError = jest.fn();
+    const data = overlaySnapshot(category);
+    act(() => root.render(<NearbyLineOverlayMap map={map as never} snapshot={data} onError={onError} />));
+    expect(map.addLayer.mock.calls.every(call => call[1] === "nearby-places-park-points")).toBe(true);
+    for (const [layer] of map.addLayer.mock.calls) {
+      expect(layer.paint["line-width"][0]).toBe("interpolate");
+      expect(layer.paint["line-width"][2]).toEqual(["zoom"]);
+    }
+    expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: source + "-caution",
+      filter: ["==", ["get", "kind"], "caution"],
+      paint: expect.objectContaining({ "line-color": LINE_CAUTION_COLOR, "line-dasharray": [2, 1], "line-emissive-strength": 1 })
+    }), "nearby-places-park-points");
+    act(() => listeners.get("error")({ error: new Error("worker failure"), sourceId: source }));
+    expect(onError).toHaveBeenLastCalledWith(category, true);
+    layers.clear(); layers.add("nearby-places-park-points"); sources.clear();
+    act(() => listeners.get("style.load")());
+    expect(onError).toHaveBeenLastCalledWith(category, false);
+    expect(sources.has(source)).toBe(true);
+    act(() => root.render(null));
+    expect(sources.size).toBe(0);
+    expect([...layers]).toEqual(["nearby-places-park-points"]);
+    expect(map.off).toHaveBeenCalledWith("style.load", expect.any(Function));
+    expect(map.off).toHaveBeenCalledWith("error", expect.any(Function));
+    map.addLayer.mockImplementation(() => layers);
+    act(() => root.render(<NearbyLineOverlayMap map={map as never} snapshot={data} onError={onError} />));
+    expect(onError).toHaveBeenLastCalledWith(category, true);
+    act(() => root.render(null));
+    map.addSource.mockImplementation(() => { throw new Error("draw failed"); });
+    act(() => root.render(<NearbyLineOverlayMap map={map as never} snapshot={data} onError={onError} />));
+    expect(onError).toHaveBeenLastCalledWith(category, true);
   });
 
   it("validates neighborhood polygons and rejects malformed geometry or duplicate IDs", () => {

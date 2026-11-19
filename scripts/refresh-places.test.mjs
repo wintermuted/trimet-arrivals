@@ -8,7 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   fetchCityPlaces, fetchMetroPlaces, fetchNeighborhoods, fetchParks, normalizeCityPlaces, normalizeMetroPlaces, normalizeNeighborhoods,
-  normalizeParks, normalizePods, polygonPoint, writeSnapshots
+  normalizeParks, normalizePods, polygonPoint, writeSnapshots, normalizeLineOverlay, fetchLineOverlay
 } from "./refresh-places.mjs";
 
 const geometry = { type: "Polygon", coordinates: [[[-122.7, 45.5], [-122.6, 45.5], [-122.6, 45.6], [-122.7, 45.5]]] };
@@ -158,6 +158,59 @@ const cityCsa = id => ({ ...cityMarket(id),
     UniqueID: "shared-farm-id", Season: "June - November", Main_Products: "vegetables", Website: "example.org", email: "NOT FOR PUBLICATION" } });
 const cityBike = id => ({ ...cityMarket(id),
   properties: { OBJECTID: id, AssetID: `5220-${id}`, NumSpaces: 2, Covered: "Y" } });
+const trail = id => ({ type: "Feature", geometry: { type: "LineString", coordinates: [[-122.7, 45.5], [-122.69, 45.51]] },
+  properties: { OBJECTID: id, Local_Name: "Example trail", TYPE: "Trail/Path (3-5 ft.)", STATUS: "existing", SURFACE: "soil" } });
+const network = id => ({ ...trail(id), properties: { OBJECTID: id, SegmentName: "Example bikeway",
+  Status: "ACTIVE", Facility: "PBL", YearRetired: null } });
+const recommended = id => ({ ...trail(id), properties: { OBJECTID: id, StreetName: "Example route", ConnectionType: "NG" } });
+
+test("keeps existing trails and active bike facilities, not water/maintenance/closed trails or future development", () => {
+  const trails = normalizeLineOverlay([trail(1), { ...trail(2), geometry: null },
+    ...["proposed", "informal", "closed"].map((STATUS, i) => ({ ...trail(i + 3), properties: { ...trail(i + 3).properties, STATUS } })),
+    ...["water trail", "Maintenance Road", "CAT Road (retired)"].map((TYPE, i) => ({ ...trail(i + 6), properties: { ...trail(i + 6).properties, TYPE } }))], "park-trails");
+  assert.equal(trails.length, 1);
+  assert.equal(trails[0].id, "portland:park-trails:1");
+  const active = normalizeLineOverlay([network(1),
+    ...["PLANNED", "RECOMM", "RETIRED", "NONE"].map((Status, i) => ({ ...network(i + 2), properties: { ...network(i + 2).properties, Status } })),
+    { ...network(6), properties: { ...network(6).properties, YearRetired: 2020 } }], "bicycle-network");
+  assert.equal(active.length, 1);
+  assert.equal(active[0].properties.detail, "PBL");
+  assert.throws(() => normalizeLineOverlay([{ ...network(1), properties: { ...network(1).properties, Status: "NEW" } }], "bicycle-network"), /status/);
+});
+
+test("preserves line/multiline geometry and marks difficult, traffic and unclassified recommended connections for caution", () => {
+  const fixtures = ["NG", "BL-DC", "BL_VHT", "SR_MT", null].map((ConnectionType, i) =>
+    ({ ...recommended(i + 1), properties: { ...recommended(i + 1).properties, ConnectionType } }));
+  fixtures[0].geometry = { type: "MultiLineString", coordinates: [trail(1).geometry.coordinates, trail(2).geometry.coordinates] };
+  const result = normalizeLineOverlay(fixtures, "recommended-bike-routes");
+  assert.deepEqual(result[0].geometry, fixtures[0].geometry);
+  assert.deepEqual(result.map(f => f.properties.kind), ["standard", "caution", "caution", "caution", "caution"]);
+  assert.throws(() => normalizeLineOverlay([recommended(1), recommended(1)], "recommended-bike-routes"), /duplicate/);
+  assert.throws(() => normalizeLineOverlay([{ ...recommended(1), geometry }], "recommended-bike-routes"), /geometry/);
+  assert.throws(() => normalizeLineOverlay([{ ...recommended(1), properties: { ...recommended(1).properties, ConnectionType: "NEW" } }], "recommended-bike-routes"), /connection/);
+});
+
+test("paginates complete line overlays, queries only active non-retired bike infrastructure and rejects truncated/duplicate data", async () => {
+  for (const [category, fixture] of [["park-trails", trail], ["bicycle-network", network], ["recommended-bike-routes", recommended]]) {
+    const ids = Array.from({ length: 205 }, (_, i) => i + 1);
+    const data = await fetchLineOverlay(category, async url => {
+      const params = new URL(url).searchParams;
+      if (params.has("returnIdsOnly")) {
+        if (category === "bicycle-network") assert.equal(params.get("where"), "Status = 'ACTIVE' AND YearRetired IS NULL");
+        return { objectIds: ids };
+      }
+      assert.equal(params.get("geometryPrecision"), "6");
+      return { features: params.get("objectIds").split(",").map(Number).map(fixture) };
+    });
+    assert.equal(data.features.length, 205);
+    await assert.rejects(fetchLineOverlay(category, async url => url.includes("returnIdsOnly")
+      ? { objectIds: [1, 2] } : { features: [fixture(1)] }), /omitted/);
+    await assert.rejects(fetchLineOverlay(category, async url => url.includes("returnIdsOnly")
+      ? { objectIds: [1] } : { features: [fixture(1)], exceededTransferLimit: true }), /Incomplete/);
+    await assert.rejects(fetchLineOverlay(category, async url => url.includes("returnIdsOnly")
+      ? { objectIds: [1, 2] } : { features: [fixture(1), fixture(1)] }), /duplicated/);
+  }
+});
 
 test("keeps existing groceries and separate addressed CSA offerings, excluding closures and vague pickup locations", () => {
   const groceries = normalizeCityPlaces([cityGrocery(1),
@@ -306,6 +359,7 @@ test("full and targeted refresh commands publish the intended snapshots without 
     const fixtures = {
       park: park(1), garden: cityGarden(1), market: cityMarket(1), restroom: cityRestroom(1), tree: cityTree(1),
       grocery: cityGrocery(1), reuse: cityReuse(1), csa: cityCsa(1), bike: cityBike(1),
+      trail: trail(1), network: network(1), recommended: recommended(1),
       neighborhood: neighborhood(1), metro: metro(1, "Central Library"),
       osm: { osm3s: { timestamp_osm_base: "2026-07-15T12:00:00Z" }, elements: [pod(1, "Example Food Carts")] }
     };
@@ -313,10 +367,12 @@ test("full and targeted refresh commands publish the intended snapshots without 
       ["--gardens-markets-only", ["community-gardens.json", "farmers-markets.json"]],
       ["--restrooms-trees-only", ["public-restrooms.json", "heritage-trees.json"]],
       ["--everyday-only", ["grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json"]],
+      ["--overlays-only", ["park-trails.json", "bicycle-network.json", "recommended-bike-routes.json"]],
       ["--neighborhoods-only", ["neighborhoods.json"]],
       ["", ["parks.json", "food-cart-pods.json", "community-centers.json", "libraries.json",
         "community-gardens.json", "farmers-markets.json", "public-restrooms.json", "heritage-trees.json", "neighborhoods.json",
-        "grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json"]]
+        "grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json",
+        "park-trails.json", "bicycle-network.json", "recommended-bike-routes.json"]]
     ]) {
       const code = `
         const fixtures = ${JSON.stringify(fixtures)};
@@ -329,6 +385,8 @@ test("full and targeted refresh commands publish the intended snapshots without 
             pathname.includes("/1304/") ? "restroom" : pathname.includes("/26/") ? "tree" :
             pathname.includes("/40/") ? "grocery" : pathname.includes("/1426/") ? "reuse" :
             pathname.includes("/188/") ? "csa" : pathname.includes("/62/") ? "bike" :
+            pathname.includes("/27/") ? "trail" : pathname.includes("/75/") ? "network" :
+            pathname.includes("/183/") ? "recommended" :
             pathname.includes("Boundary") ? "neighborhood" : pathname.includes("Environment") ? "park" :
             pathname.includes("arcgis") ? "metro" : "osm";
           if (${JSON.stringify(mode)} === "--gardens-markets-only" && !["garden", "market"].includes(key))
@@ -337,6 +395,8 @@ test("full and targeted refresh commands publish the intended snapshots without 
             throw new Error("Targeted refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--everyday-only" && !["grocery", "reuse", "csa", "bike"].includes(key))
             throw new Error("Everyday refresh queried an unrelated source");
+          if (${JSON.stringify(mode)} === "--overlays-only" && !["trail", "network", "recommended"].includes(key))
+            throw new Error("Overlay refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--neighborhoods-only" && key !== "neighborhood")
             throw new Error("Neighborhood refresh queried an unrelated source");
           if (key === "osm") data = fixtures.osm;

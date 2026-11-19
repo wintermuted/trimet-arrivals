@@ -64,6 +64,8 @@ import NearbyNeighborhoodsMap from "./NearbyNeighborhoodsMap";
 import NearbyPlaceDestination from "./NearbyPlaceDestination";
 import { DEFAULT_PLACE_FILTERS, filterPlaces, placeCategoryForId, placeDetailLink, placeInBounds, PlaceFilters, usePlaceCatalog } from "../../../api/places/places";
 import { useNeighborhoods } from "../../../api/places/neighborhoods";
+import { DEFAULT_LINE_OVERLAYS, LINE_OVERLAY_CATEGORIES, LineOverlayCategory, useLineOverlay } from "../../../api/places/lineOverlays";
+import NearbyLineOverlayMap from "./NearbyLineOverlayMap";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
@@ -333,6 +335,18 @@ export default function NearbyViewComponent() {
   const neighborhoods = useNeighborhoods(isPlaces && neighborhoodsShown);
   const [neighborhoodMapError, setNeighborhoodMapError] = useState(false);
   const [neighborhoodLayerRevision, setNeighborhoodLayerRevision] = useState(0);
+  const [lineOverlaysShown, setLineOverlaysShown] = useState(DEFAULT_LINE_OVERLAYS);
+  const [lineOverlayErrors, setLineOverlayErrors] = useState(DEFAULT_LINE_OVERLAYS);
+  const [lineOverlayRevisions, setLineOverlayRevisions] = useState({
+    "park-trails": 0, "bicycle-network": 0, "recommended-bike-routes": 0
+  });
+  const lineOverlaySources = {
+    "park-trails": useLineOverlay("park-trails", isPlaces && lineOverlaysShown["park-trails"]),
+    "bicycle-network": useLineOverlay("bicycle-network", isPlaces && lineOverlaysShown["bicycle-network"]),
+    "recommended-bike-routes": useLineOverlay("recommended-bike-routes", isPlaces && lineOverlaysShown["recommended-bike-routes"])
+  };
+  const handleLineOverlayError = useCallback((category: LineOverlayCategory, error: boolean) =>
+    setLineOverlayErrors(previous => previous[category] === error ? previous : { ...previous, [category]: error }), []);
   const [coincidentIds, setCoincidentIds] = useState<string[]>([]);
   const placeViewport = useRef<{ center: [number, number]; zoom: number }>();
   const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters),
@@ -665,6 +679,12 @@ export default function NearbyViewComponent() {
                   ) : <p role="alert">Place not found. This location may no longer be in the current catalog.</p>}
                 </section> : <NearbyPlaces sources={placeCatalog.sources} filters={placeFilters} onFilters={setPlaceFilters}
                   visiblePlaces={visiblePlaces} selected={selectedPlace} onSelect={selectPlace}
+                  lineOverlays={{ shown: lineOverlaysShown, sources: lineOverlaySources, mapErrors: lineOverlayErrors,
+                    onShown: (category, shown) => setLineOverlaysShown(previous => ({ ...previous, [category]: shown })),
+                    onRetry: category => {
+                      lineOverlaySources[category].retry();
+                      setLineOverlayRevisions(previous => ({ ...previous, [category]: previous[category] + 1 }));
+                    } }}
                   neighborhoods={{ ...neighborhoods, shown: neighborhoodsShown, onShown: setNeighborhoodsShown,
                     polygonsShown: neighborhoodPolygonsShown, onPolygonsShown: setNeighborhoodPolygonsShown,
                     mapError: neighborhoodMapError, onRetry: () => {
@@ -748,6 +768,10 @@ export default function NearbyViewComponent() {
           {isPlaces && isMapLoaded && neighborhoodsShown && neighborhoods.snapshot &&
             <NearbyNeighborhoodsMap key={neighborhoodLayerRevision} map={mapRef.current}
               snapshot={neighborhoods.snapshot} polygonsShown={neighborhoodPolygonsShown} onError={setNeighborhoodMapError} />}
+          {isPlaces && isMapLoaded && LINE_OVERLAY_CATEGORIES.map(category =>
+            lineOverlaysShown[category] && lineOverlaySources[category].snapshot &&
+            <NearbyLineOverlayMap key={`${category}-${lineOverlayRevisions[category]}`} map={mapRef.current}
+              snapshot={lineOverlaySources[category].snapshot} onError={handleLineOverlayError} />)}
           {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={mappedPlaces}
             selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
             onBounds={updatePlaceBounds} onError={setPlaceMapError} />}
