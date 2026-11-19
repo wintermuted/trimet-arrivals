@@ -36,7 +36,7 @@ export default function NearbyNeighborhoodsMap({ map, snapshot, polygonsShown, o
           attribution: "City of Portland, Bureau of Planning and Sustainability"
         });
         const before = map.getStyle()?.layers?.find(layer =>
-          layer.id.startsWith("nearby-lines-") || layer.id.startsWith("nearby-places-"))?.id;
+          layer.id.startsWith("nearby-context-") || layer.id.startsWith("nearby-lines-") || layer.id.startsWith("nearby-places-"))?.id;
         if (!map.getLayer(NEIGHBORHOOD_LAYERS[0])) map.addLayer({
           id: NEIGHBORHOOD_LAYERS[0], type: "fill", source: NEIGHBORHOOD_SOURCE,
           layout: { visibility: latestPolygons.current ? "visible" : "none" },

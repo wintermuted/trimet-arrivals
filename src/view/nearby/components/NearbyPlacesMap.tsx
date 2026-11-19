@@ -180,6 +180,10 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
           document.createTextNode("Membership and arranged pickup may be required; not a public market."));
         if (place.category === "bicycle-parking") description.append(document.createElement("br"),
           document.createTextNode("Mapped rack, not live parking availability."));
+        if (place.amenityType) description.append(document.createElement("br"),
+          document.createTextNode(place.amenityStyle || place.amenityType));
+        if (place.category === "drinking-fountain") description.append(document.createElement("br"),
+          document.createTextNode("Water service and potability are not verified; some assets are dog bowls."));
         const hint = document.createElement("p");
         hint.textContent = "Click for details and trip planning.";
         content.append(hint);

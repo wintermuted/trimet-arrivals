@@ -10,10 +10,85 @@ import {
   fetchCityPlaces, fetchMetroPlaces, fetchNeighborhoods, fetchParks, normalizeCityPlaces, normalizeMetroPlaces, normalizeNeighborhoods,
   normalizeParks, normalizePods, polygonPoint, writeSnapshots, normalizeLineOverlay, fetchLineOverlay
 } from "./refresh-places.mjs";
+import { fetchArcgisFeatures } from "./arcgis.mjs";
+import { buildContextSnapshots, CONTEXT_SOURCES, fetchContextFeatures } from "./context-overlays.mjs";
 
 const geometry = { type: "Polygon", coordinates: [[[-122.7, 45.5], [-122.6, 45.5], [-122.6, 45.6], [-122.7, 45.5]]] };
 const park = id => ({ properties: { OBJECTID: id, PROPERTYID: id, NAME: `Park ${id}` }, geometry });
 const pod = (id, name, tags = {}) => ({ type: "node", id, lon: -122.67, lat: 45.52, tags: { amenity: "food_court", name, ...tags } });
+const amenity = (id, Asset = "Drinking Fountain", Status = "Active") => ({
+  type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
+  properties: { OBJECTID: id, Park: "Example Park", Asset, Status, Style: `${Asset}: Example`, Adopt_Donor: "DO NOT PUBLISH" }
+});
+const contextPoint = id => ({ type: "Feature", geometry: { type: "Point", coordinates: [-122.67, 45.52] },
+  properties: { OBJECTID: id, SPECIES: "Acer", StreetName: "Example Street", CrossStreet: "Other Street",
+    EquityPriorityScore: "DO NOT PUBLISH" } });
+
+test("keeps only active park amenities and their classifications without publishing donor fields", () => {
+  for (const [category, asset] of [["drinking-fountain", "Drinking Fountain"], ["picnic-seating", "Bench"], ["park-artwork", "Art Work"]]) {
+    const records = normalizeCityPlaces([amenity(1, asset), amenity(2, asset, "Removed"), amenity(3, asset, "Closed")], category);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].id, `portland:${category}:1`);
+    assert.equal(records[0].amenityType, asset);
+    assert.ok(!JSON.stringify(records).includes("DO NOT PUBLISH"));
+    assert.throws(() => normalizeCityPlaces([amenity(1, asset), amenity(1, asset)], category), /duplicate/);
+    assert.throws(() => normalizeCityPlaces([amenity(1, asset, "Unknown")], category), /status/);
+    assert.throws(() => normalizeCityPlaces([amenity(1, "Unrecognized")], category), /classification/);
+  }
+  assert.equal(normalizeCityPlaces([amenity(1, "Bench"), amenity(2, "Picnic Table")], "picnic-seating").length, 2);
+});
+
+test("fetches complete bounded ArcGIS batches and rejects duplicated, truncated or invalid ID inventories", async () => {
+  const ids = Array.from({ length: 405 }, (_, i) => i + 1);
+  let active = 0, maximum = 0;
+  const request = async url => {
+    const p = new URL(url).searchParams;
+    if (p.has("returnIdsOnly")) return { objectIds: ids };
+    assert.equal(p.get("maxAllowableOffset"), "0.000002");
+    const wanted = p.get("objectIds").split(",").map(Number);
+    assert.ok(wanted.length <= 200);
+    active++; maximum = Math.max(maximum, active);
+    await new Promise(resolve => setTimeout(resolve, 1));
+    active--;
+    return { features: wanted.map(contextPoint) };
+  };
+  assert.equal((await fetchArcgisFeatures(CONTEXT_SOURCES.sidewalks, request)).length, 405);
+  assert.ok(maximum <= 4);
+  for (const objectIds of [[1, 1], [0], [1.5], []]) {
+    await assert.rejects(fetchArcgisFeatures(CONTEXT_SOURCES.crossings, async () => ({ objectIds })), /IDs/);
+  }
+  await assert.rejects(fetchArcgisFeatures(CONTEXT_SOURCES.crossings, async url =>
+    url.includes("returnIdsOnly") ? { objectIds: [1, 2] } : { features: [contextPoint(1), contextPoint(1)] }), /duplicated/);
+});
+
+test("partitions complete context inventories into bounded content-addressed tiles without flattening sidewalk holes", () => {
+  const points = [contextPoint(1), { ...contextPoint(2), geometry: { type: "Point", coordinates: [-122.4, 45.6] } }];
+  const snapshots = buildContextSnapshots(points, "street-trees");
+  assert.equal(snapshots["street-trees.json"].count, 2);
+  assert.equal(snapshots["street-trees.json"].tiles.length, 2);
+  for (const tile of snapshots["street-trees.json"].tiles) {
+    assert.match(tile.file, /^street-trees-\d+-\d+-[a-f0-9]{12}\.json$/);
+    assert.equal(snapshots[tile.file].features.length, tile.count);
+    assert.ok(!JSON.stringify(snapshots[tile.file]).includes("DO NOT PUBLISH"));
+  }
+  const sidewalk = { ...contextPoint(1), geometry: { ...geometry, coordinates: [geometry.coordinates[0], geometry.coordinates[0]] } };
+  const polygons = buildContextSnapshots([sidewalk], "sidewalks");
+  assert.deepEqual(polygons[polygons["sidewalks.json"].tiles[0].file].features[0].geometry, sidewalk.geometry);
+  assert.throws(() => buildContextSnapshots([contextPoint(1)], "sidewalks"), /geometry/);
+  assert.throws(() => buildContextSnapshots([contextPoint(1), contextPoint(1)], "crossings"), /ID/);
+});
+test("retains tiny sidewalk assets when source display generalization collapses their polygon", async () => {
+  const original = { ...contextPoint(1), geometry };
+  const request = async url => {
+    const params = new URL(url).searchParams;
+    if (params.has("returnIdsOnly")) return { objectIds: [1] };
+    return { features: [{ ...original, geometry: params.has("maxAllowableOffset") ?
+      { type: "Polygon", coordinates: [] } : geometry }] };
+  };
+  const features = await fetchContextFeatures("sidewalks", request);
+  assert.deepEqual(features, [original]);
+  assert.equal(buildContextSnapshots(features, "sidewalks")["sidewalks.json"].count, 1);
+});
 
 test("retrieves all city records beyond the service page limit and rejects incomplete pages", async () => {
   const ids = Array.from({ length: 205 }, (_, i) => i + 1);
@@ -356,14 +431,26 @@ test("full and targeted refresh commands publish the intended snapshots without 
     await mkdir(scripts);
     const script = path.join(scripts, "refresh-places.mjs");
     await writeFile(script, await readFile(new URL("./refresh-places.mjs", import.meta.url)));
+    for (const module of ["arcgis.mjs", "context-overlays.mjs"]) {
+      await writeFile(path.join(scripts, module), await readFile(new URL(`./${module}`, import.meta.url)));
+    }
     const fixtures = {
       park: park(1), garden: cityGarden(1), market: cityMarket(1), restroom: cityRestroom(1), tree: cityTree(1),
       grocery: cityGrocery(1), reuse: cityReuse(1), csa: cityCsa(1), bike: cityBike(1),
       trail: trail(1), network: network(1), recommended: recommended(1),
       neighborhood: neighborhood(1), metro: metro(1, "Central Library"),
+      fountain: amenity(1), seating: amenity(2, "Bench"), artwork: amenity(3, "Art Work"),
+      streetTree: contextPoint(1), sidewalk: { ...contextPoint(1), geometry },
+      crossing: contextPoint(1), deficiency: contextPoint(1),
       osm: { osm3s: { timestamp_osm_base: "2026-07-15T12:00:00Z" }, elements: [pod(1, "Example Food Carts")] }
     };
+    const amenities = ["drinking-fountain.json", "picnic-seating.json", "park-artwork.json"];
+    const contexts = Object.keys(CONTEXT_SOURCES).flatMap(category => Object.keys(buildContextSnapshots(
+      [fixtures[category === "street-trees" ? "streetTree" : category === "sidewalks" ? "sidewalk" :
+        category === "crossings" ? "crossing" : "deficiency"]], category)));
     for (const [mode, expected] of [
+      ["--amenities-only", amenities],
+      ["--walking-trees-only", contexts],
       ["--gardens-markets-only", ["community-gardens.json", "farmers-markets.json"]],
       ["--restrooms-trees-only", ["public-restrooms.json", "heritage-trees.json"]],
       ["--everyday-only", ["grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json"]],
@@ -372,7 +459,7 @@ test("full and targeted refresh commands publish the intended snapshots without 
       ["", ["parks.json", "food-cart-pods.json", "community-centers.json", "libraries.json",
         "community-gardens.json", "farmers-markets.json", "public-restrooms.json", "heritage-trees.json", "neighborhoods.json",
         "grocery-stores.json", "reuse-repair.json", "csa-pickups.json", "bicycle-parking.json",
-        "park-trails.json", "bicycle-network.json", "recommended-bike-routes.json"]]
+        "park-trails.json", "bicycle-network.json", "recommended-bike-routes.json", ...amenities, ...contexts]]
     ]) {
       const code = `
         const fixtures = ${JSON.stringify(fixtures)};
@@ -381,7 +468,13 @@ test("full and targeted refresh commands publish the intended snapshots without 
           const parsed = new URL(url);
           const pathname = parsed.pathname;
           let data;
-          const key = pathname.includes("/216/") ? "garden" : pathname.includes("/187/") ? "market" :
+          const where = parsed.searchParams.get("where") || "";
+          const key = pathname.includes("/1291/") ?
+            (where.includes("Picnic") || parsed.searchParams.get("objectIds") === "2" ? "seating" :
+              where.includes("Art Work") || parsed.searchParams.get("objectIds") === "3" ? "artwork" : "fountain") :
+            pathname.includes("/1415/") ? "streetTree" : pathname.includes("/77/") ? "sidewalk" :
+            pathname.includes("/1400/") ? "crossing" : pathname.includes("/1411/") ? "deficiency" :
+            pathname.includes("/216/") ? "garden" : pathname.includes("/187/") ? "market" :
             pathname.includes("/1304/") ? "restroom" : pathname.includes("/26/") ? "tree" :
             pathname.includes("/40/") ? "grocery" : pathname.includes("/1426/") ? "reuse" :
             pathname.includes("/188/") ? "csa" : pathname.includes("/62/") ? "bike" :
@@ -399,8 +492,12 @@ test("full and targeted refresh commands publish the intended snapshots without 
             throw new Error("Overlay refresh queried an unrelated source");
           if (${JSON.stringify(mode)} === "--neighborhoods-only" && key !== "neighborhood")
             throw new Error("Neighborhood refresh queried an unrelated source");
+          if (${JSON.stringify(mode)} === "--amenities-only" && !["fountain", "seating", "artwork"].includes(key))
+            throw new Error("Amenity refresh queried an unrelated source");
+          if (${JSON.stringify(mode)} === "--walking-trees-only" && !["streetTree", "sidewalk", "crossing", "deficiency"].includes(key))
+            throw new Error("Context refresh queried an unrelated source");
           if (key === "osm") data = fixtures.osm;
-          else if (parsed.searchParams.has("returnIdsOnly")) data = {objectIds: [1]};
+          else if (parsed.searchParams.has("returnIdsOnly")) data = {objectIds: [fixtures[key].properties.OBJECTID || 1]};
           else if (pathname.endsWith("/query")) data = {features: [fixtures[key]]};
           else data = {objectIdField: "FID", editingInfo: {dataLastEditDate: 1660000000000}};
           return {ok: true, json: async () => data};

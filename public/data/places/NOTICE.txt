@@ -165,6 +165,45 @@ place destinations, or live closure/condition information. Verify legal directio
 signs, trail bike permissions, access restrictions and closures. Retrieval dates
 are not source update dates. No current-access or accessible-route claim is made.
 
+drinking-fountain.json, picnic-seating.json, park-artwork.json
+Source: City of Portland, Bureau of Parks and Recreation.
+Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/1291
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=54573
+Changes: retained only source-active Drinking Fountain, Picnic Table, Bench and
+Art Work assets; excluded removed/closed assets and unrelated donor/user fields.
+Each mapped point is an individual inventory asset, not a verified park entrance,
+artwork title, reservable area or live availability. Fountain assets can include
+dog bowls. No water-service, potability, opening, condition or accessibility
+guarantee is made. Tables/benches are opt-in to avoid overwhelming discovery.
+
+street-trees.json, sidewalks.json, crossings.json, crossing-deficiencies.json
+and their content-addressed spatial tiles
+Source: City of Portland, Parks and Recreation / Bureau of Transportation.
+Street trees: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/1415
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=61079
+Sidewalks: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/77
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=52484
+PedPDX crossings: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/1400
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=61072
+PedPDX deficiencies: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Transportation/MapServer/1411
+Metadata: https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=61070
+Changes: converted complete inventories to six-decimal WGS84 GeoJSON; partitioned
+whole features into 0.025-degree spatial tiles with complete feature bounds.
+Sidewalk display polygons are source-generalized at 0.000002 degrees (roughly
+0.2 m); tiny assets that collapse are retained from an un-generalized query.
+Preserved polygon holes/multipart geometry. Retained only species, relevant
+asset classifications and street labels; omitted personal/contact, maintenance
+and demographic priority fields. Tree points are not a shade/living-tree or
+access guarantee. PedPDX points describe historical planning inventories, not
+all crossings or live closures. Inventory gaps do not prove sidewalk absence.
+These are contextual overlays, not safe/accessible routes or destinations.
+
+Terms for these amenity and contextual snapshots:
+https://www.portlandmaps.com/bps/arpa/tos.pdf
+The City's Open Data terms provide PDDL v1.0 by default unless stated otherwise.
+PDDL: https://opendatacommons.org/licenses/pddl/1-0/
+Snapshots retain retrieval dates, source links, coverage and counts.
+
 neighborhoods.json
 Source: City of Portland, Bureau of Planning and Sustainability.
 Service: https://www.portlandmaps.com/od/rest/services/COP_OpenData_Boundary/MapServer/3

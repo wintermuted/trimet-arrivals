@@ -66,6 +66,8 @@ import { DEFAULT_PLACE_FILTERS, filterPlaces, placeCategoryForId, placeDetailLin
 import { useNeighborhoods } from "../../../api/places/neighborhoods";
 import { DEFAULT_LINE_OVERLAYS, LINE_OVERLAY_CATEGORIES, LineOverlayCategory, useLineOverlay } from "../../../api/places/lineOverlays";
 import NearbyLineOverlayMap from "./NearbyLineOverlayMap";
+import { CONTEXT_CATEGORIES, ContextCategory, DEFAULT_CONTEXT_OVERLAYS, useContextOverlay } from "../../../api/places/contextOverlays";
+import NearbyContextMap from "./NearbyContextMap";
 
 const DEFAULT_RADIUS = 1000;
 const SERVICE_AREA_CENTER: [number, number] = [-122.6784, 45.5152];
@@ -329,6 +331,7 @@ export default function NearbyViewComponent() {
   const placeCatalog = usePlaceCatalog(isPlaces);
   const [placeFilters, setPlaceFilters] = useState<PlaceFilters>(DEFAULT_PLACE_FILTERS);
   const [placeBounds, setPlaceBounds] = useState<[number, number, number, number]>();
+  const [placeZoom, setPlaceZoom] = useState(0);
   const [placeMapError, setPlaceMapError] = useState(false);
   const [neighborhoodsShown, setNeighborhoodsShown] = useState(false);
   const [neighborhoodPolygonsShown, setNeighborhoodPolygonsShown] = useState(false);
@@ -347,6 +350,19 @@ export default function NearbyViewComponent() {
   };
   const handleLineOverlayError = useCallback((category: LineOverlayCategory, error: boolean) =>
     setLineOverlayErrors(previous => previous[category] === error ? previous : { ...previous, [category]: error }), []);
+  const [contextShown, setContextShown] = useState(DEFAULT_CONTEXT_OVERLAYS);
+  const [contextErrors, setContextErrors] = useState(DEFAULT_CONTEXT_OVERLAYS);
+  const [contextRevisions, setContextRevisions] = useState({
+    "street-trees": 0, sidewalks: 0, crossings: 0, "crossing-deficiencies": 0
+  });
+  const contextSources = {
+    "street-trees": useContextOverlay("street-trees", isPlaces && contextShown["street-trees"], placeBounds, placeZoom),
+    sidewalks: useContextOverlay("sidewalks", isPlaces && contextShown.sidewalks, placeBounds, placeZoom),
+    crossings: useContextOverlay("crossings", isPlaces && contextShown.crossings, placeBounds, placeZoom),
+    "crossing-deficiencies": useContextOverlay("crossing-deficiencies", isPlaces && contextShown["crossing-deficiencies"], placeBounds, placeZoom)
+  };
+  const handleContextError = useCallback((category: ContextCategory, error: boolean) =>
+    setContextErrors(previous => previous[category] === error ? previous : { ...previous, [category]: error }), []);
   const [coincidentIds, setCoincidentIds] = useState<string[]>([]);
   const placeViewport = useRef<{ center: [number, number]; zoom: number }>();
   const filteredPlaces = useMemo(() => filterPlaces(placeCatalog.places, placeFilters),
@@ -368,6 +384,7 @@ export default function NearbyViewComponent() {
   const updatePlaceBounds = useCallback((bounds: [number, number, number, number]) => {
     setPlaceBounds(bounds);
     const map = mapRef.current;
+    if (map) setPlaceZoom(map.getZoom());
     if (map && !selectedPlaceId) {
       const center = map.getCenter();
       placeViewport.current = { center: [center.lng, center.lat], zoom: map.getZoom() };
@@ -679,6 +696,12 @@ export default function NearbyViewComponent() {
                   ) : <p role="alert">Place not found. This location may no longer be in the current catalog.</p>}
                 </section> : <NearbyPlaces sources={placeCatalog.sources} filters={placeFilters} onFilters={setPlaceFilters}
                   visiblePlaces={visiblePlaces} selected={selectedPlace} onSelect={selectPlace}
+                  contextOverlays={{ shown: contextShown, sources: contextSources, mapErrors: contextErrors,
+                    onShown: (category, shown) => setContextShown(previous => ({ ...previous, [category]: shown })),
+                    onRetry: category => {
+                      contextSources[category].retry();
+                      setContextRevisions(previous => ({ ...previous, [category]: previous[category] + 1 }));
+                    } }}
                   lineOverlays={{ shown: lineOverlaysShown, sources: lineOverlaySources, mapErrors: lineOverlayErrors,
                     onShown: (category, shown) => setLineOverlaysShown(previous => ({ ...previous, [category]: shown })),
                     onRetry: category => {
@@ -772,6 +795,10 @@ export default function NearbyViewComponent() {
             lineOverlaysShown[category] && lineOverlaySources[category].snapshot &&
             <NearbyLineOverlayMap key={`${category}-${lineOverlayRevisions[category]}`} map={mapRef.current}
               snapshot={lineOverlaySources[category].snapshot} onError={handleLineOverlayError} />)}
+          {isPlaces && isMapLoaded && CONTEXT_CATEGORIES.map(category =>
+            contextShown[category] && contextSources[category].snapshot &&
+            <NearbyContextMap key={`${category}-${contextRevisions[category]}`} map={mapRef.current}
+              snapshot={contextSources[category].snapshot} onError={handleContextError} />)}
           {isPlaces && isMapLoaded && <NearbyPlacesMap map={mapRef.current} places={mappedPlaces}
             selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
             onBounds={updatePlaceBounds} onError={setPlaceMapError} />}

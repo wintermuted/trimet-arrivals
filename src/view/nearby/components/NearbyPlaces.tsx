@@ -11,6 +11,7 @@ import {
 import "./NearbyPlaces.scss";
 import { NeighborhoodState } from "../../../api/places/neighborhoods";
 import { LINE_CAUTION_COLOR, LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "../../../api/places/lineOverlays";
+import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextControls } from "../../../api/places/contextOverlays";
 
 interface Props {
   sources: Record<PlaceCategory, PlaceSourceState>;
@@ -25,6 +26,7 @@ interface Props {
   mapError: boolean;
   mapReady: boolean;
   lineOverlays?: LineOverlayControls;
+  contextOverlays?: ContextControls;
   neighborhoods?: NeighborhoodState & {
     shown: boolean;
     onShown: (shown: boolean) => void;
@@ -36,7 +38,7 @@ interface Props {
 }
 
 export default function NearbyPlaces({
-  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods, lineOverlays
+  sources, filters, onFilters, visiblePlaces, selected, onSelect, origin, originMode, onRetry, mapError, mapReady, neighborhoods, lineOverlays, contextOverlays
 }: Props) {
   const [limit, setLimit] = useState(40);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -103,6 +105,18 @@ export default function NearbyPlaces({
           <span aria-hidden="true" className="transit-place-line-swatch transit-place-line-swatch--caution" style={{ borderColor: LINE_CAUTION_COLOR }} />
           {" "}Red dashes: difficult, higher-traffic or unclassified connections. A recommendation is not a safety guarantee.
         </p>}
+        {contextOverlays && CONTEXT_CATEGORIES.map(category => <React.Fragment key={category}>
+          <label className="transit-places-category transit-places-line-toggle transit-places-context-toggle">
+            <input type="checkbox" checked={contextOverlays.shown[category]} aria-describedby="place-context-help"
+              onChange={event => contextOverlays.onShown(category, event.target.checked)} />
+            <span aria-hidden="true" className={`transit-place-context-swatch transit-place-context-swatch--${category}`}
+              style={{ color: CONTEXT_OVERLAY_INFO[category].color }} />
+            {CONTEXT_OVERLAY_INFO[category].label}
+          </label>
+          {contextOverlays.shown[category] && contextOverlays.sources[category].zoomRequired &&
+            <p role="status">Zoom in to level {CONTEXT_OVERLAY_INFO[category].minZoom} or closer to see {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()}.</p>}
+        </React.Fragment>)}
+        {contextOverlays && <p id="place-context-help">Inventory context, not routing destinations. Hover for source details. Sidewalk gaps do not prove absence; crossing points do not guarantee safety or accessibility. Orange points mark planning deficiencies, not live closures. Street trees do not establish shade or public access.</p>}
       </fieldset>}
       <label className="transit-places-search">
         Search places in this map area
@@ -135,6 +149,14 @@ export default function NearbyPlaces({
         </div>}
       </React.Fragment>)}
       {mapError && <p role="alert">Place markers could not be drawn. You can still select places from this list. Reopen Places to retry the map layer.</p>}
+      {contextOverlays && CONTEXT_CATEGORIES.map(category => contextOverlays.shown[category] && <React.Fragment key={category}>
+        {contextOverlays.sources[category].loading && <p role="status">Loading {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()} in this map area...</p>}
+        {(contextOverlays.sources[category].error || contextOverlays.mapErrors[category]) && <div role="alert" className="transit-places-message">
+          <p>{CONTEXT_OVERLAY_INFO[category].label} could not be {contextOverlays.sources[category].error ? "loaded" : "drawn"}. Other places and layers remain usable.
+            {contextOverlays.sources[category].snapshot && " A previously loaded area may still be shown."}</p>
+          <Button size="sm" variant="secondary" onClick={() => contextOverlays.onRetry(category)}>Retry {CONTEXT_OVERLAY_INFO[category].label.toLowerCase()}</Button>
+        </div>}
+      </React.Fragment>)}
       {selected && (
         <section className="transit-place-detail" aria-labelledby="selected-place-heading">
           <div className="transit-place-detail-heading">
@@ -143,6 +165,15 @@ export default function NearbyPlaces({
           <p><FontAwesomeIcon icon={placeIconDefinition(selected.category)} aria-hidden="true" />{" "}
             {PLACE_INFO[selected.category].singular}</p>
           {selected.address && <p>{selected.address}</p>}
+          {["drinking-fountain", "picnic-seating", "park-artwork"].includes(selected.category) && <section aria-label="Park amenity information">
+            <h3>Source-listed amenity</h3>
+            <p>{selected.amenityStyle || selected.amenityType || PLACE_INFO[selected.category].singular}</p>
+            {selected.category === "drinking-fountain" ?
+              <p>Water service, potability, seasonal operation and accessible approaches are not verified. Some listed assets are dog bowls. Check local signs and the fixture before relying on this stop.</p> :
+              selected.category === "picnic-seating" ?
+              <p>Each marker represents an individual table or bench, not a reservable picnic area. Seating, availability, reservations, fees, condition and accessible approaches are not verified.</p> :
+              <p>This is a Parks asset record, not a complete public-art directory or a verified artwork title. Current visibility, condition and public access are not verified.</p>}
+          </section>}
           {selected.category === "grocery-store" && <p>Source-listed grocery store, not live opening or stock information. Confirm the current location and hours before traveling.</p>}
           {selected.category === "reuse-repair" && <section aria-label="Reuse and repair services">
             <h3>Source-listed services</h3>
@@ -223,6 +254,16 @@ export default function NearbyPlaces({
       <details className="transit-places-notices">
         <summary>Data sources and coverage</summary>
         <p>Snapshots are not live listings. Access, entrances, and opening hours are not verified. Mapped places may be missing or out of date.</p>
+        {contextOverlays && CONTEXT_CATEGORIES.map(category => {
+          const index = contextOverlays.sources[category].index;
+          return index && <p key={category}>
+            <strong>{CONTEXT_OVERLAY_INFO[category].label}</strong><br />
+            <a href={index.sourceUrl} target="_blank" rel="noreferrer">{index.source}</a>
+            {" · "}<a href={index.licenseUrl} target="_blank" rel="noreferrer">{index.license}</a><br />
+            Retrieved {new Date(index.retrievedAt).toLocaleDateString()}. {index.count.toLocaleString()} mapped features;
+            {" "}only tiles intersecting this map area load at the required zoom. {index.coverage}
+          </p>;
+        })}
         <p>Regional Land Information System data are a product of Metro and made publicly available according to the{" "}
           <a href="https://rlisdiscovery.oregonmetro.gov/pages/open-database-license" target="_blank" rel="noreferrer">RLIS license agreement</a>.</p>
         {PLACE_CATEGORIES.map(category => {
