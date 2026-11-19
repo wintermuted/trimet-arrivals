@@ -6,7 +6,9 @@ export const PLACE_INFO = {
   "community-center": { label: "Community centers", singular: "Community center", icon: "users", file: "community-centers.json", color: "#7448a3" },
   library: { label: "Libraries", singular: "Public library", icon: "book", file: "libraries.json", color: "#176b95" },
   "community-garden": { label: "Community gardens", singular: "Community garden", icon: "leaf", file: "community-gardens.json", color: "#526d16" },
-  "farmers-market": { label: "Farmers markets", singular: "Farmers market", icon: "shopping-basket", file: "farmers-markets.json", color: "#a32d58" }
+  "farmers-market": { label: "Farmers markets", singular: "Farmers market", icon: "shopping-basket", file: "farmers-markets.json", color: "#a32d58" },
+  "public-restroom": { label: "Public restrooms", singular: "Parks-system restroom", icon: "restroom", file: "public-restrooms.json", color: "#1d6b73" },
+  "heritage-tree": { label: "Heritage trees", singular: "Heritage tree", icon: "seedling", file: "heritage-trees.json", color: "#82561d" }
 } as const;
 export type PlaceCategory = keyof typeof PLACE_INFO;
 export type PlacePoint = [number, number];
@@ -23,6 +25,10 @@ export interface InterestPlace {
   marketDays?: string;
   marketSeason?: string;
   marketHours?: string;
+  restroomStatus?: "listed-24-7" | "unknown";
+  restroomAda?: "yes" | "no" | "unknown";
+  scientificName?: string;
+  treeOwnership?: string;
 }
 export interface PlaceSnapshot {
   version: 1;
@@ -47,7 +53,8 @@ export const categoryIcon = (category: PlaceCategory) => PLACE_INFO[category].ic
 export const emptyPlaceSources = (): Record<PlaceCategory, PlaceSourceState> => ({
   park: { loading: false, error: false }, "food-cart-pod": { loading: false, error: false },
   "community-center": { loading: false, error: false }, library: { loading: false, error: false },
-  "community-garden": { loading: false, error: false }, "farmers-market": { loading: false, error: false }
+  "community-garden": { loading: false, error: false }, "farmers-market": { loading: false, error: false },
+  "public-restroom": { loading: false, error: false }, "heritage-tree": { loading: false, error: false }
 });
 export function placeCategoryForId(id: string): PlaceCategory | undefined {
   if (id?.startsWith("portland:park:")) return "park";
@@ -55,6 +62,8 @@ export function placeCategoryForId(id: string): PlaceCategory | undefined {
   if (id?.startsWith("metro:library:")) return "library";
   if (/^portland:garden:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(id || "")) return "community-garden";
   if (/^portland:market:\d+$/.test(id || "")) return "farmers-market";
+  if (/^portland:restroom:[1-9]\d*$/.test(id || "")) return "public-restroom";
+  if (/^portland:tree:[1-9]\d*$/.test(id || "")) return "heritage-tree";
   if (/^osm:(node|way|relation):\d+$/.test(id || "")) return "food-cart-pod";
   return undefined;
 }
@@ -77,7 +86,13 @@ function isPlace(value: unknown, category: PlaceCategory): value is InterestPlac
     (value.parkPropertyId === undefined || (category === "community-garden" &&
       Number.isInteger(value.parkPropertyId) && Number(value.parkPropertyId) > 0)) &&
     ["marketDays", "marketSeason", "marketHours"].every(key => value[key] === undefined ||
-      (category === "farmers-market" && typeof value[key] === "string"));
+      (category === "farmers-market" && typeof value[key] === "string")) &&
+    (value.restroomStatus === undefined || (category === "public-restroom" && typeof value.restroomStatus === "string" &&
+      ["listed-24-7", "unknown"].includes(value.restroomStatus))) &&
+    (value.restroomAda === undefined || (category === "public-restroom" && typeof value.restroomAda === "string" &&
+      ["yes", "no", "unknown"].includes(value.restroomAda))) &&
+    ["scientificName", "treeOwnership"].every(key => value[key] === undefined ||
+      (category === "heritage-tree" && typeof value[key] === "string"));
 }
 
 export function parsePlaceSnapshot(value: unknown, category: PlaceCategory): PlaceSnapshot {
@@ -116,7 +131,7 @@ export async function loadPlaceSnapshot(category: PlaceCategory, signal?: AbortS
 export function usePlaceCatalog(enabled: boolean) {
   const [sources, setSources] = useState(emptyPlaceSources);
   const [retries, setRetries] = useState({ park: 0, "food-cart-pod": 0, "community-center": 0, library: 0,
-    "community-garden": 0, "farmers-market": 0 });
+    "community-garden": 0, "farmers-market": 0, "public-restroom": 0, "heritage-tree": 0 });
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
@@ -145,7 +160,7 @@ export function usePlaceCatalog(enabled: boolean) {
 
 export type PlaceFilters = Record<PlaceCategory, boolean> & { search: string };
 export const DEFAULT_PLACE_FILTERS: PlaceFilters = { park: true, "food-cart-pod": true, "community-center": true,
-  library: true, "community-garden": true, "farmers-market": true, search: "" };
+  library: true, "community-garden": true, "farmers-market": true, "public-restroom": true, "heritage-tree": true, search: "" };
 export function filterPlaces(places: InterestPlace[], filters: PlaceFilters) {
   const query = filters.search.trim().toLocaleLowerCase();
   const gardenProperties = new Set(places.filter(place => place.category === "community-garden")
@@ -153,7 +168,7 @@ export function filterPlaces(places: InterestPlace[], filters: PlaceFilters) {
   return places.filter(place => !(place.category === "park" && /\bcommunity garden\b/i.test(place.name) &&
       gardenProperties.has(Number(place.id.replace("portland:park:", "")))) &&
     filters[place.category] &&
-    `${place.name} ${place.address || ""}`.toLocaleLowerCase().includes(query));
+    `${place.name} ${place.address || ""} ${place.scientificName || ""}`.toLocaleLowerCase().includes(query));
 }
 export function placeInBounds(place: InterestPlace, bounds: [number, number, number, number]) {
   const [lng, lat] = place.coordinates;

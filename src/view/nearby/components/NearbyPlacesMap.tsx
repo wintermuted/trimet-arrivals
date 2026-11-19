@@ -66,7 +66,7 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
           map.addSource(source, {
             type: "geojson", data: placeFeatures(latest.current.places, category),
             cluster: true, clusterRadius: 45, clusterMaxZoom: 14,
-            attribution: category === "park" || category === "community-garden" ? "City of Portland, Bureau of Parks and Recreation" :
+            attribution: ["park", "community-garden", "public-restroom", "heritage-tree"].includes(category) ? "City of Portland, Bureau of Parks and Recreation" :
               category === "farmers-market" ? "City of Portland, Bureau of Planning and Sustainability" :
               category === "food-cart-pod" ? '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors (ODbL)</a>' :
                 '<a href="https://rlisdiscovery.oregonmetro.gov/pages/open-database-license">Metro RLIS data (license)</a>'
@@ -167,6 +167,10 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
           document.createTextNode("Schedules may be outdated; check before visiting."));
         if (place.category === "community-garden") description.append(document.createElement("br"),
           document.createTextNode("Plot access may require registration."));
+        if (place.category === "public-restroom") description.append(document.createElement("br"),
+          document.createTextNode("Availability is not live; closures or access restrictions may apply."));
+        if (place.category === "heritage-tree") description.append(document.createElement("br"),
+          document.createTextNode("May be on private land; view only from lawful public access."));
         const hint = document.createElement("p");
         hint.textContent = "Click for details and trip planning.";
         content.append(hint);

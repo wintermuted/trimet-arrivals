@@ -12,6 +12,18 @@ export const CITY_PLACE_SOURCES = {
   "farmers-market": {
     url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_ImportantPlaces/MapServer/187",
     metadataId: 54387, file: "farmers-markets.json", bureau: "Bureau of Planning and Sustainability"
+  },
+  "public-restroom": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Miscellaneous/MapServer/1304",
+    metadataId: 60891, file: "public-restrooms.json", bureau: "Bureau of Parks and Recreation",
+    fields: "OBJECTID,Property,Building,Room,Status,ADA",
+    coverage: "Parks-system restroom rooms, not a citywide directory. Source-closed rooms and records without mapped coordinates are excluded; unknown status is retained. Co-located rooms remain distinct. Listed hours and ADA information are not live or verified; seasonal closures, fees and building access restrictions may apply."
+  },
+  "heritage-tree": {
+    url: "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Environment/MapServer/26",
+    metadataId: 52455, file: "heritage-trees.json", bureau: "Bureau of Parks and Recreation",
+    fields: "OBJECTID,TREEID,STATUS,COMMON,SCIENTIFIC,SITE_ADDRESS,Ownership,Delist_Date",
+    coverage: "Source-designated Heritage trees only; removed, merit and delisted records are excluded. Points mark trunks, not public entrances. Some trees are on private land or not visible from public paths. View only from lawful public access; do not enter private property."
   }
 };
 export const OSM_QUERY = '[out:json][timeout:60];area["boundary"="administrative"]["admin_level"="8"]["name"="Portland"]["wikidata"="Q6106"]->.p;nwr(area.p)["amenity"="food_court"];out center tags;';
@@ -213,6 +225,7 @@ export async function fetchParks(request = json) {
 
 export function normalizeCityPlaces(features, category) {
   if (!features.length) throw new Error(`City ${category} response was empty`);
+  if (category === "public-restroom" || category === "heritage-tree") return normalizeCityDestinations(features, category);
   const places = new Map();
   for (const feature of features) {
     const properties = feature.properties || {};
@@ -250,6 +263,46 @@ export function normalizeCityPlaces(features, category) {
   return [...places.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
+function normalizeCityDestinations(features, category) {
+  const restroom = category === "public-restroom";
+  const places = new Map();
+  const text = value => typeof value === "string" ? value.trim() || undefined : undefined;
+  for (const feature of features) {
+    const properties = feature.properties || {};
+    const status = text(restroom ? properties.Status : properties.STATUS)?.toLowerCase();
+    if (!(restroom ? ["1", "2", "3"] : ["heritage", "merit", "removed"]).includes(status)) {
+      throw new Error(`Unrecognized ${category} status`);
+    }
+    if (restroom ? status === "3" : status !== "heritage" || properties.Delist_Date != null) continue;
+    const sourceId = restroom ? properties.OBJECTID : properties.TREEID;
+    const title = text(restroom ? properties.Property : properties.COMMON);
+    if (!Number.isInteger(sourceId) || sourceId <= 0 || !title) throw new Error(`Missing ${category} name or source ID`);
+    if (restroom && feature.geometry?.type === "Point" && Array.isArray(feature.geometry.coordinates) && !feature.geometry.coordinates.length) {
+      console.warn(`Omitted restroom ${sourceId} (${title}): source has no mapped coordinates.`);
+      continue;
+    }
+    if (feature.geometry?.type !== "Point" || !validPoint(feature.geometry.coordinates)) {
+      throw new Error(`Invalid ${category} geometry`);
+    }
+    const id = `portland:${restroom ? "restroom" : "tree"}:${sourceId}`;
+    if (places.has(id)) throw new Error(`Duplicate ${category} source ID`);
+    places.set(id, {
+      id, category, coordinates: feature.geometry.coordinates, arrival: "approximate",
+      name: restroom ? [title, text(properties.Building), text(properties.Room)].filter(Boolean).join(" - ") : `${title} (Heritage Tree #${sourceId})`,
+      sourceUrl: `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${CITY_PLACE_SOURCES[category].metadataId}`,
+      ...(restroom ? {
+        restroomStatus: status === "1" ? "listed-24-7" : "unknown",
+        restroomAda: ["yes", "no"].includes(text(properties.ADA)?.toLowerCase()) ? text(properties.ADA).toLowerCase() : "unknown"
+      } : {
+        address: text(properties.SITE_ADDRESS), scientificName: text(properties.SCIENTIFIC),
+        treeOwnership: text(properties.Ownership)
+      })
+    });
+  }
+  if (!places.size) throw new Error(`No eligible ${category} records`);
+  return [...places.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export async function fetchCityPlaces(category, request = json) {
   const source = CITY_PLACE_SOURCES[category];
   if (!source) throw new Error(`Unsupported city place category ${category}`);
@@ -260,8 +313,8 @@ export async function fetchCityPlaces(category, request = json) {
   for (let offset = 0; offset < uniqueIds.length; offset += 100) {
     const params = new URLSearchParams({
       objectIds: uniqueIds.slice(offset, offset + 100).join(","),
-      outFields: category === "community-garden" ? "OBJECTID,GlobalID,PropertyID,Site_Name,Status" :
-        "OBJECTID,Market,Location,Day,Open_Dates,Open_Times,Website,status",
+      outFields: source.fields || (category === "community-garden" ? "OBJECTID,GlobalID,PropertyID,Site_Name,Status" :
+        "OBJECTID,Market,Location,Day,Open_Dates,Open_Times,Website,status"),
       outSR: "4326", returnGeometry: "true", f: "geojson"
     });
     const page = await request(`${source.url}/query?${params}`);
@@ -277,9 +330,9 @@ export async function fetchCityPlaces(category, request = json) {
     source: `City of Portland, ${source.bureau}`,
     sourceUrl: `https://www.portlandmaps.com/metadata/index.cfm?action=DisplayLayer&LayerID=${source.metadataId}`,
     license: "PDDL-1.0", licenseUrl: "https://www.portlandmaps.com/bps/arpa/tos.pdf",
-    coverage: category === "community-garden"
+    coverage: source.coverage || (category === "community-garden"
       ? "City-managed community garden areas listed active in the source. Plots may require registration or have restricted access. Display points are not verified entrances."
-      : "Farmers markets listed active in the City source, not a complete or live directory. Seasonal dates and hours may be old; confirm the current schedule and location on the market website.",
+      : "Farmers markets listed active in the City source, not a complete or live directory. Seasonal dates and hours may be old; confirm the current schedule and location on the market website."),
     places: normalizeCityPlaces(features, category)
   };
 }
@@ -363,6 +416,15 @@ export async function writeSnapshots(directory, snapshots) {
 }
 
 async function main() {
+  if (process.argv.includes("--restrooms-trees-only")) {
+    const restrooms = await fetchCityPlaces("public-restroom");
+    const trees = await fetchCityPlaces("heritage-tree");
+    await writeSnapshots(path.join(ROOT, "public", "data", "places"), {
+      "public-restrooms.json": restrooms, "heritage-trees.json": trees
+    });
+    console.log(`Refreshed ${restrooms.places.length} restroom rooms and ${trees.places.length} heritage trees. Review source status and access before publishing.`);
+    return;
+  }
   if (process.argv.includes("--gardens-markets-only")) {
     const gardens = await fetchCityPlaces("community-garden");
     const markets = await fetchCityPlaces("farmers-market");
@@ -395,10 +457,13 @@ async function main() {
   const neighborhoods = await fetchNeighborhoods();
   const gardens = await fetchCityPlaces("community-garden");
   const markets = await fetchCityPlaces("farmers-market");
+  const restrooms = await fetchCityPlaces("public-restroom");
+  const trees = await fetchCityPlaces("heritage-tree");
   const retrievedAt = new Date().toISOString();
   if (!Number.isFinite(Date.parse(osm.osm3s?.timestamp_osm_base))) throw new Error("OSM source timestamp missing");
   const snapshots = {
     "community-gardens.json": gardens, "farmers-markets.json": markets,
+    "public-restrooms.json": restrooms, "heritage-trees.json": trees,
     "neighborhoods.json": neighborhoods,
     "parks.json": {
       version: 1, category: "park", retrievedAt, source: "City of Portland, Bureau of Parks and Recreation",
@@ -429,7 +494,7 @@ async function main() {
     };
   }
   await writeSnapshots(path.join(ROOT, "public", "data", "places"), snapshots);
-  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, ${libraries.places.length} libraries, ${gardens.places.length} community gardens, ${markets.places.length} farmers markets, and ${neighborhoods.features.length} neighborhood boundary areas. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
+  console.log(`Refreshed ${parks.length} parks, ${pods.length} food-cart pods, ${centers.places.length} community centers, ${libraries.places.length} libraries, ${gardens.places.length} community gardens, ${markets.places.length} farmers markets, ${restrooms.places.length} restroom rooms, ${trees.places.length} heritage trees, and ${neighborhoods.features.length} neighborhood boundary areas. OSM data as of ${osm.osm3s.timestamp_osm_base}. Review data changes before publishing.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -1,12 +1,12 @@
-import { faBook, faLeaf, faBasketShopping, faTree, faUsers, faUtensils } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faLeaf, faBasketShopping, faRestroom, faSeedling, faTree, faUsers, faUtensils } from "@fortawesome/free-solid-svg-icons";
 import { PlaceCategory } from "../../../../api/places/places";
 
 const definitions = { park: faTree, "food-cart-pod": faUtensils, "community-center": faUsers, library: faBook,
-  "community-garden": faLeaf, "farmers-market": faBasketShopping };
-const definition = (category: PlaceCategory) => definitions[category];
+  "community-garden": faLeaf, "farmers-market": faBasketShopping, "public-restroom": faRestroom, "heritage-tree": faSeedling };
+export const placeIconDefinition = (category: PlaceCategory) => definitions[category];
 
 export function createPlaceIconImage(category: PlaceCategory): ImageData {
-  const [width, height, , , paths] = definition(category).icon;
+  const [width, height, , , paths] = placeIconDefinition(category).icon;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 48;
   const context = canvas.getContext("2d");
@@ -20,7 +20,7 @@ export function createPlaceIconImage(category: PlaceCategory): ImageData {
 }
 
 export function createPlaceIconElement(category: PlaceCategory): SVGSVGElement {
-  const [width, height, , , paths] = definition(category).icon;
+  const [width, height, , , paths] = placeIconDefinition(category).icon;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   svg.setAttribute("aria-hidden", "true");
