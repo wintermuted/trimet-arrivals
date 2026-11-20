@@ -1,7 +1,7 @@
-import { getVehicles, parseVehicleSnapshot } from "./vehicles";
-import { API_ID } from "./constants";
+/** @jest-environment jsdom */
+import { getVehicles, parseVehicleSnapshot } from "./index";
 
-jest.mock("../util", () => ({ fixtureEnabled: () => false }));
+const options = { baseUrl: "https://example.test/ws/", appId: "test-id" };
 
 const now = 1800000000000;
 const bus = { vehicleID: 1, type: "bus", longitude: -122.68, latitude: 45.51, time: now, expires: now + 60000 };
@@ -16,11 +16,11 @@ it("requests a viewport snapshot with an abort signal, not arrival parameters", 
     ok: true, json: async () => ({ resultSet: { queryTime: now, vehicle: [bus] } }),
   });
   global.fetch = fetchMock;
-  expect((await getVehicles(bounds, signal)).vehicles[0].id).toBe("1");
+  expect((await getVehicles(bounds, options, signal)).vehicles[0].id).toBe("1");
   const url = new URL(fetchMock.mock.calls[0][0]);
   expect(url.pathname).toBe("/ws/v2/vehicles");
   expect(url.searchParams.get("bbox")).toBe(bounds.join(","));
-  expect(url.searchParams.get("appID")).toBe(API_ID);
+  expect(url.searchParams.get("appID")).toBe(options.appId);
   expect(url.searchParams.get("onRouteOnly")).toBe("true");
   expect(url.searchParams.get("showNonRevenue")).toBe("false");
   expect(url.searchParams.get("showStale")).toBe("false");
@@ -57,17 +57,17 @@ it.each([429, 503, 401])("surfaces HTTP %s and preserves throttling/permanent fa
   global.fetch = jest.fn().mockResolvedValue({
     ok: false, status, headers: { get: () => "45" },
   });
-  await expect(getVehicles(bounds)).rejects.toMatchObject({
+  await expect(getVehicles(bounds, options)).rejects.toMatchObject({
     permanent: status === 401, retryAfterMs: 45000,
   });
 });
 
 it("does not fetch invalid bounds or an already aborted request", async () => {
   global.fetch = jest.fn();
-  await expect(getVehicles([-122, 46, -123, 45])).rejects.toThrow("bounds");
+  await expect(getVehicles([-122, 46, -123, 45], options)).rejects.toThrow("bounds");
   const controller = new AbortController();
   controller.abort();
-  await expect(getVehicles(bounds, controller.signal)).rejects.toMatchObject({ name: "AbortError" });
+  await expect(getVehicles(bounds, options, controller.signal)).rejects.toMatchObject({ name: "AbortError" });
   expect(global.fetch).not.toHaveBeenCalled();
 });
 
@@ -75,7 +75,7 @@ it("looks up a followed vehicle by identity without viewport restrictions", asyn
   global.fetch = jest.fn().mockResolvedValue({
     ok: true, json: async () => ({ resultSet: { queryTime: now, vehicle: [bus] } }),
   });
-  await getVehicles(undefined, undefined, "1");
+  await getVehicles(undefined, options, undefined, "1");
   const url = new URL(jest.mocked(global.fetch).mock.calls[0][0].toString());
   expect(url.searchParams.get("ids")).toBe("1");
   expect(url.searchParams.has("bbox")).toBe(false);
