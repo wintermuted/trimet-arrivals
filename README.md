@@ -155,7 +155,9 @@ The navigation bar's **Search all places** searches every published category acr
 Portland, including disabled categories and places outside the current map, saved
 view or trip corridor. It matches names, category labels, addresses and source-listed
 types, ignores accents and supports multiple search terms. Exact and prefix name
-matches appear first; **Show more places** exposes additional matches. The catalog
+matches appear first; results use the same category icons and theme-aware colors
+as Places, with matching text highlighted in names and descriptions.
+**Show more places** exposes additional matches. The catalog
 loads on first search interaction rather than on every page visit. Partial failures
 show an inline error tooltip and source-specific retry beside **All places**, while
 loaded results stay usable. Arrow keys or Tab browse result links; Escape dismisses
