@@ -43,6 +43,9 @@ jobs:
       - name: Test place data refresh
         run: npx nx run-many -t test:places-data
 
+      - name: Test workspace packages
+        run: npx nx run-many -t test:package --outputStyle=stream
+
       - name: Typecheck
         run: npx nx run-many -t typecheck
 

@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
-import { useTimeDisplay } from "../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import {
   getNormalizedTimeDifference
 } from "../util/timeUtils";

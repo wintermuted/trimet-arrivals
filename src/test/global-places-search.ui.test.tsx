@@ -2,7 +2,7 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Simulate } from "react-dom/test-utils";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import * as places from "../api/places/places";
+import * as places from "@trimet-arrivals/places/catalog";
 import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
 import { placeIconDefinition } from "../view/nearby/util/mapbox/placeIcons";
 import * as deviceGeolocation from "../api/geolocation/geoLocateCurrentPosition";

@@ -10,7 +10,7 @@ import {
 import React from "react";
 import { Link } from "react-router-dom";
 import { Alert } from "../../api/trimet/interfaces/alertsData";
-import { useTimeDisplay } from "../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import Loading from "../loading/Loading";
 
 function getStopClosureTable(locations) {

@@ -1,7 +1,7 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
-import { categoryName, PLACE_CATEGORIES, PlaceCategory, PlaceSourceState } from "../../../api/places/places";
+import { categoryName, PLACE_CATEGORIES, PlaceCategory, PlaceSourceState } from "@trimet-arrivals/places/catalog";
 import PlacesHelp from "./PlacesHelp";
 import "./PlacesLoadStatus.scss";
 

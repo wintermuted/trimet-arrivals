@@ -5,10 +5,10 @@ import { MemoryRouter } from "react-router-dom";
 import {
   CONTEXT_CATEGORIES, ContextCategory, ContextFeatures, ContextIndex, MapBounds,
   parseContextIndex, parseContextTile, useContextOverlay, DEFAULT_CONTEXT_OVERLAYS
-} from "../api/places/contextOverlays";
+} from "@trimet-arrivals/places/contextOverlays";
 import NearbyContextMap, { contextSource } from "../view/nearby/components/NearbyContextMap";
 import NearbyPlaces from "../view/nearby/components/NearbyPlaces";
-import { DEFAULT_PLACE_FILTERS, emptyPlaceSources } from "../api/places/places";
+import { DEFAULT_PLACE_FILTERS, emptyPlaceSources } from "@trimet-arrivals/places/catalog";
 
 jest.mock("mapbox-gl", () => ({ Popup: jest.fn() }));
 const feature = (category: ContextCategory, id = 1): ContextFeatures["features"][number] => ({

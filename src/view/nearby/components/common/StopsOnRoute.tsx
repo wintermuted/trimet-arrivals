@@ -14,7 +14,7 @@ import { RouteDirectionStop } from "../../../../api/trimet/interfaces/routes";
 import { StopData, TrimetRoute } from "../../../../api/trimet/interfaces/types";
 import { getNearbyStops } from "../../../../api/trimet/stops";
 import { getMatchingStopTime, reportedTime, StopTime } from "../../util/tripTimes";
-import { useTimeDisplay } from "../../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 
 interface StopsOnRouteParams {
   remainingStopsOnRoute: RouteDirectionStop[];

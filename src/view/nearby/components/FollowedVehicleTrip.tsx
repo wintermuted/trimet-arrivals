@@ -3,7 +3,7 @@ import { Button } from "@wintermuted/ui-theme/react";
 import { ROUTE_DISPLAY } from "../../../api/trimet/constants";
 import { VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
 import { VehicleTrip, VehicleTripStop } from "../../../api/trimet/vehicleTrip";
-import { useTimeDisplay } from "../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import { VehicleFeed } from "../util/useVehiclePositions";
 import { useVehicleTrip } from "../util/useVehicleTrip";
 import { VehicleFollowView } from "../util/mapbox/vehicleLayer";

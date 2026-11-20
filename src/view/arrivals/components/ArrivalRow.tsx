@@ -4,7 +4,7 @@ import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import OnTimeIndicator from "../../../component/arrivalIndicator/OnTimeIndicator";
 import TimeToArrivalIndicator from "../../../component/arrivalIndicator/TimeToArrivalIndicator";
 import RouteIndicator from "../../../component/route/RouteIndicator";
-import { useTimeDisplay } from "../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import { getDistanceUntilArrival } from "../util";
 import "./Arrivals.css";
 

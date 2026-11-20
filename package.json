@@ -1,6 +1,7 @@
 {
   "name": "trimet-arrivals",
   "private": true,
+  "workspaces": ["packages/*"],
   "nx": {},
   "author": "Jameson Nyeholt <jameson.nyeholt@gmail.com>",
   "license": "MIT",
@@ -8,6 +9,8 @@
     "node": ">=26.0.0"
   },
   "dependencies": {
+    "@trimet-arrivals/places": "0.0.0",
+    "@trimet-arrivals/ui": "0.0.0",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^21.2.4",
     "@fortawesome/fontawesome-svg-core": "^7.3.1",

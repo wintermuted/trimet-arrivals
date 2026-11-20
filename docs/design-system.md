@@ -21,6 +21,11 @@ picker uses `MultiSelect` from `@wintermuted/ui-theme/react/select`, with
 shared navigation/list components rather than wrapping controls in link bridges.
 Bootstrap styles, components, and router adapters are no longer used.
 
+App-owned reusable React components live in `@trimet-arrivals/ui`. Use its
+public API for `TimeDisplayProvider`, `useTimeDisplay`, and `TimeDisplaySettings`.
+Navigation wrappers stay in the app; `@wintermuted/ui-theme` remains the source
+for shared design tokens and primitives.
+
 ## Layout and theme tokens
 
 Responsive page layouts use app-owned `.transit-container`, `.transit-columns`,

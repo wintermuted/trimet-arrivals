@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { useLocation } from "react-router-dom";
-import { useTimeDisplay } from "./TimeDisplay";
-import TimeDisplaySettings from "./TimeDisplaySettings";
+import { TimeDisplaySettings, useTimeDisplay } from "@trimet-arrivals/ui";
 
 export default function TimeDisplayMenu() {
   const { formatTime } = useTimeDisplay();

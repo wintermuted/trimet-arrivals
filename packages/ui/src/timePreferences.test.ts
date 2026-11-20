@@ -5,7 +5,7 @@ import {
   storeTimezone,
   TIME_FORMAT_KEY,
   TIMEZONE_KEY
-} from "./timeDisplay";
+} from "./timePreferences";
 
 describe("time display preferences", () => {
   beforeEach(() => localStorage.clear());

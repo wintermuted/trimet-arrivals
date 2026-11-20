@@ -9,7 +9,7 @@ import { RouteDirectionStop } from "../../../api/trimet/interfaces/routes";
 import type { StopMode } from "../../../api/trimet/stopCatalog";
 import { getTripTimes, StopTime, TripTime } from "../util/tripTimes";
 import { TopNavBar } from "./common/TopNavBar";
-import { useTimeDisplay } from "../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import { DirectionsStopPair } from "../../tripPlanner/DirectionsStopPair";
 
 const routeIcons: Record<StopMode, typeof faBus> = {

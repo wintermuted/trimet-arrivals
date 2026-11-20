@@ -13,7 +13,7 @@ import { getAlertsForStop } from "../../../api/trimet/alertScopes";
 import { Alert } from "../../../api/trimet/interfaces/alertsData";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import RouteIndicator from "../../../component/route/RouteIndicator";
-import { useTimeDisplay } from "../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import Loading from "../../loading/Loading";
 
 function getLink(alert: Alert) {
