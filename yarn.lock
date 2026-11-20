@@ -1268,13 +1268,13 @@
     tinyexec "^1.0.0"
     yargs "^17.0.0"
 
-"@commitlint/config-conventional@^20.0.0":
-  version "20.0.0"
-  resolved "https://registry.npmjs.org/@commitlint/config-conventional/-/config-conventional-20.0.0.tgz"
-  integrity sha512-q7JroPIkDBtyOkVe9Bca0p7kAUYxZMxkrBArCfuD3yN4KjRAenP9PmYwnn7rsw8Q+hHq1QB2BRmBh0/Z19ZoJw==
+"@commitlint/config-conventional@^21.2.4":
+  version "21.2.4"
+  resolved "https://registry.yarnpkg.com/@commitlint/config-conventional/-/config-conventional-21.2.4.tgz#e2cce5e957f3891290efe629206c6c4718ef685b"
+  integrity sha512-IRldtwgNmR0SySR7wizFbhRmq45lPt6H3XCNTMyVN7jrPLgi8JlTRR6Eg1HLWUQt9P1Lh3k6eY25ilDa47EE6w==
   dependencies:
-    "@commitlint/types" "^20.0.0"
-    conventional-changelog-conventionalcommits "^7.0.2"
+    "@commitlint/types" "^21.2.3"
+    conventional-changelog-conventionalcommits "^10.0.0"
 
 "@commitlint/config-validator@^20.0.0":
   version "20.0.0"
@@ -1409,6 +1409,19 @@
   dependencies:
     "@types/conventional-commits-parser" "^5.0.0"
     chalk "^5.3.0"
+
+"@commitlint/types@^21.2.3":
+  version "21.2.3"
+  resolved "https://registry.yarnpkg.com/@commitlint/types/-/types-21.2.3.tgz#004da63f916654309485f5c1ec4dcba8bd2ebe78"
+  integrity sha512-sGEA473TlCvhCGNoTBY9OXZVWdscIXdGt0dm8EpB+2MRfmt8LNh/X56P/T3nCtEB+eH5qGEa3odphSAoUxSfSQ==
+  dependencies:
+    conventional-commits-parser "^7.0.0"
+    picocolors "^1.1.1"
+
+"@conventional-changelog/template@^1.4.0":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@conventional-changelog/template/-/template-1.4.1.tgz#cfb4cc394ef7adc60d221fe9547fcad2466b866f"
+  integrity sha512-mHyyEL0eIEqJ6+aF24+AdZRo4bu4W5GdUiCiCx5X7kfDY51ye8GQJ264uOINObrRSKxtSRCOWPpl9hbOy4UzxQ==
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
@@ -1788,17 +1801,12 @@
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-7.3.1.tgz#913fe0c0aed1184390efeec2546d78f9c4c8dc4a"
   integrity sha512-k0C0sdHmZtAo6dRDtd1Z/qcpyHbL0CKsjV8seMY/21xGhY5Wsv0XRmiI/xEEH4y2c9b1+jvgNs/3EqhV27yUEA==
 
-"@fortawesome/fontawesome-common-types@^0.2.36":
-  version "0.2.36"
-  resolved "https://registry.npmjs.org/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.2.36.tgz"
-  integrity sha512-a/7BiSgobHAgBWeN7N0w+lAhInrGxksn13uK7231n2m8EDPE3BMCl9NZLTGrj9ZXfCmC6LM0QLqXidIizVQ6yg==
-
-"@fortawesome/fontawesome-svg-core@^1.2.26":
-  version "1.2.36"
-  resolved "https://registry.npmjs.org/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-1.2.36.tgz"
-  integrity sha512-YUcsLQKYb6DmaJjIHdDWpBIGCcyE/W+p/LMGvjQem55Mm2XWVAP5kWTMKWLv9lwpCVjpLxPyOMOyUocP1GxrtA==
+"@fortawesome/fontawesome-svg-core@^7.3.1":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-7.3.1.tgz#eca344c1c8094598240c44d28e97ad53eb0c4537"
+  integrity sha512-BoxVN3PKnMbgStHhjoaky/oWdxHomDqmBVA24IA3KEmssFGeI7u9YT/BJceOjIum/t6TpPa/vcMKaVYQeIQ/3Q==
   dependencies:
-    "@fortawesome/fontawesome-common-types" "^0.2.36"
+    "@fortawesome/fontawesome-common-types" "7.3.1"
 
 "@fortawesome/free-solid-svg-icons@^7.3.1":
   version "7.3.1"
@@ -1807,12 +1815,10 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "7.3.1"
 
-"@fortawesome/react-fontawesome@^0.1.8":
-  version "0.1.19"
-  resolved "https://registry.npmjs.org/@fortawesome/react-fontawesome/-/react-fontawesome-0.1.19.tgz"
-  integrity sha512-Hyb+lB8T18cvLNX0S3llz7PcSOAJMLwiVKBuuzwM/nI5uoBw+gQjnf9il0fR1C3DKOI5Kc79pkJ4/xB0Uw9aFQ==
-  dependencies:
-    prop-types "^15.8.1"
+"@fortawesome/react-fontawesome@^3.5.0":
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/@fortawesome/react-fontawesome/-/react-fontawesome-3.5.0.tgz#ce8152e556809326e1253682088bfdd116a453bd"
+  integrity sha512-63mlRr6fiBbJ0wjr1Cf6dsDGtP2lNvk9lnatKgxs/fIkhslsZT291hIUzJkuUkI9yr69ZvWnWfgb2qXm4QyVaA==
 
 "@humanwhocodes/config-array@^0.13.0":
   version "0.13.0"
@@ -2559,6 +2565,11 @@
   version "1.15.0"
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.15.0.tgz"
   integrity sha512-ojSshQPKwVvSMR8yT2L/QtUkV5SXi/IfDiJ4/8d6UbTPjiHVmxZzUAzGD8Tzks1b9+qQkZa0isUOvYObedITaw==
+
+"@simple-libs/stream-utils@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@simple-libs/stream-utils/-/stream-utils-2.0.0.tgz#758d2a0876b4d672dac1eae212cdbab452670d3c"
+  integrity sha512-fCTuZK4QBa+39Oz9l4OGfJfz+GpwCp3AqO7Zch3to99xHPgstVsRFpeQ8LNd2o1Gv8raL2mCFwiaHh7bFSp5DQ==
 
 "@sinclair/typebox@^0.24.1":
   version "0.24.51"
@@ -3736,6 +3747,11 @@ argparse@^2.0.1:
   resolved "https://registry.npmjs.org/argparse/-/argparse-2.0.1.tgz"
   integrity sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==
 
+argue-cli@^3.1.0:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/argue-cli/-/argue-cli-3.2.1.tgz#1dba3d3ef96a84cb44aff4b8b6f320478f800810"
+  integrity sha512-h8QG03KSAympQnbZe0k5h/mnQCCkoKO9rVQ0L+F99+NNTV4vm18Lq70WwIKE0aLN3mM1EUf42l960bl6Dd0jOw==
+
 argv@0.0.2:
   version "0.0.2"
   resolved "https://registry.npmjs.org/argv/-/argv-0.0.2.tgz"
@@ -4639,12 +4655,12 @@ conventional-changelog-angular@^7.0.0:
   dependencies:
     compare-func "^2.0.0"
 
-conventional-changelog-conventionalcommits@^7.0.2:
-  version "7.0.2"
-  resolved "https://registry.npmjs.org/conventional-changelog-conventionalcommits/-/conventional-changelog-conventionalcommits-7.0.2.tgz"
-  integrity sha512-NKXYmMR/Hr1DevQegFB4MwfM5Vv0m4UIxKZTTYuD98lpTknaZlSRrDOG4X7wIXpGkfsYxZTghUN+Qq+T0YQI7w==
+conventional-changelog-conventionalcommits@^10.0.0:
+  version "10.4.1"
+  resolved "https://registry.yarnpkg.com/conventional-changelog-conventionalcommits/-/conventional-changelog-conventionalcommits-10.4.1.tgz#7f53704de03014b113fb67d6fe82d5221dfeb703"
+  integrity sha512-jS1LRFSbRoAr6JbhhRy1JYfNNUj5LM3+v49hRE03CgccsiYqgdVj/RTmrw4J1rylrqijHwdOlJWiJa61JHOgHg==
   dependencies:
-    compare-func "^2.0.0"
+    "@conventional-changelog/template" "^1.4.0"
 
 conventional-commits-parser@^5.0.0:
   version "5.0.0"
@@ -4655,6 +4671,14 @@ conventional-commits-parser@^5.0.0:
     is-text-path "^2.0.0"
     meow "^12.0.1"
     split2 "^4.0.0"
+
+conventional-commits-parser@^7.0.0:
+  version "7.1.4"
+  resolved "https://registry.yarnpkg.com/conventional-commits-parser/-/conventional-commits-parser-7.1.4.tgz#99df5bd2e8aab6a932fbaaa2564c9a597e56283b"
+  integrity sha512-TW3PZHi6hwF4cyu7KKc4kNqD1cgg8AkkK5ge9+zsEfpjaSXOeeIQyNWBr7kx5hR2wFuKVmr0be37RzcpmACQIA==
+  dependencies:
+    "@simple-libs/stream-utils" "^2.0.0"
+    argue-cli "^3.1.0"
 
 convert-source-map@^1.4.0, convert-source-map@^1.5.0, convert-source-map@^1.6.0, convert-source-map@^1.7.0:
   version "1.9.0"
