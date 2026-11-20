@@ -33,20 +33,23 @@ module.exports = {
     {
       ...common,
       displayName: "ui",
-      testMatch: ["<rootDir>/src/**/*.ui.test.tsx"],
+      roots: ["<rootDir>/src"],
+      testMatch: ["**/*.ui.test.tsx"],
       setupFilesAfterEnv: ["<rootDir>/src/test/setupDOMTests.js"]
     },
     {
       ...common,
       displayName: "legacy",
-      testMatch: ["<rootDir>/src/**/?(*.)+(spec|test).[jt]s?(x)"],
+      roots: ["<rootDir>/src"],
+      testMatch: ["**/?(*.)+(spec|test).[jt]s?(x)"],
       testPathIgnorePatterns: ["/node_modules/", "\\.ui\\.test\\.tsx$"],
       setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"]
     },
     ...["places", "ui"].map((name) => ({
       ...common,
       displayName: `${name}-package`,
-      testMatch: [`<rootDir>/packages/${name}/src/**/*.test.[jt]s?(x)`],
+      roots: [`<rootDir>/packages/${name}/src`],
+      testMatch: ["**/*.test.[jt]s?(x)"],
       setupFilesAfterEnv: ["<rootDir>/src/test/setupDOMTests.js"]
     }))
   ]
