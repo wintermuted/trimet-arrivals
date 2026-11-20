@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { categoryName, normalizePlaceSearch, PLACE_CATEGORIES, placeDetailLink, searchPlaces, usePlaceCatalog } from "../../../api/places/places";
 import PlacesLoadStatus, { placeSourceIssues } from "../../nearby/components/PlacesLoadStatus";
 import { placeIconDefinition } from "../../nearby/util/mapbox/placeIcons";
+import { useSharedDeviceLocation } from "../../../api/geolocation/geoLocateCurrentPosition";
 import "./GlobalPlacesSearch.scss";
 
 const PAGE_SIZE = 10;
@@ -41,11 +42,12 @@ export default function GlobalPlacesSearch() {
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(PAGE_SIZE);
   const catalog = usePlaceCatalog(activated);
+  const deviceLocation = useSharedDeviceLocation();
   const location = useLocation();
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const id = useId();
-  const matches = useMemo(() => searchPlaces(catalog.places, query), [catalog.places, query]);
+  const matches = useMemo(() => searchPlaces(catalog.places, query, deviceLocation), [catalog.places, query, deviceLocation]);
   const issues = placeSourceIssues(catalog.sources, catalog.retry);
   const loading = activated && PLACE_CATEGORIES.some(category => catalog.sources[category].loading ||
     (!catalog.sources[category].snapshot && !catalog.sources[category].error));

@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import * as places from "../api/places/places";
 import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
 import { placeIconDefinition } from "../view/nearby/util/mapbox/placeIcons";
+import * as deviceGeolocation from "../api/geolocation/geoLocateCurrentPosition";
 
 const cafe: places.InterestPlace = { id: "osm:cafe:node:1", category: "cafe", name: "Café Yarrow",
   coordinates: [-122.7, 45.6], address: "20 Northeast Broadway", siteType: "Cafe",
@@ -35,6 +36,7 @@ describe("Global navbar Places search", () => {
   let container: HTMLDivElement, root: Root;
   let catalog: ReturnType<typeof places.usePlaceCatalog>;
   let loadCatalog: jest.SpyInstance;
+  let sharedLocationHook: jest.SpyInstance;
 
   beforeEach(() => {
     container = document.createElement("div");
@@ -42,6 +44,7 @@ describe("Global navbar Places search", () => {
     root = createRoot(container);
     catalog = { places: [park, reserve, cafe, bike], sources: loadedSources([park, reserve, cafe, bike]), retry: jest.fn() };
     loadCatalog = jest.spyOn(places, "usePlaceCatalog").mockImplementation(() => catalog);
+    sharedLocationHook = jest.spyOn(deviceGeolocation, "useSharedDeviceLocation").mockReturnValue(undefined);
   });
   afterEach(() => {
     act(() => root.unmount());
@@ -73,6 +76,19 @@ describe("Global navbar Places search", () => {
     expect(places.searchPlaces([cafe, starts, exact], "yarrow")).toEqual([exact, starts, cafe]);
   });
 
+  it("prefers nearby equally relevant matches without overriding name relevance or excluding distant results", () => {
+    const origin: [number, number] = [-122.67, 45.55];
+    const near: places.InterestPlace = { ...cafe, name: "Zinnia Cafe", coordinates: [-122.66, 45.55] };
+    const far: places.InterestPlace = { ...cafe, id: "osm:cafe:node:2", name: "Alder Cafe", coordinates: [-122.67, 45.559] };
+    const exact: places.InterestPlace = { ...cafe, id: "osm:cafe:node:3", name: "Café", coordinates: [-123, 46] };
+    const prefix: places.InterestPlace = { ...exact, id: "osm:cafe:node:4", name: "Cafe Horizon" };
+    const records = [near, far, prefix, exact];
+    expect(places.searchPlaces(records, "cafe")).toEqual([exact, prefix, far, near]);
+    expect(places.searchPlaces(records, "cafe", origin)).toEqual([exact, prefix, near, far]);
+    expect(places.searchPlaces(records, "cafe", far.coordinates)).toEqual([exact, prefix, far, near]);
+    expect(records).toEqual([near, far, prefix, exact]);
+  });
+
   it("loads lazily and returns disabled categories with basename-aware direct links without changing the current view", () => {
     render();
     expect(loadCatalog).toHaveBeenLastCalledWith(false);
@@ -86,6 +102,41 @@ describe("Global navbar Places search", () => {
     act(() => results()[0].click());
     expect(container.querySelector("[data-location]").textContent).toBe("/nearby/places/osm%3Acafe%3Anode%3A1");
     expect(container.querySelector(".transit-global-search-popover")).toBeNull();
+  });
+
+  it("reacts to previously shared device positions without requesting location from search and clears preference on denial", async () => {
+    sharedLocationHook.mockRestore();
+    const original = Object.getOwnPropertyDescriptor(navigator, "geolocation");
+    const near: places.InterestPlace = { ...cafe, name: "Zinnia Cafe", coordinates: [-122.66, 45.55] };
+    const far: places.InterestPlace = { ...cafe, id: "osm:cafe:node:2", name: "Alder Cafe", coordinates: [-122.67, 45.559] };
+    catalog = { ...catalog, places: [far, near], sources: loadedSources([far, near]) };
+    const getCurrentPosition = jest.fn((success, _failure) => success({ coords: { longitude: -122.67, latitude: 45.55 } }));
+    Object.defineProperty(navigator, "geolocation", { configurable: true, value: { getCurrentPosition } });
+    const names = () => results().map(link => link.querySelector("strong").textContent);
+    try {
+      render();
+      search("cafe");
+      expect(names()).toEqual([far.name, near.name]);
+      expect(getCurrentPosition).not.toHaveBeenCalled();
+      await act(async () => { await deviceGeolocation.default(); });
+      expect(names()).toEqual([near.name, far.name]);
+      expect(input().value).toBe("cafe");
+      getCurrentPosition.mockImplementationOnce(success => success({ coords: {
+        longitude: far.coordinates[0], latitude: far.coordinates[1]
+      } }));
+      await act(async () => { await deviceGeolocation.default(); });
+      expect(names()).toEqual([far.name, near.name]);
+      await act(async () => { await deviceGeolocation.default(); });
+      expect(names()).toEqual([near.name, far.name]);
+      const denied = { code: 1, message: "Permission denied" };
+      getCurrentPosition.mockImplementationOnce((_success, failure) => failure(denied));
+      await act(async () => { await expect(deviceGeolocation.default()).rejects.toBe(denied); });
+      expect(names()).toEqual([far.name, near.name]);
+      expect(getCurrentPosition).toHaveBeenCalledTimes(4);
+    } finally {
+      if (original) Object.defineProperty(navigator, "geolocation", original);
+      else delete navigator.geolocation;
+    }
   });
 
   it("supports keyboard results, Escape, focus dismissal and pointer dismissal without discarding the query", () => {
