@@ -87,6 +87,9 @@
     "trimet": "node ./scripts/split_routes.js"
   },
   "overrides": {
+    "conventional-commits-parser@7.1.4": {
+      "argue-cli": "3.2.0"
+    },
     "enzyme": {
       "cheerio": "1.0.0-rc.12"
     }
