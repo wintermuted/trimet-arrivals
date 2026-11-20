@@ -3,6 +3,7 @@ import { Button } from "@wintermuted/ui-theme/react";
 import FontAwesome from "react-fontawesome";
 import { SearchRadiusSelection } from "./SearchRadiusSelection";
 import { VehicleFeed } from "../util/useVehiclePositions";
+import PlacesLoadStatus from "./PlacesLoadStatus";
 
 export type LatLngCoords = number[];
 
@@ -16,6 +17,7 @@ interface Props {
   radiusSize: number;
   onRadiusChange: React.ChangeEventHandler<HTMLSelectElement>;
   isLocating: boolean;
+  locationError?: boolean;
   isMapLoading: boolean;
   searchMode: "none" | "device" | "area" | "pin";
   vehiclesEnabled: boolean;
@@ -46,6 +48,7 @@ function NearbyMapV2({
   radiusSize,
   onRadiusChange,
   isLocating,
+  locationError = false,
   isMapLoading,
   searchMode,
   vehiclesEnabled,
@@ -116,6 +119,11 @@ function NearbyMapV2({
           <Button type="button" variant="secondary" className="transit-map-control-button" onClick={onFindMe} disabled={isLocating} title="Find near me" aria-label={isLocating ? "Finding your location" : "Find near me"}>
             <FontAwesome name={isLocating ? "spinner" : "location-arrow"} spin={isLocating} aria-hidden="true" />
           </Button>
+          <PlacesLoadStatus label="Current location" issues={locationError ? [{
+            label: "Current location",
+            message: "Current location is unavailable. Check browser permissions and retry, or keep browsing the map.",
+            retry: onFindMe
+          }] : []} />
         </div>
       </div>
       {vehiclesEnabled && (

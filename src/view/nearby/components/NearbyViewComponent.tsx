@@ -304,7 +304,9 @@ export default function NearbyViewComponent() {
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &&
     searchParams.getAll("referrer").length === 1 && searchParams.get("referrer") === "/";
-  const shouldAutoLocate = !isLanding && !isPlanner && !isPlaces && !fromHome;
+  const canCenterOnDevice = !isLanding && !isPlanner && !isPlaces && !isStopDetail;
+  const canCenterOnDeviceRef = useRef(canCenterOnDevice);
+  canCenterOnDeviceRef.current = canCenterOnDevice;
   const nearbyZoomRef = useRef(getNearbyMapZoom(DEFAULT_RADIUS));
   const [radiusSize, setRadiusSize] = useState<number>(DEFAULT_RADIUS);
   const [nearbyStops, setNearbyStopData] = useState<StopData>(undefined);
@@ -317,6 +319,7 @@ export default function NearbyViewComponent() {
   const [isLocating, setIsLocating] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const locationRequestRef = useRef(0);
+  const initialLocationRequest = useRef<Promise<Location>>();
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [vehiclesEnabled, setVehiclesEnabled] = useState(true);
   const [vehicleMapError, setVehicleMapError] = useState(false);
@@ -471,16 +474,18 @@ export default function NearbyViewComponent() {
 
   const nearbyRouteIds = useMemo(() => nearbyRoutes && getNearbyRouteIds(nearbyRoutes), [nearbyRoutes]);
   const stopLocations = nearbyStops && getStopLocations(nearbyStops);
-  const locate = useCallback(async () => {
+  const locate = useCallback(async (background = false) => {
     const request = ++locationRequestRef.current;
     setIsLocating(true);
     setLocationError(false);
     try {
-      const position = await getCurrentPosition();
+      const position = await (background
+        ? initialLocationRequest.current ?? (initialLocationRequest.current = getCurrentPosition())
+        : getCurrentPosition());
       if (request !== locationRequestRef.current) return;
       setUserLocation(position);
       setSearchMode("device");
-      mapRef.current?.flyTo({
+      if (!background && !canCenterOnDeviceRef.current) mapRef.current?.flyTo({
         center: [position.coords.longitude, position.coords.latitude],
         zoom: nearbyZoomRef.current,
         essential: true,
@@ -495,21 +500,24 @@ export default function NearbyViewComponent() {
 
   const hideNearbyStopsForFollow = Boolean(following) && !isRouteInfo;
   useEffect(() => {
-    if (shouldAutoLocate) void locate();
-    else setIsLocating(false);
+    void locate(true);
     return () => { locationRequestRef.current += 1; };
-  }, [locate, shouldAutoLocate]);
+  }, [locate]);
+
+  useEffect(() => {
+    if (!canCenterOnDevice || !userLocation || searchMode !== "device") return;
+    mapRef.current?.flyTo({
+      center: [userLocation.coords.longitude, userLocation.coords.latitude],
+      zoom: nearbyZoomRef.current,
+      essential: true,
+    });
+  }, [canCenterOnDevice, userLocation, searchMode]);
 
   useEffect(() => {
     const returningToLanding = isLanding && !wasLanding.current;
     wasLanding.current = isLanding;
     if (!returningToLanding) return;
 
-    locationRequestRef.current += 1;
-    setIsLocating(false);
-    setLocationError(false);
-    setUserLocation(undefined);
-    setSearchMode("none");
     setNearbyStopData(undefined);
     setNearbyRoutesData(undefined);
     setNearbyDataError(false);
@@ -518,7 +526,7 @@ export default function NearbyViewComponent() {
   }, [isLanding]);
 
   useEffect(() => {
-    if (!userLocation || isPlaces) return;
+    if (!userLocation || isLanding || isPlanner || isPlaces || fromHome) return;
     setNearbyDataError(false);
     setIsNearbyDataLoading(true);
     setNearbyStopData(undefined);
@@ -543,31 +551,31 @@ export default function NearbyViewComponent() {
     return () => {
       active = false;
     };
-  }, [userLocation, radiusSize, retryCount, isPlaces]);
+  }, [userLocation, radiusSize, retryCount, isLanding, isPlanner, isPlaces, fromHome]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeStopLocationLayers(mapRef.current);
-    if (!isPlanner && !isPlaces && !isChoosingDirectionStop && !hideNearbyStopsForFollow && stopLocations && nearbyRouteIds) {
+    if (!isLanding && !isPlanner && !isPlaces && !isChoosingDirectionStop && !hideNearbyStopsForFollow && stopLocations && nearbyRouteIds) {
       setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     }
-  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isPlaces, isChoosingDirectionStop, hideNearbyStopsForFollow]);
+  }, [isMapLoaded, nearbyStops, nearbyRoutes, isLanding, isPlanner, isPlaces, isChoosingDirectionStop, hideNearbyStopsForFollow]);
 
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isPlanner || isPlaces || isDirections || isRouteInfo || following) return;
+    if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isLanding || isPlanner || isPlaces || isDirections || isRouteInfo || following) return;
     return showNearbyRouteLines(mapRef.current, nearbyRouteIds);
-  }, [isMapLoaded, nearbyRouteIds, isPlanner, isPlaces, isDirections, isRouteInfo, following]);
+  }, [isMapLoaded, nearbyRouteIds, isLanding, isPlanner, isPlaces, isDirections, isRouteInfo, following]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeCurrentLocationMarkers(mapRef.current);
-    if (!isPlanner && !isPlaces && !following && userLocation) {
+    if (!isLanding && !isPlanner && !isPlaces && !following && userLocation) {
       setCurrentLocationMarker(mapRef.current, lng, lat, radiusSize);
     }
-  }, [isMapLoaded, userLocation, radiusSize, isPlanner, isPlaces, following]);
+  }, [isMapLoaded, userLocation, radiusSize, isLanding, isPlanner, isPlaces, following]);
 
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current || isPlanner || isPlaces || following || !userLocation || searchMode !== "pin") return;
+    if (!isMapLoaded || !mapRef.current || isLanding || isPlanner || isPlaces || following || !userLocation || searchMode !== "pin") return;
     const marker = new mapboxgl.Marker({ draggable: true })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
@@ -577,7 +585,7 @@ export default function NearbyViewComponent() {
     };
     marker.on("dragend", onDragEnd);
     return () => { marker.off("dragend", onDragEnd); marker.remove(); };
-  }, [isMapLoaded, userLocation, searchMode, isPlanner, isPlaces, following]);
+  }, [isMapLoaded, userLocation, searchMode, isLanding, isPlanner, isPlaces, following]);
 
   function initializeMapboxMap() {
     mapRef.current = initializeMap(
@@ -844,6 +852,7 @@ export default function NearbyViewComponent() {
             radiusSize={radiusSize}
             onRadiusChange={handleRadiusSelectionChange}
             isLocating={isLocating}
+            locationError={locationError}
             isMapLoading={!isMapLoaded}
             searchMode={searchMode}
             placesMode={isPlaces}

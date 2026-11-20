@@ -115,7 +115,16 @@ The Nearby landing screen offers **Explore** (`/nearby/simple-routes`) and
 food-cart pods, community centers, libraries, community gardens, farmers markets,
 public restrooms, and heritage trees as tiles. Each view has a back link to the
 landing screen. Going back clears the nearby stops, route lines, and location
-circle and restores the Portland overview without remounting the map. The sidebar planner
+circle and restores the Portland overview without remounting the map. First
+entry anywhere under Nearby requests device location in the background, once
+per visit to the Nearby workspace. The launcher, Places catalog, direct details
+and planner load independently; navigating between Nearby sections does not
+repeat the request. Location-dependent results and place-routing origins update
+when the fix arrives, without a reload. Explicit place/shared map views, linked
+trips and newer area/pin searches are not replaced by a late background fix.
+Location failures have an inline map-control error tooltip and retry. A successful
+fix is retained in memory across Nearby sections; leaving and reopening Nearby
+starts a new request. The sidebar planner
 uses the service-wide stop catalog and works without a nearby location or
 nearby results. Standalone `/planner` links still work; both planner views
 support `from` and `to` stop links. Use **Other origin options** or
@@ -311,8 +320,9 @@ or switch the transit planner to cycling mode.
 
 An existing explicitly selected Nearby origin is reused and identified as a
 device location, search center, or dropped pin; simply panning Places never
-changes that origin. With no origin, choose one in the planner. Opening Places
-does not request device location or require nearby transit results. Filters,
+changes that origin. With no origin, choose one in the planner. Places does not
+wait for Nearby's background location request or require nearby transit results.
+Its routing links gain the device origin when it becomes available. Filters,
 selection, and Places viewport survive switching between Nearby tabs. Browsing
 downloads same-origin static snapshots, not live third-party place searches.
 Planning retains the existing coordinate-link privacy and walking-estimates opt-in.
@@ -701,8 +711,8 @@ ranks whole routes by their earliest reported
 arrival, nearest stop, or route number without separating their directions.
 
 Nearby discovers candidates within the selected **straight-line radius**, not a
-walking catchment. The Nearby landing map opens on a Portland-area overview without
-requesting your location. **Explore** centers and zooms the map as soon as your
+walking catchment. The Nearby landing map opens on a Portland-area overview while
+requesting your location in the background. **Explore** centers and zooms the map as soon as your
 device location is available, without waiting for stops to load. If location is unavailable or permission is denied, use
 the map to search instead or retry after changing browser permissions. Move the
 map and choose **Search this area** to search its center, or **Drop pin at map center** and drag the pin to move

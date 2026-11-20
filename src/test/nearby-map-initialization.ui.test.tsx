@@ -286,7 +286,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     act(() => listeners[listeners.length - 1][1]());
   }
 
-  it("loads the Portland overview without locating, then finds nearby stops on entering Explore", async () => {
+  it("loads the Portland overview while locating in the background, then recovers Explore without requesting again", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
     let resolveStops: (value: StopData) => void;
     jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
@@ -300,7 +300,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(initializeMap).toHaveBeenLastCalledWith(-122.6784, 45.5152, expect.anything(), 10);
     expect(mapSkeleton()?.textContent).toBe("Loading map…");
     expect(sidebarSkeleton()).toBeNull();
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     expect(getNearbyStops).not.toHaveBeenCalled();
 
     finishMapLoading();
@@ -334,15 +334,19 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
     expect(map.flyTo).toHaveBeenLastCalledWith(expect.objectContaining({ center: [-122.6784, 45.5152], zoom: 10 }));
     expect(container.querySelector(".transit-nearby-map-canvas")).toBe(mapCanvas);
-    expect(container.querySelector(".transit-map-location-status").textContent).toBe("Choose area");
+    expect(container.querySelector(".transit-map-location-status").textContent).toBe("Near me");
     expect(removeCurrentLocationMarkers).toHaveBeenCalledWith(map);
     expect(removeStopLocationLayers).toHaveBeenCalledWith(map);
     expect(setCurrentLocationMarker).not.toHaveBeenCalled();
     expect(setNearbyStops).not.toHaveBeenCalled();
     expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
+    await act(async () => container.querySelector<HTMLAnchorElement>('.transit-nearby-tile[href="/nearby/simple-routes"]').click());
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    expect(container.querySelector(".transit-explore-routes")).not.toBeNull();
+    expect(map.flyTo).toHaveBeenLastCalledWith(expect.objectContaining({ center: [0, 0], zoom: 16 }));
   });
 
-  it("does not restore the Explore location if it arrives after going back", async () => {
+  it("does not recenter the landing map or load transit when a pending location arrives after going back", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
     jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
     await render("/nearby/simple-routes");
@@ -354,6 +358,25 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(getNearbyStops).not.toHaveBeenCalled();
     expect(map.flyTo).toHaveBeenCalledTimes(1);
     expect(map.flyTo).toHaveBeenLastCalledWith(expect.objectContaining({ center: [-122.6784, 45.5152], zoom: 10 }));
+  });
+
+  it("requests a fresh location when Nearby is reopened after leaving, without delaying its launcher", async () => {
+    await act(async () => root.render(<FeatureFlagsProvider>
+      <MemoryRouter initialEntries={["/", "/nearby"]}>
+        <NavigationProbe />
+        <Routes>
+          <Route path="/" element={<p>Outside Nearby</p>} />
+          <Route path="/nearby" element={<NearbyViewComponent />} />
+        </Routes>
+      </MemoryRouter>
+    </FeatureFlagsProvider>));
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    await act(async () => button("Browser back").click());
+    expect(container.textContent).toContain("Outside Nearby");
+    await act(async () => button("Browser forward").click());
+    expect(getCurrentPosition).toHaveBeenCalledTimes(2);
+    expect(container.querySelector(".transit-nearby-launcher")).not.toBeNull();
+    expect(getNearbyStops).not.toHaveBeenCalled();
   });
 
   function button(label: string) {
@@ -375,6 +398,62 @@ describe("Nearby map initialization independently of the sidebar", () => {
   }
   const discoveryPark: placesApi.InterestPlace = { id: "portland:park:1", category: "park", name: "Example Park",
     coordinates: [-122.67, 45.55], sourceUrl: "https://www.portlandmaps.com/", arrival: "approximate" };
+
+  it("keeps Places and details usable while permission is pending and adds the routing origin when it arrives", async () => {
+    let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
+    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    discoveryCatalog([discoveryPark]);
+    await render("/nearby/places");
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    expect(container.querySelector(".transit-places-filters")).not.toBeNull();
+    finishMapLoading();
+    expect(container.querySelector(".transit-places-list").textContent).toContain(discoveryPark.name);
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-place-result").click());
+    const plannerLink = () => container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]');
+    expect(new URLSearchParams(plannerLink().search).has("fromCoord")).toBe(false);
+    await act(async () => resolveLocation({ coords: { latitude: 45.51, longitude: -122.68 } }));
+    expect(new URLSearchParams(plannerLink().search).get("fromCoord")).toBe("-122.68,45.51");
+    expect(new URLSearchParams(plannerLink().search).get("fromOrigin")).toBe("device");
+    expect(button("Finding your location")).toBeUndefined();
+    expect(map.flyTo).not.toHaveBeenCalled();
+    expect(map.jumpTo).toHaveBeenLastCalledWith({ center: discoveryPark.coordinates, zoom: 15 });
+    expect(getNearbyStops).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps Places after denial and recovers its dependent routing origin through the inline retry", async () => {
+    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    discoveryCatalog([discoveryPark]);
+    await render(placesApi.placeDetailLink(discoveryPark.id));
+    finishMapLoading();
+    expect(container.querySelector("#selected-place-heading").textContent).toBe(discoveryPark.name);
+    expect(container.querySelector('[aria-label="Current location error"]')).not.toBeNull();
+    const plannerLink = () => container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]');
+    expect(new URLSearchParams(plannerLink().search).has("fromCoord")).toBe(false);
+    await act(async () => button("Retry current location").click());
+    expect(container.querySelector('[aria-label="Current location error"]')).toBeNull();
+    expect(new URLSearchParams(plannerLink().search).get("fromCoord")).toBe("0,0");
+    expect(getCurrentPosition).toHaveBeenCalledTimes(2);
+    expect(getNearbyStops).not.toHaveBeenCalled();
+  });
+
+  it("does not wait for background location before planning an explicit trip or move its map when the fix arrives", async () => {
+    let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
+    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    jest.mocked(getStopCatalog).mockResolvedValue({
+      stops: [101, 202].map(locid => ({ ...stops.location[0], locid, aliases: [], seq: 1, tp: false })),
+      routeCount: 1, directionCount: 1, stopReferenceCount: 2,
+      incompleteRouteCount: 0, incompleteDirectionCount: 0, incompleteRouteNames: [], invalidStopCount: 0
+    });
+    jest.mocked(planTrip).mockResolvedValue({ success: true, partial: false, itineraries: [] });
+    await render("/nearby/planner?from=101&to=202");
+    expect(planTrip).toHaveBeenCalledWith(expect.objectContaining({ fromPlace: "101", toPlace: "202" }));
+    expect(container.querySelector(".transit-planner")).not.toBeNull();
+    await act(async () => resolveLocation({ coords: { latitude: 45.51, longitude: -122.68 } }));
+    expect(planTrip).toHaveBeenCalledTimes(1);
+    expect(map.flyTo).not.toHaveBeenCalled();
+    expect(getNearbyStops).not.toHaveBeenCalled();
+  });
 
   it("opens a globally searched off-map cafe without enabling its category or replacing local filters", async () => {
     const cafe: placesApi.InterestPlace = { ...discoveryPark, id: "osm:cafe:node:12", category: "cafe",
@@ -398,7 +477,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector<HTMLInputElement>('.transit-places-category--cafe input').checked).toBe(false);
     expect(container.querySelector<HTMLInputElement>('.transit-places input[type="search"]').value).toBe("Example");
     expect(container.querySelector(".transit-places-list").textContent).not.toContain(cafe.name);
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
   });
 
   it("restores shared filters, reference layers and map position and retains the view through detail/planner header Back", async () => {
@@ -434,7 +513,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => container.querySelector<HTMLAnchorElement>(".transit-detail-back").click());
     expect(container.querySelector<HTMLInputElement>('input[type="search"]').value).toBe("Example");
     expect(container.querySelector<HTMLInputElement>('.transit-places-category--picnic-seating input').checked).toBe(true);
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
   });
 
   it("finds a saved place outside the viewport and removes it without navigating", async () => {
@@ -499,7 +578,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     jest.mocked(getStopCatalog).mockRejectedValue(new Error("catalog unavailable"));
     await render("/nearby/places");
     finishMapLoading();
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     expect(getNearbyStops).not.toHaveBeenCalled();
     expect(container.textContent).toContain("Example Park");
     expect(container.textContent).toContain("Food-cart pods could not be loaded");
@@ -543,7 +622,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(neighborhoodToggle().checked).toBe(true);
     expect(polygonToggle().checked).toBe(true);
     expect(map.jumpTo).toHaveBeenCalled();
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -567,7 +646,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     ["theatre", "osm:theatre:relation:6"],
     ["arts-centre", "osm:arts-centre:node:7"],
     ...placesApi.OUTING_PLACE_CATEGORIES.map(category => [category, `osm:${category}:way:123`] as const)
-  ] as const)("opens a directly linked %s without GPS and returns to Places using only the header", async (category, id) => {
+  ] as const)("opens a directly linked %s independently of GPS and returns to Places using only the header", async (category, id) => {
     const place: placesApi.InterestPlace = { id, category, name: "Directly linked place",
       coordinates: [-122.67, 45.52], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/" };
     const snapshot: placesApi.PlaceSnapshot = {
@@ -582,7 +661,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').search).toContain("confirmPlace=1");
     expect(container.textContent).not.toContain("Back to places");
     expect(map.jumpTo).toHaveBeenCalledWith({ center: place.coordinates, zoom: 15 });
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
     expect(container.querySelector(".transit-places-list")).not.toBeNull();
     expect(container.querySelector("#selected-place-heading")).toBeNull();
@@ -598,7 +677,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await render(path);
     expect(container.textContent).toContain("Loading place details");
     expect(container.querySelector(".transit-places-list")).toBeNull();
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     catalog.mockReturnValue({ places: [], sources: { ...placesApi.emptyPlaceSources(),
       park: { loading: false, error: true } }, retry });
     await render(path);
@@ -994,7 +1073,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     }
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-header a[aria-label="Back"]').click());
     expect(map.removeSource).toHaveBeenCalledWith("planner-itineraries");
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     expect(setNearbyStops).not.toHaveBeenCalled();
     expect(transferPopup.isConnected).toBe(false);
     expect(marker.remove).toHaveBeenCalledTimes(Marker.mock.calls.length);
@@ -1184,7 +1263,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
     }
   );
 
-  it("opens a homepage stop outside the radius without location or a loaded map", async () => {
+  it("opens a homepage stop outside the radius before location or the map is ready", async () => {
+    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise<never>(() => {}));
     jest.mocked(getArrivals).mockResolvedValue({
       arrival: [], detour: [], queryTime: "",
       location: [{ desc: "Far stop", dir: "E", id: 8455, lat: 2, lng: 1, passengerCode: "E" }]
@@ -1202,7 +1282,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
         </MemoryRouter>
       </FeatureFlagsProvider>
     ));
-    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     expect(getArrivals).toHaveBeenCalledWith("8455", 90);
     expect(container.textContent).toContain("Far stop");
     expect(container.textContent).toContain("Departures");
