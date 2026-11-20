@@ -5,7 +5,7 @@
   "author": "Jameson Nyeholt <jameson.nyeholt@gmail.com>",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=26.0.0"
   },
   "dependencies": {
     "@commitlint/cli": "^20.1.0",

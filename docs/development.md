@@ -6,8 +6,8 @@ The app uses TypeScript, React, and Redux. Local development uses Vite; producti
 
 ## Setup and local development
 
-Use the Node.js version in [`.nvmrc`](../.nvmrc) (20.19.6) and npm.
-The deployment workflows use Node.js 20.
+Use the Node.js version in [`.nvmrc`](../.nvmrc) (26.13.1) and npm.
+The deployment workflows read the same pinned version from `.nvmrc`.
 
 ```powershell
 npm ci
@@ -15,7 +15,7 @@ npm run watch
 ```
 
 Open the local URL printed by Vite. The repository's runtime floor in
-[`package.json`](../package.json) is Node.js 18, but use the pinned version for
+[`package.json`](../package.json) is Node.js 26, but use the pinned version for
 consistent development.
 
 ## Project origins
@@ -40,7 +40,7 @@ The map loader also accepts the existing line-based GeometryCollection assets.
 ## GitHub Copilot app
 
 Review and accept `.github/github-app.yml` in the app to enable the repository
-scripts. Node.js 20.19.6 (see `.nvmrc`) and npm must be available on your PATH.
+scripts. Node.js 26.13.1 (see `.nvmrc`) and npm must be available on your PATH.
 
 - **Setup** runs `npm ci` automatically when a new session is created. Wait for
   setup to finish before starting the dev server; it can also be rerun manually.

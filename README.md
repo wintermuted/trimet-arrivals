@@ -35,7 +35,7 @@ not current travel information.
 
 ## Run locally
 
-Use Node.js **20.19.6** (see [`.nvmrc`](.nvmrc)) and npm:
+Use Node.js **26.13.1** (see [`.nvmrc`](.nvmrc)) and npm:
 
 ```powershell
 npm ci
