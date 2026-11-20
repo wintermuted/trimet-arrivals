@@ -11,12 +11,12 @@ The deployment workflows read the same pinned version from `.nvmrc`.
 
 ```powershell
 npm ci
-npm run watch
+npx nx run-many -t watch
 ```
 
 Open the local URL printed by Vite. The repository's runtime floor in
 [`package.json`](../package.json) is Node.js 26, but use the pinned version for
-consistent development.
+consistent development. Nx wraps the existing npm scripts.
 
 ## Project origins
 
@@ -24,10 +24,19 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Focused UI tests and CI
 
-Run `npm run test:ui` for focused DOM integration tests covering navigation,
-bookmarks, dialogs, and theme preferences. Preview and production deployment
-workflows run these tests before the existing CRA production build. Local
-development continues to use Vite; build/type validation stays in CI.
+Run the focused DOM integration suite for navigation, bookmarks, dialogs, and
+theme preferences:
+
+```powershell
+npx nx run-many -t test:ui
+```
+
+GitHub Pages production and preview workflows run the UI and place-data tests
+before the CRA production build. Nx caches the place-data tests locally. UI
+tests still run every time, and builds are uncached because the preview needs its
+own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
+`npm run test:places-data`, and `npm run build` commands remain available.
+Build/type validation stays in CI.
 
 ## Route geometry export
 
@@ -55,7 +64,7 @@ sessions created from that branch.
 The existing ingestion tests do not query external services:
 
 ```powershell
-npm run test:places-data
+npx nx run-many -t test:places-data
 ```
 
 See [place-data maintenance](place-data.md) before running refresh commands,

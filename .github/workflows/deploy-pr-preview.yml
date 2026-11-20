@@ -11,6 +11,9 @@ permissions:
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
+    env:
+      # Let CRA load its own environment files as before.
+      NX_LOAD_DOT_ENV_FILES: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,15 +28,15 @@ jobs:
         run: npm ci
 
       - name: Test shared UI integration
-        run: npm run test:ui
+        run: npx nx run-many -t test:ui
 
       - name: Test place data refresh
-        run: npm run test:places-data
+        run: npx nx run-many -t test:places-data
 
       - name: Build for PR preview
         env:
           PUBLIC_URL: /${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}
-        run: npm run build
+        run: npx nx run-many -t build
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3

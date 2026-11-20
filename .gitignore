@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/.nx/cache
+/.nx/workspace-data
 
 # testing
 /coverage
