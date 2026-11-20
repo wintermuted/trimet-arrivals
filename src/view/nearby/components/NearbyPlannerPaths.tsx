@@ -39,7 +39,7 @@ function itineraryStops(itinerary: TripPlannerItinerary) {
       marker.actions.add(`${action === "board" ? "Board" : "Get off"}${route ? `: ${route}` : ""}`);
     }
   }
-  return [...stops.values()];
+  return Array.from(stops.values());
 }
 
 export default function NearbyPlannerPaths({ map, itineraries, selected, previewTrip, walkingEnabled, highlightedLeg, onMapLeg, routeColors }: {

@@ -67,7 +67,7 @@ export function parseVehicleSnapshot(value: unknown): VehicleSnapshot {
     const previous = vehicles.get(vehicle.id);
     if (!previous || previous.time < vehicle.time) vehicles.set(vehicle.id, vehicle);
   }
-  return { queryTime: result.queryTime, vehicles: [...vehicles.values()], rejected };
+  return { queryTime: result.queryTime, vehicles: Array.from(vehicles.values()), rejected };
 }
 
 export async function getVehicles(bounds: VehicleBounds | undefined, signal?: AbortSignal, vehicleId?: string): Promise<VehicleSnapshot> {

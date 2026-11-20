@@ -127,7 +127,7 @@ export function createVehicleLayer(
   function data(now: number): FeatureCollection<Point> {
     return {
       type: "FeatureCollection",
-      features: [...positions.values()].map(moving => {
+      features: Array.from(positions.values()).map(moving => {
         const color = moving.vehicle.color || "#1559d1";
         const tone = glyphTone(color);
         return {
@@ -165,7 +165,7 @@ export function createVehicleLayer(
         draw(now);
         lastFrame = now;
       }
-      if ([...positions.values()].some(position => now - position.started < DURATION_MS)) {
+      if (Array.from(positions.values()).some(position => now - position.started < DURATION_MS)) {
         frame = requestAnimationFrame(animate);
       } else draw(now);
     } catch {
@@ -175,7 +175,7 @@ export function createVehicleLayer(
 
   function settle() {
     stop();
-    for (const moving of positions.values()) moving.from = moving.to;
+    positions.forEach(moving => { moving.from = moving.to; });
     if (!removed && !disposed) {
       try { draw(performance.now()); } catch { onError(true); }
       trackCamera();

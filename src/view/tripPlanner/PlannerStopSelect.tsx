@@ -53,7 +53,7 @@ function stopGroup(stop: StopCatalogStop) {
         match => match[1].toUpperCase())
     )
   );
-  return prefixes.size === 1 ? [...prefixes][0] : "Other stops";
+  return prefixes.size === 1 ? Array.from(prefixes)[0] : "Other stops";
 }
 
 export default function PlannerStopSelect({ id, stops, selected, onChange, loading, savedStops }: {
@@ -76,14 +76,14 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
       const previous = savedLabels.get(id);
       savedLabels.set(id, previous ? `${previous} / ${label}` : label);
     }
-    const commonStops = /^\d+$/.test(trimmed) ? [] : [...COMMON_PLACES].flatMap(([id, place]) => {
+    const commonStops = /^\d+$/.test(trimmed) ? [] : Array.from(COMMON_PLACES).flatMap(([id, place]) => {
       const stop = stops.find(item => item.locid === id);
       return stop && (!placeQuery || [place.label, ...place.aliases, stop.desc, ...stop.aliases]
         .some(name => normalizePlace(name).includes(placeQuery))) ? [stop] : [];
     });
     const commonIds = new Set(commonStops.map(stop => stop.locid));
     const matchingIds = new Set(matching.map(stop => stop.locid));
-    const savedOptions = [...savedLabels].flatMap(([id, label]) => {
+    const savedOptions = Array.from(savedLabels).flatMap(([id, label]) => {
       const stop = stops.find(item => item.locid === id);
       return stop && (matchingIds.has(id) || commonIds.has(id) || normalizePlace(label).includes(placeQuery))
         ? [stop] : [];
@@ -99,7 +99,7 @@ export default function PlannerStopSelect({ id, stops, selected, onChange, loadi
       options: [
         { label: "Saved stops", options: savedOptions },
         { label: "Common places", options: commonStops.filter(stop => !savedIds.has(stop.locid)) },
-        ...groups.values()
+        ...Array.from(groups.values())
       ].filter(group => group.options.length > 0),
       savedLabels
     };
