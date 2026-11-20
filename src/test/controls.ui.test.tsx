@@ -276,8 +276,10 @@ describe("Wintermuted control integration", () => {
     act(() => trigger.click());
     let dialog = document.querySelector("dialog");
     expect(dialog.textContent).toContain("Feature flags");
-    expect(dialog.textContent).toContain("current location and stop coordinates");
-    expect(dialog.textContent).toContain("endpoints of trip-planner walking legs, to Mapbox");
+    const walkingDescription = dialog.querySelector("#feature-walking-description").textContent;
+    expect(walkingDescription).toContain("current location and stop coordinates");
+    expect(walkingDescription).toContain("endpoints of trip-planner walking legs");
+    expect(walkingDescription).toContain("to Mapbox");
     expect(dialog.querySelector<HTMLInputElement>('[role="switch"]').checked).toBe(false);
     act(() => dialog.querySelector<HTMLInputElement>('[role="switch"]').click());
     expect(container.querySelector("output").getAttribute("data-walking-enabled")).toBe("true");

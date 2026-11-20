@@ -13,7 +13,7 @@ import {
 import "./NearbyPlaces.scss";
 import { NeighborhoodState } from "../../../api/places/neighborhoods";
 import { LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "../../../api/places/lineOverlays";
-import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextControls } from "../../../api/places/contextOverlays";
+import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextCategory, ContextControls } from "../../../api/places/contextOverlays";
 import { SavedPlaceControls } from "../../../api/places/savedPlaces";
 import PlacesHelp from "./PlacesHelp";
 import LoadStatus, { LoadIssue, placeSourceIssues } from "./PlacesLoadStatus";
