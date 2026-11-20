@@ -30,13 +30,13 @@ function connectedShape(lines: Position[][], origin: Position, destination: Posi
   function snap(point: Position) {
     let nearest: string | undefined;
     let distance = MAX_SNAP_MILES;
-    for (const [key, node] of graph) {
+    graph.forEach((node, key) => {
       const candidate = getDistance(point, node.point);
       if (candidate < distance) {
         nearest = key;
         distance = candidate;
       }
-    }
+    });
     return nearest;
   }
   const start = snap(origin);
@@ -47,9 +47,9 @@ function connectedShape(lines: Position[][], origin: Position, destination: Posi
   const previous = new Map<string, string>();
   while (open.size) {
     let current: string | undefined;
-    for (const key of open) {
+    open.forEach(key => {
       if (!current || distances.get(key) < distances.get(current)) current = key;
-    }
+    });
     if (current === end) {
       const path: Position[] = [];
       for (let key = end; key; key = previous.get(key)) path.push(graph.get(key).point);
@@ -57,14 +57,14 @@ function connectedShape(lines: Position[][], origin: Position, destination: Posi
     }
     open.delete(current);
     const node = graph.get(current);
-    for (const neighbor of node.neighbors) {
+    node.neighbors.forEach(neighbor => {
       const distance = distances.get(current) + getDistance(node.point, graph.get(neighbor).point);
       if (distance < (distances.get(neighbor) ?? Infinity)) {
         distances.set(neighbor, distance);
         previous.set(neighbor, current);
         open.add(neighbor);
       }
-    }
+    });
   }
 }
 
