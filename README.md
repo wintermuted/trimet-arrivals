@@ -225,8 +225,12 @@ Save places from a result row or its detail view. **Saved places only** shows
 matching saves across Portland, not just the visible map; category and search
 filters still apply. Saves contain only source IDs and display names in this
 device's local storage (`SAVED_PLACES_V1`), with cross-tab updates and explicit
-storage-error/retry controls. Unavailable saved records can be removed once the
-catalog has loaded. Saves are separate from transit stop/route bookmarks.
+storage-error/retry controls. In Places nearby, unavailable saved records can be
+removed once the catalog has loaded. The **Bookmarks** page also lists every saved
+place with its category icon, a link to its detail view and a remove control, independently of
+map filters or catalog availability. Its empty state links to Places nearby;
+storage failures have inline error/retry controls. Place saves retain their own
+storage, separate from transit stop/route bookmarks and groups.
 
 **Copy view link** captures a snapshot of categories, search, optional layers
 and the current map position. Reopening it restores those public settings;
