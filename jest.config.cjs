@@ -1,5 +1,6 @@
 const common = {
   testEnvironment: "jsdom",
+  resetMocks: true,
   transform: {
     "^.+\\.[cm]?[jt]sx?$": ["babel-jest", {
       presets: [
@@ -20,7 +21,6 @@ const common = {
 };
 
 module.exports = {
-  clearMocks: true,
   collectCoverageFrom: [
     "src/{api,component,store,view}/**/*.{ts,tsx}",
     "src/App.tsx"
