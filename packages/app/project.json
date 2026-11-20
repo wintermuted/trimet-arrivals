@@ -2,5 +2,5 @@
   "name": "@trimet-arrivals/app",
   "projectType": "application",
   "sourceRoot": "packages/app/src",
-  "implicitDependencies": ["@trimet-arrivals/places", "@trimet-arrivals/ui"]
+  "implicitDependencies": ["@trimet-arrivals/places", "@trimet-arrivals/trimet-client", "@trimet-arrivals/ui"]
 }
