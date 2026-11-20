@@ -74,7 +74,7 @@ The app source and integration tests live in `packages/app/src`, tracked by Nx
 as `@trimet-arrivals/app`. Vite's entry HTML, `public/`, and the `build/` output
 stay at the repository root, as do the npm and Nx commands used to run them.
 
-The app consumes three private npm workspaces: `@trimet-arrivals/places` owns
+The app consumes four private npm workspaces: `@trimet-arrivals/places` owns
 Places data, discovery, and saved places; `@trimet-arrivals/ui` owns reusable
 React components; `@trimet-arrivals/trimet-client` owns requests and fixtures
 for arrivals, nearby stops, and route configuration, plus service alert requests
@@ -84,13 +84,16 @@ planner color choices, vehicle polling, and map rendering stay in the app.
 The app supplies the TriMet URL, app ID, and
 `REACT_APP_USE_FIXTURE` setting for requests with fixtures. For route
 configuration, only the all-routes request uses fixtures. The stop catalog
-and Redux stay in the app.
+and Redux stay in the app. `@trimet-arrivals/routing` owns Mapbox walking
+estimates, route geometry requests, and their caches. The app supplies the
+walking access token and owns the React hooks and map layers.
 Import package entry points rather than source files; shared packages do not
 import app code.
 
 ```powershell
 npx nx run-many -t test:package
 npx nx run '@trimet-arrivals/ui:test:package'
+npx nx run '@trimet-arrivals/routing:test:package'
 npx nx run '@trimet-arrivals/trimet-client:test:package'
 npx nx show projects --affected --base=origin/master --head=HEAD
 ```

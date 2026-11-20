@@ -3,8 +3,8 @@ import {
   getWalkingEstimates,
   getWalkingRoute,
   setWalkingAccessToken,
-  WalkingStop,
-} from "../api/mapbox/walking";
+} from "@trimet-arrivals/routing";
+import type { WalkingStop } from "@trimet-arrivals/routing";
 
 const origin = [0, 0];
 const stops: WalkingStop[] = [
