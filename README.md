@@ -159,6 +159,8 @@ single-line rows. Overlapping markers
 offer a location chooser, and every in-area
 location is also selectable in the keyboard-accessible list. **Show more places**
 reveals additional results without silently limiting the catalog.
+If marker rendering fails, the current map-area list remains selectable without
+panning or zooming; use the inline retry indicator to restore markers.
 
 The navigation bar's **Search all places** searches every published category across
 Portland, including disabled categories and places outside the current map, saved

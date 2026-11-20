@@ -842,6 +842,23 @@ export default function NearbyViewComponent() {
           {isPlanner && <div hidden={Boolean(following)} className="transit-nearby-planner-footer" ref={bindPlannerFooter} />}
         </div>
         <div className="transit-column transit-column-9 transit-nearby-map-panel">
+          {isPlaces && isMapLoaded && neighborhoodsShown && neighborhoods.snapshot &&
+            <NearbyNeighborhoodsMap key={neighborhoodLayerRevision} map={mapRef.current}
+              snapshot={neighborhoods.snapshot} polygonsShown={neighborhoodPolygonsShown} onError={setNeighborhoodMapError} />}
+          {isPlaces && isMapLoaded && LINE_OVERLAY_CATEGORIES.map(category =>
+            lineOverlaysShown[category] && lineOverlaySources[category].snapshot &&
+            <NearbyLineOverlayMap key={`${category}-${lineOverlayRevisions[category]}`} map={mapRef.current}
+              snapshot={lineOverlaySources[category].snapshot} onError={handleLineOverlayError} />)}
+          {isPlaces && isMapLoaded && CONTEXT_CATEGORIES.map(category =>
+            contextShown[category] && contextSources[category].snapshot &&
+            <NearbyContextMap key={`${category}-${contextRevisions[category]}`} map={mapRef.current}
+              snapshot={contextSources[category].snapshot} onError={handleContextError} />)}
+          {isPlaces && isMapLoaded && <NearbyPlacesMap key={`places-${placeMapRevision}`} map={mapRef.current} places={mappedPlaces}
+            selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
+            onBounds={updatePlaceBounds} onError={setPlaceMapError} />}
+          {isPlaces && isMapLoaded && alongTrip && tripCorridor &&
+            <NearbyTripCorridorMap key={tripMapRevision} map={mapRef.current} lines={tripCorridor.lines} onError={setTripMapError} />}
+          {/* Keep the map owner last so overlay cleanups run before map.remove(). */}
           <NearbyMapV2
             initializeMap={initializeMapboxMap}
             mapRef={mapRef}
@@ -882,22 +899,6 @@ export default function NearbyViewComponent() {
             />
           )}
           </NearbyMapV2>
-          {isPlaces && isMapLoaded && neighborhoodsShown && neighborhoods.snapshot &&
-            <NearbyNeighborhoodsMap key={neighborhoodLayerRevision} map={mapRef.current}
-              snapshot={neighborhoods.snapshot} polygonsShown={neighborhoodPolygonsShown} onError={setNeighborhoodMapError} />}
-          {isPlaces && isMapLoaded && LINE_OVERLAY_CATEGORIES.map(category =>
-            lineOverlaysShown[category] && lineOverlaySources[category].snapshot &&
-            <NearbyLineOverlayMap key={`${category}-${lineOverlayRevisions[category]}`} map={mapRef.current}
-              snapshot={lineOverlaySources[category].snapshot} onError={handleLineOverlayError} />)}
-          {isPlaces && isMapLoaded && CONTEXT_CATEGORIES.map(category =>
-            contextShown[category] && contextSources[category].snapshot &&
-            <NearbyContextMap key={`${category}-${contextRevisions[category]}`} map={mapRef.current}
-              snapshot={contextSources[category].snapshot} onError={handleContextError} />)}
-          {isPlaces && isMapLoaded && <NearbyPlacesMap key={`places-${placeMapRevision}`} map={mapRef.current} places={mappedPlaces}
-            selectedId={selectedPlaceId} onSelect={selectPlace} onCoincident={setCoincidentIds}
-            onBounds={updatePlaceBounds} onError={setPlaceMapError} />}
-          {isPlaces && isMapLoaded && alongTrip && tripCorridor &&
-            <NearbyTripCorridorMap key={tripMapRevision} map={mapRef.current} lines={tripCorridor.lines} onError={setTripMapError} />}
         </div>
       </div>
     </div>

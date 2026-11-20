@@ -60,6 +60,7 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
     }
     update.current = refresh;
     function install() {
+      reportBounds();
       try {
         for (const category of PLACE_CATEGORIES) {
           const source = sourceId(category);
@@ -108,7 +109,6 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
         }
         latest.current.onError(false);
         refresh();
-        reportBounds();
       } catch {
         latest.current.onError(true);
       }
