@@ -33,7 +33,7 @@ jobs:
         run: npm ci
 
       - name: Test shared UI integration
-        run: npx nx run-many -t test:ui
+        run: npx nx run-many -t test:ui --outputStyle=stream
 
       - name: Test place data refresh
         run: npx nx run-many -t test:places-data
