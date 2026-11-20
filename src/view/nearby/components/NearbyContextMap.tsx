@@ -58,7 +58,7 @@ export default function NearbyContextMap({ map, snapshot, onError }: {
       content.append(title, detail);
       popup.setLngLat(event.lngLat).setDOMContent(content).addTo(map);
     }
-    function sourceError(event: { sourceId?: string }) {
+    function sourceError(event: { error: Error; sourceId?: string }) {
       if (event.sourceId === source) onError(category, true);
     }
     map.on("style.load", install);
