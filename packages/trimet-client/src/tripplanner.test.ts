@@ -1,4 +1,5 @@
-import { parsePlannerCoordinates, parseTripPlannerResponse, planTrip } from "./tripplanner";
+/** @jest-environment jsdom */
+import { parsePlannerCoordinates, parseTripPlannerResponse, planTrip } from "./index";
 
 const response = `<?xml version="1.0" encoding="UTF-8"?>
 <response success="true" xmlns="http://maps.trimet.org/maps/model/xml">
@@ -17,18 +18,28 @@ const response = `<?xml version="1.0" encoding="UTF-8"?>
 
 describe("TriMet trip planner response", () => {
   it("encodes mixed endpoints with the corresponding TriMet parameters", async () => {
-    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue(
-      new Response(response, { status: 200 }),
-    );
+    const originalFetch = globalThis.fetch;
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true, text: async () => response });
+    const { signal } = new AbortController();
+    globalThis.fetch = fetchMock;
     try {
-      await planTrip({ fromCoord: "-122.68,45.52", toPlace: "1001 SW 5th Ave" });
-      const { searchParams } = new URL(String(fetchMock.mock.calls[0][0]));
+      await planTrip(
+        { fromCoord: "-122.68,45.52", toPlace: "1001 SW 5th Ave", signal },
+        { baseUrl: "https://example.test/ws/", appId: "test-id" },
+      );
+      const [requestUrl] = fetchMock.mock.calls[0];
+      expect(fetchMock).toHaveBeenCalledWith(requestUrl, { signal });
+      const { origin, pathname, searchParams } = new URL(requestUrl);
+      expect(`${origin}${pathname}`).toBe("https://example.test/ws/V1/trips/tripplanner");
+      expect(searchParams.get("appID")).toBe("test-id");
+      expect(searchParams.get("format")).toBe("xml");
+      expect(searchParams.get("maxIntineraries")).toBe("6");
       expect(searchParams.get("fromCoord")).toBe("-122.68,45.52");
       expect(searchParams.has("fromPlace")).toBe(false);
       expect(searchParams.get("toPlace")).toBe("1001 SW 5th Ave");
       expect(searchParams.has("toCoord")).toBe(false);
     } finally {
-      fetchMock.mockRestore();
+      globalThis.fetch = originalFetch;
     }
   });
 

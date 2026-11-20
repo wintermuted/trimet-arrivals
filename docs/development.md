@@ -78,7 +78,9 @@ The app consumes three private npm workspaces: `@trimet-arrivals/places` owns
 Places data, discovery, and saved places; `@trimet-arrivals/ui` owns reusable
 React components; `@trimet-arrivals/trimet-client` owns requests and fixtures
 for arrivals, nearby stops, and route configuration, plus service alert requests
-and filtering. The app supplies the TriMet URL, app ID, and
+and filtering and trip-planner requests and XML parsing. Trip planning uses the
+browser's `DOMParser`; screens, URL state, and route colors stay in the app.
+The app supplies the TriMet URL, app ID, and
 `REACT_APP_USE_FIXTURE` setting for requests with fixtures. For route
 configuration, only the all-routes request uses fixtures. The stop catalog,
 Redux, and the remaining TriMet requests stay in the app.
