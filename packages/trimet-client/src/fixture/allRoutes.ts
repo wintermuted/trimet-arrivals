@@ -1,14 +1,4 @@
-import {
-  BLUE_LINE_NUMBER,
-  GREEN_LINE_NUMBER,
-  ORANGE_LINE_NUMBER,
-  RED_LINE_NUMBER,
-  STREETCAR_A_LOOP,
-  STREETCAR_B_LOOP,
-  STREETCAR_S_LINE,
-  YELLOW_LINE_NUMBER
-} from "../constants";
-import { RouteDataResultSet, TrimetRoute } from "../interfaces/routes";
+import type { RouteDataResultSet } from "../interfaces/routes";
 
 const routeStopDirections = [];
 
@@ -55,8 +45,8 @@ const route4 = {
 const blueLine = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: BLUE_LINE_NUMBER,
-  route: BLUE_LINE_NUMBER,
+  id: 100,
+  route: 100,
   routeColor: "string",
   routeSortOrder: 123,
   type: "T"
@@ -65,8 +55,8 @@ const blueLine = {
 const redLine = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: RED_LINE_NUMBER,
-  route: RED_LINE_NUMBER,
+  id: 90,
+  route: 90,
   routeColor: "string",
   routeSortOrder: 123,
   type: "T"
@@ -75,8 +65,8 @@ const redLine = {
 const greenLine = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: GREEN_LINE_NUMBER,
-  route: GREEN_LINE_NUMBER,
+  id: 200,
+  route: 200,
   routeColor: "string",
   routeSortOrder: 123,
   type: "T"
@@ -85,8 +75,8 @@ const greenLine = {
 const yellowLine = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: YELLOW_LINE_NUMBER,
-  route: YELLOW_LINE_NUMBER,
+  id: 190,
+  route: 190,
   routeColor: "string",
   routeSortOrder: 123,
   type: "T"
@@ -95,8 +85,8 @@ const yellowLine = {
 const orangeLine = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: ORANGE_LINE_NUMBER,
-  route: ORANGE_LINE_NUMBER,
+  id: 290,
+  route: 290,
   routeColor: "string",
   routeSortOrder: 123,
   type: "T"
@@ -105,8 +95,8 @@ const orangeLine = {
 const streetCarSLine = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: STREETCAR_S_LINE,
-  route: STREETCAR_S_LINE,
+  id: 193,
+  route: 193,
   routeColor: "string",
   routeSortOrder: 123,
   type: "S"
@@ -115,8 +105,8 @@ const streetCarSLine = {
 const streetCarBLoop = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: STREETCAR_B_LOOP,
-  route: STREETCAR_B_LOOP,
+  id: 195,
+  route: 195,
   routeColor: "string",
   routeSortOrder: 123,
   type: "S"
@@ -125,56 +115,15 @@ const streetCarBLoop = {
 const streetCarALoop = {
   desc: "TrimetRoute 4",
   dir: routeStopDirections,
-  id: STREETCAR_A_LOOP,
-  route: STREETCAR_A_LOOP,
+  id: 194,
+  route: 194,
   routeColor: "string",
   routeSortOrder: 123,
   type: "S"
 };
 
-function getRouteData(id) {
-  id = parseInt(id, 10);
-
-  switch (id) {
-    case 1:
-      return route1;
-    case 2:
-      return route2;
-    case 3:
-      return route3;
-    case 4:
-      return route4;
-    case BLUE_LINE_NUMBER:
-      return blueLine;
-    case RED_LINE_NUMBER:
-      return redLine;
-    case GREEN_LINE_NUMBER:
-      return greenLine;
-    case YELLOW_LINE_NUMBER:
-      return yellowLine;
-    case ORANGE_LINE_NUMBER:
-      return orangeLine;
-    case STREETCAR_S_LINE:
-      return streetCarSLine;
-    case STREETCAR_A_LOOP:
-      return yellowLine;
-    case STREETCAR_B_LOOP:
-      return streetCarBLoop;
-    default:
-      return {};
-  }
-}
-
-export function routeFixtureById(id: number): Promise<RouteDataResultSet> {
-  const routeData = getRouteData(id);
-
-  return Promise.resolve({
-    route: [routeData as TrimetRoute]
-  });
-}
-
 export function allRoutesFixtureData(): Promise<RouteDataResultSet> {
-  const routeData = {
+  const routeData: RouteDataResultSet = {
     route: [
       route1,
       route2,
@@ -188,7 +137,7 @@ export function allRoutesFixtureData(): Promise<RouteDataResultSet> {
       streetCarSLine,
       streetCarBLoop,
       streetCarALoop
-    ] as TrimetRoute[]
+    ]
   };
 
   return Promise.resolve(routeData);

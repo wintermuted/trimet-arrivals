@@ -1,6 +1,12 @@
 export { getAlertsByLocationId, getAlertsByRouteId, getSystemAlerts } from "./alerts";
 export { getAlertsForRoute, getAlertsForStop } from "./alertScopes";
 export { getArrivals } from "./arrivals";
+export {
+  getAllRoutes,
+  getRouteById,
+  getRouteByIdAndDirection,
+  getSubsequentRouteStops
+} from "./routeConfig";
 export { getNearbyStops } from "./stops";
 export { getTrimetData } from "./util";
 export type { TrimetClientOptions } from "./options";

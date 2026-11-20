@@ -1,62 +1,26 @@
+import {
+  getAllRoutes as requestAllRoutes,
+  getRouteById as requestRouteById,
+  getRouteByIdAndDirection as requestRouteByIdAndDirection,
+  getSubsequentRouteStops as requestSubsequentRouteStops
+} from "@trimet-arrivals/trimet-client";
 import { fixtureEnabled } from "../util";
-import { API, BASE_URL } from "./constants";
-import { allRoutesFixtureData, routeFixtureById } from "./fixture/allRoutes";
-import { RouteDataResultSet } from "./interfaces/routes";
-import { getTrimetData } from "./util";
+import { API_ID, BASE_URL } from "./constants";
 
-const ROUTE_BASE_URL = `${BASE_URL}V1/routeConfig/`;
+const options = { baseUrl: BASE_URL, appId: API_ID };
 
-function getRouteByIdUrl(id: number): string {
-  return `${ROUTE_BASE_URL}json/true/route/${id}/dir/true/stops/true/${API}`;
+export function getRouteById(id: number, signal?: AbortSignal) {
+  return requestRouteById(id, options, signal);
 }
 
-function getRouteByIdAndDirectionUrl(id: number, direction: number): string {
-  return `${ROUTE_BASE_URL}json/true/route/${id}/dir/${direction}/stops/true/${API}`;
+export function getRouteByIdAndDirection(id: number, direction: number) {
+  return requestRouteByIdAndDirection(id, direction, options);
 }
 
-function getAllRoutesUrl(): string {
-  return `${ROUTE_BASE_URL}json/true/dir/true/stops/true/${API}`;
+export function getAllRoutes() {
+  return requestAllRoutes({ ...options, useFixtures: fixtureEnabled() === true });
 }
 
-function getSubsequentRouteStopsUrl(
-  id: number,
-  direction: number,
-  locId: number
-): string {
-  return `${ROUTE_BASE_URL}json/true/route/${id}/dir/${direction}/stops/true/startSeq/${locId}/${API}`;
-}
-
-export async function getRouteById(id: number, signal?: AbortSignal): Promise<RouteDataResultSet> {
-  const request = getRouteByIdUrl(id);
-
-  return getTrimetData<RouteDataResultSet>(request, signal);
-}
-
-export async function getRouteByIdAndDirection(
-  id: number,
-  direction: number
-): Promise<RouteDataResultSet> {
-  const request = getRouteByIdAndDirectionUrl(id, direction);
-
-  return getTrimetData<RouteDataResultSet>(request);
-}
-
-export async function getAllRoutes(): Promise<RouteDataResultSet> {
-  if (fixtureEnabled()) {
-    return allRoutesFixtureData();
-  }
-
-  const request = getAllRoutesUrl();
-
-  return getTrimetData<RouteDataResultSet>(request);
-}
-
-export async function getSubsequentRouteStops(
-  id: number,
-  direction: number,
-  locid: number
-): Promise<RouteDataResultSet> {
-  const request = getSubsequentRouteStopsUrl(id, direction, locid);
-
-  return getTrimetData<RouteDataResultSet>(request);
+export function getSubsequentRouteStops(id: number, direction: number, locid: number) {
+  return requestSubsequentRouteStops(id, direction, locid, options);
 }

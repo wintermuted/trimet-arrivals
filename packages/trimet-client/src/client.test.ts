@@ -1,8 +1,12 @@
 import {
   getAlertsByLocationId,
   getAlertsByRouteId,
+  getAllRoutes,
   getArrivals,
   getNearbyStops,
+  getRouteById,
+  getRouteByIdAndDirection,
+  getSubsequentRouteStops,
   getSystemAlerts
 } from "./index";
 import { arrival1 } from "./fixture/arrival";
@@ -57,10 +61,44 @@ it("returns the existing fixtures without making a network request", async () =>
 });
 
 it.each([
+  ["all routes", () => getAllRoutes(options), "dir/true/stops/true"],
+  ["one direction", () => getRouteByIdAndDirection(54, 0, options), "route/54/dir/0/stops/true"],
+  ["subsequent stops", () => getSubsequentRouteStops(54, 0, 123, options), "route/54/dir/0/stops/true/startSeq/123"]
+] as const)("requests route configuration for %s", async (scope, request, path) => {
+  const resultSet = { route: [] };
+  fetchMock.mockResolvedValue({ json: async () => ({ resultSet }) });
+
+  await expect(request()).resolves.toEqual(resultSet);
+  expect(fetchMock).toHaveBeenCalledWith(
+    `https://example.test/ws/V1/routeConfig/json/true/${path}/appID/test-id`,
+    undefined
+  );
+});
+
+it("uses fixtures only for all routes and forwards the signal for a single route", async () => {
+  const fixtureOptions = { ...options, useFixtures: true };
+  const { signal } = new AbortController();
+  const resultSet = { route: [] };
+  fetchMock.mockResolvedValue({ json: async () => ({ resultSet }) });
+
+  const fixture = await getAllRoutes(fixtureOptions);
+  expect(fixture.route.map(route => route.route)).toEqual([
+    1, 2, 3, 3, 100, 90, 200, 190, 290, 193, 195, 194
+  ]);
+  expect(fetchMock).not.toHaveBeenCalled();
+
+  await expect(getRouteById(54, fixtureOptions, signal)).resolves.toEqual(resultSet);
+  expect(fetchMock).toHaveBeenCalledWith(
+    "https://example.test/ws/V1/routeConfig/json/true/route/54/dir/true/stops/true/appID/test-id",
+    { signal }
+  );
+});
+
+it.each([
   ["system", () => getSystemAlerts(options), ""],
   ["route", () => getAlertsByRouteId(54, options), "route/54/"],
   ["stop", () => getAlertsByLocationId(123, options), "locIDs/123/"]
-])("requests %s alerts and returns the TriMet result set", async (_scope, request, path) => {
+] as const)("requests %s alerts and returns the TriMet result set", async (scope, request, path) => {
   const resultSet = { alert: [], queryTime: "123" };
   fetchMock.mockResolvedValue({ json: async () => ({ resultSet }) });
 
