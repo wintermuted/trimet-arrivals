@@ -5,6 +5,8 @@ scripts:
       - session.create
   - name: Run
     command: npm run watch
+  - name: Run with Nx
+    command: npx nx run-many -t watch --outputStyle=stream
 
 server_ready_pattern: 'Local:\s+(https?://\S+)'
 auto_open_in_browser: true

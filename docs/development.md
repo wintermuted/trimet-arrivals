@@ -62,6 +62,8 @@ scripts. Node.js 26.13.1 (see `.nvmrc`) and npm must be available on your PATH.
   setup to finish before starting the dev server; it can also be rerun manually.
 - **Run** starts the Vite dev server with `npm run watch`. The app detects its
   local URL and opens it in the integrated browser.
+- **Run with Nx** starts the same server through Nx. Both run options use the
+  repository root; the app source lives in `packages/app/src`.
 
 Merge the configuration into the default branch to make it available to new
 sessions created from that branch.
