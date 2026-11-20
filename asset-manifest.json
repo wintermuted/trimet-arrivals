@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/trimet-arrivals/static/css/main.898b4fd7.css",
-    "main.js": "/trimet-arrivals/static/js/main.2cbc35d1.js",
+    "main.css": "/trimet-arrivals/static/css/main.84ad4dc1.css",
+    "main.js": "/trimet-arrivals/static/js/main.540bd661.js",
     "static/media/fontawesome-webfont.svg?v=4.7.0": "/trimet-arrivals/static/media/fontawesome-webfont.c1e38fd9e0e74ba58f7a.svg",
     "static/media/fontawesome-webfont.eot": "/trimet-arrivals/static/media/fontawesome-webfont.8b43027f47b20503057d.eot",
     "static/media/fontawesome-webfont.ttf?v=4.7.0": "/trimet-arrivals/static/media/fontawesome-webfont.1e59d2330b4c6deb84b3.ttf",
     "static/media/fontawesome-webfont.woff?v=4.7.0": "/trimet-arrivals/static/media/fontawesome-webfont.f691f37e57f04c152e23.woff",
     "static/media/fontawesome-webfont.woff2?v=4.7.0": "/trimet-arrivals/static/media/fontawesome-webfont.20fd1704ea223900efa9.woff2",
     "index.html": "/trimet-arrivals/index.html",
-    "main.898b4fd7.css.map": "/trimet-arrivals/static/css/main.898b4fd7.css.map",
-    "main.2cbc35d1.js.map": "/trimet-arrivals/static/js/main.2cbc35d1.js.map"
+    "main.84ad4dc1.css.map": "/trimet-arrivals/static/css/main.84ad4dc1.css.map",
+    "main.540bd661.js.map": "/trimet-arrivals/static/js/main.540bd661.js.map"
   },
   "entrypoints": [
-    "static/css/main.898b4fd7.css",
-    "static/js/main.2cbc35d1.js"
+    "static/css/main.84ad4dc1.css",
+    "static/js/main.540bd661.js"
   ]
 }
