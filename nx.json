@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "neverConnectToCloud": true,
+  "cli": {
+    "packageManager": "npm"
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": false,
+      "outputs": ["{projectRoot}/build"]
+    },
+    "test:ui": {
+      "cache": false
+    },
+    "test:places-data": {
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/scripts/**/*",
+        "{projectRoot}/package.json",
+        "{projectRoot}/package-lock.json",
+        { "runtime": "node --version" },
+        { "runtime": "node -p \"process.platform + ' ' + process.arch + ' ' + Intl.DateTimeFormat().resolvedOptions().timeZone\"" }
+      ],
+      "outputs": []
+    }
+  }
+}

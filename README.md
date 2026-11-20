@@ -39,10 +39,10 @@ Use Node.js **26.13.1** (see [`.nvmrc`](.nvmrc)) and npm:
 
 ```powershell
 npm ci
-npm run watch
+npx nx run-many -t watch
 ```
 
-Open the local URL printed by Vite.
+Open the local URL printed by Vite. `npm run watch` also works.
 See [development](docs/development.md) for CI, test commands, geometry exports,
 and GitHub Copilot app setup.
 
