@@ -9,6 +9,17 @@
     <link rel="shortcut icon" href="/favicon.ico">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.2/mapbox-gl.css" rel="stylesheet">
     <title>Trimet Arrivals</title>
+    <script>
+      // Restore the route encoded by the GitHub Pages 404 redirect.
+      (function (location) {
+        if (location.search.startsWith("?/")) {
+          var route = location.search.slice(1).split("&").map(function (part) {
+            return part.replace(/~and~/g, "&");
+          }).join("?");
+          history.replaceState(null, "", location.pathname.slice(0, -1) + route + location.hash);
+        }
+      })(window.location);
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

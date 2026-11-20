@@ -1,13 +1,16 @@
+import autoprefixer from "autoprefixer";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const publicUrl = env.PUBLIC_URL || "";
+  const publicUrl = (env.PUBLIC_URL || "").replace(/\/+$/, "");
 
   return {
+    base: `${publicUrl}/`,
+    build: { outDir: "build" },
+    css: { postcss: { plugins: [autoprefixer()] } },
     define: {
-      "process.env.NODE_ENV": JSON.stringify(mode),
       "process.env.PUBLIC_URL": JSON.stringify(publicUrl),
       "process.env.REACT_APP_USE_DEFAULT_PORTLAND_LOCATION": JSON.stringify(
         env.REACT_APP_USE_DEFAULT_PORTLAND_LOCATION
