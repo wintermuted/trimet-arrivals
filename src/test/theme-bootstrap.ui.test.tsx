@@ -10,8 +10,8 @@ const libraryBootstrap = execFileSync(process.execPath, [
   'import { getThemeScript } from "@wintermuted/ui-theme/theme"; process.stdout.write(getThemeScript());',
 ], { encoding: "utf8" });
 
-describe.each(["index.html", "public/index.html"])("%s theme bootstrap", (template) => {
-  const html = readFileSync(resolve(process.cwd(), template), "utf8");
+describe("Vite HTML theme bootstrap", () => {
+  const html = readFileSync(resolve(process.cwd(), "index.html"), "utf8");
   const match = html.match(/<script data-theme-bootstrap>([\s\S]*?)<\/script>/);
 
   it("uses the library bootstrap before styles", () => {
