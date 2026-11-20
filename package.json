@@ -2,7 +2,6 @@
   "name": "trimet-arrivals",
   "private": true,
   "nx": {},
-  "homepage": "https://super-cascadia.github.io/trimet-arrivals",
   "author": "Jameson Nyeholt <jameson.nyeholt@gmail.com>",
   "license": "MIT",
   "engines": {
@@ -69,11 +68,11 @@
     "places:refresh": "node scripts/refresh-places.mjs",
     "test:places-data": "node --test scripts/refresh-places.test.mjs",
     "watch": "vite",
-    "build": "CI='' react-scripts build",
-    "test": "react-scripts test",
-    "test:ui": "react-scripts test --watchAll=false --runInBand --setupFilesAfterEnv=./src/test/setupDOMTests.js --testMatch=**/*.ui.test.tsx",
-    "test:coverage": "react-scripts test --coverage",
-    "eject": "react-scripts eject",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:ui": "jest --selectProjects ui --runInBand",
+    "test:coverage": "jest --coverage",
     "codecov": "codecov",
     "prettier": "prettier --check 'src/**/*.ts*'",
     "prettier:fix": "prettier --write 'src/**/*.ts*'",
@@ -82,19 +81,10 @@
     "semantic-release": "semantic-release",
     "trimet": "node ./scripts/split_routes.js"
   },
-  "jest": {
-    "transformIgnorePatterns": [
-      "[/\\\\]node_modules[/\\\\](?!@wintermuted[/\\\\]ui-theme[/\\\\]).+\\.(js|jsx|mjs|cjs|ts|tsx)$",
-      "^.+\\.module\\.(css|sass|scss)$"
-    ],
-    "collectCoverageFrom": [
-      "src/api/**/*.{ts,tsx}",
-      "src/component/**/*.{ts,tsx}",
-      "src/store/**/*.{ts,tsx}",
-      "src/view/**/*.{ts,tsx}",
-      "!<rootDir>/src/registerServiceWorker.ts",
-      "<rootDir>/src/App.tsx"
-    ]
+  "overrides": {
+    "enzyme": {
+      "cheerio": "1.0.0-rc.12"
+    }
   },
   "husky": {
     "hooks": {
@@ -116,13 +106,21 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@babel/core": "7.28.5",
+    "@babel/preset-env": "7.28.5",
+    "@babel/preset-react": "7.28.5",
+    "@babel/preset-typescript": "7.28.5",
+    "@cfaester/enzyme-adapter-react-18": "0.8.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "babel-jest": "27.5.1",
     "husky": "^4.0.6",
+    "identity-obj-proxy": "3.0.0",
+    "jest": "27.5.1",
+    "jest-environment-jsdom": "27.5.1",
     "lint-staged": "^16.2.6",
     "nvm": "^0.0.4",
     "nx": "22.7.12",
     "prettier": "3.10.0",
-    "react-scripts": "^5.0.1",
     "ts-node": "^10.9.2",
     "vite": "^5.4.19"
   }

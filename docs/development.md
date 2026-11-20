@@ -2,7 +2,8 @@
 
 [Documentation](README.md) / [Project home](../README.md)
 
-The app uses TypeScript, React, and Redux. Local development uses Vite; production builds use Create React App.
+The app uses TypeScript, React, and Redux. Vite serves local development and
+builds the production site.
 
 ## Setup and local development
 
@@ -18,10 +19,6 @@ Open the local URL printed by Vite. The repository's runtime floor in
 [`package.json`](../package.json) is Node.js 26, but use the pinned version for
 consistent development. Nx wraps the existing npm scripts.
 
-## Project origins
-
-This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
-
 ## Focused UI tests and CI
 
 Run the focused DOM integration suite for navigation, bookmarks, dialogs, and
@@ -32,8 +29,9 @@ npx nx run-many -t test:ui
 ```
 
 GitHub Pages production and preview workflows run the UI and place-data tests
-before the CRA production build. Nx caches the place-data tests locally. UI
-tests still run every time, and builds are uncached because the preview needs its
+and TypeScript checks before the Vite build. Jest runs the React tests
+independently of Vite. Nx caches the place-data tests locally. UI tests still
+run every time, and builds are uncached because each Pages deployment needs its
 own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
 `npm run test:places-data`, and `npm run build` commands remain available.
 Build/type validation stays in CI.

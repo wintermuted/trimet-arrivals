@@ -12,7 +12,7 @@ jobs:
   deploy-preview:
     runs-on: ubuntu-latest
     env:
-      # Let CRA load its own environment files as before.
+      # Let Vite load its own mode-specific environment files.
       NX_LOAD_DOT_ENV_FILES: 'false'
     steps:
       - name: Checkout
@@ -32,6 +32,9 @@ jobs:
 
       - name: Test place data refresh
         run: npx nx run-many -t test:places-data
+
+      - name: Typecheck
+        run: npx nx run-many -t typecheck
 
       - name: Build for PR preview
         env:

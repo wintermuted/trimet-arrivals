@@ -6,8 +6,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import "./index.css";
-import registerServiceWorker from "./registerServiceWorker";
 
 initTheme();
 ReactDOM.render(<App />, document.getElementById("root") as HTMLElement);
-registerServiceWorker();
