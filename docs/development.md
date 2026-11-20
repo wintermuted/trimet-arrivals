@@ -36,6 +36,11 @@ own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
 `npm run test:places-data`, and `npm run build` commands remain available.
 Build/type validation stays in CI.
 
+To test a production build without publishing, run **Deploy to GitHub Pages**
+manually from your branch with **Publish to the live site** unchecked. It runs
+the production build and checks its asset paths and Pages files without changing
+the live site. Pushes to `main` or `master` still publish automatically.
+
 ## Route geometry export
 
 Route geometry is generated from `scripts/tm_routes.json` using `npm run trimet`
