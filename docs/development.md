@@ -66,13 +66,17 @@ scripts. Node.js 26.13.1 (see `.nvmrc`) and npm must be available on your PATH.
 Merge the configuration into the default branch to make it available to new
 sessions created from that branch.
 
-## Workspace packages
+## Workspace layout
 
-The root Vite app consumes two private npm workspaces: `@trimet-arrivals/places`
-in `packages/places` owns Places data, discovery, and saved places;
+The app source and integration tests live in `packages/app/src`, tracked by Nx
+as `@trimet-arrivals/app`. Vite's entry HTML, `public/`, and the `build/` output
+stay at the repository root, as do the npm and Nx commands used to run them.
+
+The app consumes two private npm workspaces: `@trimet-arrivals/places` in
+`packages/places` owns Places data, discovery, and saved places;
 `@trimet-arrivals/ui` in `packages/ui` owns reusable React components, starting
 with time display. Import the package's public entry points rather than its
-source files. Packages do not import root app code.
+source files. Shared packages do not import app code.
 
 ```powershell
 npx nx run-many -t test:package
@@ -80,8 +84,9 @@ npx nx run '@trimet-arrivals/ui:test:package'
 npx nx show projects --affected --base=origin/master --head=HEAD
 ```
 
-Changing a package affects that package and the app, not its sibling. Both
-Pages workflows still run the full deployment checks.
+Changing a shared package affects that package, the app, and the root project
+that runs the app's tasks, not the other shared package. Both Pages workflows
+still run the full deployment checks.
 
 ## Place-data tests
 

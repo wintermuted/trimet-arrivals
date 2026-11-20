@@ -39,10 +39,10 @@ describe("Viewport-loaded walking and street-tree context", () => {
   afterEach(() => { act(() => root.unmount()); container.remove(); });
 
   it.each(CONTEXT_CATEGORIES)("validates published %s indexes and tile geometry without allowing arbitrary paths", category => {
-    const raw = require(`../../public/data/places/${category}.json`);
+    const raw = require(`../../../../public/data/places/${category}.json`);
     const index = parseContextIndex(raw, category);
     const tile = index.tiles[0];
-    expect(parseContextTile(require(`../../public/data/places/${tile.file}`), category, tile).features).toHaveLength(tile.count);
+    expect(parseContextTile(require(`../../../../public/data/places/${tile.file}`), category, tile).features).toHaveLength(tile.count);
     expect(() => parseContextIndex({ ...index, tiles: [{ ...tile, file: "../elsewhere.json" }] }, category)).toThrow();
     expect(() => parseContextIndex({ ...index, count: index.count + 1 }, category)).toThrow();
     expect(() => parseContextTile({ type: "FeatureCollection", features: [{

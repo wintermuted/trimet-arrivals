@@ -1,0 +1,6 @@
+{
+  "name": "@trimet-arrivals/app",
+  "projectType": "application",
+  "sourceRoot": "packages/app/src",
+  "implicitDependencies": ["@trimet-arrivals/places", "@trimet-arrivals/ui"]
+}

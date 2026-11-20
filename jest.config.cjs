@@ -1,3 +1,5 @@
+const appSource = "<rootDir>/packages/app/src";
+
 const common = {
   testEnvironment: "jsdom",
   resetMocks: true,
@@ -18,39 +20,39 @@ const common = {
     "^@trimet-arrivals/places/(contextOverlays|discovery|lineOverlays|neighborhoods|savedPlaces)$": "<rootDir>/packages/places/src/$1.ts",
     "^@trimet-arrivals/ui$": "<rootDir>/packages/ui/src/index.ts",
     "\\.(css|sass|scss)$": "identity-obj-proxy",
-    "\\.(gif|jpe?g|png|svg|woff2?)$": "<rootDir>/src/test/fileMock.cjs",
+    "\\.(gif|jpe?g|png|svg|woff2?)$": `${appSource}/test/fileMock.cjs`,
     "^!mapbox-gl$": "mapbox-gl"
   }
 };
 
 module.exports = {
   collectCoverageFrom: [
-    "src/{api,component,store,view}/**/*.{ts,tsx}",
-    "packages/*/src/**/*.{ts,tsx}",
-    "src/App.tsx"
+    "packages/app/src/{api,component,store,view}/**/*.{ts,tsx}",
+    "packages/{places,ui}/src/**/*.{ts,tsx}",
+    "packages/app/src/App.tsx"
   ],
   projects: [
     {
       ...common,
       displayName: "ui",
-      roots: ["<rootDir>/src"],
+      roots: [appSource],
       testMatch: ["**/*.ui.test.tsx"],
-      setupFilesAfterEnv: ["<rootDir>/src/test/setupDOMTests.js"]
+      setupFilesAfterEnv: [`${appSource}/test/setupDOMTests.js`]
     },
     {
       ...common,
       displayName: "legacy",
-      roots: ["<rootDir>/src"],
+      roots: [appSource],
       testMatch: ["**/?(*.)+(spec|test).[jt]s?(x)"],
       testPathIgnorePatterns: ["/node_modules/", "\\.ui\\.test\\.tsx$"],
-      setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"]
+      setupFilesAfterEnv: [`${appSource}/setupTests.js`]
     },
     ...["places", "ui"].map((name) => ({
       ...common,
       displayName: `${name}-package`,
       roots: [`<rootDir>/packages/${name}/src`],
       testMatch: ["**/*.test.[jt]s?(x)"],
-      setupFilesAfterEnv: ["<rootDir>/src/test/setupDOMTests.js"]
+      setupFilesAfterEnv: [`${appSource}/test/setupDOMTests.js`]
     }))
   ]
 };

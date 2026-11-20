@@ -379,9 +379,9 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it.each([
-    require("../../public/data/places/park-trails.json"),
-    require("../../public/data/places/bicycle-network.json"),
-    require("../../public/data/places/recommended-bike-routes.json")
+    require("../../../../public/data/places/park-trails.json"),
+    require("../../../../public/data/places/bicycle-network.json"),
+    require("../../../../public/data/places/recommended-bike-routes.json")
   ])("validates all published $category segments and rejects wrong geometries, categories and identities", data => {
     expect(parseLineOverlaySnapshot(data, data.category).features).toHaveLength(data.features.length);
     const example = overlaySnapshot(data.category);
@@ -667,28 +667,28 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it.each([
-    require("../../public/data/places/grocery-stores.json"),
-    require("../../public/data/places/reuse-repair.json"),
-    require("../../public/data/places/csa-pickups.json"),
-    require("../../public/data/places/bicycle-parking.json"),
-    require("../../public/data/places/drinking-fountain.json"),
-    require("../../public/data/places/picnic-seating.json"),
-    require("../../public/data/places/park-artwork.json"),
-    require("../../public/data/places/museums.json"),
-    require("../../public/data/places/art-galleries.json"),
-    require("../../public/data/places/theatres.json"),
-    require("../../public/data/places/arts-centres.json"),
-    require("../../public/data/places/viewpoints.json"),
-    require("../../public/data/places/playgrounds.json"),
-    require("../../public/data/places/splash-pads.json"),
-    require("../../public/data/places/historic-sites.json"),
-    require("../../public/data/places/public-art.json"),
-    require("../../public/data/places/sports-courts.json"),
-    require("../../public/data/places/skateparks.json"),
-    require("../../public/data/places/public-gardens.json"),
-    require("../../public/data/places/nature-reserves.json"),
-    require("../../public/data/places/cafes.json"),
-    require("../../public/data/places/bakeries.json")
+    require("../../../../public/data/places/grocery-stores.json"),
+    require("../../../../public/data/places/reuse-repair.json"),
+    require("../../../../public/data/places/csa-pickups.json"),
+    require("../../../../public/data/places/bicycle-parking.json"),
+    require("../../../../public/data/places/drinking-fountain.json"),
+    require("../../../../public/data/places/picnic-seating.json"),
+    require("../../../../public/data/places/park-artwork.json"),
+    require("../../../../public/data/places/museums.json"),
+    require("../../../../public/data/places/art-galleries.json"),
+    require("../../../../public/data/places/theatres.json"),
+    require("../../../../public/data/places/arts-centres.json"),
+    require("../../../../public/data/places/viewpoints.json"),
+    require("../../../../public/data/places/playgrounds.json"),
+    require("../../../../public/data/places/splash-pads.json"),
+    require("../../../../public/data/places/historic-sites.json"),
+    require("../../../../public/data/places/public-art.json"),
+    require("../../../../public/data/places/sports-courts.json"),
+    require("../../../../public/data/places/skateparks.json"),
+    require("../../../../public/data/places/public-gardens.json"),
+    require("../../../../public/data/places/nature-reserves.json"),
+    require("../../../../public/data/places/cafes.json"),
+    require("../../../../public/data/places/bakeries.json")
   ])("accepts every published $category record in the actual catalog parser", data => {
     expect(parsePlaceSnapshot(data, data.category).places).toHaveLength(data.places.length);
   });
