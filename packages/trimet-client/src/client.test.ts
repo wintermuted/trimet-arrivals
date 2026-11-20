@@ -1,4 +1,10 @@
-import { getArrivals, getNearbyStops } from "./index";
+import {
+  getAlertsByLocationId,
+  getAlertsByRouteId,
+  getArrivals,
+  getNearbyStops,
+  getSystemAlerts
+} from "./index";
 import { arrival1 } from "./fixture/arrival";
 
 const options = { baseUrl: "https://example.test/ws/", appId: "test-id" };
@@ -48,4 +54,19 @@ it("returns the existing fixtures without making a network request", async () =>
   expect(arrivals.arrival).toContainEqual(arrival1);
   expect(stops.location.length).toBeGreaterThan(0);
   expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it.each([
+  ["system", () => getSystemAlerts(options), ""],
+  ["route", () => getAlertsByRouteId(54, options), "route/54/"],
+  ["stop", () => getAlertsByLocationId(123, options), "locIDs/123/"]
+])("requests %s alerts and returns the TriMet result set", async (_scope, request, path) => {
+  const resultSet = { alert: [], queryTime: "123" };
+  fetchMock.mockResolvedValue({ json: async () => ({ resultSet }) });
+
+  await expect(request()).resolves.toEqual(resultSet);
+  expect(fetchMock).toHaveBeenCalledWith(
+    `https://example.test/ws/v2/alerts/json/true/${path}appID/test-id`,
+    undefined
+  );
 });

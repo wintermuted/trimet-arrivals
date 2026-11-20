@@ -1,29 +1,20 @@
-import { API, BASE_URL } from "./constants";
-import { AlertsData } from "./interfaces/alertsData";
-import { getTrimetData } from "./util";
+import {
+  getAlertsByLocationId as requestStopAlerts,
+  getAlertsByRouteId as requestRouteAlerts,
+  getSystemAlerts as requestSystemAlerts
+} from "@trimet-arrivals/trimet-client";
+import { API_ID, BASE_URL } from "./constants";
 
-const ALERTS_BASE_URL = `${BASE_URL}v2/alerts/`;
+const options = { baseUrl: BASE_URL, appId: API_ID };
 
-function getAlertsByRouteURL(id: number): string {
-  return `${ALERTS_BASE_URL}json/true/route/${id}/${API}`;
+export function getAlertsByRouteId(id: number) {
+  return requestRouteAlerts(id, options);
 }
 
-function getAlertsByStopURL(id: number): string {
-  return `${ALERTS_BASE_URL}json/true/locIDs/${id}/${API}`;
+export function getAlertsByLocationId(id: number) {
+  return requestStopAlerts(id, options);
 }
 
-export async function getAlertsByRouteId(id: number): Promise<AlertsData> {
-  const request = getAlertsByRouteURL(id);
-
-  return getTrimetData<AlertsData>(request);
-}
-
-export async function getAlertsByLocationId(id: number): Promise<AlertsData> {
-  const request = getAlertsByStopURL(id);
-
-  return getTrimetData<AlertsData>(request);
-}
-
-export async function getSystemAlerts(): Promise<AlertsData> {
-  return getTrimetData<AlertsData>(`${ALERTS_BASE_URL}json/true/${API}`);
+export function getSystemAlerts() {
+  return requestSystemAlerts(options);
 }

@@ -1,6 +1,5 @@
-import { Alert } from "./interfaces/alertsData";
-import { TrimetRoute } from "./interfaces/routes";
-import { getAlertsForRoute, getAlertsForStop } from "./alertScopes";
+import type { Alert, AlertLocation, RouteConfigRoute } from "./index";
+import { getAlertsForRoute, getAlertsForStop } from "./index";
 
 const alert = (overrides: Partial<Alert>): Alert => ({
   id: 1,
@@ -14,16 +13,17 @@ const alert = (overrides: Partial<Alert>): Alert => ({
   ...overrides
 });
 
-const route = (id: number): TrimetRoute => ({
+const route = (id: number): RouteConfigRoute => ({
   id,
   route: id,
   desc: `Route ${id}`,
   routeColor: "000000",
+  routeSortOrder: id,
   type: "bus",
   dir: []
 });
 
-const location = id => ({
+const location = (id: number): AlertLocation => ({
   id,
   desc: `Stop ${id}`,
   dir: "North",
