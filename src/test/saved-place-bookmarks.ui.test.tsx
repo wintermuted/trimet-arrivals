@@ -1,7 +1,7 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { readSavedPlaces, SAVED_PLACES_KEY } from "../api/places/savedPlaces";
+import { readSavedPlaces, SAVED_PLACES_KEY } from "@trimet-arrivals/places/savedPlaces";
 import BookmarksViewComponent from "../view/bookmarks/component/BookmarksViewComponent";
 
 jest.mock("../view/bookmarks/component/BookmarkedStops", () => () => <div>Existing stop bookmarks</div>);

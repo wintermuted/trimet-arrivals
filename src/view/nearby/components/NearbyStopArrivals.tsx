@@ -5,7 +5,7 @@ import React, { useId, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
-import { useTimeDisplay } from "../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import ArrivalListItem from "./common/ArrivalListItem";
 import "./NearbyRoutes.scss";
 

@@ -1,9 +1,9 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
-import { currentPlacePreset, placesPreset, placesViewSearch, readPlacesView, tripCorridorMatcher } from "../api/places/discovery";
-import { InterestPlace, OUTING_PLACE_CATEGORIES, PLACE_CATEGORIES } from "../api/places/places";
-import { readSavedPlaces, SAVED_PLACES_KEY, useSavedPlaces } from "../api/places/savedPlaces";
+import { currentPlacePreset, placesPreset, placesViewSearch, readPlacesView, tripCorridorMatcher } from "@trimet-arrivals/places/discovery";
+import { InterestPlace, OUTING_PLACE_CATEGORIES, PLACE_CATEGORIES } from "@trimet-arrivals/places/catalog";
+import { readSavedPlaces, SAVED_PLACES_KEY, useSavedPlaces } from "@trimet-arrivals/places/savedPlaces";
 import NearbyDiscoveryControls from "../view/nearby/components/NearbyDiscoveryControls";
 import NearbyPlannerPaths from "../view/nearby/components/NearbyPlannerPaths";
 import { loadPlannerPaths } from "../view/nearby/util/mapbox/plannerPaths";

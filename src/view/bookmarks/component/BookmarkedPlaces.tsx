@@ -2,8 +2,8 @@ import { Button, Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { Link } from "react-router-dom";
-import { categoryName, placeCategoryForId, placeDetailLink } from "../../../api/places/places";
-import { useSavedPlaces } from "../../../api/places/savedPlaces";
+import { categoryName, placeCategoryForId, placeDetailLink } from "@trimet-arrivals/places/catalog";
+import { useSavedPlaces } from "@trimet-arrivals/places/savedPlaces";
 import PlacesLoadStatus from "../../nearby/components/PlacesLoadStatus";
 import { placeIconDefinition } from "../../nearby/util/mapbox/placeIcons";
 

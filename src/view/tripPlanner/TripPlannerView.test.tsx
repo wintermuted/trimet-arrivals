@@ -14,7 +14,7 @@ import {
 } from "../../api/trimet/tripplanner";
 import TripPlannerView from "./TripPlannerView";
 import type { SavedPlannerStop } from "./PlannerStopSelect";
-import * as placesApi from "../../api/places/places";
+import * as placesApi from "@trimet-arrivals/places/catalog";
 
 jest.mock("../../api/trimet/stopCatalog", () => {
   const actual = jest.requireActual("../../api/trimet/stopCatalog");

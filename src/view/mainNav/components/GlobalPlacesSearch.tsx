@@ -3,7 +3,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, useLocation } from "react-router-dom";
-import { categoryName, normalizePlaceSearch, PLACE_CATEGORIES, placeDetailLink, searchPlaces, usePlaceCatalog } from "../../../api/places/places";
+import { categoryName, normalizePlaceSearch, PLACE_CATEGORIES, placeDetailLink, searchPlaces, usePlaceCatalog } from "@trimet-arrivals/places/catalog";
 import PlacesLoadStatus, { placeSourceIssues } from "../../nearby/components/PlacesLoadStatus";
 import { placeIconDefinition } from "../../nearby/util/mapbox/placeIcons";
 import { useSharedDeviceLocation } from "../../../api/geolocation/geoLocateCurrentPosition";

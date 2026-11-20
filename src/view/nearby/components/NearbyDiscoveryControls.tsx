@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@wintermuted/ui-theme/react";
 import { Link, useHref } from "react-router-dom";
-import { currentPlacePreset, PLACE_PRESETS, PlacePreset, PlacesView, TripCorridor } from "../../../api/places/discovery";
-import { SavedPlaceControls } from "../../../api/places/savedPlaces";
+import { currentPlacePreset, PLACE_PRESETS, PlacePreset, PlacesView, TripCorridor } from "@trimet-arrivals/places/discovery";
+import { SavedPlaceControls } from "@trimet-arrivals/places/savedPlaces";
 
 export default function NearbyDiscoveryControls({ view, onPreset, shareHref, viewError,
   savedPlaces, savedOnly, onSavedOnly, unavailable, trip, alongTrip, onAlongTrip, distance, onDistance }: {

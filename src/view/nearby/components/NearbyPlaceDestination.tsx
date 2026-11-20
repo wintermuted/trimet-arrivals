@@ -1,6 +1,6 @@
 import { Map as MapboxMap, Marker, Popup } from "mapbox-gl";
 import { useEffect } from "react";
-import { InterestPlace } from "../../../api/places/places";
+import { InterestPlace } from "@trimet-arrivals/places/catalog";
 import { createPlaceIconElement } from "../util/mapbox/placeIcons";
 
 export default function NearbyPlaceDestination({ map, place }: { map?: MapboxMap; place?: InterestPlace }) {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";
-import { useTimeDisplay } from "../../../../component/time/TimeDisplay";
+import { useTimeDisplay } from "@trimet-arrivals/ui";
 import TimeDiffBadge from "./TimeDiffBadge";
 import "./SimpleArrivalListItem.scss";
 

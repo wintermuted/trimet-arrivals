@@ -1,7 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import TimeDisplaySettings from "./TimeDisplaySettings";
-import { TimeDisplayProvider, useTimeDisplay } from "./TimeDisplay";
+import { TimeDisplayProvider, TimeDisplaySettings, useTimeDisplay } from "@trimet-arrivals/ui";
 
 function Example() {
   const { formatTime } = useTimeDisplay();

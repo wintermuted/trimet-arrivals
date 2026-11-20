@@ -9,12 +9,12 @@ import { Link } from "react-router-dom";
 import {
   categoryName, CULTURE_PLACE_CATEGORIES, OUTING_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory,
   PlaceFilters, PlaceSourceState, placeDetailLink, placePlannerLink
-} from "../../../api/places/places";
+} from "@trimet-arrivals/places/catalog";
 import "./NearbyPlaces.scss";
-import { NeighborhoodState } from "../../../api/places/neighborhoods";
-import { LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "../../../api/places/lineOverlays";
-import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextCategory, ContextControls } from "../../../api/places/contextOverlays";
-import { SavedPlaceControls } from "../../../api/places/savedPlaces";
+import { NeighborhoodState } from "@trimet-arrivals/places/neighborhoods";
+import { LINE_OVERLAY_CATEGORIES, LINE_OVERLAY_INFO, LineOverlayControls } from "@trimet-arrivals/places/lineOverlays";
+import { CONTEXT_CATEGORIES, CONTEXT_OVERLAY_INFO, ContextCategory, ContextControls } from "@trimet-arrivals/places/contextOverlays";
+import { SavedPlaceControls } from "@trimet-arrivals/places/savedPlaces";
 import PlacesHelp from "./PlacesHelp";
 import LoadStatus, { LoadIssue, placeSourceIssues } from "./PlacesLoadStatus";
 

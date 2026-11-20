@@ -27,7 +27,7 @@ import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
 import PlannerStopSelect, { SavedPlannerStop } from "./PlannerStopSelect";
 import { DirectionsStopPair, EndpointMarker } from "./DirectionsStopPair";
 import "./TripPlannerView.scss";
-import { categoryName, InterestPlace, PLACE_CATEGORIES, placeCategoryForId, usePlaceCatalog } from "../../api/places/places";
+import { categoryName, InterestPlace, PLACE_CATEGORIES, placeCategoryForId, usePlaceCatalog } from "@trimet-arrivals/places/catalog";
 
 const EMPTY_STOPS: StopCatalogStop[] = [];
 

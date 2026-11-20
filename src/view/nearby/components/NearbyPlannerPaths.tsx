@@ -4,7 +4,7 @@ import { TripPlannerItinerary } from "../../../api/trimet/tripplanner";
 import { PlannerRouteColors } from "../../../api/trimet/plannerRouteColors";
 import { loadPlannerPaths } from "../util/mapbox/plannerPaths";
 import { Button } from "@wintermuted/ui-theme/react";
-import { TripCorridor } from "../../../api/places/discovery";
+import { TripCorridor } from "@trimet-arrivals/places/discovery";
 
 const SOURCE = "planner-itineraries";
 const OTHER = `${SOURCE}-alternatives`;

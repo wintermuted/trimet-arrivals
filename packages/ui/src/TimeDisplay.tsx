@@ -6,7 +6,7 @@ import {
   storeTimezone,
   TimeFormat,
   TimezonePreference
-} from "../../api/localstorage/timeDisplay";
+} from "./timePreferences";
 
 export function formatDisplayTime(
   timestamp: number,

@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import "./App.css";
 import AppFooter from "./component/footer/AppFooter";
 import { FeatureFlagsProvider } from "./component/feature-flags/FeatureFlags";
-import { TimeDisplayProvider } from "./component/time/TimeDisplay";
+import { TimeDisplayProvider } from "@trimet-arrivals/ui";
 import RootAppRoutes from "./routes/RootAppRoutes";
 import appStore from "./store/store";
 

@@ -1,7 +1,7 @@
 import { Feature, FeatureCollection, Point } from "geojson";
 import { GeoJSONSource, Map as MapboxMap, MapLayerMouseEvent, Popup } from "mapbox-gl";
 import React, { useEffect, useRef } from "react";
-import { OSM_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory } from "../../../api/places/places";
+import { OSM_PLACE_CATEGORIES, InterestPlace, PLACE_CATEGORIES, PLACE_INFO, PlaceCategory } from "@trimet-arrivals/places/catalog";
 import { createPlaceIconImage } from "../util/mapbox/placeIcons";
 
 type PlaceProperties = { id: string; name: string };
