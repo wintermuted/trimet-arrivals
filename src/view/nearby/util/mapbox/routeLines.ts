@@ -57,8 +57,8 @@ export const NEARBY_ROUTE_LINES = "nearby-route-lines";
 export function showNearbyRouteLines(map: Map, routes: NearbyRoutesDictionary): () => void {
   const controller = new AbortController();
   const { signal } = controller;
-  const requests = Object.entries(routes).flatMap(([routeId, route]) =>
-    Array.from(new Set<number>(route.directions)).map(async direction => {
+  const requests = Object.keys(routes).flatMap(routeId =>
+    Array.from(new Set(routes[Number(routeId)].directions)).map(async direction => {
       try {
         return await getRouteGeometry(routeId, direction, signal);
       } catch (error) {
