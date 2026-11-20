@@ -4,6 +4,11 @@ on:
   push:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish to the live site (main or master only)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -46,7 +51,30 @@ jobs:
           PUBLIC_URL: /${{ github.event.repository.name }}
         run: npx nx run-many -t build
 
+      - name: Verify the production artifact
+        env:
+          PUBLIC_URL: /${{ github.event.repository.name }}
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const html = fs.readFileSync('build/index.html', 'utf8');
+          const base = `${process.env.PUBLIC_URL}/`;
+          const paths = [...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)].map((match) => match[1]);
+          assert(paths.some((path) => path.startsWith(`${base}assets/`) && path.endsWith('.js')), 'Missing production JS URL');
+          assert(paths.some((path) => path.startsWith(`${base}assets/`) && path.endsWith('.css')), 'Missing production CSS URL');
+          for (const path of paths) {
+            assert(path.startsWith(base), `Wrong production base path: ${path}`);
+            assert(fs.statSync(`build/${path.slice(base.length)}`).isFile(), `Missing artifact for ${path}`);
+          }
+          for (const file of ['404.html', '.nojekyll', 'manifest.json', 'favicon.ico', 'data/places/cafes.json']) {
+            assert(fs.statSync(`build/${file}`).isFile(), `Missing Pages file: ${file}`);
+          }
+          console.log(`Verified production artifact for ${base}`);
+          NODE
+
       - name: Deploy to gh-pages
+        if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event_name == 'push' || inputs.publish) }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
