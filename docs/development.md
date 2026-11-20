@@ -9,6 +9,7 @@ builds the production site.
 
 Use the Node.js version in [`.nvmrc`](../.nvmrc) (26.13.1) and npm.
 The deployment workflows read the same pinned version from `.nvmrc`.
+Use npm for workspace dependencies and commit changes to `package-lock.json`.
 
 ```powershell
 npm ci
