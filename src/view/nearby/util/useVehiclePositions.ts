@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Map as MapboxMap } from "mapbox-gl";
 import { getVehicles, VehicleRequestError } from "../../../api/trimet/vehicles";
 import { VehicleBounds, VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
@@ -33,9 +33,11 @@ function viewportBounds(map: MapboxMap): VehicleBounds {
 export function useVehiclePositions(map: MapboxMap | undefined, enabled: boolean, vehicleId?: string) {
   const [feed, setFeed] = useState<VehicleFeed>({ vehicles: [], rejected: 0, status: "loading" });
   const [attempt, setAttempt] = useState(0);
+  const lastReport = useRef<{ map: MapboxMap; feed: VehicleFeed; clock: { server: number; received: number } }>();
 
   useEffect(() => {
     if (!map || !enabled) {
+      lastReport.current = undefined;
       setFeed({ vehicles: [], rejected: 0, status: "loading" });
       return;
     }
@@ -49,10 +51,20 @@ export function useVehiclePositions(map: MapboxMap | undefined, enabled: boolean
     let controller: AbortController | undefined;
     let clock = { server: Date.now(), received: Date.now() };
     let current: VehicleFeed = { vehicles: [], rejected: 0, status: "loading" };
+    const cached = lastReport.current;
+    if (vehicleId && cached?.map === map) {
+      clock = cached.clock;
+      const now = clock.server + Date.now() - clock.received;
+      const vehicles = cached.feed.vehicles.filter(vehicle => vehicle.id === vehicleId && vehicleIsFresh(vehicle, now));
+      if (vehicles.length) current = { ...cached.feed, vehicles, status: "loading", message: undefined };
+    }
 
     function publish(next: VehicleFeed) {
       current = next;
-      if (!disposed) setFeed(next);
+      if (!disposed) {
+        lastReport.current = { map, feed: next, clock };
+        setFeed(next);
+      }
     }
 
     function cancel() {

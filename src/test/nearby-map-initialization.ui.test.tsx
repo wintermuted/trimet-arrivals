@@ -109,6 +109,13 @@ function WalkingToggle() {
   return <button onClick={() => setWalkingEnabled(!walkingEnabled)}>Toggle walking estimates</button>;
 }
 
+function mockVehicleFollow() {
+  jest.mocked(NearbyVehicles).mockImplementation(({ onFollow }) => <button onClick={() => onFollow({
+    id: "4003", type: "bus", tripId: "trip", blockId: "1547", routeNumber: 15,
+    longitude: -122.68, latitude: 45.51, time: Date.now(), expires: Date.now() + 60000,
+  })}>Follow test trip</button>);
+}
+
 describe("Nearby map initialization independently of the sidebar", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -404,10 +411,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       incompleteRouteCount: 0, incompleteDirectionCount: 0,
       incompleteRouteNames: [], invalidStopCount: 0,
     });
-    jest.mocked(NearbyVehicles).mockImplementation(({ onFollow }) => <button onClick={() => onFollow({
-      id: "4003", type: "bus", tripId: "trip", blockId: "1547", routeNumber: 15,
-      longitude: -122.68, latitude: 45.51, time: Date.now(), expires: Date.now() + 60000,
-    })}>Follow test trip</button>);
+    mockVehicleFollow();
     await render(referrer);
     finishMapLoading();
     const planner = container.querySelector(".transit-planner");
@@ -435,6 +439,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("draws available paths together, highlights the chosen option, and removes only planner paths on exit", async () => {
+    mockVehicleFollow();
     const [origin, destination] = [101, 202].map((locid, index) => ({
       ...stops.location[0], locid, desc: `Stop ${locid}`, lng: index * 0.01,
       lat: 0, aliases: [], seq: index + 1, tp: false,
@@ -648,6 +653,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected", ["all", ["==", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-alternatives", ["all", ["!=", ["get", "trip"], 1], ["==", ["get", "walk"], false]]);
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
+    await act(async () => button("Follow test trip").click());
+    expect(layers.has("planner-itineraries-selected")).toBe(false);
+    await act(async () => button("Vehicles").click());
+    expect(layers.has("planner-itineraries-selected")).toBe(true);
+    expect(map.fitBounds).toHaveBeenCalledTimes(1);
     await chooseTrip(2);
     act(() => button("Get directions").click());
     const transferSteps = container.querySelectorAll('[aria-label="Journey steps"] li');
@@ -844,6 +854,26 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(button("Close")).not.toBeNull();
     expect(showRouteInfo).toHaveBeenCalledTimes(2);
     expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
+  });
+
+  it("keeps route details mounted and drops pending automatic fits during and after following", async () => {
+    mockVehicleFollow();
+    await render("/nearby/simple-routes?route=56", true);
+    await act(async () => finishMapLoading());
+    const details = container.querySelector('[aria-label="Route 56 details"]');
+    expect(details).not.toBeNull();
+    const [, , , , canFit, isActive] = jest.mocked(showRouteInfo).mock.calls[0];
+    expect(canFit()).toBe(true);
+    await act(async () => button("Follow test trip").click());
+    expect(details.closest("[hidden]")).not.toBeNull();
+    expect(isActive()).toBe(false);
+    expect(canFit()).toBe(false);
+    const back = container.querySelector<HTMLAnchorElement>('[aria-label="Following vehicle trip"] a[aria-label="Back"]');
+    await act(async () => back.click());
+    expect(details.closest("[hidden]")).toBeNull();
+    expect(isActive()).toBe(true);
+    expect(canFit()).toBe(false);
+    expect(showRouteInfo).toHaveBeenCalledTimes(1);
   });
 
   it.each(["/nearby/stops", "/nearby/simple-routes"])(

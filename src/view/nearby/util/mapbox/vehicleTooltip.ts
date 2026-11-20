@@ -26,12 +26,15 @@ export function createVehicleTooltips(
   let routeFailed = false;
   let routePending = false;
   let cursor: string | undefined;
+  let popupElement: HTMLElement | undefined;
+  let returnFocus: HTMLElement | undefined;
+  const closeSelector = ".mapboxgl-popup-close-button";
+  const followSelector = ".transit-vehicle-follow";
 
   function content(vehicle: VehiclePosition) {
     const root = document.createElement("div");
     root.setAttribute("role", pinned ? "group" : "tooltip");
     if (pinned) root.setAttribute("aria-label", "Vehicle details");
-    root.addEventListener("keydown", escape);
     const heading = document.createElement("strong");
     heading.textContent = `${vehicle.type === "bus" ? "Bus" : "Train"} ${vehicle.id}`;
     root.appendChild(heading);
@@ -63,7 +66,7 @@ export function createVehicleTooltips(
       follow.className = "wm-btn wm-btn-primary wm-btn-sm transit-vehicle-follow";
       follow.textContent = "Follow trip";
       follow.disabled = !vehicle.tripId || !vehicle.blockId;
-      follow.addEventListener("click", () => { hide(); onFollow(vehicle); });
+      follow.addEventListener("click", () => { returnFocus = undefined; hide(); onFollow(vehicle); });
       root.appendChild(follow);
       if (follow.disabled) {
         const note = document.createElement("p");
@@ -87,8 +90,16 @@ export function createVehicleTooltips(
     }
     popup.setLngLat(target.point);
     if (rendered !== target.vehicle) {
+      const focused = document.activeElement;
+      const focusedControl = popupElement?.contains(focused) &&
+        (focused.matches(followSelector) ? followSelector : focused.matches(closeSelector) ? closeSelector : undefined);
       rendered = target.vehicle;
-      popup.setDOMContent(content(target.vehicle));
+      const next = content(target.vehicle);
+      popup.setDOMContent(next);
+      if (focusedControl) {
+        const replacement = focusedControl === followSelector && next.querySelector<HTMLButtonElement>(`${followSelector}:enabled`);
+        (replacement || popupElement.querySelector<HTMLElement>(closeSelector))?.focus({ preventScroll: true });
+      }
     }
   }
 
@@ -106,11 +117,8 @@ export function createVehicleTooltips(
     }
   }
 
-  function show(event: MapLayerMouseEvent, pin = false) {
+  function show(id: string, pin = false, opener?: HTMLElement) {
     if (pinned && !pin) return;
-    const feature = event.features?.[0];
-    if (feature?.id === undefined) return;
-    const id = String(feature.id);
     const target = find(id);
     if (!target) return;
     if (active === id) {
@@ -118,6 +126,7 @@ export function createVehicleTooltips(
       rendered = undefined;
       refresh();
       popup.getElement().classList.toggle("transit-vehicle-popup-sticky", pinned);
+      if (opener) focusDetails(opener);
       return;
     }
     hide();
@@ -130,7 +139,10 @@ export function createVehicleTooltips(
     routePending = Boolean(route && !routes.has(route));
     refresh();
     popup.addTo(map);
-    popup.getElement().classList.toggle("transit-vehicle-popup-sticky", pinned);
+    popupElement = popup.getElement();
+    popupElement.classList.toggle("transit-vehicle-popup-sticky", pinned);
+    popupElement.addEventListener("keydown", escape);
+    if (opener) focusDetails(opener);
     if (!routePending) return;
     controller = new AbortController();
     const signal = controller.signal;
@@ -158,12 +170,22 @@ export function createVehicleTooltips(
     });
   }
 
+  function focusDetails(opener: HTMLElement) {
+    returnFocus = opener;
+    (popupElement?.querySelector<HTMLElement>(`${followSelector}:enabled`) ||
+      popupElement?.querySelector<HTMLElement>(closeSelector))?.focus({ preventScroll: true });
+  }
+
   function escape(event: KeyboardEvent) {
     if (event.key === "Escape") hide();
   }
 
-  function hover(event: MapLayerMouseEvent) { show(event); }
-  function pin(event: MapLayerMouseEvent) { show(event, true); }
+  function showFeature(event: MapLayerMouseEvent, pin: boolean) {
+    const id = event.features?.[0]?.id;
+    if (id !== undefined) show(String(id), pin);
+  }
+  function hover(event: MapLayerMouseEvent) { showFeature(event, false); }
+  function pin(event: MapLayerMouseEvent) { showFeature(event, true); }
   function leave() { if (!pinned) hide(); }
   function backgroundClick(event: MapMouseEvent) {
     if (active !== undefined && (!map.getLayer(layer) ||
@@ -171,6 +193,11 @@ export function createVehicleTooltips(
   }
 
   popup.on("close", () => {
+    popupElement?.removeEventListener("keydown", escape);
+    popupElement = undefined;
+    const opener = returnFocus;
+    returnFocus = undefined;
+    if (opener?.isConnected && document.activeElement === document.body) opener.focus({ preventScroll: true });
     active = undefined;
     pinned = false;
     rendered = undefined;
@@ -186,6 +213,7 @@ export function createVehicleTooltips(
   map.getCanvas().addEventListener("keydown", escape);
 
   return {
+    openDetails: (id: string, opener: HTMLElement) => show(id, true, opener),
     refresh,
     hide,
     dispose() {

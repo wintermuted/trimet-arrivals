@@ -42,8 +42,9 @@ function itineraryStops(itinerary: TripPlannerItinerary) {
   return Array.from(stops.values());
 }
 
-export default function NearbyPlannerPaths({ map, itineraries, selected, previewTrip, walkingEnabled, highlightedLeg, onMapLeg, routeColors }: {
+export default function NearbyPlannerPaths({ map: plannerMap, suspended, itineraries, selected, previewTrip, walkingEnabled, highlightedLeg, onMapLeg, routeColors }: {
   map?: MapboxMap;
+  suspended?: boolean;
   itineraries: TripPlannerItinerary[];
   selected: number;
   previewTrip?: number;
@@ -52,7 +53,8 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, preview
   onMapLeg: (leg?: number) => void;
   routeColors?: PlannerRouteColors;
 }) {
-  const includeWalking = walkingEnabled && Boolean(map);
+  const map = suspended ? undefined : plannerMap;
+  const includeWalking = walkingEnabled && Boolean(plannerMap);
   const [loaded, setLoaded] = useState<{
     itineraries: TripPlannerItinerary[];
     includeWalking: boolean;
@@ -71,6 +73,11 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, preview
   const stopsByTrip = useMemo(() => itineraries.map(itineraryStops), [itineraries]);
   const selectedStops = stopsByTrip[selected];
   const popupIdPrefix = useId();
+  const lastFit = React.useRef<{ map: MapboxMap; result: typeof result }>();
+  const suspendedInputs = React.useRef<{ itineraries: TripPlannerItinerary[]; includeWalking: boolean; routeColors?: PlannerRouteColors }>();
+  useEffect(() => {
+    if (suspended) suspendedInputs.current = { itineraries, includeWalking, routeColors };
+  }, [suspended, itineraries, includeWalking, routeColors]);
 
   useEffect(() => {
     if (!map || !selectedStops?.length) return;
@@ -253,6 +260,12 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, preview
 
   useEffect(() => {
     if (!map || !result) return;
+    if (lastFit.current?.map === map && lastFit.current.result === result) return;
+    lastFit.current = { map, result };
+    const previous = suspendedInputs.current;
+    suspendedInputs.current = undefined;
+    if (previous?.itineraries === itineraries && previous.includeWalking === includeWalking &&
+        previous.routeColors === routeColors) return;
     const bounds = new LngLatBounds();
     const points = stopsByTrip.flatMap(stops => stops.map(stop => stop.point));
     result.data.features.forEach(({ geometry }) => {
@@ -264,7 +277,7 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, preview
     const { clientWidth, clientHeight } = map.getContainer();
     const padding = Math.floor(Math.min(44, clientWidth / 6, clientHeight / 6));
     map.fitBounds(bounds, { padding, maxZoom: 16, duration: 0 });
-  }, [map, result, stopsByTrip]);
+  }, [map, result, stopsByTrip, itineraries, includeWalking, routeColors]);
 
   return mapError ? <small role="alert">Trip paths could not be displayed.</small> : null;
 }

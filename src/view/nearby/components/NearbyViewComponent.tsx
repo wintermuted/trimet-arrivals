@@ -65,6 +65,7 @@ const SERVICE_AREA_ZOOM = 10;
 
 export interface NearbyViewComponentOutletContextProps {
   plannerMap?: Map;
+  plannerMapSuspended?: boolean;
   plannerFooter?: HTMLDivElement;
   currentLocation: number[];
   nearbyRoutes: Dictionary<TrimetRoute[]>;
@@ -87,7 +88,7 @@ export interface NearbyViewComponentOutletContextProps {
 }
 
 export function NearbyTripPlannerComponent() {
-  const { plannerMap, plannerFooter, walkingEnabled } = useOutletContext<NearbyViewComponentOutletContextProps>();
+  const { plannerMap, plannerMapSuspended, plannerFooter, walkingEnabled } = useOutletContext<NearbyViewComponentOutletContextProps>();
   return (
     <ConnectedTripPlannerView
       inSidebar
@@ -95,6 +96,7 @@ export function NearbyTripPlannerComponent() {
       renderMapStatus={(itineraries, selected, highlightedLeg, onMapLeg, routeColors, previewTrip) => (
         <NearbyPlannerPaths
           map={plannerMap}
+          suspended={plannerMapSuspended}
           itineraries={itineraries}
           selected={selected}
           previewTrip={previewTrip}
@@ -294,13 +296,21 @@ export default function NearbyViewComponent() {
   const [vehicleMapError, setVehicleMapError] = useState(false);
   const [vehicleLayerAttempt, setVehicleLayerAttempt] = useState(0);
   const [following, setFollowing] = useState<VehiclePosition & { referrer: string }>();
+  const followCameraEpoch = useRef(0);
+  const followActive = useRef(false);
   const [followView, setFollowView] = useState<VehicleFollowView>("north-up");
   const vehicleMap = isMapLoaded ? mapRef.current : undefined;
   const vehicleFeed = useVehiclePositions(vehicleMap, vehiclesEnabled, following?.id);
   const handleVehicleFollow = useCallback((vehicle: VehiclePosition) => {
+    followCameraEpoch.current += 1;
+    followActive.current = true;
     setFollowing({ ...vehicle, referrer: `${location.pathname}${location.search}${location.hash}` });
     setVehiclesEnabled(true);
   }, [location.pathname, location.search, location.hash]);
+  function stopFollowing() {
+    followActive.current = false;
+    setFollowing(undefined);
+  }
   const [nearbyDataError, setNearbyDataError] = useState(false);
   const [isNearbyDataLoading, setIsNearbyDataLoading] = useState(false);
   const { walkingEnabled } = useFeatureFlags();
@@ -339,6 +349,7 @@ export default function NearbyViewComponent() {
     }
   }, []);
 
+  const hideNearbyStopsForFollow = Boolean(following) && !isRouteInfo;
   useEffect(() => {
     if (shouldAutoLocate) void locate();
     else setIsLocating(false);
@@ -393,10 +404,10 @@ export default function NearbyViewComponent() {
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current) return;
     removeStopLocationLayers(mapRef.current);
-    if (!isPlanner && !isChoosingDirectionStop && !following && stopLocations && nearbyRouteIds) {
+    if (!isPlanner && !isChoosingDirectionStop && !hideNearbyStopsForFollow && stopLocations && nearbyRouteIds) {
       setNearbyStops(mapRef.current, stopLocations, Object.keys(nearbyRouteIds), handleStopMarkerClick);
     }
-  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isChoosingDirectionStop, following]);
+  }, [isMapLoaded, nearbyStops, nearbyRoutes, isPlanner, isChoosingDirectionStop, hideNearbyStopsForFollow]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapRef.current || !nearbyRouteIds || isPlanner || isDirections || isRouteInfo || following) return;
@@ -487,10 +498,13 @@ export default function NearbyViewComponent() {
     highlightNearbyStop(mapRef.current, stopId), []);
   const handleWalkingRouteChanged = useCallback((feature: Feature<LineString>) =>
     showWalkingRoute(mapRef.current, feature), []);
-  const handleRouteInfoChanged = useCallback((route: DetailedRoute, onError: () => void) =>
-    showRouteInfo(mapRef.current, route, onError, (stopId) =>
-      navigate(stopDetailUrl(stopId, `${location.pathname}${location.search}${location.hash}`))),
-    [navigate, location.pathname, location.search, location.hash]);
+  const handleRouteInfoChanged = useCallback((route: DetailedRoute, onError: () => void) => {
+    const epoch = followCameraEpoch.current;
+    const isActive = () => !followActive.current;
+    return showRouteInfo(mapRef.current, route, onError, (stopId) =>
+      navigate(stopDetailUrl(stopId, `${location.pathname}${location.search}${location.hash}`)),
+      () => isActive() && epoch === followCameraEpoch.current, isActive);
+  }, [navigate, location.pathname, location.search, location.hash]);
   const handleRouteInfoStopHighlighted = useCallback((stopId?: number) =>
     highlightRouteInfoStop(mapRef.current, stopId), []);
 
@@ -507,7 +521,8 @@ export default function NearbyViewComponent() {
   }, []);
 
   const context: NearbyViewComponentOutletContextProps = {
-    plannerMap: isMapLoaded && !following ? mapRef.current : undefined,
+    plannerMap: isMapLoaded ? mapRef.current : undefined,
+    plannerMapSuspended: Boolean(following),
     plannerFooter,
     currentLocation,
     nearbyRoutes,
@@ -553,9 +568,11 @@ export default function NearbyViewComponent() {
               </div>
             )}
             {isPlanner && <div hidden={Boolean(following)}><Outlet context={context} /></div>}
-            {following ? <FollowedVehicleTrip selection={following} feed={vehicleFeed}
+            {following && <FollowedVehicleTrip selection={following} feed={vehicleFeed}
               view={followView} onViewChange={setFollowView} backTo={following.referrer}
-              onBack={() => setFollowing(undefined)} /> : isLanding ? (
+              onBack={stopFollowing} />}
+            {!isPlanner && (!following || isRouteInfo) && <div hidden={Boolean(following)}>
+            {isLanding ? (
               <nav aria-label="Nearby options" className="transit-nearby-launcher">
                 <h2>Nearby</h2>
                 <Link to="/nearby/simple-routes" className="transit-nearby-tile">
@@ -569,7 +586,7 @@ export default function NearbyViewComponent() {
                   <FontAwesome name="chevron-right" aria-hidden="true" />
                 </Link>
               </nav>
-            ) : isPlanner ? null : isStopDetail ? (
+            ) : isStopDetail ? (
               <Outlet context={context} />
             ) : nearbyDataError ? (
               <div role="alert" className="transit-route-list-message">
@@ -598,6 +615,7 @@ export default function NearbyViewComponent() {
             ) : canShowNearbyResults ? (
               <Outlet context={context} />
             ) : null}
+            </div>}
           </div>
           {isPlanner && <div hidden={Boolean(following)} className="transit-nearby-planner-footer" ref={bindPlannerFooter} />}
         </div>
@@ -616,7 +634,7 @@ export default function NearbyViewComponent() {
             searchMode={searchMode}
             vehiclesEnabled={vehiclesEnabled}
             onVehiclesToggle={() => {
-              if (vehiclesEnabled) setFollowing(undefined);
+              if (vehiclesEnabled) stopFollowing();
               setVehiclesEnabled(value => !value);
               setVehicleMapError(false);
             }}
@@ -626,7 +644,7 @@ export default function NearbyViewComponent() {
               setVehicleLayerAttempt(value => value + 1);
               vehicleFeed.retry();
             }}
-          />
+          >
           {vehicleMap && vehiclesEnabled && (
             <NearbyVehicles
               key={vehicleLayerAttempt}
@@ -638,6 +656,7 @@ export default function NearbyViewComponent() {
               followView={followView}
             />
           )}
+          </NearbyMapV2>
         </div>
       </div>
     </div>
