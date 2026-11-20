@@ -160,7 +160,9 @@ as Places, with matching text highlighted in names and descriptions.
 **Show more places** exposes additional matches. Search
 uses the most recently shared device location to sort equally relevant matches
 nearest first, while retaining exact/prefix name priority. Without a shared
-location it retains alphabetical tie-breaking. Search never requests location
+location it retains alphabetical tie-breaking. Each result shows its straight-line
+distance from the shared position in feet below one mile or miles otherwise;
+distances are omitted when no device location is available. Search never requests location
 permission itself, uses neither map centers nor dropped pins as a device location,
 and keeps the shared position only in memory for the current page session.
 A subsequently denied location request clears the proximity preference.

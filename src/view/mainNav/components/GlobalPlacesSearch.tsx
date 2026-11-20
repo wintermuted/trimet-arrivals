@@ -7,9 +7,15 @@ import { categoryName, normalizePlaceSearch, PLACE_CATEGORIES, placeDetailLink, 
 import PlacesLoadStatus, { placeSourceIssues } from "../../nearby/components/PlacesLoadStatus";
 import { placeIconDefinition } from "../../nearby/util/mapbox/placeIcons";
 import { useSharedDeviceLocation } from "../../../api/geolocation/geoLocateCurrentPosition";
+import { getDistance } from "../../nearby/util/turfUtils";
 import "./GlobalPlacesSearch.scss";
 
 const PAGE_SIZE = 10;
+
+function distanceLabel(origin: readonly [number, number], destination: [number, number]) {
+  const miles = getDistance([...origin], destination);
+  return miles < 1 ? `${Math.round(miles * 5280)} ft` : `${miles.toFixed(1)} mi`;
+}
 
 function highlightMatches(text: string, query: string) {
   const normalized = normalizePlaceSearch(text);
@@ -127,6 +133,10 @@ export default function GlobalPlacesSearch() {
               <strong>{highlightMatches(place.name, query)}</strong>
               <small>{highlightMatches(`${categoryName(place.category)}${place.address ? ` / ${place.address}` : ""}`, query)}</small>
             </span>
+            {deviceLocation && <span className="transit-global-search-distance">
+              <span>{distanceLabel(deviceLocation, place.coordinates)}</span>
+              <small>straight-line<span className="wm-sr-only"> from your shared location</span></small>
+            </span>}
           </Link>
         </li>)}
       </ul>}
