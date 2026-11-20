@@ -23,6 +23,8 @@ import * as placesApi from "../api/places/places";
 import { placesPreset, placesViewSearch, readPlacesView } from "../api/places/discovery";
 import { SAVED_PLACES_KEY } from "../api/places/savedPlaces";
 import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
+import NearbyPlacesMap from "../view/nearby/components/NearbyPlacesMap";
+import * as placeIcons from "../view/nearby/util/mapbox/placeIcons";
 
 function StopDetailWithStore() {
   const [store] = React.useState(() => createStore(reducers));
@@ -56,13 +58,7 @@ jest.mock("../view/nearby/util/mapbox/initializeMap", () => ({
 }));
 jest.mock("../view/nearby/components/NearbyPlacesMap", () => ({
   __esModule: true,
-  default: function PlaceMap({ map, onBounds }) {
-    const React = require("react");
-    React.useEffect(() => {
-      if (map) onBounds([-122.8, 45.4, -122.5, 45.7]);
-    }, [map, onBounds]);
-    return null;
-  }
+  default: jest.fn()
 }));
 jest.mock("../view/nearby/util/mapbox/currentLocation", () => ({
   initializeCurrentLocationMarker: jest.fn(),
@@ -91,7 +87,7 @@ jest.mock("mapbox-gl", () => {
       on(_event: string, close: () => void) { this.close = close; return this; }
       addTo() { this.content.ownerDocument.body.appendChild(this.content); return this; }
       isOpen() { return this.content.isConnected; }
-      remove() { this.content.remove(); this.close?.(); }
+      remove() { this.content?.remove(); this.close?.(); }
     },
     LngLatBounds: class {
       extend() { return this; }
@@ -147,6 +143,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
   let root: Root;
   const sources = new Set<string>();
   const layers = new Set<string>();
+  const images = new Set<string>();
+  const canvas = document.createElement("canvas");
   const map = {
     on: jest.fn(), remove: jest.fn(), resize: jest.fn(), flyTo: jest.fn(),
     getZoom: jest.fn(() => 12), jumpTo: jest.fn(), easeTo: jest.fn(),
@@ -156,11 +154,17 @@ describe("Nearby map initialization independently of the sidebar", () => {
     queryRenderedFeatures: jest.fn(),
     addSource: jest.fn((id, _data) => sources.add(id)),
     addLayer: jest.fn(({ id }) => layers.add(id)),
-    getSource: jest.fn(id => sources.has(id)),
+    getSource: jest.fn(id => sources.has(id) ? { setData: jest.fn() } : undefined),
     getStyle: jest.fn(() => ({ layers: [...layers].map(id => ({ id })) })),
     getLayer: jest.fn(id => layers.has(id)),
     removeLayer: jest.fn(id => layers.delete(id)),
     removeSource: jest.fn(id => sources.delete(id)),
+    getBounds: () => ({ getWest: () => -122.8, getEast: () => -122.5, getSouth: () => 45.4, getNorth: () => 45.7 }),
+    getCanvas: () => canvas,
+    hasImage: jest.fn(id => images.has(id)),
+    addImage: jest.fn(id => images.add(id)),
+    removeImage: jest.fn(id => images.delete(id)),
+    setLayoutProperty: jest.fn(),
   };
   const marker = {
     setLngLat: jest.fn(), addTo: jest.fn(), getLngLat: jest.fn(() => ({ lng: 3, lat: 4 })),
@@ -180,10 +184,17 @@ describe("Nearby map initialization independently of the sidebar", () => {
     jest.mocked(NearbyVehicles).mockReturnValue(null);
     sources.clear();
     layers.clear();
+    images.clear();
+    jest.mocked(NearbyPlacesMap).mockImplementation(function PlaceMap({ map, onBounds }) {
+      React.useEffect(() => {
+        if (map) onBounds([-122.8, 45.4, -122.5, 45.7]);
+      }, [map, onBounds]);
+      return null;
+    });
     map.getContainer.mockReturnValue({ clientWidth: 390, clientHeight: 230 });
     map.addSource.mockImplementation(id => sources.add(id));
     map.addLayer.mockImplementation(({ id }) => layers.add(id));
-    map.getSource.mockImplementation(id => sources.has(id));
+    map.getSource.mockImplementation(id => sources.has(id) ? { setData: jest.fn() } : undefined);
     map.getLayer.mockImplementation(id => layers.has(id));
     map.removeLayer.mockImplementation(id => layers.delete(id));
     map.removeSource.mockImplementation(id => sources.delete(id));
@@ -399,6 +410,78 @@ describe("Nearby map initialization independently of the sidebar", () => {
   const discoveryPark: placesApi.InterestPlace = { id: "portland:park:1", category: "park", name: "Example Park",
     coordinates: [-122.67, 45.55], sourceUrl: "https://www.portlandmaps.com/", arrival: "approximate" };
 
+  it("removes Places layers, sources, icons and popup listeners before destroying the map on navigation away", async () => {
+    jest.mocked(NearbyPlacesMap).mockImplementation(
+      jest.requireActual("../view/nearby/components/NearbyPlacesMap").default
+    );
+    jest.spyOn(placeIcons, "createPlaceIconImage").mockReturnValue({
+      width: 48, height: 48, data: new Uint8Array(48 * 48 * 4)
+    });
+    discoveryCatalog([discoveryPark]);
+    let removed = false;
+    map.remove.mockImplementationOnce(() => { removed = true; });
+    map.getLayer.mockImplementation(id => {
+      if (removed) throw new Error("Cannot query a destroyed map style");
+      return layers.has(id);
+    });
+    map.getSource.mockImplementation(id => {
+      if (removed) throw new Error("Cannot query a destroyed map style");
+      return sources.has(id) ? { setData: jest.fn() } : undefined;
+    });
+    await act(async () => root.render(<FeatureFlagsProvider>
+      <MemoryRouter initialEntries={["/", "/nearby/places"]}>
+        <NavigationProbe />
+        <Routes>
+          <Route path="/" element={<p>Outside Nearby</p>} />
+          <Route path="/nearby/*" element={<NearbyViewComponent />} />
+        </Routes>
+      </MemoryRouter>
+    </FeatureFlagsProvider>));
+    finishMapLoading();
+    expect(container.querySelector(".transit-place-result")?.textContent).toContain(discoveryPark.name);
+    expect(layers.has("nearby-places-park-icons")).toBe(true);
+
+    await act(async () => button("Browser back").click());
+
+    expect(container.textContent).toContain("Outside Nearby");
+    expect(removed).toBe(true);
+    expect(sources.size).toBe(0);
+    expect(layers.size).toBe(0);
+    expect(images.size).toBe(0);
+    expect(map.off).toHaveBeenCalledWith("mousemove", expect.any(Function));
+    expect(Math.max(...map.removeLayer.mock.invocationCallOrder)).toBeLessThan(map.remove.mock.invocationCallOrder[0]);
+    expect(Math.max(...map.removeSource.mock.invocationCallOrder)).toBeLessThan(map.remove.mock.invocationCallOrder[0]);
+    expect(Math.max(...map.removeImage.mock.invocationCallOrder)).toBeLessThan(map.remove.mock.invocationCallOrder[0]);
+  });
+
+  it.each(["icon creation", "layer installation"])("keeps selectable results when initial %s fails, and recovers through marker retry", async failure => {
+    jest.mocked(NearbyPlacesMap).mockImplementation(
+      jest.requireActual("../view/nearby/components/NearbyPlacesMap").default
+    );
+    const createIcon = jest.spyOn(placeIcons, "createPlaceIconImage").mockReturnValue({
+      width: 48, height: 48, data: new Uint8Array(48 * 48 * 4)
+    });
+    if (failure === "icon creation") createIcon.mockImplementation(() => { throw new Error("Canvas unavailable"); });
+    else map.addLayer.mockImplementationOnce(() => { throw new Error("Layer installation failed"); });
+    discoveryCatalog([discoveryPark]);
+    await render("/nearby/places");
+    finishMapLoading();
+
+    expect(container.querySelector(".transit-place-result")?.textContent).toContain(discoveryPark.name);
+    expect(container.textContent).toContain("Place markers could not be drawn");
+    expect(container.textContent).not.toContain("Preparing the map area");
+    expect(images.size).toBeLessThan(placesApi.PLACE_CATEGORIES.length);
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-place-result").click());
+    expect(container.querySelector("#selected-place-heading")?.textContent).toBe(discoveryPark.name);
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-detail-back").click());
+    createIcon.mockReturnValue({ width: 48, height: 48, data: new Uint8Array(48 * 48 * 4) });
+    await act(async () => button("Retry place categories").click());
+    expect(container.textContent).not.toContain("Place markers could not be drawn");
+    expect(layers.has("nearby-places-park-icons")).toBe(true);
+    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-place-result").click());
+    expect(container.querySelector("#selected-place-heading")?.textContent).toBe(discoveryPark.name);
+  });
+
   it("keeps Places and details usable while permission is pending and adds the routing origin when it arrives", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
     jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
@@ -434,6 +517,26 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector('[aria-label="Current location error"]')).toBeNull();
     expect(new URLSearchParams(plannerLink().search).get("fromCoord")).toBe("0,0");
     expect(getCurrentPosition).toHaveBeenCalledTimes(2);
+    expect(getNearbyStops).not.toHaveBeenCalled();
+  });
+
+  it("shows a Places error and matching tooltip after an explicit location request fails, then recovers on retry", async () => {
+    discoveryCatalog([discoveryPark]);
+    await render("/nearby/places");
+    finishMapLoading();
+    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("timeout"));
+    await act(async () => button("Find near me").click());
+
+    const message = "Current location is unavailable. Check browser permissions and retry, or keep browsing the map.";
+    const status = container.querySelector(".transit-map-location-status")?.parentElement;
+    expect(status?.querySelector('[role="alert"]')?.textContent).toBe(message);
+    expect(container.querySelector(".transit-place-result")?.textContent).toContain(discoveryPark.name);
+    act(() => button("Current location error").focus());
+    expect(document.querySelector('[role="tooltip"]')?.textContent).toBe(message);
+    await act(async () => button("Retry current location").click());
+    expect(container.querySelector('[aria-label="Current location error"]')).toBeNull();
+    expect(document.querySelector('[role="tooltip"]')).toBeNull();
+    expect(getCurrentPosition).toHaveBeenCalledTimes(3);
     expect(getNearbyStops).not.toHaveBeenCalled();
   });
 
