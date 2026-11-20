@@ -157,7 +157,14 @@ view or trip corridor. It matches names, category labels, addresses and source-l
 types, ignores accents and supports multiple search terms. Exact and prefix name
 matches appear first; results use the same category icons and theme-aware colors
 as Places, with matching text highlighted in names and descriptions.
-**Show more places** exposes additional matches. The catalog
+**Show more places** exposes additional matches. Search
+uses the most recently shared device location to sort equally relevant matches
+nearest first, while retaining exact/prefix name priority. Without a shared
+location it retains alphabetical tie-breaking. Search never requests location
+permission itself, uses neither map centers nor dropped pins as a device location,
+and keeps the shared position only in memory for the current page session.
+A subsequently denied location request clears the proximity preference.
+The catalog
 loads on first search interaction rather than on every page visit. Partial failures
 show an inline error tooltip and source-specific retry beside **All places**, while
 loaded results stay usable. Arrow keys or Tab browse result links; Escape dismisses

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import distance from "@turf/distance";
 
 export const PLACE_INFO = {
   park: { label: "Parks", singular: "Parks system site", icon: "tree", file: "parks.json", color: "#197346" },
@@ -247,7 +248,7 @@ const placeSearchText = (place: InterestPlace) =>
 
 export const normalizePlaceSearch = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
-export function searchPlaces(places: InterestPlace[], search: string) {
+export function searchPlaces(places: InterestPlace[], search: string, origin?: readonly [number, number]) {
   const query = normalizePlaceSearch(search.trim());
   if (!query) return [];
   const terms = query.split(/\s+/);
@@ -258,7 +259,12 @@ export function searchPlaces(places: InterestPlace[], search: string) {
   return places.filter(place => {
     const text = normalizePlaceSearch(`${placeSearchText(place)} ${PLACE_INFO[place.category].label} ${PLACE_INFO[place.category].singular}`);
     return terms.every(term => text.includes(term));
-  }).sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+  }).map(place => ({
+    place, rank: rank(place),
+    distance: origin ? distance([origin[0], origin[1]], place.coordinates) : 0
+  })).sort((a, b) => a.rank - b.rank || a.distance - b.distance ||
+    a.place.name.localeCompare(b.place.name) || a.place.id.localeCompare(b.place.id))
+    .map(match => match.place);
 }
 
 export function filterPlaces(places: InterestPlace[], filters: PlaceFilters, deduplicate = true) {
