@@ -1,12 +1,39 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, useLocation } from "react-router-dom";
-import { categoryName, PLACE_CATEGORIES, placeDetailLink, searchPlaces, usePlaceCatalog } from "../../../api/places/places";
+import { categoryName, normalizePlaceSearch, PLACE_CATEGORIES, placeDetailLink, searchPlaces, usePlaceCatalog } from "../../../api/places/places";
 import PlacesLoadStatus, { placeSourceIssues } from "../../nearby/components/PlacesLoadStatus";
+import { placeIconDefinition } from "../../nearby/util/mapbox/placeIcons";
 import "./GlobalPlacesSearch.scss";
 
 const PAGE_SIZE = 10;
+
+function highlightMatches(text: string, query: string) {
+  const normalized = normalizePlaceSearch(text);
+  const matches = new Set<number>();
+  for (const term of normalizePlaceSearch(query).split(/\s+/).filter(Boolean)) {
+    let start = normalized.indexOf(term);
+    while (start >= 0) {
+      for (let index = start; index < start + term.length; index++) matches.add(index);
+      start = normalized.indexOf(term, start + 1);
+    }
+  }
+  const parts: { text: string; matched: boolean }[] = [];
+  let offset = 0;
+  for (const character of text) {
+    const length = normalizePlaceSearch(character).length;
+    const previous = parts[parts.length - 1];
+    // Keep original accents, combining marks and surrogate pairs intact.
+    const matched = length ? Array.from({ length }, (_, index) => matches.has(offset + index)).some(Boolean)
+      : previous?.matched || false;
+    if (previous && previous.matched === matched) previous.text += character;
+    else parts.push({ text: character, matched });
+    offset += length;
+  }
+  return parts.map((part, index) => part.matched ? <mark key={index}>{part.text}</mark> : part.text);
+}
 
 export default function GlobalPlacesSearch() {
   const [activated, setActivated] = useState(false);
@@ -92,8 +119,12 @@ export default function GlobalPlacesSearch() {
       {hasQuery && matches.length > 0 && <ul aria-label="Matching places" className="transit-global-search-results">
         {matches.slice(0, limit).map(place => <li key={place.id}>
           <Link to={placeDetailLink(place.id)} data-global-place={place.id} onClick={() => setOpen(false)}>
-            <strong>{place.name}</strong>
-            <small>{categoryName(place.category)}{place.address ? ` / ${place.address}` : ""}</small>
+            <FontAwesomeIcon icon={placeIconDefinition(place.category)} aria-hidden="true"
+              className={`transit-place-icon transit-place-icon--${place.category}`} />
+            <span className="transit-global-search-label">
+              <strong>{highlightMatches(place.name, query)}</strong>
+              <small>{highlightMatches(`${categoryName(place.category)}${place.address ? ` / ${place.address}` : ""}`, query)}</small>
+            </span>
           </Link>
         </li>)}
       </ul>}

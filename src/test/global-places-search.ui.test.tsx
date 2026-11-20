@@ -4,6 +4,7 @@ import { Simulate } from "react-dom/test-utils";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import * as places from "../api/places/places";
 import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
+import { placeIconDefinition } from "../view/nearby/util/mapbox/placeIcons";
 
 const cafe: places.InterestPlace = { id: "osm:cafe:node:1", category: "cafe", name: "Café Yarrow",
   coordinates: [-122.7, 45.6], address: "20 Northeast Broadway", siteType: "Cafe",
@@ -108,6 +109,45 @@ describe("Global navbar Places search", () => {
     act(() => input().focus());
     act(() => input().blur());
     expect(results()).toHaveLength(0);
+  });
+
+  it("uses the same decorative category icons and color hooks as Places results", () => {
+    render();
+    search("Broadway");
+    expect(results()).toHaveLength(catalog.places.length);
+    for (const place of catalog.places) {
+      const link = results().find(result => result.dataset.globalPlace === place.id);
+      const icon = link.querySelector("svg.transit-place-icon");
+      expect(icon.getAttribute("data-icon")).toBe(placeIconDefinition(place.category).iconName);
+      expect(icon.classList.contains(`transit-place-icon--${place.category}`)).toBe(true);
+      expect(icon.getAttribute("aria-hidden")).toBe("true");
+      expect(link.querySelector("strong").textContent).toBe(place.name);
+    }
+  });
+
+  it("highlights each search term in names, category labels and addresses without changing the displayed text", () => {
+    render();
+    search("cafe broadway");
+    const link = results()[0];
+    expect(link.querySelector("strong mark").textContent).toBe("Café");
+    expect([...link.querySelectorAll("small mark")].map(mark => mark.textContent)).toEqual(["Café", "Broadway"]);
+    expect(link.querySelector("strong").textContent).toBe(cafe.name);
+    expect(link.querySelector("small").textContent).toBe("Cafés / 20 Northeast Broadway");
+  });
+
+  it.each<[string, string, string[]]>([
+    ["🌿 Cafe\u0301 / CAFÉ", "cafe", ["Cafe\u0301", "CAFÉ"]],
+    ["A [x] <img src=x>", "[x] <img", ["[x]", "<img"]],
+    ["Banana", "ana", ["anana"]],
+  ])("highlights literal repeated/overlapping matches while preserving %s", (name, query, expected) => {
+    const place = { ...cafe, name };
+    catalog = { ...catalog, places: [place], sources: loadedSources([place]) };
+    render();
+    search(query);
+    const label = results()[0].querySelector("strong");
+    expect(label.textContent).toBe(name);
+    expect([...label.querySelectorAll("mark")].map(mark => mark.textContent)).toEqual(expected);
+    expect(label.querySelector("img")).toBeNull();
   });
 
   it("explains incomplete results beside the heading and retries only unavailable sources", () => {

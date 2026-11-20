@@ -245,17 +245,18 @@ export const DEFAULT_PLACE_FILTERS: PlaceFilters = { park: true, "food-cart-pod"
 const placeSearchText = (place: InterestPlace) =>
   `${place.name} ${place.address || ""} ${place.scientificName || ""} ${place.reuseServices || ""} ${place.reuseItems || ""} ${place.pickupProducts || ""} ${place.amenityType || ""} ${place.amenityStyle || ""} ${place.siteType || ""}`;
 
+export const normalizePlaceSearch = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+
 export function searchPlaces(places: InterestPlace[], search: string) {
-  const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
-  const query = normalize(search.trim());
+  const query = normalizePlaceSearch(search.trim());
   if (!query) return [];
   const terms = query.split(/\s+/);
   const rank = (place: InterestPlace) => {
-    const name = normalize(place.name);
+    const name = normalizePlaceSearch(place.name);
     return name === query ? 0 : name.startsWith(query) ? 1 : name.includes(query) ? 2 : 3;
   };
   return places.filter(place => {
-    const text = normalize(`${placeSearchText(place)} ${PLACE_INFO[place.category].label} ${PLACE_INFO[place.category].singular}`);
+    const text = normalizePlaceSearch(`${placeSearchText(place)} ${PLACE_INFO[place.category].label} ${PLACE_INFO[place.category].singular}`);
     return terms.every(term => text.includes(term));
   }).sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
 }
