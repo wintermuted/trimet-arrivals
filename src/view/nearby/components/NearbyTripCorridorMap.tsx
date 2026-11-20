@@ -20,7 +20,7 @@ export default function NearbyTripCorridorMap({ map, lines, onError }: {
         onError(!map.getLayer(SOURCE));
       } catch { onError(true); }
     }
-    const sourceError = (event: { sourceId?: string }) => { if (event.sourceId === SOURCE) onError(true); };
+    const sourceError = (event: { error: Error; sourceId?: string }) => { if (event.sourceId === SOURCE) onError(true); };
     map.on("style.load", install);
     map.on("error", sourceError);
     install();
