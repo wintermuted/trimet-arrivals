@@ -18,6 +18,11 @@ export type {
   TripPlannerRoute
 } from "./tripplanner";
 export { getTrimetData } from "./util";
+export { normalizeRouteColor } from "./routeColor";
+export { getVehicles, parseVehicleSnapshot, VehicleRequestError } from "./vehicles";
+export { getVehicleTrip, parseVehicleTrip } from "./vehicleTrip";
+export type { VehicleBounds, VehiclePosition, VehicleSnapshot } from "./interfaces/vehicles";
+export type { VehicleTrip, VehicleTripSnapshot, VehicleTripStop } from "./vehicleTrip";
 export type { TrimetClientOptions } from "./options";
 export type { Alert, AlertsData, Location as AlertLocation } from "./interfaces/alertsData";
 export type {

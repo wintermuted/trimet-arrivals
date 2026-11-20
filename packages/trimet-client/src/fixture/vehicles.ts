@@ -1,4 +1,4 @@
-import { VehicleBounds, VehiclePosition, VehicleSnapshot } from "../interfaces/vehicles";
+import type { VehicleBounds, VehiclePosition, VehicleSnapshot } from "../interfaces/vehicles";
 
 export function vehicleFixtureData([west, south, east, north]: VehicleBounds): VehicleSnapshot {
   const now = Date.now();

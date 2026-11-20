@@ -1,7 +1,7 @@
 import { getVehicleTrip, parseVehicleTrip } from "./vehicleTrip";
 import { requestVehicleData } from "./vehicles";
 
-jest.mock("../util", () => ({ fixtureEnabled: () => false }));
+const options = { baseUrl: "https://example.test/ws/", appId: "test-id" };
 jest.mock("./vehicles", () => ({
   ...jest.requireActual("./vehicles"), requestVehicleData: jest.fn(),
 }));
@@ -37,7 +37,7 @@ it("matches the exact block and trip and sorts stop occurrences by sequence", ()
 it("uses the compact, verified blockStatus filter rather than the unfiltered tripStatus endpoint", async () => {
   jest.mocked(requestVehicleData).mockResolvedValue(response());
   const signal = new AbortController().signal;
-  await getVehicleTrip("1547", "target", signal);
+  await getVehicleTrip("1547", "target", options, signal);
   const [url, actualSignal] = jest.mocked(requestVehicleData).mock.calls[0];
   expect(url.pathname).toBe("/ws/v2/blockStatus");
   expect(url.searchParams.get("blockID")).toBe("1547");
@@ -72,5 +72,5 @@ it("rejects malformed, unordered-identity and service-error responses", async ()
   const value = response();
   value.resultSet.blockStatus[1].trip[1].stop = [stop, stop];
   expect(() => parseVehicleTrip(value, "1547", "target")).toThrow("order");
-  await expect(getVehicleTrip("", "target")).rejects.toThrow("IDs");
+  await expect(getVehicleTrip("", "target", options)).rejects.toThrow("IDs");
 });
