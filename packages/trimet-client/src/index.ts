@@ -8,6 +8,15 @@ export {
   getSubsequentRouteStops
 } from "./routeConfig";
 export { getNearbyStops } from "./stops";
+export { parsePlannerCoordinates, parseTripPlannerResponse, planTrip } from "./tripplanner";
+export type {
+  TripPlannerItinerary,
+  TripPlannerLeg,
+  TripPlannerLocation,
+  TripPlannerOptions,
+  TripPlannerResponse,
+  TripPlannerRoute
+} from "./tripplanner";
 export { getTrimetData } from "./util";
 export type { TrimetClientOptions } from "./options";
 export type { Alert, AlertsData, Location as AlertLocation } from "./interfaces/alertsData";
