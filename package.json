@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": ["packages/*"],
   "nx": {
-    "implicitDependencies": ["@trimet-arrivals/places", "@trimet-arrivals/ui"]
+    "implicitDependencies": ["@trimet-arrivals/app"]
   },
   "author": "Jameson Nyeholt <jameson.nyeholt@gmail.com>",
   "license": "MIT",
@@ -79,10 +79,10 @@
     "test:ui": "jest --selectProjects ui --runInBand",
     "test:coverage": "jest --coverage",
     "codecov": "codecov",
-    "prettier": "prettier --check 'src/**/*.ts*'",
-    "prettier:fix": "prettier --write 'src/**/*.ts*'",
-    "tslint": "tslint 'src/**/*.ts*'",
-    "tslint:fix": "tslint --fix 'src/**/*.ts*'",
+    "prettier": "prettier --check \"packages/app/src/**/*.ts*\"",
+    "prettier:fix": "prettier --write \"packages/app/src/**/*.ts*\"",
+    "tslint": "tslint \"packages/app/src/**/*.ts*\"",
+    "tslint:fix": "tslint --fix \"packages/app/src/**/*.ts*\"",
     "semantic-release": "semantic-release",
     "trimet": "node ./scripts/split_routes.js"
   },

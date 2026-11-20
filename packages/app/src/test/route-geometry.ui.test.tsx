@@ -3,9 +3,9 @@ import path from "path";
 import { Feature, Geometry, LineString, Position } from "geojson";
 import { getSelectedRouteSegment } from "../view/nearby/util/mapbox/routeSegment";
 import { RouteDirectionStop } from "../api/trimet/interfaces/routes";
-import route54 from "../../public/data/trimet/geoJSON/54/54_1.json";
+import route54 from "../../../../public/data/trimet/geoJSON/54/54_1.json";
 
-const { mergeRouteFeatures } = require("../../scripts/split_routes");
+const { mergeRouteFeatures } = require("../../../../scripts/split_routes");
 
 function feature(coordinates: number[][], route = "54", direction = "1") {
   return {
@@ -66,7 +66,7 @@ describe("lossless route geometry export", () => {
   });
 
   it("preserves every original road edge in the checked-in route assets", () => {
-    const repo = path.resolve(__dirname, "..", "..");
+    const repo = path.resolve(__dirname, "..", "..", "..", "..");
     const source = JSON.parse(readFileSync(path.join(repo, "scripts", "tm_routes.json"), "utf8"));
     const assets = new Map<string, Set<string>>();
     const incomplete = new Set<string>();
