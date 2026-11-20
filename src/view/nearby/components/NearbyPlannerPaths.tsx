@@ -80,7 +80,7 @@ export default function NearbyPlannerPaths({ map, itineraries, selected, preview
       element.type = "button";
       element.setAttribute("role", "button");
       element.className = "transit-planner-stop-marker";
-      element.setAttribute("aria-label", [...stop.actions].map(action => `${action} at ${stop.name}`).join("; "));
+      element.setAttribute("aria-label", Array.from(stop.actions).map(action => `${action} at ${stop.name}`).join("; "));
       element.setAttribute("aria-expanded", "false");
       element.textContent = stop.board && stop.exit ? "↕" : stop.board ? "↑" : "↓";
       const content = document.createElement("div");
