@@ -20,6 +20,7 @@ const common = {
 };
 
 module.exports = {
+  clearMocks: true,
   collectCoverageFrom: [
     "src/{api,component,store,view}/**/*.{ts,tsx}",
     "src/App.tsx"
