@@ -117,26 +117,47 @@ describe("Global navbar Places search", () => {
       render();
       search("cafe");
       expect(names()).toEqual([far.name, near.name]);
+      expect(container.querySelector(".transit-global-search-distance")).toBeNull();
       expect(getCurrentPosition).not.toHaveBeenCalled();
       await act(async () => { await deviceGeolocation.default(); });
       expect(names()).toEqual([near.name, far.name]);
+      expect(container.querySelectorAll(".transit-global-search-distance")).toHaveLength(2);
       expect(input().value).toBe("cafe");
       getCurrentPosition.mockImplementationOnce(success => success({ coords: {
         longitude: far.coordinates[0], latitude: far.coordinates[1]
       } }));
       await act(async () => { await deviceGeolocation.default(); });
       expect(names()).toEqual([far.name, near.name]);
+      expect(results()[0].querySelector(".transit-global-search-distance > span").textContent).toBe("0 ft");
       await act(async () => { await deviceGeolocation.default(); });
       expect(names()).toEqual([near.name, far.name]);
       const denied = { code: 1, message: "Permission denied" };
       getCurrentPosition.mockImplementationOnce((_success, failure) => failure(denied));
       await act(async () => { await expect(deviceGeolocation.default()).rejects.toBe(denied); });
       expect(names()).toEqual([far.name, near.name]);
+      expect(container.querySelector(".transit-global-search-distance")).toBeNull();
       expect(getCurrentPosition).toHaveBeenCalledTimes(4);
     } finally {
       if (original) Object.defineProperty(navigator, "geolocation", original);
       else delete navigator.geolocation;
     }
+  });
+
+  it.each<[[number, number], string]>([
+    [[0, 0], "0 ft"],
+    [[0.001, 0], "365 ft"],
+    [[0.015, 0], "1.0 mi"],
+    [[0.1, 0], "6.9 mi"],
+  ])("shows compact straight-line distance to %s from the shared position", (coordinates, expected) => {
+    sharedLocationHook.mockReturnValue([0, 0]);
+    const place = { ...cafe, coordinates };
+    catalog = { ...catalog, places: [place], sources: loadedSources([place]) };
+    render();
+    search("cafe");
+    const label = results()[0].querySelector(".transit-global-search-distance");
+    expect(label.querySelector("span").textContent).toBe(expected);
+    expect(label.textContent).toContain("straight-line from your shared location");
+    expect(results()[0].querySelector("strong").textContent).toBe(cafe.name);
   });
 
   it("supports keyboard results, Escape, focus dismissal and pointer dismissal without discarding the query", () => {
