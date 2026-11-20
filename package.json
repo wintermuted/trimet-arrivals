@@ -2,7 +2,9 @@
   "name": "trimet-arrivals",
   "private": true,
   "workspaces": ["packages/*"],
-  "nx": {},
+  "nx": {
+    "implicitDependencies": ["@trimet-arrivals/places", "@trimet-arrivals/ui"]
+  },
   "author": "Jameson Nyeholt <jameson.nyeholt@gmail.com>",
   "license": "MIT",
   "engines": {
