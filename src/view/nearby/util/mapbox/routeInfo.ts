@@ -25,7 +25,9 @@ export function showRouteInfo(
   map: MapboxMap,
   route: TrimetRoute,
   onError: () => void,
-  onStopClick?: (stopId: number) => void
+  onStopClick?: (stopId: number) => void,
+  canFit = () => true,
+  isActive = () => true
 ): () => void {
   const abort = new AbortController();
   let closed = false;
@@ -81,6 +83,7 @@ export function showRouteInfo(
   }
 
   function handleMapHover(event: MapLayerMouseEvent) {
+    if (!isActive()) return;
     const id = Number(event.features?.[0]?.properties?.locid);
     mapStop = stopsById.has(id) ? id : undefined;
     mapLongitude = event.lngLat.lng;
@@ -96,6 +99,7 @@ export function showRouteInfo(
   }
 
   function handleMapClick(event: MapLayerMouseEvent) {
+    if (!isActive()) return;
     const id = Number(event.features?.[0]?.properties?.locid);
     if (stopsById.has(id)) onStopClick?.(id);
   }
@@ -114,7 +118,7 @@ export function showRouteInfo(
   const bounds = new LngLatBounds();
   stops.forEach((stop) => bounds.extend([stop.lng, stop.lat]));
   const fit = () => {
-    if (bounds.isEmpty()) return;
+    if (!canFit() || bounds.isEmpty()) return;
     const container = map.getContainer();
     const horizontal = Math.min(48, container.clientWidth / 5);
     map.fitBounds(bounds, {
@@ -152,6 +156,6 @@ export function showRouteInfo(
     if (map.getLayer(STOP_LOCATION_LAYER)) {
       map.setLayoutProperty(STOP_LOCATION_LAYER, "visibility", previousVisibility ?? "visible");
     }
-    map.jumpTo({ center: previousCenter, zoom: previousZoom });
+    if (isActive()) map.jumpTo({ center: previousCenter, zoom: previousZoom });
   };
 }

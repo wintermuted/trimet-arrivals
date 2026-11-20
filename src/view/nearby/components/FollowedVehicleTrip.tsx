@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@wintermuted/ui-theme/react";
 import { ROUTE_DISPLAY } from "../../../api/trimet/constants";
 import { VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
@@ -51,6 +51,10 @@ export default function FollowedVehicleTrip({ selection, feed, view, onViewChang
   const earlier = legs.slice(0, firstUpcoming);
   const upcoming = legs.slice(firstUpcoming);
   const name = ROUTE_DISPLAY[selection.routeNumber] || (selection.routeNumber ? `Route ${selection.routeNumber}` : "Vehicle");
+  const section = useRef<HTMLElement>();
+  useEffect(() => {
+    section.current?.querySelector<HTMLElement>('.transit-detail-back')?.focus({ preventScroll: true });
+  }, [selection.id, selection.tripId]);
 
   function stopTime(stop: VehicleTripStop) {
     const time = stop.estimated ?? stop.scheduled;
@@ -76,7 +80,7 @@ export default function FollowedVehicleTrip({ selection, feed, view, onViewChang
     </ol>;
   }
 
-  return <section className="transit-follow-trip" aria-label="Following vehicle trip">
+  return <section ref={section} className="transit-follow-trip" aria-label="Following vehicle trip">
     <TopNavBar id={`Following ${name}`} backTo={backTo} onBack={onBack} />
     <p>{selection.type === "bus" ? "Bus" : "Train"} {selection.id} · Trip {selection.tripId || "not reported"}</p>
     <p>{trip?.destination ? `To ${trip.destination}` : selection.destination}</p>

@@ -171,4 +171,15 @@ describe("vehicle viewport polling", () => {
     expect(handlers.has("moveend")).toBe(true);
     expect(get.mock.calls[2][0]).toEqual([-123, 45, -122, 46]);
   });
+
+  it("keeps only the selected fresh position when the first ID request fails", async () => {
+    get.mockResolvedValueOnce({ ...snapshot(), vehicles: [vehicle, { ...vehicle, id: "another" }] });
+    await render();
+    get.mockRejectedValue(new Error("Service unavailable"));
+    await render(true, true, vehicle.id);
+    expect(feed.status).toBe("error");
+    expect(feed.vehicles).toEqual([vehicle]);
+    await advance(90000);
+    expect(feed.vehicles).toEqual([]);
+  });
 });

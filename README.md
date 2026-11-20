@@ -63,8 +63,9 @@ trip ID, destination sign, and last position-report time. Route descriptions
 load on demand and are cached only while the overlay is enabled. Missing fields
 and unavailable route descriptions are labeled explicitly; direction codes
 are never guessed to mean inbound or outbound. Hover details close on mouse
-leave; clicking or tapping a vehicle pins an interactive popover. Close it with
-its close button, Escape, or a click elsewhere on the map.
+leave. Click or tap a marker, or use **Choose a vehicle** and **Vehicle details**
+below the map, to pin the same popover. Close it with its close button, Escape,
+or a click elsewhere on the map.
 Choose **Follow trip** in the pinned popover to show that vehicle's current run
 as ordered stop-to-stop legs in the sidebar (not a new multimodal itinerary).
 The map centers on its marker as positions update, even outside the original

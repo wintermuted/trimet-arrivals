@@ -254,10 +254,23 @@ export function createVehicleLayer(
     stop();
   }
 
+  function captureCamera() {
+    if (savedCamera) return;
+    const center = map.getCenter();
+    savedCamera = {
+      center: [center.lng, center.lat], bearing: map.getBearing(),
+      pitch: map.getPitch(), zoom: map.getZoom(),
+    };
+    northUpZoom = map.getZoom();
+  }
+
   const tooltip = createVehicleTooltips(map, LAYERS[0], id => {
     const moving = positions.get(id);
     return moving && { vehicle: moving.vehicle, point: vehiclePoint(moving, performance.now()) };
-  }, onFollow);
+  }, vehicle => {
+    captureCamera();
+    onFollow(vehicle);
+  });
   map.on("style.load", install);
   map.on("remove", mapRemoved);
   map.on("resize", resized);
@@ -267,6 +280,7 @@ export function createVehicleLayer(
   install();
 
   return {
+    openDetails: tooltip.openDetails,
     follow(selection?: Pick<VehiclePosition, "id" | "tripId">, view: VehicleFollowView = "north-up") {
       if (removed || disposed) return;
       if (!selection) {
@@ -274,14 +288,7 @@ export function createVehicleLayer(
         restoreCamera();
         return;
       }
-      if (!following) {
-        const center = map.getCenter();
-        savedCamera = {
-          center: [center.lng, center.lat], bearing: map.getBearing(),
-          pitch: map.getPitch(), zoom: map.getZoom(),
-        };
-        northUpZoom = map.getZoom();
-      }
+      if (!following) captureCamera();
       if (following?.id !== selection.id || following?.tripId !== selection.tripId) lastHeading = undefined;
       if (view === "chase" && followView !== "chase") northUpZoom = map.getZoom();
       following = selection;

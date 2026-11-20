@@ -349,6 +349,21 @@
   font-size: 0.875rem;
 }
 
+.transit-vehicle-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wm-space-2);
+  min-width: 0;
+  max-width: 100%;
+
+  select {
+    width: min(100%, 16rem);
+    min-width: 0;
+    text-overflow: ellipsis;
+  }
+}
+
 .transit-vehicle-legend {
   display: inline-flex;
   align-items: center;

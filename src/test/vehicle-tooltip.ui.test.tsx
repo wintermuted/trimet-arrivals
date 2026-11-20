@@ -47,9 +47,16 @@ describe("vehicle hover details", () => {
     content.replaceChildren();
     closed = undefined;
     popup.setLngLat.mockReturnValue(popup);
-    popup.setDOMContent.mockImplementation(element => { content.replaceChildren(element); return popup; });
-    popup.addTo.mockReturnValue(popup);
-    popup.remove.mockImplementation(() => { closed?.(); return popup; });
+    popupElement.replaceChildren(content);
+    popup.setDOMContent.mockImplementation(element => {
+      const close = document.createElement("button");
+      close.className = "mapboxgl-popup-close-button";
+      close.onclick = () => popup.remove();
+      content.replaceChildren(element, close);
+      return popup;
+    });
+    popup.addTo.mockImplementation(() => { document.body.append(popupElement); return popup; });
+    popup.remove.mockImplementation(() => { popupElement.remove(); closed?.(); return popup; });
     popup.on.mockImplementation((_name, callback) => { closed = callback; return popup; });
     popup.getElement.mockReturnValue(popupElement);
     jest.mocked(Popup).mockImplementation(() => popup as Popup);
@@ -154,5 +161,23 @@ describe("vehicle hover details", () => {
     expect(content.querySelector<HTMLButtonElement>(".transit-vehicle-follow").disabled).toBe(true);
     handlers.get("map:click")({ point: { x: 0, y: 0 } } as MapLayerMouseEvent);
     expect(canvas.style.cursor).toBe("");
+  });
+
+  it("focuses pinned details from a keyboard trigger and preserves focus across updates", async () => {
+    const opener = document.body.appendChild(document.createElement("button"));
+    try {
+      tooltip.openDetails(bus.id, opener);
+      expect(document.activeElement).toBe(content.querySelector(".transit-vehicle-follow"));
+      await flush();
+      expect(document.activeElement).toBe(content.querySelector(".transit-vehicle-follow"));
+      vehicles.set(bus.id, { ...bus, blockId: undefined });
+      tooltip.refresh();
+      const close = content.querySelector(".mapboxgl-popup-close-button");
+      expect(document.activeElement).toBe(close);
+      close.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      expect(document.activeElement).toBe(opener);
+    } finally {
+      opener.remove();
+    }
   });
 });

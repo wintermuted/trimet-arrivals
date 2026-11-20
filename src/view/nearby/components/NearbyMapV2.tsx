@@ -23,6 +23,7 @@ interface Props {
   vehicleFeed: VehicleFeed;
   vehicleMapError: boolean;
   onVehiclesRetry: () => void;
+  children?: React.ReactNode;
 }
 
 export function NearbyMapSkeleton({ message }: { message: string }) {
@@ -49,7 +50,8 @@ function NearbyMapV2({
   onVehiclesToggle,
   vehicleFeed,
   vehicleMapError,
-  onVehiclesRetry
+  onVehiclesRetry,
+  children
 }: Props) {
   // Initialize Map
   useEffect(() => {
@@ -121,6 +123,7 @@ function NearbyMapV2({
               </time></small>
             )}
             {vehicleProblem && <Button type="button" size="sm" variant="secondary" onClick={onVehiclesRetry}>Retry vehicles</Button>}
+            {children}
             <span className="transit-vehicle-legend" aria-label="Vehicle symbols: bus and train">
               <FontAwesome name="bus" aria-hidden="true" /> Bus
               <FontAwesome name="train" aria-hidden="true" /> Train
