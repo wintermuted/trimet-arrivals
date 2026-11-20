@@ -19,10 +19,8 @@ Open the local URL printed by Vite. The repository's runtime floor in
 [`package.json`](../package.json) is Node.js 26, but use the pinned version for
 consistent development. Nx wraps the existing npm scripts.
 
-If `npm ci` returns a 404 for a locked package such as `argue-cli` while using
-an npm mirror, check that the configured registry can serve that version. Use
-the public npm registry if your network permits it; keep `package-lock.json`
-unchanged.
+The Commitlint parser pins `argue-cli` to `3.2.0` because the npm mirror used
+by the VS Code setup task does not serve `3.2.1`.
 
 ## Focused UI tests and CI
 
