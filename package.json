@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@trimet-arrivals/places": "0.0.0",
+    "@trimet-arrivals/trimet-client": "0.0.0",
     "@trimet-arrivals/ui": "0.0.0",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^21.2.4",

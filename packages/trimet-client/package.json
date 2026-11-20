@@ -1,0 +1,23 @@
+{
+  "name": "@trimet-arrivals/trimet-client",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixtures": "./src/fixture/arrival.ts"
+  },
+  "types": "./src/index.ts",
+  "typesVersions": {
+    "*": {
+      "fixtures": ["src/fixture/arrival.ts"]
+    }
+  },
+  "nx": {
+    "targets": {
+      "test:package": {
+        "command": "jest --selectProjects trimet-client-package --runInBand",
+        "cache": false
+      }
+    }
+  }
+}

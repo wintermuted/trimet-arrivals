@@ -74,20 +74,23 @@ The app source and integration tests live in `packages/app/src`, tracked by Nx
 as `@trimet-arrivals/app`. Vite's entry HTML, `public/`, and the `build/` output
 stay at the repository root, as do the npm and Nx commands used to run them.
 
-The app consumes two private npm workspaces: `@trimet-arrivals/places` in
-`packages/places` owns Places data, discovery, and saved places;
-`@trimet-arrivals/ui` in `packages/ui` owns reusable React components, starting
-with time display. Import the package's public entry points rather than its
-source files. Shared packages do not import app code.
+The app consumes three private npm workspaces: `@trimet-arrivals/places` owns
+Places data, discovery, and saved places; `@trimet-arrivals/ui` owns reusable
+React components; `@trimet-arrivals/trimet-client` owns requests and fixtures
+for arrivals and nearby stops. The app supplies the TriMet URL, app ID, and
+`REACT_APP_USE_FIXTURE` setting. Redux and the other TriMet endpoints stay in
+the app. Import package entry points rather than source files; shared packages
+do not import app code.
 
 ```powershell
 npx nx run-many -t test:package
 npx nx run '@trimet-arrivals/ui:test:package'
+npx nx run '@trimet-arrivals/trimet-client:test:package'
 npx nx show projects --affected --base=origin/master --head=HEAD
 ```
 
 Changing a shared package affects that package, the app, and the root project
-that runs the app's tasks, not the other shared package. Both Pages workflows
+that runs the app's tasks, not the other shared packages. Both Pages workflows
 still run the full deployment checks.
 
 ## Place-data tests
