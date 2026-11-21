@@ -22,6 +22,7 @@ export { normalizeRouteColor } from "./routeColor";
 export { buildStopCatalog, searchStopCatalog, stopMode } from "./stopCatalog";
 export type { StopCatalog, StopCatalogStop, StopMode } from "./stopCatalog";
 export { getVehicles, parseVehicleSnapshot, VehicleRequestError } from "./vehicles";
+export { isVehicleTripStale, vehicleIsFresh } from "./vehicleFreshness";
 export { getVehicleTrip, parseVehicleTrip } from "./vehicleTrip";
 export type { VehicleBounds, VehiclePosition, VehicleSnapshot } from "./interfaces/vehicles";
 export type { VehicleTrip, VehicleTripSnapshot, VehicleTripStop } from "./vehicleTrip";

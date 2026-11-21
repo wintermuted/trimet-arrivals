@@ -1,3 +1,4 @@
+import { isVehicleTripStale } from "@trimet-arrivals/trimet-client";
 import React, { useEffect, useRef } from "react";
 import { Button } from "@wintermuted/ui-theme/react";
 import { ROUTE_DISPLAY } from "../../../api/trimet/constants";
@@ -42,7 +43,7 @@ export default function FollowedVehicleTrip({ selection, feed, view, onViewChang
   const { formatTime } = useTimeDisplay();
   const data = result.data;
   const trip = data?.trip;
-  const stale = !result.receivedAt || Date.now() - result.receivedAt >= 90000;
+  const stale = isVehicleTripStale(result.receivedAt, Date.now());
   const mode: ProgressMode = trip?.progressAvailable
     ? tracking && !result.error && !stale && feed.status !== "paused" ? "live" : "last-known" : "scheduled";
   const legs = trip ? vehicleTripLegs(trip, mode) : [];
