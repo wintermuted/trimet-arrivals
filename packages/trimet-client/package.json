@@ -2,6 +2,7 @@
   "name": "@trimet-arrivals/trimet-client",
   "version": "0.0.0",
   "private": true,
+  "description": "TriMet API clients, stop catalog indexing and search, and vehicle freshness rules.",
   "exports": {
     ".": "./src/index.ts",
     "./fixtures": "./src/fixture/arrival.ts"

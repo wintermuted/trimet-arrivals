@@ -2,6 +2,7 @@
   "name": "@trimet-arrivals/routing",
   "version": "0.0.0",
   "private": true,
+  "description": "Mapbox walking estimates and route geometry with request caching.",
   "exports": "./src/walking.ts",
   "types": "./src/walking.ts",
   "devDependencies": {
