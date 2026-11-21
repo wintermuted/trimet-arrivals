@@ -19,6 +19,8 @@ export type {
 } from "./tripplanner";
 export { getTrimetData } from "./util";
 export { normalizeRouteColor } from "./routeColor";
+export { buildStopCatalog, searchStopCatalog, stopMode } from "./stopCatalog";
+export type { StopCatalog, StopCatalogStop, StopMode } from "./stopCatalog";
 export { getVehicles, parseVehicleSnapshot, VehicleRequestError } from "./vehicles";
 export { getVehicleTrip, parseVehicleTrip } from "./vehicleTrip";
 export type { VehicleBounds, VehiclePosition, VehicleSnapshot } from "./interfaces/vehicles";
