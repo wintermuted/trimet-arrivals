@@ -46,18 +46,6 @@ Open the local URL printed by Vite. `npm run watch` also works.
 See [development](docs/development.md) for CI, test commands, geometry exports,
 and GitHub Copilot app setup.
 
-## Packages
-
-| Package | Description |
-| --- | --- |
-| [`@trimet-arrivals/app`](packages/app/README.md) | The Go By Transit web app: screens, navigation, Redux state, and map rendering. |
-| [`@trimet-arrivals/bookmarks`](packages/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts. |
-| [`@trimet-arrivals/journeys`](packages/journeys/README.md) | Browser storage for the trip planner's recent stop-to-stop journeys. |
-| [`@trimet-arrivals/places`](packages/places/README.md) | Portland place discovery, saved places, and reference map layers. |
-| [`@trimet-arrivals/routing`](packages/routing/README.md) | Mapbox walking estimates and route geometry with request caching. |
-| [`@trimet-arrivals/trimet-client`](packages/trimet-client/README.md) | TriMet API clients, stop catalog indexing and search, and vehicle freshness rules. |
-| [`@trimet-arrivals/ui`](packages/ui/README.md) | Shared React time display settings and context. |
-
 ## Guides
 
 | Using the app | Developing and maintaining it |
@@ -65,7 +53,7 @@ and GitHub Copilot app setup.
 | [Nearby, stops, and arrivals](docs/nearby.md) | [Development](docs/development.md) |
 | [Trip planning and walking estimates](docs/trip-planning.md) | [Design system](docs/design-system.md) |
 | [Vehicles and trip following](docs/vehicles.md) | [Place-data maintenance](docs/place-data.md) |
-| [Places and map layers](docs/places.md) | [All documentation](docs/README.md) |
+| [Places and map layers](docs/places.md) | [Architecture](docs/architecture.md) |
 
 ## Data, privacy, and limitations
 
