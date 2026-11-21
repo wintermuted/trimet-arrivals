@@ -2,6 +2,7 @@
   "name": "@trimet-arrivals/bookmarks",
   "version": "0.0.0",
   "private": true,
+  "description": "Browser storage for stop and route bookmarks, sections, route groups, and shortcuts.",
   "exports": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {

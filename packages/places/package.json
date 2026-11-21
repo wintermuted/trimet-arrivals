@@ -2,6 +2,7 @@
   "name": "@trimet-arrivals/places",
   "version": "0.0.0",
   "private": true,
+  "description": "Portland place discovery, saved places, and reference map layers.",
   "exports": {
     "./catalog": "./src/places.ts",
     "./contextOverlays": "./src/contextOverlays.ts",

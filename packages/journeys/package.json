@@ -2,6 +2,7 @@
   "name": "@trimet-arrivals/journeys",
   "version": "0.0.0",
   "private": true,
+  "description": "Browser storage for the trip planner's recent stop-to-stop journeys.",
   "exports": "./src/recentJourneys.ts",
   "types": "./src/recentJourneys.ts",
   "nx": {
