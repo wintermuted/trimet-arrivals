@@ -42,7 +42,7 @@ flowchart TD
 | --- | --- |
 | [`@trimet-arrivals/app`](../packages/app/README.md) | The Go By Transit web app: screens, navigation, Redux state, and map rendering. |
 | [`@trimet-arrivals/bookmarks`](../packages/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts. |
-| [`@trimet-arrivals/journeys`](../packages/journeys/README.md) | Browser storage for the trip planner's recent stop-to-stop journeys. |
+| [`@trimet-arrivals/journeys`](../packages/journeys/README.md) | Recent journey storage and trip planner endpoint rules. |
 | [`@trimet-arrivals/places`](../packages/places/README.md) | Portland place discovery, saved places, and reference map layers. |
 | [`@trimet-arrivals/routing`](../packages/routing/README.md) | Mapbox walking estimates and route geometry with request caching. |
 | [`@trimet-arrivals/trimet-client`](../packages/trimet-client/README.md) | TriMet API clients, stop catalog indexing and search, and vehicle freshness rules. |
