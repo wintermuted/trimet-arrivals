@@ -1,10 +1,10 @@
+import { vehicleIsFresh } from "@trimet-arrivals/trimet-client";
 import { useEffect, useRef, useState } from "react";
 import { Map as MapboxMap } from "mapbox-gl";
 import { getVehicles, VehicleRequestError } from "../../../api/trimet/vehicles";
 import { VehicleBounds, VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
 
 const POLL_MS = 15000;
-const MAX_AGE_MS = 90000;
 
 export interface VehicleFeed {
   vehicles: VehiclePosition[];
@@ -12,10 +12,6 @@ export interface VehicleFeed {
   updatedAt?: number;
   rejected: number;
   message?: string;
-}
-
-export function vehicleIsFresh(vehicle: VehiclePosition, now: number) {
-  return vehicle.expires > now && now - vehicle.time < MAX_AGE_MS;
 }
 
 function viewportBounds(map: MapboxMap): VehicleBounds {

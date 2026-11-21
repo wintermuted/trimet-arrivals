@@ -84,8 +84,9 @@ Places data, discovery, and saved places; `@trimet-arrivals/ui` owns reusable
 React components; `@trimet-arrivals/trimet-client` owns requests and fixtures
 for arrivals, nearby stops, and route configuration, plus service alert requests
 and filtering, trip-planner requests and XML parsing, and vehicle positions and
-trip lookups. Trip planning uses the browser's `DOMParser`; screens, URL state,
-planner color choices, vehicle polling, and map rendering stay in the app.
+trip lookups and freshness checks. Trip planning uses the browser's `DOMParser`;
+screens, URL state, planner color choices, vehicle polling, and map rendering
+stay in the app.
 The app supplies the TriMet URL, app ID, and
 `REACT_APP_USE_FIXTURE` setting for requests with fixtures. For route
 configuration, only the all-routes request uses fixtures. The client indexes
