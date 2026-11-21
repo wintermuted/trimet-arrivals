@@ -319,7 +319,7 @@ export default function NearbyViewComponent() {
   const [isLocating, setIsLocating] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const locationRequestRef = useRef(0);
-  const initialLocationRequest = useRef<Promise<Location>>();
+  const initialLocationRequest = useRef<Promise<Location>>(undefined);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [vehiclesEnabled, setVehiclesEnabled] = useState(true);
   const [vehicleMapError, setVehicleMapError] = useState(false);

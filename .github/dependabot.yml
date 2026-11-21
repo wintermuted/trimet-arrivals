@@ -10,15 +10,9 @@ updates:
   - dependency-name: husky
     versions:
     - 5.2.0
-  - dependency-name: react-test-renderer
-    versions:
-    - 16.13.0
   - dependency-name: js-yaml
     versions:
     - 3.14.1
   - dependency-name: https-proxy-agent
     versions:
     - 2.2.4
-  - dependency-name: "@types/react-dom"
-    versions:
-    - 17.0.2

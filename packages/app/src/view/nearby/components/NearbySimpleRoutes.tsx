@@ -251,7 +251,7 @@ export default function NearbySimpleRoutes({
   const infoRouteId = routeValues.length === 1 && Number.isSafeInteger(parsedRoute) && parsedRoute > 0
     ? parsedRoute : undefined;
   const invalidRoute = routeValues.length > 0 && infoRouteId === undefined;
-  const infoButton = useRef<HTMLAnchorElement>();
+  const infoButton = useRef<HTMLAnchorElement>(null);
   const [arrivalData, setArrivalData] = useState<ArrivalData>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);

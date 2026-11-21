@@ -16,7 +16,7 @@ export default function NearbyNeighborhoodsMap({ map, snapshot, polygonsShown, o
 }) {
   const latestPolygons = useRef(polygonsShown);
   latestPolygons.current = polygonsShown;
-  const update = useRef<() => void>();
+  const update = useRef<() => void>(undefined);
   useEffect(() => {
     if (!map) return;
     function updatePolygons() {

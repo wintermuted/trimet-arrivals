@@ -1,6 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Simulate } from "react-dom/test-utils";
+import { fireEvent } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import * as places from "@trimet-arrivals/places/catalog";
 import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
@@ -59,8 +59,7 @@ describe("Global navbar Places search", () => {
   const input = () => container.querySelector<HTMLInputElement>('input[type="search"]');
   function search(query: string) {
     act(() => input().focus());
-    input().value = query;
-    act(() => Simulate.change(input()));
+    act(() => fireEvent.change(input(), { target: { value: query } }));
   }
   const results = () => [...container.querySelectorAll<HTMLAnchorElement>("a[data-global-place]")];
 

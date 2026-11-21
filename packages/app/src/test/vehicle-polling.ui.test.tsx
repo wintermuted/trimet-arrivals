@@ -157,6 +157,8 @@ describe("vehicle viewport polling", () => {
     expect(feed.status).toBe("error");
     expect(feed.message).toContain("timed out");
     await render(false);
+    // React 19 queues microtasks that Jest's fake timers also count.
+    act(() => jest.runAllTicks());
     expect(jest.getTimerCount()).toBe(0);
     expect(handlers.size).toBe(0);
   });

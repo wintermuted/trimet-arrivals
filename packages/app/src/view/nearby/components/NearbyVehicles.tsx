@@ -13,7 +13,7 @@ export default function NearbyVehicles({ map, vehicles, onError, onFollow, follo
   following?: Pick<VehiclePosition, "id" | "tripId">;
   followView: VehicleFollowView;
 }) {
-  const layer = useRef<ReturnType<typeof createVehicleLayer>>();
+  const layer = useRef<ReturnType<typeof createVehicleLayer>>(undefined);
   const [selectedId, setSelectedId] = useState("");
   const selectedIsAvailable = vehicles.some(vehicle => vehicle.id === selectedId);
   useEffect(() => {

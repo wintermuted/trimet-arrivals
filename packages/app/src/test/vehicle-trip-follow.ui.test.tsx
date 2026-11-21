@@ -127,6 +127,8 @@ describe("following a vehicle's current run", () => {
     feed = { ...feed, status: "paused" };
     await render();
     expect(signal.aborted).toBe(true);
+    // React 19 queues microtasks that Jest's fake timers also count.
+    act(() => jest.runAllTicks());
     expect(jest.getTimerCount()).toBe(0);
   });
 

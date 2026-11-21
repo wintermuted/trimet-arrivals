@@ -1,6 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Simulate } from "react-dom/test-utils";
+import { fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes, Link } from "react-router-dom";
 import { createStore } from "redux";
@@ -103,8 +103,7 @@ describe("Search homepage", () => {
 
   function type(selector: string, value: string) {
     const input = container.querySelector<HTMLInputElement>(selector);
-    input.value = value;
-    act(() => Simulate.change(input));
+    act(() => fireEvent.change(input, { target: { value } }));
   }
 
   function click(selector: string) {
@@ -136,7 +135,7 @@ describe("Search homepage", () => {
     act(() => container.querySelector<HTMLInputElement>("#planner-from").focus());
     type("#planner-from", "350");
     await act(async () => document.querySelector<HTMLElement>('[role="option"]').click());
-    await act(async () => Simulate.submit(container.querySelector("form")));
+    await act(async () => { fireEvent.submit(container.querySelector("form")); });
     expect(planTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "350", toPlace: "200" }),
     );

@@ -72,12 +72,12 @@ export default function NearbyPlannerPaths({ map: plannerMap, suspended, itinera
   const [mapError, setMapError] = useState(false);
   const mapEmphasis = React.useRef(emphasizedTrip);
   const mapHighlight = React.useRef(emphasizedLeg);
-  const applySelection = React.useRef<() => void>();
+  const applySelection = React.useRef<() => void>(undefined);
   const stopsByTrip = useMemo(() => itineraries.map(itineraryStops), [itineraries]);
   const selectedStops = stopsByTrip[selected];
   const popupIdPrefix = useId();
-  const lastFit = React.useRef<{ map: MapboxMap; result: typeof result }>();
-  const suspendedInputs = React.useRef<{ itineraries: TripPlannerItinerary[]; includeWalking: boolean; routeColors?: PlannerRouteColors }>();
+  const lastFit = React.useRef<{ map: MapboxMap; result: typeof result }>(undefined);
+  const suspendedInputs = React.useRef<{ itineraries: TripPlannerItinerary[]; includeWalking: boolean; routeColors?: PlannerRouteColors }>(undefined);
   useEffect(() => {
     if (suspended) suspendedInputs.current = { itineraries, includeWalking, routeColors };
   }, [suspended, itineraries, includeWalking, routeColors]);

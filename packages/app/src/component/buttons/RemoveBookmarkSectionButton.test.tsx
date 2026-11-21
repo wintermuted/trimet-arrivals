@@ -1,59 +1,15 @@
-import { shallow } from "enzyme";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import { RemoveBookmarkSectionButton } from "./RemoveBookmarkSectionButton";
 
-describe("RemoveBookmarkSectionButton", () => {
-  describe("by default", () => {
-    it("renders without errors", () => {
-      expect(() =>
-        shallow(
-          <RemoveBookmarkSectionButton removeBookmarkSection={undefined} />
-        )
-      );
-    });
+afterEach(() => jest.restoreAllMocks());
 
-    it("has a button", () => {
-      const subject = shallow(
-        <RemoveBookmarkSectionButton removeBookmarkSection={undefined} />
-      );
-
-      const button = subject.find("button");
-
-      expect(button).toExist();
-    });
-
-    it("the button has an icon that indicates closing behavior", () => {
-      const subject = shallow(
-        <RemoveBookmarkSectionButton removeBookmarkSection={undefined} />
-      );
-
-      const button = subject.find("button");
-      const icon = button.find("FontAwesome");
-
-      expect(icon).toExist();
-      expect(icon.props().name).toBe("times-circle");
-    });
-  });
-
-  describe("when clicked ", () => {
-    it("dispatches the removeBookmarkFromSection delegate", () => {
-      window.confirm = jest.fn(() => true);
-
-      const removeBookmarkSectionSpy = jasmine.createSpy(
-        "removeBookmarkSectionSpy"
-      );
-
-      const subject = shallow(
-        <RemoveBookmarkSectionButton
-          removeBookmarkSection={removeBookmarkSectionSpy}
-        />
-      );
-
-      const button = subject.find("button");
-
-      button.simulate("click");
-
-      expect(removeBookmarkSectionSpy).toHaveBeenCalled();
-    });
-  });
+it.each([true, false])("only removes the section when deletion is confirmed (%s)", async (confirmed) => {
+  const confirm = jest.spyOn(window, "confirm").mockReturnValue(confirmed);
+  const removeBookmarkSection = jest.fn();
+  render(<RemoveBookmarkSectionButton removeBookmarkSection={removeBookmarkSection} />);
+  await userEvent.setup().click(screen.getByRole("button", { name: "Remove Bookmark Section" }));
+  expect(confirm).toHaveBeenCalledWith("Are you sure you want to remove this section?");
+  expect(removeBookmarkSection).toHaveBeenCalledTimes(confirmed ? 1 : 0);
 });

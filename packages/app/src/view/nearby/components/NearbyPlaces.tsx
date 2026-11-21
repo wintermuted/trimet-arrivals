@@ -84,7 +84,7 @@ export default function NearbyPlaces({
   const heading = useRef<HTMLHeadingElement>(null);
   const browseHeading = useRef<HTMLHeadingElement>(null);
   const results = useRef<HTMLUListElement>(null);
-  const previousSelection = useRef<string>();
+  const previousSelection = useRef<string>(undefined);
   useEffect(() => {
     if (selected) heading.current?.focus();
     else if (previousSelection.current) {

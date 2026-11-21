@@ -28,7 +28,7 @@ export default function NearbyPlacesMap({ map, places, selectedId, onSelect, onC
 }) {
   const latest = useRef({ places, selectedId, onSelect, onCoincident, onBounds, onError });
   latest.current = { places, selectedId, onSelect, onCoincident, onBounds, onError };
-  const update = useRef<() => void>();
+  const update = useRef<() => void>(undefined);
   useEffect(() => {
     if (!map) return;
     let active = true;

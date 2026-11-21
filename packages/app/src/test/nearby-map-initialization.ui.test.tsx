@@ -1,6 +1,6 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Simulate } from "react-dom/test-utils";
+import { fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createStore } from "redux";
 import { MemoryRouter, Route, Routes, useLocation, useNavigate, useOutletContext } from "react-router-dom";
@@ -570,8 +570,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(container.querySelector(".transit-places-list").textContent).not.toContain(cafe.name);
     const input = container.querySelector<HTMLInputElement>('.transit-global-place-search input[type="search"]');
     await act(async () => input.focus());
-    input.value = cafe.name;
-    await act(async () => Simulate.change(input));
+    await act(async () => { fireEvent.change(input, { target: { value: cafe.name } }); });
     await act(async () => container.querySelector<HTMLAnchorElement>("a[data-global-place]").click());
     expect(container.querySelector(".transit-place-detail").textContent).toContain(cafe.name);
     expect(map.jumpTo).toHaveBeenLastCalledWith({ center: cafe.coordinates, zoom: 15 });
@@ -1319,8 +1318,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
     ));
     await act(async () => finishMapLoading());
     const cleanup = jest.mocked(showRouteInfo).mock.results[0].value;
+    let resolveSearch: (value: StopData) => void;
+    jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveSearch = resolve; }));
     await act(async () => button("Search this area").click());
     expect(cleanup).toHaveBeenCalled();
+    await act(async () => { resolveSearch(stops); });
     expect(container.querySelector('[aria-label="Route 56 details"]')).not.toBeNull();
     expect(container.querySelector(".transit-detail-header")).toBeNull();
     expect(button("Close")).not.toBeNull();

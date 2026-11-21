@@ -41,16 +41,15 @@ module.exports = {
       ...common,
       displayName: "ui",
       roots: [appSource],
-      testMatch: ["**/*.ui.test.tsx"],
+      testMatch: ["**/*.test.tsx"],
       setupFilesAfterEnv: [`${appSource}/test/setupDOMTests.js`]
     },
     {
       ...common,
-      displayName: "legacy",
+      displayName: "unit",
       roots: [appSource],
-      testMatch: ["**/?(*.)+(spec|test).[jt]s?(x)"],
-      testPathIgnorePatterns: ["/node_modules/", "\\.ui\\.test\\.tsx$"],
-      setupFilesAfterEnv: [`${appSource}/setupTests.js`]
+      testMatch: ["**/?(*.)+(spec|test).[jt]s"],
+      setupFilesAfterEnv: [`${appSource}/test/setupDOMTests.js`]
     },
     {
       ...common,
