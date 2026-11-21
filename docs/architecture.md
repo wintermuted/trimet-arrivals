@@ -44,7 +44,7 @@ flowchart TD
 | [`@trimet-arrivals/bookmarks`](../packages/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts. |
 | [`@trimet-arrivals/journeys`](../packages/journeys/README.md) | Recent journey storage and trip planner endpoint rules. |
 | [`@trimet-arrivals/places`](../packages/places/README.md) | Portland place discovery, saved places, and reference map layers. |
-| [`@trimet-arrivals/routing`](../packages/routing/README.md) | Mapbox walking estimates and route geometry with request caching. |
+| [`@trimet-arrivals/routing`](../packages/routing/README.md) | Mapbox walking estimates, route geometry, and vehicle interpolation. |
 | [`@trimet-arrivals/trimet-client`](../packages/trimet-client/README.md) | TriMet API clients, stop catalog indexing and search, and vehicle freshness rules. |
 | [`@trimet-arrivals/ui`](../packages/ui/README.md) | Shared React time display settings and context. |
 
