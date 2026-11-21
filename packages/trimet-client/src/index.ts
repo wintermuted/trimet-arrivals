@@ -10,6 +10,8 @@ export {
   getSubsequentRouteStops
 } from "./routeConfig";
 export { getNearbyStops } from "./stops";
+export { getNearbyRouteIds, getStopLocations, processRoutes } from "./nearbyGrouping";
+export type { NearbyRoutesDictionary, StopLocationsDictionary } from "./nearbyGrouping";
 export { parsePlannerCoordinates, parseTripPlannerResponse, planTrip } from "./tripplanner";
 export type {
   TripPlannerItinerary,
