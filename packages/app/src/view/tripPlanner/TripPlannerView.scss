@@ -1,5 +1,3 @@
-@use "../../styles/disclosure";
-
 .transit-planner {
   max-width: 62rem;
   margin-inline: auto;
@@ -24,8 +22,7 @@
 }
 
 .transit-planner-field-message,
-.transit-planner-message,
-.transit-planner-partial {
+.transit-planner-message {
   margin-block: var(--wm-space-2);
 }
 
@@ -92,86 +89,6 @@
   }
 }
 
-.transit-planner-option {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--wm-space-2);
-  inline-size: 100%;
-  min-block-size: max(44px, var(--wm-control-height));
-  padding: var(--wm-space-3);
-  border: 1px solid var(--wm-color-border);
-  border-radius: var(--wm-radius-xs);
-  background: var(--wm-color-surface);
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  text-decoration: none;
-  cursor: pointer;
-
-  &:hover,
-  &[aria-current="true"] {
-    background: var(--wm-color-surface-muted);
-  }
-
-  .transit-planner-option-timing,
-  .transit-planner-option-route {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--wm-space-1) var(--wm-space-2);
-    min-inline-size: 0;
-    overflow-wrap: break-word;
-  }
-
-  .transit-planner-option-timing {
-    justify-content: space-between;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .transit-planner-option-duration {
-    font-weight: 600;
-  }
-
-  .transit-planner-option-route {
-    font-size: 0.875rem;
-  }
-
-  .transit-planner-option-step,
-  .transit-planner-option-leg {
-    display: inline-flex;
-    align-items: center;
-    min-inline-size: 0;
-    max-inline-size: 100%;
-  }
-
-  .transit-planner-option-leg {
-    gap: var(--wm-space-1);
-
-    .transit-planner-leg-icon {
-      flex-shrink: 0;
-    }
-
-    > span {
-      min-inline-size: 0;
-    }
-  }
-
-  .transit-planner-option-chevron {
-    margin-inline-end: var(--wm-space-2);
-    color: var(--wm-color-text-muted);
-  }
-
-  .transit-planner-option-meta {
-    color: var(--wm-color-text-muted);
-    font-size: 0.875rem;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--wm-color-accent);
-    outline-offset: -2px;
-  }
-}
-
 .transit-planner-results {
   display: grid;
   gap: var(--wm-space-4);
@@ -217,12 +134,6 @@
   }
 }
 
-.transit-planner-endpoint-pair {
-  display: grid;
-  grid-template-rows: auto auto;
-  row-gap: var(--wm-space-2);
-}
-
 .transit-planner-endpoint-pair--editing {
   grid-template-rows: auto auto auto;
   row-gap: var(--wm-space-3);
@@ -232,249 +143,8 @@
   }
 }
 
-.transit-planner-endpoint-pair--rail {
-  --endpoint-rail-width: 1.75rem;
-  --endpoint-row-gap: var(--wm-space-2);
-  grid-template-columns: var(--endpoint-rail-width) minmax(0, 1fr);
-
-  &::before {
-    content: "";
-    grid-area: 1 / 1 / -2 / 2;
-    justify-self: center;
-    border-inline-start: 2px dotted var(--wm-color-text-muted);
-    margin-block: 1.125rem calc(2px - var(--endpoint-row-gap));
-  }
-
-  > * {
-    grid-column: 2;
-  }
-
-  > .transit-planner-endpoint {
-    position: relative;
-    min-inline-size: 0;
-  }
-}
-
 .transit-planner-endpoint-pair--rail.transit-planner-endpoint-pair--editing {
   --endpoint-row-gap: var(--wm-space-3);
-}
-
-.transit-planner-endpoint-marker {
-  position: absolute;
-  inset-inline-end: 100%;
-  inset-block-start: 0;
-  display: grid;
-  place-items: center;
-  inline-size: var(--endpoint-rail-width);
-  block-size: 1.25rem;
-  color: var(--wm-color-text-muted);
-  line-height: 1;
-}
-
-.transit-planner-endpoint-marker--from::before {
-  content: "";
-  box-sizing: border-box;
-  inline-size: 0.625rem;
-  block-size: 0.625rem;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-}
-
-.transit-planner-endpoint-marker--to {
-  color: var(--wm-color-accent);
-}
-
-.transit-planner-disclosure-header {
-  display: flex;
-  align-items: center;
-  gap: var(--wm-space-2);
-}
-
-.transit-planner-edit {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  inline-size: max(44px, var(--wm-control-height));
-  block-size: max(44px, var(--wm-control-height));
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--wm-color-text-muted);
-  cursor: pointer;
-
-  > .fa {
-    display: grid;
-    place-items: center;
-    inline-size: 1.5rem;
-    block-size: 1.5rem;
-    border-radius: var(--wm-radius-xs);
-    font-size: 0.75rem;
-  }
-
-  &:hover > .fa {
-    background: var(--wm-color-surface-muted);
-    color: var(--wm-color-text);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--wm-color-accent);
-    outline-offset: -2px;
-  }
-}
-
-.transit-planner-disclosure-heading {
-  flex: 1;
-  min-inline-size: 0;
-  margin: 0;
-
-  button {
-    @include disclosure.trigger;
-    font: inherit;
-    @include disclosure.label;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    text-align: start;
-
-    &[aria-expanded="true"] {
-      @include disclosure.expanded-caret;
-    }
-  }
-}
-
-.transit-planner-itinerary-detail ol {
-  display: grid;
-  gap: var(--wm-space-2);
-  margin: var(--wm-space-2) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.transit-planner-leg {
-  padding-block: var(--wm-space-2);
-
-  & + & {
-    border-block-start: 1px solid var(--wm-color-border);
-    padding-block-start: var(--wm-space-3);
-  }
-
-  &--highlighted {
-    background: var(--wm-color-surface-muted);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--wm-color-accent);
-    outline-offset: -2px;
-  }
-
-  .transit-planner-leg-icon {
-    margin-inline-end: var(--wm-space-2);
-    vertical-align: -0.125em;
-  }
-
-  p {
-    margin: var(--wm-space-1) 0 0;
-    overflow-wrap: anywhere;
-  }
-
-  .transit-planner-leg-stops {
-    --endpoint-rail-width: 1.5rem;
-    margin: var(--wm-space-1) 0 0;
-    font-size: 0.875rem;
-    line-height: 1.4;
-    overflow-wrap: anywhere;
-  }
-
-  .transit-planner-leg-time,
-  .transit-planner-leg-distance {
-    color: var(--wm-color-text-muted);
-    font-size: 0.875rem;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.transit-planner-leg .transit-planner-leg-icon,
-.transit-planner-option-leg .transit-planner-leg-icon {
-  width: 1.25em;
-  height: 1em;
-  color: var(--wm-color-text-muted);
-  fill: currentColor;
-
-  &.transit-planner-leg-icon--walk {
-    color: var(--wm-color-success);
-  }
-}
-
-.transit-planner-transfer {
-  margin-block-end: var(--wm-space-1);
-  color: var(--wm-color-text-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.transit-journey-header {
-  margin-block-end: var(--wm-space-3);
-
-  h2 {
-    margin: 0;
-    font-size: 1.25rem;
-  }
-
-  p {
-    margin: var(--wm-space-1) 0 0;
-    color: var(--wm-color-text-muted);
-    font-size: 0.875rem;
-  }
-}
-
-.transit-journey-steps {
-  margin: 0;
-  padding-inline-start: 1.5em;
-
-  > li::marker {
-    color: var(--wm-color-text-muted);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-
-  h3 {
-    margin: 0;
-    font-size: 1rem;
-  }
-
-  dl {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--wm-space-1);
-    margin: var(--wm-space-3) 0 0;
-  }
-
-  dt {
-    color: var(--wm-color-text-muted);
-    font-size: 0.875rem;
-  }
-
-  dd {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: var(--wm-space-1) var(--wm-space-3);
-    margin: 0 0 var(--wm-space-2);
-    overflow-wrap: anywhere;
-  }
-
-  dd span {
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.transit-planner-partial {
-  padding: var(--wm-space-3);
-  border: 1px solid var(--wm-color-border);
-  border-radius: var(--wm-radius-xs);
-  background: var(--wm-color-surface-muted);
 }
 
 @media (max-width: 40rem) {
@@ -496,33 +166,5 @@
   .transit-planner-form > .wm-btn[type="submit"] {
     width: 100%;
     justify-self: stretch;
-  }
-}
-
-.transit-planner-stop-modes {
-  display: inline-flex;
-  gap: var(--wm-space-1);
-  margin-inline-end: var(--wm-space-2);
-
-  svg {
-    width: 1em;
-    height: 1em;
-    vertical-align: -0.125em;
-    fill: currentColor;
-  }
-}
-
-.transit-planner-stop-routes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--wm-space-1);
-  margin-top: var(--wm-space-1);
-
-  .transit-planner-stop-route {
-    max-width: 100%;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    text-transform: none;
-    letter-spacing: normal;
   }
 }

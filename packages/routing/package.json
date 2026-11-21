@@ -2,9 +2,27 @@
   "name": "@trimet-arrivals/routing",
   "version": "0.0.0",
   "private": true,
-  "description": "Mapbox walking estimates, route geometry, and vehicle interpolation.",
-  "exports": "./src/index.ts",
+  "description": "Walking estimates and React hook, route geometry, and vehicle interpolation.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.ts"
+  },
   "types": "./src/index.ts",
+  "dependencies": {
+    "@trimet-arrivals/trimet-client": "0.0.0",
+    "@turf/distance": "^7.1.0"
+  },
+  "typesVersions": {
+    "*": {
+      "react": ["src/react.ts"]
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true }
+  },
   "devDependencies": {
     "@types/geojson": "^7946.0.16"
   },

@@ -2,10 +2,35 @@
   "name": "@trimet-arrivals/ui",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared React time display settings and context.",
-  "exports": "./src/index.ts",
+  "description": "Shared React time, transit, journey, alert, vehicle, and search presentation with injected app policies.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./transit": "./src/transit.ts",
+    "./journeys": "./src/journeys.ts",
+    "./alerts": "./src/alerts.ts",
+    "./vehicles": "./src/vehicles.ts",
+    "./search": "./src/search.ts",
+    "./disclosure": "./src/styles/_disclosure.scss"
+  },
   "types": "./src/index.ts",
+  "typesVersions": {
+    "*": {
+      "transit": ["src/transit.ts"],
+      "journeys": ["src/journeys.ts"],
+      "alerts": ["src/alerts.ts"],
+      "vehicles": ["src/vehicles.ts"],
+      "search": ["src/search.ts"]
+    }
+  },
+  "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^7.3.1",
+    "@trimet-arrivals/trimet-client": "0.0.0",
+    "lodash": "4.18.1",
+    "moment": "^2.29.2",
+    "react-fontawesome": "^1.7.1"
+  },
   "peerDependencies": {
+    "@wintermuted/ui-theme": "^0.21.5",
     "react": "^18.3.1 || ^19.0.0"
   },
   "nx": {

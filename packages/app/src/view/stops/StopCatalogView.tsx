@@ -1,65 +1,18 @@
 import { Button } from "@wintermuted/ui-theme/react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useStopCatalog } from "@trimet-arrivals/trimet-client/react";
 import { Link } from "react-router-dom";
 import {
   getStopCatalog,
   searchStopCatalog,
-  StopCatalog,
 } from "../../api/trimet/stopCatalog";
 import "./StopCatalogView.scss";
 
 const MAX_VISIBLE_STOPS = 100;
 
-interface CatalogState {
-  catalog?: StopCatalog;
-  error: boolean;
-  fetchedAt?: Date;
-  loading: boolean;
-}
-
 export default function StopCatalogView() {
-  const [catalogState, setCatalogState] = useState<CatalogState>({
-    error: false,
-    loading: true,
-  });
+  const catalogState = useStopCatalog(getStopCatalog);
   const [search, setSearch] = useState("");
-  const [refresh, setRefresh] = useState(0);
-
-  useEffect(() => {
-    let active = true;
-    setCatalogState((previous) => ({
-      ...previous,
-      error: false,
-      loading: true,
-    }));
-
-    getStopCatalog(refresh > 0)
-      .then((catalog) => {
-        if (active) {
-          setCatalogState({
-            catalog,
-            error: false,
-            fetchedAt: catalog.receivedAt
-              ? new Date(catalog.receivedAt)
-              : new Date(),
-            loading: false,
-          });
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setCatalogState((previous) => ({
-            ...previous,
-            error: true,
-            loading: false,
-          }));
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [refresh]);
 
   const matchingStops = useMemo(
     () =>
@@ -88,7 +41,7 @@ export default function StopCatalogView() {
         <Button
           variant="secondary"
           disabled={catalogState.loading}
-          onClick={() => setRefresh((value) => value + 1)}
+          onClick={catalogState.refresh}
         >
           Refresh stops
         </Button>

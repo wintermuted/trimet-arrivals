@@ -1,4 +1,21 @@
 export const BOOKMARK_SHORTCUTS = "BOOKMARK_SHORTCUTS_V1";
+const SHORTCUT_CHANGE_EVENT = "trimet-bookmark-shortcuts-changed";
+
+export function subscribeBookmarkShortcuts(listener: () => void): () => void {
+  const storageChanged = (event: StorageEvent) => {
+    if (event.key === BOOKMARK_SHORTCUTS || event.key === null) listener();
+  };
+  window.addEventListener("storage", storageChanged);
+  window.addEventListener(SHORTCUT_CHANGE_EVENT, listener);
+  return () => {
+    window.removeEventListener("storage", storageChanged);
+    window.removeEventListener(SHORTCUT_CHANGE_EVENT, listener);
+  };
+}
+
+function notifyShortcutChange() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(SHORTCUT_CHANGE_EVENT));
+}
 
 export const SHORTCUTS = [
   { key: "home_location", label: "Home stop", kind: "stop" },
@@ -48,6 +65,7 @@ export function setBookmarkShortcut(
   if (id === undefined) delete shortcuts[key];
   else shortcuts[key] = id;
   localStorage.setItem(BOOKMARK_SHORTCUTS, JSON.stringify(shortcuts));
+  notifyShortcutChange();
   return shortcuts;
 }
 
@@ -58,6 +76,7 @@ export function removeShortcutsForBookmark(kind: "stop" | "route", id: number) {
     if (matches.length === 0) return;
     for (const { key } of matches) delete shortcuts[key];
     localStorage.setItem(BOOKMARK_SHORTCUTS, JSON.stringify(shortcuts));
+    notifyShortcutChange();
   } catch (error) {
     console.warn("Could not remove shortcut for deleted bookmark.", error);
   }

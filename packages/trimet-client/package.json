@@ -2,12 +2,19 @@
   "name": "@trimet-arrivals/trimet-client",
   "version": "0.0.0",
   "private": true,
-  "description": "TriMet API clients, stop catalog indexing and search, and vehicle freshness rules.",
+  "description": "TriMet clients, catalog search, freshness rules, and optional React catalog and vehicle hooks.",
   "exports": {
     ".": "./src/index.ts",
+    "./react": "./src/react.ts",
     "./fixtures": "./src/fixture/arrival.ts"
   },
   "types": "./src/index.ts",
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true }
+  },
   "dependencies": {
     "lodash": "4.18.1"
   },
@@ -16,13 +23,14 @@
   },
   "typesVersions": {
     "*": {
+      "react": ["src/react.ts"],
       "fixtures": ["src/fixture/arrival.ts"]
     }
   },
   "nx": {
     "targets": {
       "test:package": {
-        "command": "jest --selectProjects trimet-client-package --runInBand",
+        "command": "jest --selectProjects trimet-client-package trimet-client-react-package --runInBand",
         "cache": false
       }
     }

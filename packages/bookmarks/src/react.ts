@@ -1,0 +1,1 @@
+export { useBookmarkShortcuts } from "./useBookmarkShortcuts";

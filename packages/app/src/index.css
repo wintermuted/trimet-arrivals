@@ -151,15 +151,6 @@ button.transit-detail-back {
   padding-inline: 0;
 }
 
-.transit-alert-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
 .transit-sr-only {
   position: absolute;
   width: 1px;
