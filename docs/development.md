@@ -25,8 +25,8 @@ by the VS Code setup task does not serve `3.2.1`.
 
 ## Focused UI tests and CI
 
-Run the focused DOM integration suite for navigation, bookmarks, dialogs, and
-theme preferences:
+Run the React component and DOM integration suite for navigation, bookmarks,
+dialogs, and theme preferences:
 
 ```powershell
 npx nx run-many -t test:ui
@@ -39,6 +39,20 @@ run every time, and builds are uncached because each Pages deployment needs its
 own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
 `npm run test:places-data`, and `npm run build` commands remain available.
 Build/type validation stays in CI.
+
+The app uses React 19 and `createRoot`. Write component tests with React Testing
+Library: query accessible roles and labels, exercise interactions with
+`@testing-library/user-event`, and assert visible behavior with
+`@testing-library/jest-dom`. Do not inspect component instances, internal state,
+or child component names. `fireEvent` is available for focused DOM events in
+existing integration tests; React's removed `Simulate` APIs are not used.
+
+All app `*.test.tsx` files run in the `ui` Jest project, including the migrated
+Enzyme coverage, so the deployment workflows run them. Non-React app tests run
+in the `unit` project. Shared package tests keep their existing projects.
+Enzyme, its adapter and matchers, and the unused React test renderer have been
+removed. Old files containing only commented-out assertions or empty test bodies
+were retired rather than retained as passing coverage.
 
 To test a production build without publishing, run **Deploy to GitHub Pages**
 manually from your branch with **Publish to the live site** unchecked. It runs

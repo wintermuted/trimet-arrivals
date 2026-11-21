@@ -32,7 +32,7 @@ class Map extends Component<Props> {
       width: "100%"
     };
     // @ts-ignore
-    const map = <div style={style} ref={el => (this.mapContainer = el)} />;
+    const map = <div style={style} ref={el => { this.mapContainer = el; }} />;
 
     return (
       <div>

@@ -1,47 +1,17 @@
-import { shallow } from "enzyme";
+import { render, screen } from "@testing-library/react";
 import moment from "moment";
 import React from "react";
 import EarlyIndicator from "./EarlyIndicator";
 
-describe("EarlyIndicator", () => {
-  describe("by default", () => {
-    it("renders without crashing", () => {
-      expect(() =>
-        shallow(<EarlyIndicator scheduled={undefined} estimated={undefined} />)
-      ).not.toThrow();
-    });
+it("shows a placeholder without an arrival estimate", () => {
+  render(<EarlyIndicator scheduled={undefined} estimated={undefined} />);
+  expect(screen.getByText("-")).toBeInTheDocument();
+});
 
-    it("an empty arrival estimate", () => {
-      const subject = shallow(
-        <EarlyIndicator scheduled={undefined} estimated={undefined} />
-      );
-
-      expect(subject.text()).toBe("-");
-    });
-  });
-
-  describe("when a valid scheduled and estimated date are provided", () => {
-    describe("and the vehicle is late by less than a minute", () => {
-      it("returns a string indicating how many seconds late it is", () => {
-        const subject = shallow(
-          <EarlyIndicator scheduled={moment(3000)} estimated={moment(1000)} />
-        );
-
-        expect(subject.text()).toBe("2s early");
-      });
-    });
-
-    describe("and the vehicle is late by more than a minute", () => {
-      it("returns a string indicating how many minutes late it is", () => {
-        const subject = shallow(
-          <EarlyIndicator
-            scheduled={moment(1000)}
-            estimated={moment(5000000)}
-          />
-        );
-
-        expect(subject.text()).toBe("36m 41s early");
-      });
-    });
-  });
+it.each([
+  [3000, 1000, "2s early"],
+  [1000, 5000000, "36m 41s early"]
+])("formats the existing early-arrival estimate", (scheduled, estimated, expected) => {
+  render(<EarlyIndicator scheduled={moment(scheduled)} estimated={moment(estimated)} />);
+  expect(screen.getByText(expected)).toBeInTheDocument();
 });

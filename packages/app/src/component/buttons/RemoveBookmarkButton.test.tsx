@@ -1,67 +1,11 @@
-import { shallow } from "enzyme";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import { RemoveBookmarkButton } from "./RemoveBookmarkButton";
 
-describe("RemoveBookmarkButton", () => {
-  describe("by default", () => {
-    it("is shown without errors", () => {
-      expect(() =>
-        shallow(
-          <RemoveBookmarkButton
-            stopId={undefined}
-            removeBookmarkFromSection={undefined}
-          />
-        )
-      ).not.toThrow();
-    });
-
-    it("has a button", () => {
-      const subject = shallow(
-        <RemoveBookmarkButton
-          stopId={undefined}
-          removeBookmarkFromSection={undefined}
-        />
-      );
-
-      const button = subject.find("button");
-
-      expect(button).toExist();
-    });
-
-    it("the button has an icon that indicates closing behavior", () => {
-      const subject = shallow(
-        <RemoveBookmarkButton
-          stopId={undefined}
-          removeBookmarkFromSection={undefined}
-        />
-      );
-
-      const button = subject.find("button");
-      const icon = button.find("FontAwesome");
-
-      expect(icon).toExist();
-      expect(icon.props().name).toBe("times-circle");
-    });
-  });
-
-  describe("when clicked ", () => {
-    it("dispatches the removeBookmarkFromSection delegate with the stopId", () => {
-      const removeBookmarkFromSectionSpy = jasmine.createSpy(
-        "removeBookmarkFromSectionSpy"
-      );
-
-      const subject = shallow(
-        <RemoveBookmarkButton
-          stopId={123}
-          removeBookmarkFromSection={removeBookmarkFromSectionSpy}
-        />
-      );
-
-      const button = subject.find("button");
-
-      button.simulate("click");
-
-      expect(removeBookmarkFromSectionSpy).toHaveBeenCalledWith(123);
-    });
-  });
+it("removes the selected stop from its bookmark section", async () => {
+  const removeBookmarkFromSection = jest.fn();
+  render(<RemoveBookmarkButton stopId={123} removeBookmarkFromSection={removeBookmarkFromSection} />);
+  await userEvent.setup().click(screen.getByRole("button", { name: "Remove bookmark from Bookmark Section" }));
+  expect(removeBookmarkFromSection).toHaveBeenCalledWith(123, expect.anything());
 });

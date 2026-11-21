@@ -29,7 +29,7 @@ function viewportBounds(map: MapboxMap): VehicleBounds {
 export function useVehiclePositions(map: MapboxMap | undefined, enabled: boolean, vehicleId?: string) {
   const [feed, setFeed] = useState<VehicleFeed>({ vehicles: [], rejected: 0, status: "loading" });
   const [attempt, setAttempt] = useState(0);
-  const lastReport = useRef<{ map: MapboxMap; feed: VehicleFeed; clock: { server: number; received: number } }>();
+  const lastReport = useRef<{ map: MapboxMap; feed: VehicleFeed; clock: { server: number; received: number } }>(undefined);
 
   useEffect(() => {
     if (!map || !enabled) {

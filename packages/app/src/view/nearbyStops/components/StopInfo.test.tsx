@@ -1,55 +1,14 @@
-import { shallow } from "enzyme";
+import { render, screen } from "@testing-library/react";
 import React from "react";
+import { MemoryRouter } from "react-router-dom";
 import StopInfo from "./StopInfo";
 
-describe("StopInfo", () => {
-  describe("by default", () => {
-    it("renders without crashing", () => {
-      expect(() =>
-        shallow(<StopInfo stopLocation={undefined} onClick={undefined} />)
-      ).not.toThrow();
-    });
-  });
+it("renders nothing without a stop", () => {
+  const { container } = render(<StopInfo stopLocation={undefined} onClick={jest.fn()} />);
+  expect(container).toBeEmptyDOMElement();
+});
 
-  describe("when provided a stop location", () => {
-    // const route1 = {
-    //   desc: "hello",
-    //   dir: [
-    //     {
-    //       desc: "hello",
-    //       dir: 123
-    //     }
-    //   ],
-    //   route: 123,
-    //   type: "B"
-    // };
-    // const route2 = {
-    //   desc: "hello",
-    //   dir: [
-    //     {
-    //       desc: "hello",
-    //       dir: 123
-    //     }
-    //   ],
-    //   route: 456,
-    //   type: "B"
-    // };
-    // const stopLocation = {
-    //   desc: "hello",
-    //   dir: "NW",
-    //   lat: 123,
-    //   lng: 456,
-    //   locid: 123456,
-    //   route: [route1, route2]
-    // };
-    // const subject = shallow(
-    //   <StopInfo stopLocation={stopLocation} onClick={undefined} />
-    // );
-    // it("shows basic info about the stop", () => {
-    //   const stopInfo = subject.find("h2");
-    //   expect(stopInfo.text()).toBe(
-    //     "<StopLocationIndicator />hello - NW - feet away"
-    //   );
-    // });
-  });
+it("shows the stop name, direction, and distance", () => {
+  render(<MemoryRouter><StopInfo stopLocation={{ locid: 123, desc: "Main Street", dir: "N", distance: 456, route: [] }} onClick={jest.fn()} /></MemoryRouter>);
+  expect(screen.getByRole("heading")).toHaveTextContent("Main Street - N -456 feet away");
 });

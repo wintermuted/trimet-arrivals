@@ -3,7 +3,7 @@ import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
 // tslint:disable-next-line:no-submodule-imports
 import { createRoot, Root } from "react-dom/client";
-import { Simulate } from "react-dom/test-utils";
+import { fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import {
   buildStopCatalog,
@@ -105,16 +105,14 @@ describe("StopCatalogView", () => {
       "#stop-catalog-search",
     );
     act(() => {
-      search.value = "12345";
-      Simulate.change(search);
+      fireEvent.change(search, { target: { value: "12345" } });
     });
     expect(
       container.querySelector('a[href="/stop/12345"]'),
     ).not.toBeNull();
 
     act(() => {
-      search.value = "no matching stop";
-      Simulate.change(search);
+      fireEvent.change(search, { target: { value: "no matching stop" } });
     });
     expect(container.textContent).toContain("No stops match");
   });

@@ -1,82 +1,24 @@
-import { mount, shallow } from "enzyme";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import BookmarkSectionNameControl from "./BookmarkSectionNameControl";
 
-describe("BookmarkSectionNameControl", () => {
-  describe("by default", () => {
-    it("does not error when rendered", () => {
-      expect(() => {
-        return shallow(
-          <BookmarkSectionNameControl
-            editMode={undefined}
-            name={undefined}
-            removeBookmarkSection={undefined}
-            toggleEditMode={undefined}
-            updateBookmarkSectionName={undefined}
-          />
-        );
-      }).not.toThrow();
-    });
+it("shows the name and toggles editing through the labeled control", async () => {
+  const toggleEditMode = jest.fn();
+  render(<BookmarkSectionNameControl editMode={false} name="Commute" removeBookmarkSection={jest.fn()} toggleEditMode={toggleEditMode} updateBookmarkSectionName={jest.fn()} />);
+  expect(screen.getByRole("heading", { name: "Commute" })).toBeInTheDocument();
+  expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole("button", { name: "Edit bookmark section" }));
+  expect(toggleEditMode).toHaveBeenCalledTimes(1);
+});
 
-    it("has a button for toggling edit mode", () => {
-      const subject = shallow(
-        <BookmarkSectionNameControl
-          editMode={undefined}
-          name={undefined}
-          removeBookmarkSection={undefined}
-          toggleEditMode={undefined}
-          updateBookmarkSectionName={undefined}
-        />
-      );
-
-      const editToggleMode = subject.find("EditModeToggleButton");
-
-      expect(editToggleMode).toExist();
-    });
-  });
-
-  describe("When not in edit mode", () => {
-    describe("and a name is provided", () => {
-      it("has a header with the supplied name", () => {
-        const subject = shallow(
-          <BookmarkSectionNameControl
-            editMode={undefined}
-            name={"foo"}
-            removeBookmarkSection={undefined}
-            toggleEditMode={undefined}
-            updateBookmarkSectionName={undefined}
-          />
-        );
-
-        const header = subject.find("h3");
-
-        expect(header).toExist();
-        expect(header.text()).toBe("foo");
-      });
-    });
-  });
-
-  describe("When in Edit Mode", () => {
-    const subject = mount(
-      <BookmarkSectionNameControl
-        editMode={true}
-        name={undefined}
-        removeBookmarkSection={undefined}
-        toggleEditMode={undefined}
-        updateBookmarkSectionName={undefined}
-      />
-    );
-
-    it("shows an input for editing the section name", () => {
-      const editSectionNameInput = subject.find("EditSectionNameInput");
-      expect(editSectionNameInput).toExist();
-    });
-
-    it("shows a button for removing the bookmark section", () => {
-      const removeBokmarkSectionButton = subject.find(
-        "RemoveBookmarkSectionButton"
-      );
-      expect(removeBokmarkSectionButton).toExist();
-    });
-  });
+it("edits the name and exposes removal controls in edit mode", async () => {
+  const updateBookmarkSectionName = jest.fn();
+  render(<BookmarkSectionNameControl editMode name="Commute" removeBookmarkSection={jest.fn()} toggleEditMode={jest.fn()} updateBookmarkSectionName={updateBookmarkSectionName} />);
+  const input = screen.getByRole("textbox", { name: "Bookmark section name" });
+  expect(input).toHaveValue("Commute");
+  await userEvent.setup().type(input, " home");
+  expect(updateBookmarkSectionName).toHaveBeenLastCalledWith("Commute home");
+  expect(screen.getByRole("button", { name: "Remove Bookmark Section" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Finish editing section" })).toHaveAttribute("aria-pressed", "true");
 });

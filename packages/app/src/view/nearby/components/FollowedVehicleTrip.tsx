@@ -52,7 +52,7 @@ export default function FollowedVehicleTrip({ selection, feed, view, onViewChang
   const earlier = legs.slice(0, firstUpcoming);
   const upcoming = legs.slice(firstUpcoming);
   const name = ROUTE_DISPLAY[selection.routeNumber] || (selection.routeNumber ? `Route ${selection.routeNumber}` : "Vehicle");
-  const section = useRef<HTMLElement>();
+  const section = useRef<HTMLElement>(null);
   useEffect(() => {
     section.current?.querySelector<HTMLElement>('.transit-detail-back')?.focus({ preventScroll: true });
   }, [selection.id, selection.tripId]);

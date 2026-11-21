@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Simulate } from "react-dom/test-utils";
+import { fireEvent } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import geoLocateCurrentPosition from "../../api/geolocation/geoLocateCurrentPosition";
 import {
@@ -195,9 +195,9 @@ describe("TripPlannerView", () => {
     const recent = container.querySelector<HTMLInputElement>("#planner-recent");
     expect(container.querySelector('label[for="planner-recent"]').textContent).toBe("Recent trips");
     act(() => recent.focus());
-    act(() => Simulate.keyDown(recent, { key: "ArrowDown" }));
+    act(() => fireEvent.keyDown(recent, { key: "ArrowDown" }));
     expect(document.getElementById(recent.getAttribute("aria-controls")).querySelectorAll('[role="option"]')).toHaveLength(1);
-    await act(async () => Simulate.keyDown(recent, { key: "Enter" }));
+    await act(async () => { fireEvent.keyDown(recent, { key: "Enter" }); });
     expect(requestTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "8356", toPlace: "7777" }),
     );
@@ -219,13 +219,13 @@ describe("TripPlannerView", () => {
     expect(requestTrip).not.toHaveBeenCalled();
     expect(container.textContent).toContain("Example Park");
     expect(container.textContent).toContain("Confirm the approximate arrival point");
-    await act(async () => Simulate.submit(container.querySelector("form")));
+    await act(async () => { fireEvent.submit(container.querySelector("form")); });
     expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({ fromPlace: "8356", toCoord: "-122.6815,45.5231" }));
     expect(container.querySelector('[data-test-id="query"]').textContent).toContain("toPlaceId=portland%3Apark%3A101");
     expect(container.querySelector(".transit-planner-stop-summary").textContent).toContain("Example Park");
     act(() => container.querySelector<HTMLButtonElement>("#transit-planner-title + .transit-planner-edit").click());
     act(() => container.querySelector<HTMLButtonElement>('[aria-label="Swap origin and destination"]').click());
-    await act(async () => Simulate.submit(container.querySelector("form")));
+    await act(async () => { fireEvent.submit(container.querySelector("form")); });
     expect(requestTrip).toHaveBeenLastCalledWith(expect.objectContaining({ fromCoord: "-122.6815,45.5231", toPlace: "8356" }));
     expect(container.querySelector('[data-test-id="query"]').textContent).toContain("fromPlaceId=portland%3Apark%3A101");
   });
@@ -254,7 +254,7 @@ describe("TripPlannerView", () => {
     expect(requestTrip).not.toHaveBeenCalled();
     expect(geoLocateCurrentPosition).not.toHaveBeenCalled();
     const input = container.querySelector<HTMLInputElement>("#planner-to");
-    act(() => Simulate.change(input, { target: { value: "-122.68,45.52" } } as never));
+    act(() => fireEvent.change(input, { target: { value: "-122.68,45.52" } }));
     expect(container.textContent).not.toContain(name);
     act(() => container.querySelector<HTMLButtonElement>('[aria-label="Swap origin and destination"]').click());
     expect(container.querySelector<HTMLInputElement>("#planner-from").value).toBe("-122.68,45.52");
@@ -438,17 +438,16 @@ describe("TripPlannerView", () => {
     await render("/nearby/planner?from=8356&to=7777", true);
     const form = () => container.querySelector<HTMLFormElement>("form.transit-planner-form");
     const details = () => container.querySelector('ol[aria-label="Itinerary 2 steps"]');
-    const submit = () => act(async () => Simulate.submit(form()));
+    const submit = () => act(async () => { fireEvent.submit(form()); });
     act(() => container.querySelectorAll<HTMLButtonElement>(".transit-planner-options button")[1].click());
     act(() => container.querySelector<HTMLButtonElement>("#transit-planner-title + .transit-planner-edit").click());
     const destination = container.querySelector<HTMLInputElement>("#planner-to");
     act(() => {
       destination.focus();
-      destination.value = "299";
-      Simulate.change(destination);
+      fireEvent.change(destination, { target: { value: "299" } });
     });
-    act(() => Simulate.keyDown(destination, { key: "ArrowDown" }));
-    act(() => Simulate.keyDown(destination, { key: "Enter" }));
+    act(() => fireEvent.keyDown(destination, { key: "ArrowDown" }));
+    act(() => fireEvent.keyDown(destination, { key: "Enter" }));
     await submit();
     expect(requestTrip).toHaveBeenLastCalledWith(expect.objectContaining({ fromPlace: "8356", toPlace: "299" }));
     expect(container.textContent).toContain("Finding trips");
@@ -495,10 +494,9 @@ describe("TripPlannerView", () => {
     expect(requestTrip).not.toHaveBeenCalled();
     const input = container.querySelector<HTMLInputElement>("#planner-to");
     act(() => {
-      input.value = "-122.6815, 45.5231";
-      Simulate.change(input);
+      fireEvent.change(input, { target: { value: "-122.6815, 45.5231" } });
     });
-    await act(async () => Simulate.submit(container.querySelector("form")));
+    await act(async () => { fireEvent.submit(container.querySelector("form")); });
     expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({
       fromPlace: "8356", toCoord: "-122.6815,45.5231",
     }));
@@ -527,7 +525,7 @@ describe("TripPlannerView", () => {
     expect(container.textContent).toContain("Check browser permissions");
     await act(async () => nearest.click());
     expect(document.activeElement).toBe(container.querySelector("#planner-from"));
-    await act(async () => Simulate.submit(container.querySelector("form")));
+    await act(async () => { fireEvent.submit(container.querySelector("form")); });
     expect(requestTrip).toHaveBeenCalledWith({ fromPlace: "8356", toPlace: "7777", signal: expect.anything() });
     const query = container.querySelector('[data-test-id="query"]').textContent;
     expect(query).toBe("?from=8356&to=7777");
@@ -556,7 +554,7 @@ describe("TripPlannerView", () => {
     expect(requestTrip).toHaveBeenCalledTimes(1);
     expect(container.textContent).toMatch(/Showing results for .*8356.* to -122\.6815,45\.5231/);
     expect(container.querySelector('ol[aria-label="Itinerary 1 steps"]')).not.toBeNull();
-    await act(async () => Simulate.submit(container.querySelector("form")));
+    await act(async () => { fireEvent.submit(container.querySelector("form")); });
     expect(requestTrip).toHaveBeenLastCalledWith(expect.objectContaining({
       fromCoord: "-122.6815,45.5231", toPlace: "8356",
     }));
@@ -638,8 +636,7 @@ describe("TripPlannerView", () => {
       const input = container.querySelector<HTMLInputElement>(`#${id}`);
       act(() => {
         input.focus();
-        input.value = "Washington  Square Mall";
-        Simulate.change(input);
+        fireEvent.change(input, { target: { value: "Washington  Square Mall" } });
       });
 
       const menu = document.getElementById(input.getAttribute("aria-controls"));
@@ -649,12 +646,12 @@ describe("TripPlannerView", () => {
       if (id === "planner-from") {
         act(() => input.blur());
       } else {
-        act(() => Simulate.keyDown(input, { key: "ArrowDown" }));
-        act(() => Simulate.keyDown(input, { key: "Enter" }));
+        act(() => fireEvent.keyDown(input, { key: "ArrowDown" }));
+        act(() => fireEvent.keyDown(input, { key: "Enter" }));
       }
     }
 
-    await act(async () => Simulate.submit(container.querySelector("form")));
+    await act(async () => { fireEvent.submit(container.querySelector("form")); });
     expect(requestTrip).toHaveBeenCalledWith(expect.objectContaining({ fromPlace: "8356", toPlace: "9650" }));
   });
 
@@ -669,8 +666,7 @@ describe("TripPlannerView", () => {
       const input = container.querySelector<HTMLInputElement>(`#${id}`);
       act(() => {
         input.focus();
-        input.value = "home";
-        Simulate.change(input);
+        fireEvent.change(input, { target: { value: "home" } });
       });
       const menu = document.getElementById(input.getAttribute("aria-controls"));
       expect(menu.textContent).toContain("Saved stops");
@@ -693,8 +689,7 @@ describe("TripPlannerView", () => {
     const input = container.querySelector<HTMLInputElement>("#planner-from");
     act(() => input.focus());
     act(() => {
-      input.value = "fx";
-      Simulate.change(input);
+      fireEvent.change(input, { target: { value: "fx" } });
     });
     const menu = document.getElementById(input.getAttribute("aria-controls"));
     const options = menu.querySelectorAll('[role="option"]');
@@ -713,23 +708,22 @@ describe("TripPlannerView", () => {
     for (const id of ["planner-from", "planner-to"]) {
       const input = container.querySelector<HTMLInputElement>(`#${id}`);
       act(() => input.focus());
-      act(() => Simulate.keyDown(input, { key: "ArrowDown" }));
+      act(() => fireEvent.keyDown(input, { key: "ArrowDown" }));
       const menu = document.getElementById(input.getAttribute("aria-controls"));
       expect(menu.textContent).toContain("NE");
       expect(menu.textContent).toContain("SW");
       expect(menu.textContent).toContain("Other stops");
-      act(() => Simulate.keyDown(input, { key: "Escape" }));
+      act(() => fireEvent.keyDown(input, { key: "Escape" }));
     }
 
     const from = container.querySelector<HTMLInputElement>("#planner-from");
     act(() => from.focus());
     act(() => {
-      from.value = "8356";
-      Simulate.change(from);
+      fireEvent.change(from, { target: { value: "8356" } });
     });
     expect(document.querySelector('[role="option"]').textContent).toContain("8356");
-    act(() => Simulate.keyDown(from, { key: "ArrowDown" }));
-    act(() => Simulate.keyDown(from, { key: "Enter" }));
+    act(() => fireEvent.keyDown(from, { key: "ArrowDown" }));
+    act(() => fireEvent.keyDown(from, { key: "Enter" }));
     expect(from.closest(".transit-planner-stop-select").textContent).toContain("8356");
   });
 });

@@ -1,82 +1,22 @@
-import { mount, shallow } from "enzyme";
+import { render, screen } from "@testing-library/react";
 import React from "react";
-import { applyMiddleware, combineReducers, createStore } from "redux";
-import thunk from "redux-thunk";
-import { ProviderMock } from "../../../test/util";
+import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
+import { createStore } from "redux";
+import reducers from "../../../store/reducers";
+import { loadArrivalDataRequest } from "../../../store/action/stopActions";
 import StopContainer from "./StopContainer";
 
-function mockStore() {
-  // const arrivalsInitialState = {
-  //   arrivals: {},
-  //   loading: {}
-  // };
-  // const arrivalsReducer = (state = arrivalsInitialState) => {
-  //   return state;
-  // };
-  // const stopsInitialState = {
-  //   loading: false,
-  //   timeOfLastLoad: ""
-  // };
-  // const stopsReducer = (state = stopsInitialState) => {
-  //   return state;
-  // };
-  // const baseState = {
-  //   arrivalsReducer: {
-  //     arrivals: {
-  //       123: {}
-  //     },
-  //     loading: {
-  //       123: false
-  //     }
-  //   },
-  //   bookmarkSectionReducer: {
-  //     bookmarkSections: {}
-  //   },
-  //   bookmarksReducer: {
-  //     bookmarks: {}
-  //   },
-  //   stopsReducer: {
-  //     stopLocations: {
-  //       123: {}
-  //     }
-  //   }
-  // };
-  // return createStore(
-  //   combineReducers({ arrivalsReducer, stopsReducer }),
-  //   baseState,
-  //   applyMiddleware(thunk)
-  // );
-}
-
-describe("StopContainer", () => {
-  describe("by default", () => {
-    it("renders without crashing", () => {
-      expect(() =>
-        shallow(
-          <ProviderMock>
-            <StopContainer locationId={undefined} showArrivals={undefined} />
-          </ProviderMock>
-        )
-      ).not.toThrow();
-    });
+it("renders stop data from Redux and requests its arrivals on mount", () => {
+  const store = createStore(reducers);
+  const state = store.getState();
+  const stop = { locid: 123, desc: "Main Street", dir: "N", distance: 456, route: [] };
+  const populatedStore = createStore(reducers, {
+    ...state,
+    stopsReducer: { ...state.stopsReducer, stopLocations: { 123: stop } }
   });
-
-  describe("when provided a valid stopsReducer and arrivalsReducer", () => {
-    const subject = mount(
-      <ProviderMock store={mockStore()}>
-        <StopContainer locationId={123} showArrivals={true} />
-      </ProviderMock>
-    );
-
-    it("hands off props to the StopComponent", () => {
-      const stopComponent = subject.find("StopComponent");
-
-      expect(stopComponent).toExist();
-
-      // expect(stopComponent.props().stopLocation).toEqual({});
-      // expect(stopComponent.props().locationId).toBe(123);
-      // expect(stopComponent.props().loading).toBe(false);
-      // expect(stopComponent.props().showArrivals).toEqual(true);
-    });
-  });
+  const dispatch = jest.spyOn(populatedStore, "dispatch");
+  render(<Provider store={populatedStore}><MemoryRouter><StopContainer locationId={123} showArrivals={false} /></MemoryRouter></Provider>);
+  expect(screen.getByText(/Main Street/)).toBeInTheDocument();
+  expect(dispatch).toHaveBeenCalledWith(loadArrivalDataRequest(123));
 });

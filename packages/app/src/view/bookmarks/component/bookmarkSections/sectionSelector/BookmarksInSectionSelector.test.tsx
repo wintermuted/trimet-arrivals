@@ -1,53 +1,21 @@
-import { mount, shallow } from "enzyme";
-import * as React from "react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import React from "react";
 import BookmarksInSectionSelector from "./BookmarksInSectionSelector";
 
-describe("BookmarksInSectionSelector", () => {
-  describe("by default", () => {
-    it("renders without errors", () => {
-      expect(() =>
-        mount(
-          <BookmarksInSectionSelector
-            bookmarksInSection={undefined}
-            allBookmarks={undefined}
-            onChange={undefined}
-          />
-        )
-      ).not.toThrow();
-    });
+it("provides a labeled bookmark picker even with no bookmarks", () => {
+  render(<BookmarksInSectionSelector bookmarksInSection={undefined} allBookmarks={undefined} onChange={jest.fn()} />);
+  expect(screen.getByRole("combobox", { name: "Stops in this bookmark section" })).toBeInTheDocument();
+});
 
-    it("renders a Select input", () => {
-      const subject = mount(
-        <BookmarksInSectionSelector
-          bookmarksInSection={undefined}
-          allBookmarks={undefined}
-          onChange={undefined}
-        />
-      );
-
-      const selectInput = subject.find("Select");
-
-      expect(selectInput).toExist();
-    });
-  });
-
-  xdescribe("when changed", () => {
-    it("fires the onChange delegate", () => {
-      const onChangeSpy = jasmine.createSpy("onChangeSpy");
-
-      const subject = mount(
-        <BookmarksInSectionSelector
-          bookmarksInSection={undefined}
-          allBookmarks={undefined}
-          onChange={onChangeSpy}
-        />
-      );
-
-      const selectInput = subject.find("Select");
-
-      selectInput.simulate("change");
-
-      expect(onChangeSpy).toHaveBeenCalled();
-    });
-  });
+it("selects a stop through the picker and forwards the selection", async () => {
+  const onChange = jest.fn();
+  render(<BookmarksInSectionSelector bookmarksInSection={[]} allBookmarks={[{ locid: 123, desc: "Main Street", dir: "N" }]} onChange={onChange} />);
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("combobox", { name: "Stops in this bookmark section" }));
+  await user.click(screen.getByRole("option", { name: /Main Street/ }));
+  expect(onChange).toHaveBeenCalledWith(
+    [expect.objectContaining({ value: 123 })],
+    expect.objectContaining({ action: "select-option", option: expect.objectContaining({ value: 123 }) })
+  );
 });
