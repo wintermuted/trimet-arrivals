@@ -1,0 +1,7 @@
+{
+  "name": "@trimet-arrivals/app",
+  "projectType": "application",
+  "sourceRoot": "packages/applications/app/src",
+  "tags": ["domain:applications", "type:application"],
+  "implicitDependencies": ["@trimet-arrivals/bookmarks", "@trimet-arrivals/geolocation", "@trimet-arrivals/journeys", "@trimet-arrivals/maps", "@trimet-arrivals/places", "@trimet-arrivals/routing", "@trimet-arrivals/trimet-client", "@trimet-arrivals/ui"]
+}

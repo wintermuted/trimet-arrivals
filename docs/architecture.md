@@ -20,8 +20,31 @@ flowchart LR
 ## Workspace packages
 
 Go By Transit uses npm workspaces and Nx. The app and its integration tests live
-in `packages/app/src`. Vite's entry HTML, `public/`, the `build/` output, and
+in `packages/applications/app/src`. Vite's entry HTML, `public/`, the `build/` output, and
 the npm and Nx commands stay at the repository root.
+
+Workspace folders are grouped by capability domain. Package names and public
+imports remain unchanged:
+
+| Domain folder | Workspaces |
+| --- | --- |
+| `packages/applications` | `app` |
+| `packages/api` | `trimet-client`, `geolocation`, `places` |
+| `packages/util` | `bookmarks`, `journeys`, `routing` |
+| `packages/geography` | `maps` |
+| `packages/presentation` | `ui` |
+
+Domain folders are organizational containers, not packages. Maps and UI retain
+their existing cross-domain public subpaths rather than being split further.
+`api` groups service, device-location, and place-data providers; `util` groups
+reusable persistence, journey models, and routing helpers. These folders do not
+change package APIs or introduce new dependency restrictions.
+
+Runtime dependencies belong to the leaf workspaces that import them, not the
+repository root. The app declares its shared-workspace and browser dependencies;
+libraries declare their own imports and retain host-provided peer contracts.
+The root keeps shared build/test/release tooling in `devDependencies` and its
+explicit Nx dependency on the app for orchestration.
 
 Arrows point from a package to the packages it uses. Dotted arrows represent
 type-only dependencies, which do not load the other package at runtime.
@@ -48,15 +71,15 @@ flowchart TD
 
 | Package | Description |
 | --- | --- |
-| [`@trimet-arrivals/app`](../packages/app/README.md) | The Go By Transit web app: screens, navigation, Redux state, and map rendering. |
-| [`@trimet-arrivals/bookmarks`](../packages/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts, plus optional React shortcut subscriptions. |
-| [`@trimet-arrivals/geolocation`](../packages/geolocation/README.md) | Browser device-location requests and shared React location subscription. |
-| [`@trimet-arrivals/journeys`](../packages/journeys/README.md) | Recent journey storage, planner endpoint model, parsing, labels, and query serialization. |
-| [`@trimet-arrivals/maps`](../packages/maps/README.md) | Mapbox lifecycle and transit overlays, plus React place/reference and itinerary renderers through `maps/places` and `maps/planner`. |
-| [`@trimet-arrivals/places`](../packages/places/README.md) | Portland place discovery, saved places, and reference-layer snapshots and loading. |
-| [`@trimet-arrivals/routing`](../packages/routing/README.md) | Walking client and React estimate hook, route assets, planner path assembly, and vehicle interpolation. |
-| [`@trimet-arrivals/trimet-client`](../packages/trimet-client/README.md) | TriMet clients, stop catalog search, freshness rules, vehicle trip-leg derivation, and optional React catalog/vehicle hooks. |
-| [`@trimet-arrivals/ui`](../packages/ui/README.md) | Time settings and router-free transit/arrival, itinerary/directions, disclosure, alert, vehicle-progress, and stop-search presentation. |
+| [`@trimet-arrivals/app`](../packages/applications/app/README.md) | The Go By Transit web app: screens, navigation, Redux state, and map rendering. |
+| [`@trimet-arrivals/bookmarks`](../packages/util/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts, plus optional React shortcut subscriptions. |
+| [`@trimet-arrivals/geolocation`](../packages/api/geolocation/README.md) | Browser device-location requests and shared React location subscription. |
+| [`@trimet-arrivals/journeys`](../packages/util/journeys/README.md) | Recent journey storage, planner endpoint model, parsing, labels, and query serialization. |
+| [`@trimet-arrivals/maps`](../packages/geography/maps/README.md) | Mapbox lifecycle and transit overlays, plus React place/reference and itinerary renderers through `maps/places` and `maps/planner`. |
+| [`@trimet-arrivals/places`](../packages/api/places/README.md) | Portland place discovery, saved places, and reference-layer snapshots and loading. |
+| [`@trimet-arrivals/routing`](../packages/util/routing/README.md) | Walking client and React estimate hook, route assets, planner path assembly, and vehicle interpolation. |
+| [`@trimet-arrivals/trimet-client`](../packages/api/trimet-client/README.md) | TriMet clients, stop catalog search, freshness rules, vehicle trip-leg derivation, and optional React catalog/vehicle hooks. |
+| [`@trimet-arrivals/ui`](../packages/presentation/ui/README.md) | Time settings and router-free transit/arrival, itinerary/directions, disclosure, alert, vehicle-progress, and stop-search presentation. |
 
 ## App and library boundaries
 

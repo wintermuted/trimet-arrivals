@@ -13,21 +13,34 @@
     "react": "^18.3.1 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true }
+    "react": {
+      "optional": true
+    }
   },
   "dependencies": {
     "lodash": "4.18.1"
   },
   "devDependencies": {
-    "@types/lodash": "4.17.27"
+    "@testing-library/react": "^16.3.3",
+    "@types/lodash": "4.17.27",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1"
   },
   "typesVersions": {
     "*": {
-      "react": ["src/react.ts"],
-      "fixtures": ["src/fixture/arrival.ts"]
+      "react": [
+        "src/react.ts"
+      ],
+      "fixtures": [
+        "src/fixture/arrival.ts"
+      ]
     }
   },
   "nx": {
+    "tags": [
+      "domain:api",
+      "type:library"
+    ],
     "targets": {
       "test:package": {
         "command": "jest --selectProjects trimet-client-package trimet-client-react-package --runInBand",

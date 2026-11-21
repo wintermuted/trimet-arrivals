@@ -7,7 +7,7 @@ Contributor conventions for the shared theme, app shell, and maps.
 ## Shared theme and components
 
 The app uses `@wintermuted/ui-theme` for its CSS, React components, and theme
-preferences. `packages/app/src/index.tsx` imports `@wintermuted/ui-theme/index.css` and calls
+preferences. `packages/applications/app/src/index.tsx` imports `@wintermuted/ui-theme/index.css` and calls
 `initTheme` from `@wintermuted/ui-theme/theme` before rendering. Both HTML
 templates run the library's `getThemeScript()` bootstrap before styles to apply
 the saved or system theme on first paint. `ThemeProvider`
@@ -29,9 +29,9 @@ for shared design tokens and primitives.
 ## Layout and theme tokens
 
 Responsive page layouts use app-owned `.transit-container`, `.transit-columns`,
-and `.transit-grid` rules in `packages/app/src/App.css`. Use `--wm-*` variables for application
+and `.transit-grid` rules in `packages/applications/app/src/App.css`. Use `--wm-*` variables for application
 surfaces and status colors. Transit route colors remain in
-`packages/app/src/styles/routes.scss`; map and transit data behavior remain separate from
+`packages/applications/app/src/styles/routes.scss`; map and transit data behavior remain separate from
 presentation changes.
 
 The app pins `@wintermuted/ui-theme@0.21.5`, the first published release with

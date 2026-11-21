@@ -5,7 +5,7 @@ The package exports `TimeDisplayProvider`, `useTimeDisplay`, and
 `TimeDisplaySettings`, plus `EarlyIndicator`, `LateIndicator`, `OnTimeIndicator`,
 `TimeToArrivalIndicator`, `TimeDiffBadge`, and time-formatting/difference helpers.
 The arrival indicators retain their existing Moment-based behavior and package
-their styles; the badge uses the shared UI theme. See the [design system guide](../../docs/design-system.md)
+their styles; the badge uses the shared UI theme. See the [design system guide](../../../docs/design-system.md)
 for shared UI conventions.
 
 `ui/transit` also exports `ArrivalRow`, `ArrivalRows`, `ArrivalsTable`, and

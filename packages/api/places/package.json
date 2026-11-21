@@ -13,24 +13,42 @@
   },
   "typesVersions": {
     "*": {
-      "catalog": ["src/places.ts"],
-      "contextOverlays": ["src/contextOverlays.ts"],
-      "discovery": ["src/discovery.ts"],
-      "lineOverlays": ["src/lineOverlays.ts"],
-      "neighborhoods": ["src/neighborhoods.ts"],
-      "savedPlaces": ["src/savedPlaces.ts"]
+      "catalog": [
+        "src/places.ts"
+      ],
+      "contextOverlays": [
+        "src/contextOverlays.ts"
+      ],
+      "discovery": [
+        "src/discovery.ts"
+      ],
+      "lineOverlays": [
+        "src/lineOverlays.ts"
+      ],
+      "neighborhoods": [
+        "src/neighborhoods.ts"
+      ],
+      "savedPlaces": [
+        "src/savedPlaces.ts"
+      ]
     }
   },
   "dependencies": {
     "@turf/distance": "^7.1.0"
   },
   "devDependencies": {
-    "@types/geojson": "^7946.0.16"
+    "@types/geojson": "^7946.0.16",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1"
   },
   "peerDependencies": {
     "react": "^18.3.1 || ^19.0.0"
   },
   "nx": {
+    "tags": [
+      "domain:api",
+      "type:library"
+    ],
     "targets": {
       "test:package": {
         "command": "jest --selectProjects places-package --runInBand",

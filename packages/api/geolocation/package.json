@@ -9,11 +9,20 @@
     "react": "^18.3.1 || ^19.0.0"
   },
   "nx": {
+    "tags": [
+      "domain:api",
+      "type:library"
+    ],
     "targets": {
       "test:package": {
         "command": "jest --selectProjects geolocation-package --runInBand",
         "cache": false
       }
     }
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1"
   }
 }
