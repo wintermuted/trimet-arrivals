@@ -1,6 +1,8 @@
-export const STOP_LOCATION_LAYER = "stopLocationLayer";
-export const STOP_LOCATIONS_SOURCE = "stopLocationsSource";
-export const CURRENT_LOCATION_CIRCLE_LAYER = "currentLocationCircleLayer";
-export const CURRENT_LOCATION_CIRCLE = "currentLocationCircle";
-export const CURRENT_LOCATION_RADIUS_LAYER = "currentLocationRadiusLayer";
-export const CURRENT_LOCATION_RADIUS = "currentLocationRadius";
+export {
+  STOP_LOCATION_LAYER,
+  STOP_LOCATIONS_SOURCE,
+  CURRENT_LOCATION_CIRCLE_LAYER,
+  CURRENT_LOCATION_CIRCLE,
+  CURRENT_LOCATION_RADIUS_LAYER,
+  CURRENT_LOCATION_RADIUS
+} from "@trimet-arrivals/maps/transit";

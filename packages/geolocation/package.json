@@ -1,0 +1,19 @@
+{
+  "name": "@trimet-arrivals/geolocation",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Browser device location requests and shared React location subscription.",
+  "exports": "./src/index.ts",
+  "types": "./src/index.ts",
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0"
+  },
+  "nx": {
+    "targets": {
+      "test:package": {
+        "command": "jest --selectProjects geolocation-package --runInBand",
+        "cache": false
+      }
+    }
+  }
+}

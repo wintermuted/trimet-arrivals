@@ -1,0 +1,62 @@
+.transit-follow-trip {
+  padding-block-end: var(--wm-space-3);
+
+  .transit-trip-note {
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  summary {
+    min-height: 44px;
+    align-content: center;
+    cursor: pointer;
+  }
+}
+
+.transit-follow-legs {
+  padding-inline-start: var(--wm-space-5, 24px);
+  margin-block: var(--wm-space-3);
+
+  > li {
+    padding: var(--wm-space-3) var(--wm-space-2);
+    border-bottom: 1px solid var(--wm-color-border);
+  }
+}
+
+.transit-follow-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wm-space-2);
+  margin-block: var(--wm-space-3);
+
+  .wm-btn {
+    min-height: 44px;
+  }
+}
+
+.transit-follow-leg-current {
+  outline: 2px solid var(--wm-color-accent);
+  outline-offset: -2px;
+}
+
+.transit-follow-leg-status {
+  display: block;
+  margin-block-end: var(--wm-space-2);
+}
+
+.transit-follow-stop-pair {
+  display: grid;
+  gap: var(--wm-space-3);
+  padding-inline-start: var(--wm-space-3);
+  border-inline-start: 1px dotted var(--wm-color-border);
+
+  > div {
+    display: grid;
+    gap: var(--wm-space-1);
+    overflow-wrap: anywhere;
+  }
+
+  small {
+    color: var(--wm-color-text-muted);
+  }
+}

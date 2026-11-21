@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import moment from "moment";
 import React from "react";
-import TimeToArrivalIndicator from "./TimeToArrivalIndicator";
+import { TimeToArrivalIndicator } from "..";
 
 it("shows a placeholder without an arrival estimate", () => {
   render(<TimeToArrivalIndicator estimated={undefined} now={undefined} />);

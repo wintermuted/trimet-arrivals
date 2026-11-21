@@ -58,6 +58,10 @@ All app `*.test.tsx` files run in the `ui` Jest project, including the migrated
 Enzyme coverage, so the deployment workflows run them. Non-React app tests run
 in the `unit` project through `npm run test:unit`; both app projects run in CI.
 Shared package tests keep their existing projects.
+The routing package also runs its React hook tests in JSDOM. TriMet's optional
+React hooks run in a separate `trimet-client-react-package` JSDOM project, leaving
+the main client tests in Node; both run through its `test:package` target.
+The maps package tests injected theme lifecycle and current-location layers.
 Enzyme, its adapter and matchers, and the unused React test renderer have been
 removed. Old files containing only commented-out assertions or empty test bodies
 were retired rather than retained as passing coverage.

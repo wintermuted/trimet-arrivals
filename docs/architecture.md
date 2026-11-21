@@ -23,43 +23,86 @@ Go By Transit uses npm workspaces and Nx. The app and its integration tests live
 in `packages/app/src`. Vite's entry HTML, `public/`, the `build/` output, and
 the npm and Nx commands stay at the repository root.
 
-Arrows point from a package to the packages it uses. The dotted arrow is a
-type-only dependency: `bookmarks` uses the TriMet stop type, not its API client
-at runtime.
+Arrows point from a package to the packages it uses. Dotted arrows represent
+type-only dependencies, which do not load the other package at runtime.
 
 ```mermaid
 flowchart TD
     app["app"] --> bookmarks["bookmarks"]
+    app --> geolocation["geolocation"]
     app --> journeys["journeys"]
+    app --> maps["maps"]
     app --> places["places"]
     app --> routing["routing"]
     app --> trimet["trimet-client"]
     app --> ui["ui"]
     bookmarks -.->|StopLocation type only| trimet
+    maps --> routing
+    maps -->|Place snapshots and category metadata| places
+    maps -.->|Transit types| trimet
+    routing -.->|Planner types| trimet
+    journeys -->|Coordinate parser| trimet
+    journeys -.->|Place metadata type| places
+    ui -->|Stop search and types| trimet
 ```
 
 | Package | Description |
 | --- | --- |
 | [`@trimet-arrivals/app`](../packages/app/README.md) | The Go By Transit web app: screens, navigation, Redux state, and map rendering. |
-| [`@trimet-arrivals/bookmarks`](../packages/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts. |
-| [`@trimet-arrivals/journeys`](../packages/journeys/README.md) | Recent journey storage and trip planner endpoint rules. |
-| [`@trimet-arrivals/places`](../packages/places/README.md) | Portland place discovery, saved places, and reference map layers. |
-| [`@trimet-arrivals/routing`](../packages/routing/README.md) | Mapbox walking estimates, route geometry, and vehicle interpolation. |
-| [`@trimet-arrivals/trimet-client`](../packages/trimet-client/README.md) | TriMet API clients, stop catalog indexing and search, and vehicle freshness rules. |
-| [`@trimet-arrivals/ui`](../packages/ui/README.md) | Shared React time display settings and context. |
+| [`@trimet-arrivals/bookmarks`](../packages/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts, plus optional React shortcut subscriptions. |
+| [`@trimet-arrivals/geolocation`](../packages/geolocation/README.md) | Browser device-location requests and shared React location subscription. |
+| [`@trimet-arrivals/journeys`](../packages/journeys/README.md) | Recent journey storage, planner endpoint model, parsing, labels, and query serialization. |
+| [`@trimet-arrivals/maps`](../packages/maps/README.md) | Mapbox lifecycle and transit overlays, plus React place/reference and itinerary renderers through `maps/places` and `maps/planner`. |
+| [`@trimet-arrivals/places`](../packages/places/README.md) | Portland place discovery, saved places, and reference-layer snapshots and loading. |
+| [`@trimet-arrivals/routing`](../packages/routing/README.md) | Walking client and React estimate hook, route assets, planner path assembly, and vehicle interpolation. |
+| [`@trimet-arrivals/trimet-client`](../packages/trimet-client/README.md) | TriMet clients, stop catalog search, freshness rules, vehicle trip-leg derivation, and optional React catalog/vehicle hooks. |
+| [`@trimet-arrivals/ui`](../packages/ui/README.md) | Time settings and router-free transit/arrival, itinerary/directions, disclosure, alert, vehicle-progress, and stop-search presentation. |
 
 ## App and library boundaries
 
 Import from public package entry points rather than reaching into `src/`.
 Shared packages do not import app code. The app owns Redux, navigation and URL
-state, bookmark screens, planner colors, stop catalog fetching and caching,
-vehicle polling, and map rendering.
+state, bookmark screens, planner colors, configured catalog requests and caching,
+configured requests, viewport event adapters, and map/screen coordination.
 
 The app supplies the TriMet URL, app ID, and `REACT_APP_USE_FIXTURE` setting
 for requests that support fixtures. For route configuration, only the
 all-routes request uses fixtures. Trip planning uses the browser's `DOMParser`.
-The app also supplies the Mapbox walking token and owns the walking React hooks
-and map layers.
+The app supplies the Mapbox walking token. The `routing/react` entry owns the
+walking-estimate hook; `trimet-client/react` owns catalog loading/refresh,
+vehicle polling, and trip-progress hooks with injected requests. Their main
+entries remain React-free.
+The `maps` package owns map creation, theme synchronization, current-location
+layers, and transit overlays. Access tokens, DOM theme observation, initial
+camera options, route display names, and configured providers stay app-owned.
+Route geometry loading and planner path assembly live in `routing`; the app
+supplies asset URLs, request functions, and color policy. `maps/places` owns
+place/reference rendering, and `maps/planner` owns itinerary layers, stop
+markers, highlighting, and camera fitting. Snapshot loading, filter state,
+configured path providers, discovery controls, and screen coordination stay
+in the app.
+Transit UI components do not import a router; app wrappers retain navigation
+and the planner stop picker's common-place presets.
+`ui/transit` owns arrival rows/tables and expand/collapse presentation; app
+adapters supply route links and the existing distance-formatting policy.
+`ui/search` owns stop-search matching, exact-ID priority, bounded results,
+query and loading/error/partial states, and responsive presentation. Catalog
+requests/caching and planner, arrival, and footer links stay app-owned.
+`bookmarks/react` owns shortcut reads, writes, error state, and same/cross-tab
+subscriptions; Redux registries, bookmark screens, and planner state stay in
+the app. Its main entry remains React-free.
+`trimet-client` owns pure vehicle trip-leg derivation, and `ui/vehicles` owns
+progress timelines and map-view controls. Feed orchestration, configured
+polling, route names, header/back navigation, focus, and timezone remain
+app-owned.
+`ui/journeys` owns itinerary/directions presentation with injected transit
+colors; `ui/alerts` owns cards with supplied loading content and link renderers.
+Alert fetching/scoping, journey selection, focus orchestration, and navigation
+remain app-owned. Shared disclosure Sass mixins are exported by `ui`.
+Endpoint rules live in `journeys`, while place verification and planner state
+remain app-owned.
+`geolocation` uses browser types without a TriMet dependency; default Portland
+coordinates and geolocation fixture selection remain in the app.
 
 See [development](development.md#workspace-commands) for package tests and Nx
 affected-project commands.

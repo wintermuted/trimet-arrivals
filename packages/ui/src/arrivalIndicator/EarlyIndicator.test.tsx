@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import moment from "moment";
 import React from "react";
-import EarlyIndicator from "./EarlyIndicator";
+import { EarlyIndicator } from "..";
 
 it("shows a placeholder without an arrival estimate", () => {
   render(<EarlyIndicator scheduled={undefined} estimated={undefined} />);

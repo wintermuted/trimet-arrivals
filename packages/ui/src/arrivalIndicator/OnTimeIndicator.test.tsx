@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import moment from "moment";
 import React from "react";
-import OnTimeIndicator from "./OnTimeIndicator";
+import { OnTimeIndicator } from "..";
 
 it("renders nothing without scheduled and estimated times", () => {
   const { container } = render(<OnTimeIndicator scheduled={undefined} estimated={undefined} />);

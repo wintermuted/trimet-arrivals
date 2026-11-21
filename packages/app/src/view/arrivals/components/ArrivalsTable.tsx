@@ -1,63 +1,12 @@
-import { Table } from "@wintermuted/ui-theme/react";
-import classNames from "classnames";
-import { Moment } from "moment";
 import React from "react";
-import { Arrival } from "../../../api/trimet/interfaces/arrivals";
-import {
-  StopLocation,
-  TrimetRoute
-} from "../../../api/trimet/interfaces/types";
-import ArrivalRows from "./ArrivalRows";
-import "./Arrivals.css";
+import { ArrivalsTable as SharedArrivalsTable, type ArrivalsTableProps } from "@trimet-arrivals/ui/transit";
+import type { TrimetRoute } from "../../../api/trimet/interfaces/types";
+import { formatArrivalDistance, renderArrivalRoute } from "./arrivalPresentation";
 
-interface Props {
-  arrivals: Arrival[];
-  loading: boolean;
-  now: Moment;
+type Props = Omit<ArrivalsTableProps, "formatDistance" | "renderRouteIndicator"> & {
   onRouteIndicatorClick: (route: TrimetRoute) => void;
-  stopLocation: StopLocation;
-  showMore: boolean;
-}
+};
 
-export default class ArrivalsTable extends React.Component<Props> {
-  public render() {
-    const {
-      arrivals,
-      loading,
-      now,
-      onRouteIndicatorClick: onClick,
-      stopLocation,
-      showMore
-    } = this.props;
-
-    if (!arrivals) {
-      return null;
-    }
-
-    const classes = classNames("arrivals-table", {
-      "arrivals-loading": loading
-    });
-
-    return (
-      <Table responsive={true}>
-        <thead>
-          <tr>
-            <th />
-            <th>Name</th>
-            <th>Arrival</th>
-            <th>On Time</th>
-            <th>Estimated / Scheduled</th>
-            <th>Distance</th>
-          </tr>
-        </thead>
-        <ArrivalRows
-          arrivals={arrivals}
-          onClick={onClick}
-          stopLocation={stopLocation}
-          now={now}
-          showAllArrivals={showMore}
-        />
-      </Table>
-    );
-  }
+export default function ArrivalsTable({ onRouteIndicatorClick, ...props }: Props) {
+  return <SharedArrivalsTable {...props} formatDistance={formatArrivalDistance} renderRouteIndicator={renderArrivalRoute} />;
 }
