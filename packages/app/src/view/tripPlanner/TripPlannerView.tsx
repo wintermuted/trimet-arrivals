@@ -1,4 +1,5 @@
 import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
+import { endpointLabelForRequest, resolveStopReference, sameEndpoint } from "@trimet-arrivals/journeys";
 import { Button, FieldGroup, Input } from "@wintermuted/ui-theme/react";
 import distance from "@turf/distance";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
@@ -31,11 +32,6 @@ import { categoryName, InterestPlace, PLACE_CATEGORIES, placeCategoryForId, useP
 
 const EMPTY_STOPS: StopCatalogStop[] = [];
 
-interface StopResolution {
-  matches: StopCatalogStop[];
-  stop?: StopCatalogStop;
-}
-
 interface CatalogState {
   catalog?: StopCatalog;
   error: boolean;
@@ -65,15 +61,6 @@ function endpointLabel(endpoint: PlannerEndpoint, resolved?: TripPlannerResponse
   return resolved?.description || endpoint.value;
 }
 
-function endpointLabelForRequest(endpoint: PlannerEndpoint) {
-  return endpoint.kind === "stop" ? String(endpoint.stop.locid) : endpoint.value;
-}
-
-function sameEndpoint(from: PlannerEndpoint, to: PlannerEndpoint) {
-  return from.kind === to.kind &&
-    endpointLabelForRequest(from).toLowerCase() === endpointLabelForRequest(to).toLowerCase();
-}
-
 function sameEndpointMessage(from: PlannerEndpoint, to: PlannerEndpoint) {
   return from.kind === "stop" && to.kind === "stop"
     ? "Choose two different stops to plan a trip."
@@ -99,27 +86,6 @@ function locationEndpoint(value: string, coordinates = false): PlannerEndpoint |
 }
 
 const coordinateHelp = "Enter longitude, latitude (for example -122.68, 45.52).";
-
-function resolveStopReference(
-  stops: StopCatalogStop[],
-  reference: string,
-): StopResolution {
-  const query = reference.trim().toLowerCase();
-  if (!query) {
-    return { matches: [] };
-  }
-  if (/^\d+$/.test(query)) {
-    const stop = stops.find((item) => item.locid === Number(query));
-    return { matches: stop ? [stop] : [], stop };
-  }
-
-  const matches = stops.filter(
-    (stop) =>
-      stop.desc.toLowerCase() === query ||
-      stop.aliases.some((alias) => alias.toLowerCase() === query),
-  );
-  return { matches, stop: matches.length === 1 ? matches[0] : undefined };
-}
 
 function formatStop(location?: TripPlannerLeg["from"]): string {
   if (!location?.description) {
