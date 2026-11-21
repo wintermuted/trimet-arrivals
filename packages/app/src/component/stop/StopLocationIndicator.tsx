@@ -1,4 +1,4 @@
-import { Badge } from "@wintermuted/ui-theme/react";
+import { StopLocationIndicator as Indicator } from "@trimet-arrivals/ui/transit";
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -17,7 +17,7 @@ export default function StopLocationIndicator({
 
   return (
     <Link to={route}>
-      <Badge>{locationId}</Badge>
+      <Indicator locationId={locationId} />
     </Link>
   );
 }

@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@trimet-arrivals/bookmarks": "0.0.0",
+    "@trimet-arrivals/geolocation": "0.0.0",
     "@trimet-arrivals/journeys": "0.0.0",
+    "@trimet-arrivals/maps": "0.0.0",
     "@trimet-arrivals/places": "0.0.0",
     "@trimet-arrivals/routing": "0.0.0",
     "@trimet-arrivals/trimet-client": "0.0.0",

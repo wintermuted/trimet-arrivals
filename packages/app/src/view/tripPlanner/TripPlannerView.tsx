@@ -1,20 +1,25 @@
-import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
-import { endpointLabelForRequest, resolveStopReference, sameEndpoint } from "@trimet-arrivals/journeys";
+import { JourneyDirections, ItineraryDetails, PlannerDisclosure, TripOptionSummary, transferCount } from "@trimet-arrivals/ui/journeys";
+import {
+  endpointLabelForRequest, resolveStopReference, sameEndpoint,
+  endpointLabel, endpointParams, locationEndpoint, sameEndpointMessage
+} from "@trimet-arrivals/journeys";
+import type { PlannerEndpoint, EndpointField } from "@trimet-arrivals/journeys";
+import { useStopCatalog } from "@trimet-arrivals/trimet-client/react";
 import { Button, FieldGroup, Input } from "@wintermuted/ui-theme/react";
 import distance from "@turf/distance";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
-import React, { FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import React, { FormEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";
 import { useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import geoLocateCurrentPosition from "../../api/geolocation/geoLocateCurrentPosition";
-import { readAvailableBookmarkShortcuts, SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
+import { SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
+import { useBookmarkShortcuts } from "@trimet-arrivals/bookmarks/react";
 import { readRecentJourneys, recordRecentJourney, type RecentJourney } from "../../api/localstorage/recentJourneys";
 import { PlannerRouteColors, plannerTransitColor } from "../../api/trimet/plannerRouteColors";
 import {
   getStopCatalog,
-  StopCatalog,
   StopCatalogStop,
 } from "../../api/trimet/stopCatalog";
 import {
@@ -26,17 +31,11 @@ import {
 } from "../../api/trimet/tripplanner";
 import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
 import PlannerStopSelect, { SavedPlannerStop } from "./PlannerStopSelect";
-import { DirectionsStopPair, EndpointMarker } from "./DirectionsStopPair";
+import { EndpointMarker } from "./DirectionsStopPair";
 import "./TripPlannerView.scss";
 import { categoryName, InterestPlace, PLACE_CATEGORIES, placeCategoryForId, usePlaceCatalog } from "@trimet-arrivals/places/catalog";
 
 const EMPTY_STOPS: StopCatalogStop[] = [];
-
-interface CatalogState {
-  catalog?: StopCatalog;
-  error: boolean;
-  loading: boolean;
-}
 
 type TripState =
   | { status: "idle" }
@@ -50,333 +49,7 @@ type PlannedSearch = {
   response: TripPlannerResponse;
 };
 
-type PlannerEndpoint =
-  | { kind: "stop"; stop: StopCatalogStop }
-  | { kind: "place" | "coord"; value: string; interestPlace?: InterestPlace };
-type EndpointField = "from" | "to";
-
-function endpointLabel(endpoint: PlannerEndpoint, resolved?: TripPlannerResponse["from"]) {
-  if (endpoint.kind === "stop") return `${endpoint.stop.desc} (${endpoint.stop.locid})`;
-  if (endpoint.kind === "coord") return endpoint.interestPlace?.name || endpoint.value;
-  return resolved?.description || endpoint.value;
-}
-
-function sameEndpointMessage(from: PlannerEndpoint, to: PlannerEndpoint) {
-  return from.kind === "stop" && to.kind === "stop"
-    ? "Choose two different stops to plan a trip."
-    : "Choose two different locations to plan a trip.";
-}
-
-function endpointParams(endpoint: PlannerEndpoint, field: EndpointField) {
-  if (endpoint.kind === "stop") return { [field]: String(endpoint.stop.locid) };
-  return {
-    [`${field}${endpoint.kind === "coord" ? "Coord" : "Place"}`]: endpoint.value,
-    ...(endpoint.interestPlace ? { [`${field}PlaceId`]: endpoint.interestPlace.id } : {})
-  };
-}
-
-function locationEndpoint(value: string, coordinates = false): PlannerEndpoint | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  if (coordinates || /^[+\-.\d\s,]+$/.test(trimmed) || /^[+-]?(?:\d+\.?\d*|\.\d+)\s*,/.test(trimmed)) {
-    const point = parsePlannerCoordinates(trimmed);
-    return point && { kind: "coord", value: point.join(",") };
-  }
-  return { kind: "place", value: trimmed };
-}
-
 const coordinateHelp = "Enter longitude, latitude (for example -122.68, 45.52).";
-
-function formatStop(location?: TripPlannerLeg["from"]): string {
-  if (!location?.description) {
-    return location?.stopId ? `Stop ${location.stopId}` : "Stop information unavailable";
-  }
-  return location.stopId
-    ? `${location.description} (${location.stopId})`
-    : location.description;
-}
-
-function transferCount(itinerary: TripPlannerItinerary): number {
-  return Math.max(
-    0,
-    itinerary.numberOfTransfers ??
-      Math.max(
-        0,
-        itinerary.legs.filter((leg) => leg.mode && leg.mode !== "Walk").length -
-          1,
-      ),
-  );
-}
-
-function legTitle(leg: TripPlannerLeg): string {
-  if (leg.mode === "Walk") {
-    return "Walk";
-  }
-  const routeName = leg.route?.name || leg.route?.number;
-  return [leg.mode, routeName].filter(Boolean).join(" · ") || "Transit";
-}
-
-function legIcon(mode?: string) {
-  const name = mode?.trim().toLowerCase() || "";
-  if (name === "walk" || name === "walking") return faPersonWalking;
-  if (/\b(bus|fx)\b/.test(name)) return faBus;
-  if (/\b(light rail|max|streetcar|tram)\b/.test(name)) return faTrainTram;
-  if (/\b(rail|train|wes)\b/.test(name)) return faTrain;
-  return faRoute;
-}
-
-function LegIcon({ leg, routeColors }: { leg: TripPlannerLeg; routeColors?: PlannerRouteColors }) {
-  const { iconName, icon: [width, height, , , paths] } = legIcon(leg.mode);
-  const walking = iconName === "person-walking";
-  return (
-    <svg
-      className={`transit-planner-leg-icon${walking ? " transit-planner-leg-icon--walk" : ""}`}
-      style={walking ? undefined : { color: plannerTransitColor(leg, routeColors) }}
-      data-icon={iconName}
-      viewBox={`0 0 ${width} ${height}`}
-      aria-hidden="true"
-      focusable="false"
-    >
-      {[paths].flat().map(path => <path key={path} d={path} />)}
-    </svg>
-  );
-}
-
-function JourneyDirections({ itinerary, headingRef, routeColors }: {
-  itinerary: TripPlannerItinerary;
-  headingRef: React.Ref<HTMLHeadingElement>;
-  routeColors?: PlannerRouteColors;
-}) {
-  return (
-    <>
-      <header className="transit-journey-header">
-        <h2 tabIndex={-1} ref={headingRef}>Journey directions</h2>
-        <p>Planned times from TriMet, not live updates.</p>
-        {itinerary.startTime && itinerary.endTime && (
-          <p>Planned trip: {itinerary.startTime} to {itinerary.endTime}</p>
-        )}
-      </header>
-      {itinerary.legs.length ? (
-        <ol className="transit-journey-steps" aria-label="Journey steps">
-          {itinerary.legs.map((leg, index) => {
-            const walking = /^walk(?:ing)?$/i.test(leg.mode?.trim() ?? "");
-            const hasRoute = !walking && Boolean(leg.route?.name || leg.route?.number);
-            const direction = leg.direction || leg.route?.direction;
-            return (
-              <li className="transit-planner-leg" key={index}>
-                <h3><LegIcon leg={leg} routeColors={routeColors} />{legTitle(leg)}</h3>
-                {!walking && direction && <p className="transit-planner-leg-time">Direction: {direction}</p>}
-                <dl>
-                  <dt>{walking ? "Start walking" : hasRoute ? "Board at" : "Start at"}</dt>
-                  <dd>{formatStop(leg.from)}<span>{leg.startTime ?? "Time unavailable"}</span></dd>
-                  <dt>{hasRoute ? "Get off at" : "Arrive at"}</dt>
-                  <dd>{formatStop(leg.to)}<span>{leg.endTime ?? "Time unavailable"}</span></dd>
-                </dl>
-              </li>
-            );
-          })}
-        </ol>
-      ) : <p>TriMet did not provide steps for this trip.</p>}
-    </>
-  );
-}
-
-function PlannerDisclosure({ title, children, onCollapse, headingId, edit }: {
-  title: string;
-  children: React.ReactNode;
-  onCollapse?: () => void;
-  headingId?: string;
-  edit?: {
-    label: string;
-    buttonRef: React.Ref<HTMLButtonElement>;
-    onClick: () => void;
-  };
-}) {
-  const [expanded, setExpanded] = useState(true);
-  const panelId = useId();
-  const Heading = headingId ? "h2" : "h3";
-
-  return (
-    <div>
-      <header className="transit-planner-disclosure-header">
-        <Heading id={headingId} className="transit-planner-disclosure-heading">
-          <button
-            type="button"
-            aria-controls={panelId}
-            aria-expanded={expanded}
-            onClick={() => {
-              if (expanded) onCollapse?.();
-              setExpanded(!expanded);
-            }}
-          >
-            <FontAwesome name="caret-right" aria-hidden="true" />
-            {title}
-          </button>
-        </Heading>
-        {edit && (
-          <button
-            type="button"
-            className="transit-planner-edit"
-            ref={edit.buttonRef}
-            aria-label={edit.label}
-            title={edit.label}
-            onClick={() => {
-              setExpanded(true);
-              edit.onClick();
-            }}
-          >
-            <FontAwesome name="pencil" aria-hidden="true" />
-          </button>
-        )}
-      </header>
-      <div id={panelId} hidden={!expanded}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function ItineraryDetails({
-  itinerary,
-  index,
-  highlight,
-  routeColors,
-}: {
-  itinerary: TripPlannerItinerary;
-  index: number;
-  routeColors?: PlannerRouteColors;
-  highlight?: {
-    leg?: number;
-    onHover: (leg?: number) => void;
-    onFocus: (leg?: number) => void;
-  };
-}) {
-  let transitLegSeen = false;
-
-  return (
-    <div className="transit-planner-itinerary-detail">
-      <PlannerDisclosure
-        title="Directions"
-        onCollapse={() => {
-          highlight?.onHover();
-          highlight?.onFocus();
-        }}
-      >
-        {itinerary.partial && (
-          <p className="transit-planner-partial" role="status">
-            Some details were missing from TriMet. Available leg information is
-            shown below.
-          </p>
-        )}
-        <ol aria-label={`Itinerary ${index + 1} steps`}>
-          {itinerary.legs.map((leg, legIndex) => {
-            const isTransit = leg.mode !== "Walk";
-            const showTransfer = isTransit && transitLegSeen;
-            if (isTransit) {
-              transitLegSeen = true;
-            }
-
-            return (
-              <li
-                className={`transit-planner-leg${highlight?.leg === legIndex ? " transit-planner-leg--highlighted" : ""}`}
-                key={leg.id || `${index}-${legIndex}`}
-                tabIndex={highlight ? 0 : undefined}
-                onPointerEnter={highlight ? event => {
-                  if (event.pointerType !== "touch") highlight.onHover(legIndex);
-                } : undefined}
-                onPointerLeave={highlight ? () => highlight.onHover() : undefined}
-                onFocus={highlight ? () => highlight.onFocus(legIndex) : undefined}
-                onBlur={highlight ? () => highlight.onFocus() : undefined}
-              >
-                {showTransfer && (
-                  <div className="transit-planner-transfer">Transfer</div>
-                )}
-                <div>
-                  <LegIcon leg={leg} routeColors={routeColors} />
-                  <strong>{legTitle(leg)}</strong>
-                  {leg.direction && <span> · {leg.direction}</span>}
-                </div>
-                <DirectionsStopPair from={formatStop(leg.from)} to={formatStop(leg.to)} />
-                {(leg.startTime || leg.endTime) && (
-                  <p className="transit-planner-leg-time">
-                    {leg.startTime || "Time unavailable"}
-                    {leg.endTime ? `–${leg.endTime}` : ""}
-                  </p>
-                )}
-                {(leg.duration !== undefined ||
-                  leg.distance !== undefined) && (
-                  <p className="transit-planner-leg-distance">
-                    {leg.duration !== undefined && `${leg.duration} min`}
-                    {leg.duration !== undefined &&
-                      leg.distance !== undefined &&
-                      " · "}
-                    {leg.distance !== undefined &&
-                      `${leg.distance.toFixed(2)} mi`}
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </PlannerDisclosure>
-    </div>
-  );
-}
-
-function optionLegLabel(leg: TripPlannerLeg) {
-  const mode = leg.mode?.trim();
-  const name = leg.route?.name?.trim();
-  const number = leg.route?.number?.trim();
-  if (legIcon(mode) === faPersonWalking) return "Walk";
-  const maxLine = name?.match(/^(MAX \w+ Line)(?: to |$)/i);
-  if (maxLine) return maxLine[1];
-  if (mode?.toLowerCase() === "bus" && number && /^\d+$/.test(number) && !/^FX\b/i.test(name || "")) {
-    return `Bus ${number}`;
-  }
-  return name || [mode, number].filter(Boolean).join(" ") || "Leg details unavailable";
-}
-
-function TripOptionSummary({ itinerary, index, current, routeColors }: {
-  itinerary: TripPlannerItinerary;
-  index: number;
-  current: boolean;
-  routeColors?: PlannerRouteColors;
-}) {
-  const { startTime, endTime, duration, numberOfTransfers, legs } = itinerary;
-  const schedule = startTime && endTime ? `${startTime} to ${endTime}`
-    : startTime ? `Departs ${startTime}` : endTime ? `Arrives ${endTime}` : "Times unavailable";
-  return (
-    <>
-      <span className="transit-planner-option-timing">
-        <strong>{schedule}</strong>
-        <span className="transit-planner-option-duration">
-          {duration !== undefined ? `${duration} min` : "Duration unavailable"}
-        </span>
-      </span>
-      {legs.length > 0 ? (
-        <span className="transit-planner-option-route">
-          {legs.map((leg, legIndex) => (
-            <span className="transit-planner-option-step" key={legIndex}>
-              {legIndex > 0 && <>
-                <span className="wm-sr-only">Then </span>
-                <span className="transit-planner-option-chevron" aria-hidden="true">›</span>
-              </>}
-              <span className="transit-planner-option-leg">
-                <LegIcon leg={leg} routeColors={routeColors} />
-                <span>{optionLegLabel(leg)}</span>
-              </span>
-            </span>
-          ))}
-        </span>
-      ) : <span className="transit-planner-option-meta">Route details unavailable</span>}
-      <span className="transit-planner-option-meta">
-        Option {index + 1}
-        {numberOfTransfers !== undefined && ` · ${numberOfTransfers} ${numberOfTransfers === 1 ? "transfer" : "transfers"}`}
-        {current && " · Current trip"}
-      </span>
-    </>
-  );
-}
 
 function loadRecentTrips() {
   try {
@@ -403,12 +76,12 @@ interface TripPlannerProps {
 
 export function ConnectedTripPlannerView(props: TripPlannerProps) {
   const bookmarks = useSelector(selectBookmarks);
-  const shortcuts = readAvailableBookmarkShortcuts();
+  const { shortcuts, error } = useBookmarkShortcuts(bookmarks);
   const savedStops = SHORTCUTS.flatMap(({ key, kind, label }) => {
     const id = shortcuts[key];
     return kind === "stop" && id !== undefined && bookmarks[id] ? [{ id, label }] : [];
   });
-  return <TripPlannerView {...props} savedStops={savedStops} />;
+  return <>{error && <p role="alert">{error}</p>}<TripPlannerView {...props} savedStops={savedStops} /></>;
 }
 
 export default function TripPlannerView({ inSidebar = false, directionsFooter, renderMapStatus, renderPlaceDestination, savedStops }: TripPlannerProps) {
@@ -433,11 +106,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   const [toInterestPlace, setToInterestPlace] = useState<InterestPlace>();
   const fromLinkedLocation = fromCoord ?? fromPlace;
   const toLinkedLocation = toCoord ?? toPlace;
-  const [catalogState, setCatalogState] = useState<CatalogState>({
-    error: false,
-    loading: true,
-  });
-  const [catalogRetry, setCatalogRetry] = useState(0);
+  const catalogState = useStopCatalog(getStopCatalog);
   const [fromStop, setFromStop] = useState<StopCatalogStop>();
   const [toStop, setToStop] = useState<StopCatalogStop>();
   const [fromLocation, setFromLocation] = useState<string>();
@@ -470,36 +139,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
   const [historyUnavailable, setHistoryUnavailable] = useState(false);
   const [recentTrips, setRecentTrips] = useState(() => inSidebar ? loadRecentTrips() : undefined);
 
-  useEffect(() => {
-    let active = true;
-    setCatalogState((previous) => ({
-      ...previous,
-      error: false,
-      loading: true,
-    }));
-
-    getStopCatalog(catalogRetry > 0)
-      .then((catalog) => {
-        if (active) {
-          setCatalogState({ catalog, error: false, loading: false });
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setCatalogState((previous) => ({
-            ...previous,
-            error: true,
-            loading: false,
-          }));
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [catalogRetry]);
-
   const catalog = catalogState.catalog;
+  const transitColor = (leg: TripPlannerLeg) => plannerTransitColor(leg, catalog?.plannerRouteColors);
   const lookupCatalog = fromLinkedLocation === null || toLinkedLocation === null ? catalog : undefined;
 
   useEffect(() => {
@@ -982,7 +623,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
             <Button
               type="button"
               variant="secondary"
-              onClick={() => setCatalogRetry((value) => value + 1)}
+              onClick={catalogState.refresh}
             >
               Retry loading stops
             </Button>
@@ -1125,7 +766,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
                           itinerary={itinerary}
                           index={index}
                           current={selectedItinerary === index}
-                          routeColors={catalog?.plannerRouteColors}
+                          transitColor={transitColor}
                         />
                       </button>
                     </li>
@@ -1164,7 +805,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
             <ItineraryDetails
               itinerary={activeItinerary}
               index={selectedItinerary}
-              routeColors={catalog?.plannerRouteColors}
+              transitColor={transitColor}
               highlight={renderMapStatus ? { leg: highlightedLeg, onHover: setHoveredLeg, onFocus: setFocusedLeg } : undefined}
             />
           )}
@@ -1176,7 +817,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         <JourneyDirections
           itinerary={journeyItinerary}
           headingRef={journeyHeading}
-          routeColors={catalog?.plannerRouteColors}
+          transitColor={transitColor}
         />
       </section>
     )}

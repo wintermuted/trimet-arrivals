@@ -1,0 +1,44 @@
+.transit-planner-stop-marker {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid #1559d1;
+  border-radius: 50%;
+  background: #f8fbff;
+  color: #1559d1;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #1559d1;
+    outline-offset: 3px;
+  }
+}
+
+.transit-planner-stop-popup {
+  .mapboxgl-popup-content {
+    background: var(--wm-color-surface-solid);
+    color: var(--wm-color-text);
+    font: inherit;
+    font-size: 0.875rem;
+    max-width: min(14rem, 75vw);
+    overflow-wrap: anywhere;
+  }
+
+  .mapboxgl-popup-tip {
+    border-color: transparent;
+  }
+
+  small {
+    display: block;
+    color: var(--wm-color-text-muted);
+  }
+
+  ul {
+    margin: var(--wm-space-2) 0 0;
+    padding-inline-start: var(--wm-space-4);
+  }
+}

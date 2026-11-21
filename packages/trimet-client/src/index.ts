@@ -30,6 +30,8 @@ export { isVehicleTripStale, vehicleIsFresh } from "./vehicleFreshness";
 export { getVehicleTrip, parseVehicleTrip } from "./vehicleTrip";
 export type { VehicleBounds, VehiclePosition, VehicleSnapshot } from "./interfaces/vehicles";
 export type { VehicleTrip, VehicleTripSnapshot, VehicleTripStop } from "./vehicleTrip";
+export { vehicleTripLegs } from "./vehicleTripLegs";
+export type { VehicleTripProgressMode } from "./vehicleTripLegs";
 export type { TrimetClientOptions } from "./options";
 export type { Alert, AlertsData, Location as AlertLocation } from "./interfaces/alertsData";
 export type {

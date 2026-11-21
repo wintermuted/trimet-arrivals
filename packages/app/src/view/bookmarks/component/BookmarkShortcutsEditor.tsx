@@ -1,39 +1,15 @@
 import { Card, CardBody, CardHeader, FieldGroup, Select } from "@wintermuted/ui-theme/react";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useBookmarkShortcuts } from "@trimet-arrivals/bookmarks/react";
 import { useSelector } from "react-redux";
-import {
-  BOOKMARK_SHORTCUTS,
-  BookmarkShortcuts,
-  readBookmarkShortcuts,
-  setBookmarkShortcut,
-  SHORTCUTS
-} from "../../../api/localstorage/bookmarkShortcuts";
+import { SHORTCUTS } from "../../../api/localstorage/bookmarkShortcuts";
 import { selectBookmarks } from "../../../store/selectors/bookmarkSelectors";
 import { routeBookmarksSelector } from "../../../store/selectors/routeBookmarkSelectors";
-
-function loadShortcuts(): { shortcuts: BookmarkShortcuts; error?: string } {
-  try {
-    return { shortcuts: readBookmarkShortcuts() };
-  } catch (error) {
-    console.warn("Could not read bookmark shortcuts.", error);
-    return { shortcuts: {}, error: "Could not read Home and Work shortcuts on this device." };
-  }
-}
 
 export default function BookmarkShortcutsEditor() {
   const stops = useSelector(selectBookmarks);
   const routes = useSelector(routeBookmarksSelector);
-  const [{ shortcuts, error }, setState] = useState(loadShortcuts);
-
-  useEffect(() => {
-    const refresh = () => setState(loadShortcuts());
-    refresh();
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === BOOKMARK_SHORTCUTS || event.key === null) refresh();
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [stops, routes]);
+  const { shortcuts, error, setShortcut } = useBookmarkShortcuts(stops, routes);
 
   return (
     <Card>
@@ -53,16 +29,8 @@ export default function BookmarkShortcutsEditor() {
                   value={id ?? ""}
                   disabled={options.length === 0 && id === undefined}
                   onChange={event => {
-                    try {
-                      const nextId = event.target.value ? Number(event.target.value) : undefined;
-                      setState({ shortcuts: setBookmarkShortcut(key, nextId, bookmarks) });
-                    } catch (saveError) {
-                      console.warn("Could not save bookmark shortcut.", saveError);
-                      setState({
-                        shortcuts,
-                        error: "Could not save the shortcut. Check your browser storage and try again."
-                      });
-                    }
+                    const nextId = event.target.value ? Number(event.target.value) : undefined;
+                    setShortcut(key, nextId);
                   }}
                 >
                   <option value="">{options.length || id !== undefined ? "Not set" : `No bookmarked ${kind}s`}</option>

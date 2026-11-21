@@ -1,41 +1,19 @@
-import mapboxgl, { MapOptions } from "mapbox-gl";
+import type { MapOptions } from "mapbox-gl";
+import { createThemedMap as createMap } from "@trimet-arrivals/maps";
+import type { MapTheme } from "@trimet-arrivals/maps";
 
-function lightPreset() {
-  return document.documentElement.dataset.theme === "dark" ? "night" : "day";
-}
+const theme: MapTheme = {
+  lightPreset: () => document.documentElement.dataset.theme === "dark" ? "night" : "day",
+  subscribe(listener) {
+    const observer = new MutationObserver(listener);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"]
+    });
+    return () => observer.disconnect();
+  }
+};
 
 export function createThemedMap(options: Omit<MapOptions, "style" | "config">) {
-  const map = new mapboxgl.Map({
-    ...options,
-    style: "mapbox://styles/mapbox/standard",
-    config: { basemap: { lightPreset: lightPreset() } }
-  });
-  let styleReady = false;
-
-  function updateTheme() {
-    if (styleReady && map.getConfigProperty("basemap", "lightPreset") !== lightPreset()) {
-      map.setConfigProperty("basemap", "lightPreset", lightPreset());
-    }
-  }
-
-  function onStyleLoad() {
-    styleReady = true;
-    updateTheme();
-  }
-
-  const observer = new MutationObserver(updateTheme);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-theme"]
-  });
-  map.on("style.load", onStyleLoad);
-  map.on("remove", cleanup);
-
-  function cleanup() {
-    observer.disconnect();
-    map.off("style.load", onStyleLoad);
-    map.off("remove", cleanup);
-  }
-
-  return map;
+  return createMap(options, theme);
 }

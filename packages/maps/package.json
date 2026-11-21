@@ -1,0 +1,45 @@
+{
+  "name": "@trimet-arrivals/maps",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Mapbox lifecycle and transit, place, and planner overlays with injected providers.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./transit": "./src/transit.ts",
+    "./places": "./src/places.ts",
+    "./planner": "./src/planner.ts"
+  },
+  "types": "./src/index.ts",
+  "typesVersions": {
+    "*": {
+      "transit": ["src/transit.ts"],
+      "places": ["src/places.ts"],
+      "planner": ["src/planner.ts"]
+    }
+  },
+  "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^7.3.1",
+    "@trimet-arrivals/places": "0.0.0",
+    "@trimet-arrivals/routing": "0.0.0",
+    "@trimet-arrivals/trimet-client": "0.0.0",
+    "@turf/circle": "^7.1.0"
+  },
+  "devDependencies": {
+    "@turf/distance": "^7.1.0"
+  },
+  "peerDependencies": {
+    "mapbox-gl": "^3.8.0",
+    "react": "^18.3.1 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true }
+  },
+  "nx": {
+    "targets": {
+      "test:package": {
+        "command": "jest --selectProjects maps-package --runInBand",
+        "cache": false
+      }
+    }
+  }
+}
