@@ -74,10 +74,12 @@ The app source and integration tests live in `packages/app/src`, tracked by Nx
 as `@trimet-arrivals/app`. Vite's entry HTML, `public/`, and the `build/` output
 stay at the repository root, as do the npm and Nx commands used to run them.
 
-The app consumes five private npm workspaces. `@trimet-arrivals/bookmarks`
+The app consumes six private npm workspaces. `@trimet-arrivals/bookmarks`
 owns bookmark sections, saved stops and routes, route groups, and shortcuts,
 preserving their existing browser storage keys and formats. Redux and bookmark
-screens stay in the app. `@trimet-arrivals/places` owns
+screens stay in the app. `@trimet-arrivals/journeys` owns recent journey
+history in browser storage; planner navigation and URL state stay in the app.
+`@trimet-arrivals/places` owns
 Places data, discovery, and saved places; `@trimet-arrivals/ui` owns reusable
 React components; `@trimet-arrivals/trimet-client` owns requests and fixtures
 for arrivals, nearby stops, and route configuration, plus service alert requests
@@ -97,6 +99,7 @@ import app code.
 ```powershell
 npx nx run-many -t test:package
 npx nx run '@trimet-arrivals/bookmarks:test:package'
+npx nx run '@trimet-arrivals/journeys:test:package'
 npx nx run '@trimet-arrivals/ui:test:package'
 npx nx run '@trimet-arrivals/routing:test:package'
 npx nx run '@trimet-arrivals/trimet-client:test:package'
