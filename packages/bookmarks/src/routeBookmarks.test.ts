@@ -4,7 +4,7 @@ import {
   ROUTE_BOOKMARKS,
   storeRouteBookmark
 } from "./routeBookmarks";
-import { TrimetRoute } from "../trimet/interfaces/routes";
+import type { RouteConfigRoute as TrimetRoute } from "@trimet-arrivals/trimet-client";
 
 function makeRoute(id: number, desc: string): TrimetRoute {
   return {
