@@ -2,11 +2,41 @@
 
 [Documentation](README.md) / [Project home](../README.md)
 
+## App at runtime
+
+GitHub Pages serves the Vite build as a static site. The React app runs in the
+browser and coordinates requests to external services and reads and writes to
+browser storage. There is no Go By Transit application server.
+
+```mermaid
+flowchart LR
+    pages["GitHub Pages"] -->|Serves the Vite build| app["Browser: React app and Redux"]
+    app -->|Via trimet-client| trimet["TriMet API"]
+    app -->|Opt-in walking requests via routing| mapbox["Mapbox walking API"]
+    app -->|Via places| snapshots["Static place snapshots"]
+    app <-->|Via bookmarks, journeys, and places| storage["Browser local storage"]
+```
+
 ## Workspace packages
 
 Go By Transit uses npm workspaces and Nx. The app and its integration tests live
 in `packages/app/src`. Vite's entry HTML, `public/`, the `build/` output, and
 the npm and Nx commands stay at the repository root.
+
+Arrows point from a package to the packages it uses. The dotted arrow is a
+type-only dependency: `bookmarks` uses the TriMet stop type, not its API client
+at runtime.
+
+```mermaid
+flowchart TD
+    app["app"] --> bookmarks["bookmarks"]
+    app --> journeys["journeys"]
+    app --> places["places"]
+    app --> routing["routing"]
+    app --> trimet["trimet-client"]
+    app --> ui["ui"]
+    bookmarks -.->|StopLocation type only| trimet
+```
 
 | Package | Description |
 | --- | --- |
