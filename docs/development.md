@@ -68,34 +68,10 @@ scripts. Node.js 26.13.1 (see `.nvmrc`) and npm must be available on your PATH.
 Merge the configuration into the default branch to make it available to new
 sessions created from that branch.
 
-## Workspace layout
+## Workspace commands
 
-The app source and integration tests live in `packages/app/src`, tracked by Nx
-as `@trimet-arrivals/app`. Vite's entry HTML, `public/`, and the `build/` output
-stay at the repository root, as do the npm and Nx commands used to run them.
-
-The app consumes six private npm workspaces. `@trimet-arrivals/bookmarks`
-owns bookmark sections, saved stops and routes, route groups, and shortcuts,
-preserving their existing browser storage keys and formats. Redux and bookmark
-screens stay in the app. `@trimet-arrivals/journeys` owns recent journey
-history in browser storage; planner navigation and URL state stay in the app.
-`@trimet-arrivals/places` owns
-Places data, discovery, and saved places; `@trimet-arrivals/ui` owns reusable
-React components; `@trimet-arrivals/trimet-client` owns requests and fixtures
-for arrivals, nearby stops, and route configuration, plus service alert requests
-and filtering, trip-planner requests and XML parsing, and vehicle positions and
-trip lookups and freshness checks. Trip planning uses the browser's `DOMParser`;
-screens, URL state, planner color choices, vehicle polling, and map rendering
-stay in the app.
-The app supplies the TriMet URL, app ID, and
-`REACT_APP_USE_FIXTURE` setting for requests with fixtures. For route
-configuration, only the all-routes request uses fixtures. The client indexes
-and searches the stop catalog; fetching, caching, planner colors, and Redux
-stay in the app. `@trimet-arrivals/routing` owns Mapbox walking
-estimates, route geometry requests, and their caches. The app supplies the
-walking access token and owns the React hooks and map layers.
-Import package entry points rather than source files; shared packages do not
-import app code.
+See [architecture](architecture.md#workspace-packages) for the package index
+and each workspace's responsibilities.
 
 ```powershell
 npx nx run-many -t test:package

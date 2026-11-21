@@ -22,6 +22,7 @@ enabling routing or sharing links.
 | Guide | What you will find |
 | --- | --- |
 | [Development](development.md) | Setup, development server, CI, existing test commands, geometry exports, Copilot app setup, and screenshot updates. |
+| [Architecture](architecture.md) | Workspace packages, their responsibilities, and the boundaries between the app and its libraries. |
 | [Design system](design-system.md) | Shared UI components, theme preferences, responsive layout, navigation, and map styling. |
 | [Place-data maintenance](place-data.md) | Full and targeted refreshes, source validation, spatial tiles, source dates, attribution, and licenses. |
 
