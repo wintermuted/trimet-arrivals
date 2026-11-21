@@ -74,6 +74,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:ui": "jest --selectProjects ui --runInBand",
+    "test:unit": "jest --selectProjects unit --runInBand",
     "test:coverage": "jest --coverage",
     "codecov": "codecov",
     "prettier": "prettier --check \"packages/app/src/**/*.ts*\"",

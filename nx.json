@@ -12,6 +12,9 @@
     "test:ui": {
       "cache": false
     },
+    "test:unit": {
+      "cache": false
+    },
     "test:places-data": {
       "cache": true,
       "inputs": [
