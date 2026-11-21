@@ -1,4 +1,5 @@
 import { faBus, faTrain } from "@fortawesome/free-solid-svg-icons";
+import { easeOutCubic, vehiclePoint } from "@trimet-arrivals/routing";
 import { FeatureCollection, Point } from "geojson";
 import { CameraOptions, GeoJSONSource, Map as MapboxMap, MapboxEvent } from "mapbox-gl";
 import { VehiclePosition } from "../../../../api/trimet/interfaces/vehicles";
@@ -9,7 +10,6 @@ const SOURCE = "nearby-vehicles";
 const LAYERS = ["nearby-vehicle-badges", "nearby-vehicle-heading", "nearby-vehicle-icons", "nearby-vehicle-labels"];
 const IMAGES = ["nearby-vehicle-bus-light", "nearby-vehicle-rail-light", "nearby-vehicle-bus-dark", "nearby-vehicle-rail-dark", "nearby-vehicle-arrow"];
 const DURATION_MS = 1000;
-const easeOut = (progress: number) => 1 - (1 - progress) ** 3;
 
 export type VehicleFollowView = "north-up" | "chase";
 
@@ -18,15 +18,6 @@ interface MovingVehicle {
   from: [number, number];
   to: [number, number];
   started: number;
-}
-
-export function vehiclePoint(moving: MovingVehicle, now: number): [number, number] {
-  const progress = Math.max(0, Math.min(1, (now - moving.started) / DURATION_MS));
-  const eased = easeOut(progress);
-  return [
-    moving.from[0] + (moving.to[0] - moving.from[0]) * eased,
-    moving.from[1] + (moving.to[1] - moving.from[1]) * eased,
-  ];
 }
 
 function vehicleImage(kind: "bus" | "rail" | "arrow", dark = false) {
@@ -99,7 +90,7 @@ export function createVehicleLayer(
         zoom: followView === "chase" ? 17 : northUpZoom,
         offset: [0, followView === "chase" ? map.getContainer().clientHeight * 0.18 : 0],
         duration: motion.matches ? 0 : DURATION_MS,
-        easing: easeOut,
+        easing: easeOutCubic,
       });
     } catch {
       onError(true);
@@ -132,7 +123,7 @@ export function createVehicleLayer(
         const tone = glyphTone(color);
         return {
         type: "Feature", id: moving.vehicle.id,
-        geometry: { type: "Point", coordinates: vehiclePoint(moving, now) },
+        geometry: { type: "Point", coordinates: vehiclePoint(moving, now, DURATION_MS) },
         properties: {
           mode: moving.vehicle.type,
           ...(moving.vehicle.bearing === undefined ? {} : { bearing: moving.vehicle.bearing }),
@@ -266,7 +257,7 @@ export function createVehicleLayer(
 
   const tooltip = createVehicleTooltips(map, LAYERS[0], id => {
     const moving = positions.get(id);
-    return moving && { vehicle: moving.vehicle, point: vehiclePoint(moving, performance.now()) };
+    return moving && { vehicle: moving.vehicle, point: vehiclePoint(moving, performance.now(), DURATION_MS) };
   }, vehicle => {
     captureCamera();
     onFollow(vehicle);
@@ -303,7 +294,7 @@ export function createVehicleLayer(
         if (previous && previous.vehicle.time > vehicle.time) return [vehicle.id, previous];
         if (previous && previous.vehicle.time === vehicle.time) return [vehicle.id, { ...previous, vehicle }];
         const to: [number, number] = [vehicle.longitude, vehicle.latitude];
-        const from = previous ? vehiclePoint(previous, now) : to;
+        const from = previous ? vehiclePoint(previous, now, DURATION_MS) : to;
         // Large jumps and resumed tabs must not suggest a route we have not observed.
         const snap = !previous || motion.matches || document.hidden ||
           Math.hypot((from[0] - to[0]) * Math.cos(to[1] * Math.PI / 180), from[1] - to[1]) > 0.01;
