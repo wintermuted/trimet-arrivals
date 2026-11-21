@@ -1,6 +1,8 @@
 export { getAlertsByLocationId, getAlertsByRouteId, getSystemAlerts } from "./alerts";
 export { getAlertsForRoute, getAlertsForStop } from "./alertScopes";
 export { getArrivals } from "./arrivals";
+export { getMatchingStopTime, getTripTimes, reportedTime } from "./tripTimes";
+export type { StopTime, TripTime } from "./tripTimes";
 export {
   getAllRoutes,
   getRouteById,
