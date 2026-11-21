@@ -37,14 +37,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test app components and unit tests
-        run: npx nx run-many -t test:ui,test:unit --outputStyle=stream
+      - name: Test app and workspace packages with coverage
+        run: npm run test:coverage -- --runInBand
 
-      - name: Test place data refresh
-        run: npx nx run-many -t test:places-data
+      - name: Generate coverage badge and job summary
+        run: npm run coverage:report
 
-      - name: Test workspace packages
-        run: npx nx run-many -t test:package --outputStyle=stream
+      - name: Capture coverage artifact
+        if: ${{ always() && !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          if-no-files-found: error
+
+      - name: Test place data refresh and coverage reporting
+        run: npx nx run-many -t test:places-data,test:coverage-report
 
       - name: Typecheck
         run: npx nx run-many -t typecheck
@@ -75,6 +83,9 @@ jobs:
           }
           console.log(`Verified production artifact for ${base}`);
           NODE
+
+      - name: Include coverage in production artifact
+        run: mkdir -p build/coverage && cp -R coverage/. build/coverage/
 
       - name: Deploy to gh-pages
         if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event_name == 'push' || inputs.publish) }}
