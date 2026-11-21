@@ -67,8 +67,8 @@ export function buildStopCatalog(
   let invalidStopCount = 0;
 
   data.route.forEach((route) => {
-    const mode = route && stopMode(route);
-    const color = route && routeColor?.(route, mode);
+    const mode = route ? stopMode(route) : undefined;
+    const color = route ? routeColor?.(route, mode) : undefined;
     if (!route || !Array.isArray(route.dir)) {
       incompleteRouteCount += 1;
       if (route) {
