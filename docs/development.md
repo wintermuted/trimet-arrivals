@@ -32,8 +32,15 @@ dialogs, and theme preferences:
 npx nx run-many -t test:ui
 ```
 
-GitHub Pages production and preview workflows run the UI and place-data tests
-and TypeScript checks before the Vite build. Jest runs the React tests
+GitHub Pages production and preview workflows run the app component and unit
+tests, place-data tests, shared-package tests, and TypeScript checks before the
+Vite build. To run the app test targets used by both workflows:
+
+```powershell
+npx nx run-many -t test:ui,test:unit --outputStyle=stream
+```
+
+Jest runs the React tests
 independently of Vite. Nx caches the place-data tests locally. UI tests still
 run every time, and builds are uncached because each Pages deployment needs its
 own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
@@ -49,7 +56,8 @@ existing integration tests; React's removed `Simulate` APIs are not used.
 
 All app `*.test.tsx` files run in the `ui` Jest project, including the migrated
 Enzyme coverage, so the deployment workflows run them. Non-React app tests run
-in the `unit` project. Shared package tests keep their existing projects.
+in the `unit` project through `npm run test:unit`; both app projects run in CI.
+Shared package tests keep their existing projects.
 Enzyme, its adapter and matchers, and the unused React test renderer have been
 removed. Old files containing only commented-out assertions or empty test bodies
 were retired rather than retained as passing coverage.
