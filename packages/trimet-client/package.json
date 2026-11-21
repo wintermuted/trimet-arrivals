@@ -8,6 +8,12 @@
     "./fixtures": "./src/fixture/arrival.ts"
   },
   "types": "./src/index.ts",
+  "dependencies": {
+    "lodash": "4.18.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.17.27"
+  },
   "typesVersions": {
     "*": {
       "fixtures": ["src/fixture/arrival.ts"]

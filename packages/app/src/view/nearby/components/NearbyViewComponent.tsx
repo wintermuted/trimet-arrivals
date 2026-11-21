@@ -22,7 +22,7 @@ import {
   getNearbyRouteIds,
   getStopLocations,
   processRoutes
-} from "../util/dataUtils";
+} from "@trimet-arrivals/trimet-client";
 import { getNearbyMapZoom } from "../util/mapbox/mapZoom";
 import NearbyMapV2 from "./NearbyMapV2";
 import "./NearbyViewComponent.scss";

@@ -1,14 +1,16 @@
-import { Dictionary, flatten, groupBy, map, mapKeys, mapValues } from "lodash";
-import {
+import { flatten, groupBy, map, mapKeys, mapValues } from "lodash";
+import type {
   Direction,
   StopData,
   StopLocation,
   TrimetRoute
-} from "../../../api/trimet/interfaces/types";
-import { StopLocationsDictionary } from "../../../store/reducers/util/formatStopLocations";
-import { NearbyRoutesDictionary } from "../../../store/reducers/view/nearbyRoutesViewReducer";
+} from "./interfaces/types";
 
-export function processRoutes(stopData: StopData): Dictionary<TrimetRoute[]> {
+type RoutesById = Record<string, TrimetRoute[]>;
+export type NearbyRoutesDictionary = Record<number, { directions: number[] }>;
+export type StopLocationsDictionary = Record<number, StopLocation>;
+
+export function processRoutes(stopData: StopData): RoutesById {
   const routes = stopData.location.map((location: StopLocation) => {
     return location.route.map((route: TrimetRoute) => route);
   });
@@ -21,7 +23,7 @@ export function processRoutes(stopData: StopData): Dictionary<TrimetRoute[]> {
 }
 
 export function getNearbyRouteIds(
-  nearbyRoutes: Dictionary<TrimetRoute[]>
+  nearbyRoutes: RoutesById
 ): NearbyRoutesDictionary {
   return mapValues(nearbyRoutes, (routes: TrimetRoute[]) => {
     const directions = map(routes, (route: TrimetRoute) => {
