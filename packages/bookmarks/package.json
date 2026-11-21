@@ -1,0 +1,21 @@
+{
+  "name": "@trimet-arrivals/bookmarks",
+  "version": "0.0.0",
+  "private": true,
+  "exports": "./src/sections.ts",
+  "types": "./src/sections.ts",
+  "dependencies": {
+    "lodash": "4.18.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.17.27"
+  },
+  "nx": {
+    "targets": {
+      "test:package": {
+        "command": "jest --selectProjects bookmarks-package --runInBand",
+        "cache": false
+      }
+    }
+  }
+}

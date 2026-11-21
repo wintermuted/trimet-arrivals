@@ -1,3 +1,4 @@
+import type { BookmarkSectionProps, BookmarkSectionsProps } from "@trimet-arrivals/bookmarks";
 import { filter, find, omit, slice } from "lodash";
 import { StopLocation } from "../../api/trimet/interfaces/types";
 import {
@@ -14,15 +15,7 @@ import {
 } from "../constants/bookmarkSections";
 import { RouteBookmarkGroups } from "../../api/localstorage/routeBookmarkGroups";
 
-export interface BookmarkSectionProps {
-  name: string;
-  order: number;
-  bookmarkedStops: number[];
-}
-
-export interface BookmarkSectionsProps {
-  [id: number]: BookmarkSectionProps;
-}
+export type { BookmarkSectionProps, BookmarkSectionsProps } from "@trimet-arrivals/bookmarks";
 
 export interface BookmarkSectionReducerState {
   bookmarkInputSectionName: string;
