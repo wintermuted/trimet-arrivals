@@ -86,8 +86,9 @@ trip lookups. Trip planning uses the browser's `DOMParser`; screens, URL state,
 planner color choices, vehicle polling, and map rendering stay in the app.
 The app supplies the TriMet URL, app ID, and
 `REACT_APP_USE_FIXTURE` setting for requests with fixtures. For route
-configuration, only the all-routes request uses fixtures. The stop catalog
-and Redux stay in the app. `@trimet-arrivals/routing` owns Mapbox walking
+configuration, only the all-routes request uses fixtures. The client indexes
+and searches the stop catalog; fetching, caching, planner colors, and Redux
+stay in the app. `@trimet-arrivals/routing` owns Mapbox walking
 estimates, route geometry requests, and their caches. The app supplies the
 walking access token and owns the React hooks and map layers.
 Import package entry points rather than source files; shared packages do not
