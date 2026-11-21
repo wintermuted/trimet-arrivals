@@ -24,7 +24,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "packages/app/src"
+    "packages/applications/app/src"
   ],
   "exclude": [
     "**/*.test.ts",

@@ -10,6 +10,10 @@
     "@trimet-arrivals/trimet-client": "0.0.0"
   },
   "nx": {
+    "tags": [
+      "domain:util",
+      "type:library"
+    ],
     "targets": {
       "test:package": {
         "command": "jest --selectProjects journeys-package --runInBand",

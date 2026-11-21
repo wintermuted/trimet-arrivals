@@ -123,7 +123,7 @@ scripts. Node.js 26.13.1 (see `.nvmrc`) and npm must be available on your PATH.
 - **Run** starts the Vite dev server with `npm run watch`. The app detects its
   local URL and opens it in the integrated browser.
 - **Run with Nx** starts the same server through Nx. Both run options use the
-  repository root; the app source lives in `packages/app/src`.
+  repository root; the app source lives in `packages/applications/app/src`.
 
 Merge the configuration into the default branch to make it available to new
 sessions created from that branch.
@@ -132,6 +132,22 @@ sessions created from that branch.
 
 See [architecture](architecture.md#workspace-packages) for the package index
 and each workspace's responsibilities.
+
+npm discovers workspace manifests with `packages/*/*`; Nx uses those same
+manifests and the app's `project.json` at its nested root. Projects retain their
+existing names and targets and carry `domain:<folder>` and `type:application`
+or `type:library` tags for graph filtering. These tags describe organization;
+they do not impose new dependency restrictions. New libraries belong under a
+domain folder within `packages`, and new apps under `packages/applications`.
+
+Each leaf package declares its own direct runtime dependencies and the types
+and test helpers it uses. React, Mapbox, and the UI theme remain peer contracts
+where shared libraries require a host-provided instance; hook libraries also
+declare React as a development dependency for their own tests. The app supplies
+the concrete runtime versions and declares the shared workspaces it consumes.
+The repository root owns only shared build, test, lint, and release tooling as
+development dependencies. npm may hoist installations, but hoisting is not a
+substitute for declaring a dependency in its consuming workspace.
 
 ```powershell
 npx nx run-many -t test:package

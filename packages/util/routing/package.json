@@ -14,19 +14,30 @@
   },
   "typesVersions": {
     "*": {
-      "react": ["src/react.ts"]
+      "react": [
+        "src/react.ts"
+      ]
     }
   },
   "peerDependencies": {
     "react": "^18.3.1 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true }
+    "react": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@types/geojson": "^7946.0.16"
+    "@testing-library/react": "^16.3.3",
+    "@types/geojson": "^7946.0.16",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1"
   },
   "nx": {
+    "tags": [
+      "domain:util",
+      "type:library"
+    ],
     "targets": {
       "test:package": {
         "command": "jest --selectProjects routing-package --runInBand",

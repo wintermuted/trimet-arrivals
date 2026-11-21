@@ -2,7 +2,7 @@ import { parsePlaceSnapshot } from "@trimet-arrivals/places/catalog";
 import { placesPreset, placesViewSearch, readPlacesView } from "@trimet-arrivals/places/discovery";
 import { readSavedPlaces, SAVED_PLACES_KEY } from "@trimet-arrivals/places/savedPlaces";
 
-const cafes = require("../../../public/data/places/cafes.json");
+const cafes = require("../../../../public/data/places/cafes.json");
 
 afterEach(() => localStorage.clear());
 

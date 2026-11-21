@@ -12,9 +12,15 @@
   "types": "./src/index.ts",
   "typesVersions": {
     "*": {
-      "transit": ["src/transit.ts"],
-      "places": ["src/places.ts"],
-      "planner": ["src/planner.ts"]
+      "transit": [
+        "src/transit.ts"
+      ],
+      "places": [
+        "src/places.ts"
+      ],
+      "planner": [
+        "src/planner.ts"
+      ]
     }
   },
   "dependencies": {
@@ -25,16 +31,26 @@
     "@turf/circle": "^7.1.0"
   },
   "devDependencies": {
-    "@turf/distance": "^7.1.0"
+    "@testing-library/react": "^16.3.3",
+    "@turf/distance": "^7.1.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1"
   },
   "peerDependencies": {
     "mapbox-gl": "^3.8.0",
     "react": "^18.3.1 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true }
+    "react": {
+      "optional": true
+    }
   },
   "nx": {
+    "tags": [
+      "domain:geography",
+      "type:library"
+    ],
     "targets": {
       "test:package": {
         "command": "jest --selectProjects maps-package --runInBand",
