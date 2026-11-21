@@ -62,6 +62,40 @@ Enzyme, its adapter and matchers, and the unused React test renderer have been
 removed. Old files containing only commented-out assertions or empty test bodies
 were retired rather than retained as passing coverage.
 
+## Coverage reports and badge
+
+Both deployment workflows run all Jest projects once with coverage, instead of
+running separate app and shared-package test commands. Place-data tests and the
+coverage-report script tests still run separately through Nx. Typecheck and
+build steps remain unchanged.
+
+```powershell
+npm run test:coverage -- --runInBand
+npm run coverage:report
+```
+
+Reports in ignored `coverage/` include HTML (`index.html`), LCOV, JSON summary,
+Cobertura XML, and a generated line-coverage percentage badge (`badge.svg`).
+CI retains the report as the `coverage-report` artifact, including when Jest
+fails, and appends all four coverage metrics to the job summary after successful
+tests. Coverage measures the app and workspace packages, not place-data scripts.
+
+Production publishes the report at
+[coverage/](https://wintermuted.github.io/trimet-arrivals/coverage/) alongside the
+app; the README badge links there. The badge represents the latest successful
+production deployment, not an individual PR. PR previews publish their own
+report under `pr-<number>/coverage/` without overwriting production coverage.
+The production badge becomes available after the first deployment with this
+configuration. Validation-only manual runs retain artifacts but do not publish.
+
+GitHub's [official coverage setup guide](https://docs.github.com/en/code-security/how-tos/maintain-quality-code/set-up-code-coverage)
+requires Code Quality, which GitHub's API reports is unavailable for this
+repository. Coverage is therefore captured with official
+`actions/upload-artifact`, not `actions/upload-code-coverage`; there are no
+native Code Quality PR comparisons or third-party coverage uploads.
+The Cobertura report is ready for the official uploader if Code Quality becomes
+available later.
+
 To test a production build without publishing, run **Deploy to GitHub Pages**
 manually from your branch with **Publish to the live site** unchecked. It runs
 the production build and checks its asset paths and Pages files without changing

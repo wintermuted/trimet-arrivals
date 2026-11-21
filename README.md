@@ -1,6 +1,7 @@
 # Go By Transit
 
 [![Production CI/deploy](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pages.yml/badge.svg?branch=master)](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pages.yml) [![PR preview CI](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pr-preview.yml/badge.svg?event=pull_request)](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pr-preview.yml)
+[![Line coverage](https://wintermuted.github.io/trimet-arrivals/coverage/badge.svg)](https://wintermuted.github.io/trimet-arrivals/coverage/)
 
 Explore Portland by transit: find TriMet stops and arrivals, plan trips, follow
 reported bus and train positions, and discover places along the way.

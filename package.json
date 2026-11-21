@@ -76,6 +76,8 @@
     "test:ui": "jest --selectProjects ui --runInBand",
     "test:unit": "jest --selectProjects unit --runInBand",
     "test:coverage": "jest --coverage",
+    "test:coverage-report": "node --test scripts/report-coverage.test.mjs",
+    "coverage:report": "node scripts/report-coverage.mjs",
     "codecov": "codecov",
     "prettier": "prettier --check \"packages/app/src/**/*.ts*\"",
     "prettier:fix": "prettier --write \"packages/app/src/**/*.ts*\"",

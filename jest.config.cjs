@@ -31,6 +31,7 @@ const common = {
 };
 
 module.exports = {
+  coverageReporters: ["text-summary", "html", "lcov", "json-summary", "cobertura"],
   collectCoverageFrom: [
     "packages/app/src/{api,component,store,view}/**/*.{ts,tsx}",
     "packages/{bookmarks,journeys,places,routing,trimet-client,ui}/src/**/*.{ts,tsx}",
