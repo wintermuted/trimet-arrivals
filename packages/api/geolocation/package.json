@@ -15,7 +15,7 @@
     ],
     "targets": {
       "test:package": {
-        "command": "jest --selectProjects geolocation-package --runInBand",
+        "command": "vitest run --project geolocation-package --maxWorkers=1",
         "cache": false
       }
     }

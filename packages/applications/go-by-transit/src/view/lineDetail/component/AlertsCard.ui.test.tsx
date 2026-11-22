@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
@@ -50,7 +51,7 @@ describe("stop alerts states", () => {
   }
 
   it("shows a clear empty state and retries a failed stop alert request", () => {
-    const onRefresh = jest.fn();
+    const onRefresh = vi.fn();
     render({
       alertsData: undefined,
       stopId: 123,
@@ -69,7 +70,7 @@ describe("stop alerts states", () => {
       stopId: 123,
       loading: false,
       error: true,
-      onRefresh: jest.fn()
+      onRefresh: vi.fn()
     });
     expect(container.textContent).toContain("Could not refresh alerts");
     expect(container.textContent).toContain("Stop notice 1");

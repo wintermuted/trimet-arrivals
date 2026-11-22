@@ -1,3 +1,4 @@
+import { vi, type MockedFunction } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import type { WalkingEstimate } from "./walking";
 import { useWalkingEstimates } from "./react";
@@ -5,7 +6,7 @@ import type { WalkingEstimateInput, WalkingEstimateRequest } from "./react";
 
 describe("walking estimates hook", () => {
   const stop = { locid: 101, lat: 45.5, lng: -122.6 };
-  let request: jest.MockedFunction<WalkingEstimateRequest>;
+  let request: MockedFunction<WalkingEstimateRequest>;
   let walking: ReturnType<typeof useWalkingEstimates>;
 
   function Harness({ origin = [-122.7, 45.6], stops = [stop], enabled = true }: {
@@ -16,7 +17,7 @@ describe("walking estimates hook", () => {
   }
 
   beforeEach(() => {
-    request = jest.fn().mockResolvedValue(new Map([[101, { status: "ready", meters: 100, seconds: 80 }]]));
+    request = vi.fn().mockResolvedValue(new Map([[101, { status: "ready", meters: 100, seconds: 80 }]]));
   });
 
   it("waits for opt-in and reports invalid stop IDs without requesting routes", async () => {

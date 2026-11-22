@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
@@ -7,11 +8,11 @@ import { getArrivals } from "../api/trimet/arrivals";
 import { arrival1 } from "../api/trimet/fixture/arrival";
 import NearbyDirections from "../view/nearby/components/NearbyDirections";
 
-jest.mock("../api/trimet/routeConfig");
-jest.mock("../api/trimet/arrivals");
-const loadRoute = jest.mocked(getRouteByIdAndDirection);
-const loadAllRoutes = jest.mocked(getAllRoutes);
-const loadArrivals = jest.mocked(getArrivals);
+vi.mock("../api/trimet/routeConfig");
+vi.mock("../api/trimet/arrivals");
+const loadRoute = vi.mocked(getRouteByIdAndDirection);
+const loadAllRoutes = vi.mocked(getAllRoutes);
+const loadArrivals = vi.mocked(getArrivals);
 const stops = [
   { locid: 101, seq: 10, desc: "Example First", dir: "E", tp: true, lat: 0, lng: 0 },
   { locid: 102, seq: 20, desc: "Example Middle", dir: "E", tp: false, lat: 1, lng: 1 },
@@ -54,8 +55,8 @@ function NavigationProbe() {
 describe("route-aware destination selection", () => {
   let container: HTMLDivElement;
   let root: Root;
-  const onSelectionChanged = jest.fn();
-  const onStopHighlightChanged = jest.fn();
+  const onSelectionChanged = vi.fn();
+  const onStopHighlightChanged = vi.fn();
 
   beforeEach(() => {
     loadRoute.mockReset();
@@ -412,8 +413,8 @@ describe("route-aware destination selection", () => {
   });
 
   it("cleans up the previous selected-stop marker when selection changes or the view closes", async () => {
-    const clearOrigin = jest.fn();
-    const clearDestination = jest.fn();
+    const clearOrigin = vi.fn();
+    const clearDestination = vi.fn();
     onSelectionChanged.mockReturnValueOnce(clearOrigin).mockReturnValueOnce(clearDestination);
     await render();
     chooseDestination("103");

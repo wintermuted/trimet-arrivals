@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";
@@ -35,21 +36,21 @@ function LocationProbe() {
 describe("Global navbar Places search", () => {
   let container: HTMLDivElement, root: Root;
   let catalog: ReturnType<typeof places.usePlaceCatalog>;
-  let loadCatalog: jest.SpyInstance;
-  let sharedLocationHook: jest.SpyInstance;
+  let loadCatalog: vi.SpyInstance;
+  let sharedLocationHook: vi.SpyInstance;
 
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    catalog = { places: [park, reserve, cafe, bike], sources: loadedSources([park, reserve, cafe, bike]), retry: jest.fn() };
-    loadCatalog = jest.spyOn(places, "usePlaceCatalog").mockImplementation(() => catalog);
-    sharedLocationHook = jest.spyOn(deviceGeolocation, "useSharedDeviceLocation").mockReturnValue(undefined);
+    catalog = { places: [park, reserve, cafe, bike], sources: loadedSources([park, reserve, cafe, bike]), retry: vi.fn() };
+    loadCatalog = vi.spyOn(places, "usePlaceCatalog").mockImplementation(() => catalog);
+    sharedLocationHook = vi.spyOn(deviceGeolocation, "useSharedDeviceLocation").mockReturnValue(undefined);
   });
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
   function render() {
     act(() => root.render(<MemoryRouter basename="/preview" initialEntries={["/preview/nearby/places?view=kept"]}>
@@ -109,7 +110,7 @@ describe("Global navbar Places search", () => {
     const near: places.InterestPlace = { ...cafe, name: "Zinnia Cafe", coordinates: [-122.66, 45.55] };
     const far: places.InterestPlace = { ...cafe, id: "osm:cafe:node:2", name: "Alder Cafe", coordinates: [-122.67, 45.559] };
     catalog = { ...catalog, places: [far, near], sources: loadedSources([far, near]) };
-    const getCurrentPosition = jest.fn((success, _failure) => success({ coords: { longitude: -122.67, latitude: 45.55 } }));
+    const getCurrentPosition = vi.fn((success, _failure) => success({ coords: { longitude: -122.67, latitude: 45.55 } }));
     Object.defineProperty(navigator, "geolocation", { configurable: true, value: { getCurrentPosition } });
     const names = () => results().map(link => link.querySelector("strong").textContent);
     try {

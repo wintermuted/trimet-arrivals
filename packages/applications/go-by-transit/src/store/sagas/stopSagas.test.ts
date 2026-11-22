@@ -1,9 +1,10 @@
+import { vi } from "vitest";
 import { call, put } from "redux-saga/effects";
 import getCurrentPosition from "../../api/geolocation/getCurrentPosition";
 import { CURRENT_LOCATION_LOAD_COMPLETE, LOAD_STOPS } from "../constants";
 import { loadStopData } from "./stopSagas";
 
-jest.mock("../../api/geolocation/getCurrentPosition");
+vi.mock("../../api/geolocation/getCurrentPosition");
 
 describe("stopSagas", () => {
   describe("loadStopData", () => {

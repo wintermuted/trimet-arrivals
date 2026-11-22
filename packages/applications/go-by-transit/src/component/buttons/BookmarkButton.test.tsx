@@ -1,10 +1,11 @@
+import { vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import BookmarkButton from "./BookmarkButton";
 
 it.each([false, true])("forwards the stop and its bookmarked state (%s)", async (bookmarked) => {
-  const onBookmarkClick = jest.fn();
+  const onBookmarkClick = vi.fn();
   const stop = { locid: 123 };
   render(<BookmarkButton stopLocation={stop} stopIsBookmarked={bookmarked} onBookmarkClick={onBookmarkClick} />);
   const button = screen.getByRole("button", { name: bookmarked ? "Remove stop bookmark" : "Bookmark this stop" });

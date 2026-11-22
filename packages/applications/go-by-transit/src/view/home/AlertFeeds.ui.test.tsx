@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Alert as AlertData } from "../../api/trimet/interfaces/alertsData";
@@ -36,12 +37,12 @@ describe("home alert feeds", () => {
         alertsData={[]}
         loading={false}
         error={false}
-        onRefresh={jest.fn()}
+        onRefresh={vi.fn()}
       />
     ));
     expect(container.textContent).toContain("No route or stop alerts right now.");
 
-    const onRefresh = jest.fn();
+    const onRefresh = vi.fn();
     act(() => root.render(
       <AllAlertsCard
         alertsData={undefined}
@@ -61,7 +62,7 @@ describe("home alert feeds", () => {
         systemAlertsData={[alert]}
         loading={false}
         error={true}
-        onRefresh={jest.fn()}
+        onRefresh={vi.fn()}
       />
     ));
     expect(container.textContent).toContain("Could not refresh system alerts");

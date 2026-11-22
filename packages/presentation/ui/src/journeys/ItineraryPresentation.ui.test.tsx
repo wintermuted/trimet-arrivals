@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { createRef } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { TripPlannerItinerary } from "@overworld/trimet-client";
@@ -25,7 +26,7 @@ describe("router-free journey presentation", () => {
   });
 
   it("forwards keyboard highlights and clears them when collapsing without forwarding touch hover", () => {
-    const hover = jest.fn(), focus = jest.fn();
+    const hover = vi.fn(), focus = vi.fn();
     const { container } = render(<ItineraryDetails itinerary={itinerary} index={0}
       highlight={{ leg: 1, onHover: hover, onFocus: focus }} />);
     expect(screen.getByRole("status")).toHaveTextContent("Some details were missing");

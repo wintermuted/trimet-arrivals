@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { loadPlannerPaths } from ".";
 import type { PlannerPathProviders } from ".";
 import type { TripPlannerItinerary, TripPlannerLeg, RouteDataResultSet } from "@overworld/trimet-client";
@@ -21,12 +22,12 @@ describe("planner geometry assembly", () => {
 
   beforeEach(() => {
     providers = {
-      getRouteById: jest.fn().mockResolvedValue(config),
-      getRouteGeometry: jest.fn().mockResolvedValue({
+      getRouteById: vi.fn().mockResolvedValue(config),
+      getRouteGeometry: vi.fn().mockResolvedValue({
         type: "Feature", properties: {},
         geometry: { type: "LineString", coordinates: [[0, 0], [0.001, 0.001], [0.002, 0]] }
       }),
-      getWalkingPath: jest.fn().mockResolvedValue({
+      getWalkingPath: vi.fn().mockResolvedValue({
         status: "ready", meters: 100, seconds: 80,
         feature: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[0, 0], [0.001, 0]] } }
       }),
@@ -50,7 +51,7 @@ describe("planner geometry assembly", () => {
   });
 
   it("finds a connected road path through reversed, unordered, repeated segments", async () => {
-    jest.mocked(providers.getRouteGeometry).mockResolvedValue({
+    vi.mocked(providers.getRouteGeometry).mockResolvedValue({
       type: "Feature", properties: {},
       geometry: { type: "MultiLineString", coordinates: [
         [[0.002, 0], [0.001, 0.001]],
@@ -66,7 +67,7 @@ describe("planner geometry assembly", () => {
   });
 
   it("does not bridge disconnected shapes or show ambiguous directions", async () => {
-    jest.mocked(providers.getRouteGeometry).mockResolvedValue({
+    vi.mocked(providers.getRouteGeometry).mockResolvedValue({
       type: "Feature", properties: {},
       geometry: { type: "MultiLineString", coordinates: [
         [[0, 0], [0, 0.001]], [[0.002, 0.001], [0.002, 0]]
@@ -74,24 +75,24 @@ describe("planner geometry assembly", () => {
     });
     const signal = new AbortController().signal;
     expect((await loadPlannerPaths([trip()], signal, false, providers)).data.features).toEqual([]);
-    jest.mocked(providers.getRouteById).mockResolvedValue({
+    vi.mocked(providers.getRouteById).mockResolvedValue({
       route: [{ ...config.route[0], dir: [config.route[0].dir[0], config.route[0].dir[0]] }]
     });
-    jest.mocked(providers.getRouteGeometry).mockClear();
+    vi.mocked(providers.getRouteGeometry).mockClear();
     expect((await loadPlannerPaths([trip()], signal, false, providers)).data.features).toEqual([]);
     expect(providers.getRouteGeometry).not.toHaveBeenCalled();
   });
 
   it("retains usable transit legs when walking routing fails and never requests walks without opt-in", async () => {
-    const warning = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
-      jest.mocked(providers.getWalkingPath).mockRejectedValue(new Error("Walking unavailable"));
+      vi.mocked(providers.getWalkingPath).mockRejectedValue(new Error("Walking unavailable"));
       const signal = new AbortController().signal;
       const result = await loadPlannerPaths([trip([walk, transit])], signal, true, providers);
       expect(result.data.features).toHaveLength(1);
       expect(result.data.features[0].properties.legIndex).toBe(1);
       expect(warning).toHaveBeenCalledWith(expect.stringContaining("walking geometry"), expect.any(Error));
-      jest.mocked(providers.getWalkingPath).mockClear();
+      vi.mocked(providers.getWalkingPath).mockClear();
       await loadPlannerPaths([trip([walk, transit])], signal, false, providers);
       expect(providers.getWalkingPath).not.toHaveBeenCalled();
     } finally {
@@ -101,7 +102,7 @@ describe("planner geometry assembly", () => {
 
   it("discards cancelled route work before fetching geometry", async () => {
     const controller = new AbortController();
-    jest.mocked(providers.getRouteById).mockImplementation(async () => {
+    vi.mocked(providers.getRouteById).mockImplementation(async () => {
       controller.abort();
       return config;
     });

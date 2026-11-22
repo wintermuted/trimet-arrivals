@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
@@ -36,10 +37,10 @@ describe("Wintermuted control integration", () => {
       media,
       matches: false,
       onchange: null,
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
       dispatchEvent: () => false
     });
     container = document.createElement("div");
@@ -56,7 +57,7 @@ describe("Wintermuted control integration", () => {
   });
 
   it("offers labeled radius choices and forwards changes without an inert search action", () => {
-    const handleRadiusSelectionChange = jest.fn(
+    const handleRadiusSelectionChange = vi.fn(
       (event: React.ChangeEvent<HTMLSelectElement>) => event.target.value
     );
     act(() =>
@@ -91,7 +92,7 @@ describe("Wintermuted control integration", () => {
   });
 
   it("preserves bookmark callbacks and exposes the saved state", () => {
-    const onBookmarkClick = jest.fn();
+    const onBookmarkClick = vi.fn();
     const render = (saved: boolean) =>
       act(() =>
         root.render(
@@ -115,12 +116,12 @@ describe("Wintermuted control integration", () => {
   });
 
   it("creates bookmark sections through native form submission", () => {
-    const createBookmarkSection = jest.fn();
+    const createBookmarkSection = vi.fn();
     act(() =>
       root.render(
         <AddBookmarkSectionControl
           bookmarkSectionName="Morning commute"
-          onSectionNameUpdate={jest.fn()}
+          onSectionNameUpdate={vi.fn()}
           createBookmarkSection={createBookmarkSection}
         />
       )
@@ -137,7 +138,7 @@ describe("Wintermuted control integration", () => {
   });
 
   it("forwards shared multi-select removals to the existing bookmark actions", () => {
-    const removeBookmarkFromSection = jest.fn();
+    const removeBookmarkFromSection = vi.fn();
     act(() =>
       root.render(
         <BookmarksInSectionSelectionHandler
@@ -145,8 +146,8 @@ describe("Wintermuted control integration", () => {
           bookmarksInSection={[stop]}
           bookmarkSectionId={7}
           removeBookmarkFromSection={removeBookmarkFromSection}
-          addBookmarkToBookmarkSection={jest.fn()}
-          removeAllBookmarksFromSection={jest.fn()}
+          addBookmarkToBookmarkSection={vi.fn()}
+          removeAllBookmarksFromSection={vi.fn()}
         />
       )
     );

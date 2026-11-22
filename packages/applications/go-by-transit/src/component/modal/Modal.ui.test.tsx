@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import Modal from "./Modal";
@@ -18,7 +19,7 @@ describe("shared transit dialog", () => {
   });
 
   it("renders without a special portal root and preserves the close callback", () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     act(() =>
       root.render(
         <Modal onClose={onClose}>
@@ -37,7 +38,7 @@ describe("shared transit dialog", () => {
   it("removes its dialog when unmounted", () => {
     act(() =>
       root.render(
-        <Modal onClose={jest.fn()}>
+        <Modal onClose={vi.fn()}>
           <p>Route details</p>
         </Modal>
       )

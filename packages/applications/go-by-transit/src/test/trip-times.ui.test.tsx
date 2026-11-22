@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
@@ -7,8 +8,8 @@ import { Arrival, ArrivalData } from "../api/trimet/interfaces/arrivals";
 import NearbyTripTimes from "../view/nearby/components/NearbyTripTimes";
 import { getTripTimes } from "../view/nearby/util/tripTimes";
 
-jest.mock("../api/trimet/arrivals");
-const loadArrivals = jest.mocked(getArrivals);
+vi.mock("../api/trimet/arrivals");
+const loadArrivals = vi.mocked(getArrivals);
 const now = Date.parse("2026-11-15T06:00:00Z");
 const minute = 60000;
 const origin = { locid: 101, seq: 1, desc: "Boarding Stop", dir: "E", tp: true, lat: 0, lng: 0 };
@@ -94,8 +95,8 @@ describe("selected-stop trip times view", () => {
   let root: Root;
 
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(now);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
     loadArrivals.mockReset();
     loadArrivals.mockResolvedValue(response());
     container = document.createElement("div");
@@ -106,7 +107,7 @@ describe("selected-stop trip times view", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   async function render(to = destination, selectedTrip?: { departureId: string; tripId?: string }, inline = false) {
@@ -240,10 +241,10 @@ describe("selected-stop trip times view", () => {
 
   it("refreshes automatically and stops polling after the view closes", async () => {
     await render();
-    await act(async () => jest.advanceTimersByTime(30000));
+    await act(async () => vi.advanceTimersByTime(30000));
     expect(loadArrivals).toHaveBeenCalledTimes(2);
     act(() => root.render(null));
-    await act(async () => jest.advanceTimersByTime(60000));
+    await act(async () => vi.advanceTimersByTime(60000));
     expect(loadArrivals).toHaveBeenCalledTimes(2);
   });
 

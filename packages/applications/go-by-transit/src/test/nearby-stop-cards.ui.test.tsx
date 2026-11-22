@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -5,7 +6,7 @@ import { getWalkingEstimates } from "../api/mapbox/walking";
 import { StopData } from "../api/trimet/interfaces/types";
 import NearbyStops from "../view/nearby/components/NearbyStops";
 
-jest.mock("../api/mapbox/walking");
+vi.mock("../api/mapbox/walking");
 
 const stops: StopData = {
   location: [101, 102].map(locid => ({
@@ -29,11 +30,11 @@ const stops: StopData = {
 describe("Nearby Stops card headers and shared marker highlights", () => {
   let container: HTMLDivElement;
   let root: Root;
-  const onStopHighlightChanged = jest.fn();
+  const onStopHighlightChanged = vi.fn();
 
   beforeEach(() => {
     onStopHighlightChanged.mockReset();
-    jest.mocked(getWalkingEstimates).mockReset().mockResolvedValue(new Map());
+    vi.mocked(getWalkingEstimates).mockReset().mockResolvedValue(new Map());
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -50,7 +51,7 @@ describe("Nearby Stops card headers and shared marker highlights", () => {
           <NearbyStops
             nearbyStops={data}
             radiusSize={radius}
-            handleRadiusSelectionChange={jest.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={1}
             stopCount={data.location.length}
             currentLocation={[0, 0]}
@@ -126,7 +127,7 @@ describe("Nearby Stops card headers and shared marker highlights", () => {
                 <NearbyStops
                   nearbyStops={data}
                   radiusSize={1000}
-                  handleRadiusSelectionChange={jest.fn()}
+                  handleRadiusSelectionChange={vi.fn()}
                   routeCount={2}
                   stopCount={2}
                   currentLocation={[0, 0]}
@@ -218,7 +219,7 @@ describe("Nearby Stops card headers and shared marker highlights", () => {
         lng: (index + 1) / 1000
       }))
     };
-    jest.mocked(getWalkingEstimates).mockResolvedValue(
+    vi.mocked(getWalkingEstimates).mockResolvedValue(
       new Map([
         [340, { status: "ready", meters: 800, seconds: 600 }],
         [367, { status: "ready", meters: 200, seconds: 180 }],
@@ -247,7 +248,7 @@ describe("Nearby Stops card headers and shared marker highlights", () => {
     expect(
       container.querySelector('[data-stop-id="104"]').textContent
     ).toContain("Walking distance unavailable");
-    const signal = jest.mocked(getWalkingEstimates).mock.calls[0][2];
+    const signal = vi.mocked(getWalkingEstimates).mock.calls[0][2];
     render(data);
     expect(signal.aborted).toBe(true);
     expect(cardIds()).toEqual([340, 367, 103, 104, 105]);
@@ -257,7 +258,7 @@ describe("Nearby Stops card headers and shared marker highlights", () => {
   });
 
   it("reports routing failures and retries without silently substituting straight-line ranks", async () => {
-    jest
+    vi
       .mocked(getWalkingEstimates)
       .mockRejectedValueOnce(new Error("Mapbox routing access is unavailable."))
       .mockResolvedValueOnce(

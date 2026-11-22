@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { VehiclePosition, VehicleTripSnapshot } from "@overworld/trimet-client";
@@ -18,13 +19,13 @@ const data: VehicleTripSnapshot = {
     })),
   },
 };
-beforeEach(() => jest.spyOn(Date, "now").mockReturnValue(now));
-afterEach(() => jest.restoreAllMocks());
+beforeEach(() => vi.spyOn(Date, "now").mockReturnValue(now));
+afterEach(() => vi.restoreAllMocks());
 
 it("renders standalone progress with an injected header, timezone, and map controls", () => {
-  const onViewChange = jest.fn();
+  const onViewChange = vi.fn();
   const { container } = render(<VehicleTripProgress selection={selection} vehicle={selection}
-    tracking ended={false} paused={false} result={{ data, receivedAt: now, loading: false, retry: jest.fn() }}
+    tracking ended={false} paused={false} result={{ data, receivedAt: now, loading: false, retry: vi.fn() }}
     view="chase" onViewChange={onViewChange} timeZone="UTC" header={<h2>Injected trip header</h2>}
   />);
   expect(screen.getByRole("heading", { name: "Injected trip header" })).toBeInTheDocument();
@@ -38,10 +39,10 @@ it("renders standalone progress with an injected header, timezone, and map contr
 });
 
 it("retains last-known legs on failure and exposes the supplied retry action", () => {
-  const retry = jest.fn();
+  const retry = vi.fn();
   const { container } = render(<VehicleTripProgress selection={selection}
     tracking ended={false} paused={false} result={{ data, receivedAt: now, loading: false, error: "Feed unavailable", retry }}
-    view="north-up" onViewChange={jest.fn()} header={null}
+    view="north-up" onViewChange={vi.fn()} header={null}
   />);
   expect(screen.getByRole("alert")).toHaveTextContent("Feed unavailable");
   expect(screen.getByText("Current at last report")).toBeInTheDocument();

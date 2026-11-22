@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
 import { parsePlaceSnapshot } from "@overworld/places/catalog";
 import { placesPreset, placesViewSearch, readPlacesView } from "@overworld/places/discovery";
 import { readSavedPlaces, SAVED_PLACES_KEY } from "@overworld/places/savedPlaces";

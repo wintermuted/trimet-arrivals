@@ -1,9 +1,10 @@
+import { vi } from "vitest";
 import { act } from "react";
 import mapboxgl from "mapbox-gl";
 import { createThemedMap } from "../view/nearby/util/mapbox/themedMap";
 
-jest.mock("mapbox-gl", () => {
-  const MapMock = jest.fn();
+vi.mock("mapbox-gl", () => {
+  const MapMock = vi.fn();
   return {
     __esModule: true,
     default: { Map: MapMock },
@@ -11,17 +12,17 @@ jest.mock("mapbox-gl", () => {
       const listeners: Record<string, () => void> = {};
       let preset: string;
       const map = {
-        on: jest.fn((name, listener) => { listeners[name] = listener; }),
-        off: jest.fn((name, listener) => {
+        on: vi.fn((name, listener) => { listeners[name] = listener; }),
+        off: vi.fn((name, listener) => {
           if (listeners[name] === listener) {
             delete listeners[name];
           }
         }),
-        getConfigProperty: jest.fn(() => preset),
-        setConfigProperty: jest.fn((scope, name, value) => { preset = value; }),
-        remove: jest.fn(() => listeners.remove?.())
+        getConfigProperty: vi.fn(() => preset),
+        setConfigProperty: vi.fn((scope, name, value) => { preset = value; }),
+        remove: vi.fn(() => listeners.remove?.())
       };
-      MapMock.mockImplementation(options => {
+      MapMock.mockImplementation(function (options) {
         preset = options.config.basemap.lightPreset;
         return map;
       });
@@ -37,9 +38,9 @@ describe("Mapbox resolved-theme synchronization", () => {
   };
   const previousTheme = document.documentElement.dataset.theme;
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mock = jest.requireMock("mapbox-gl").configureMocks();
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mock = (await vi.importMock("mapbox-gl")).configureMocks();
   });
 
   afterEach(() => {

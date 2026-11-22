@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from "vitest";
 import { act, render } from "@testing-library/react";
 import { Map as MapboxMap, Popup } from "mapbox-gl";
 import type { InterestPlace } from "@overworld/places/catalog";
@@ -6,32 +7,32 @@ import type { LineOverlaySnapshot } from "@overworld/places/lineOverlays";
 import type { ContextSnapshot } from "@overworld/places/contextOverlays";
 import { PlacesMap, NeighborhoodsMap, LineOverlayMap, ContextOverlayMap } from "../places";
 
-jest.mock("mapbox-gl", () => {
-  const MapMock = jest.fn(), PopupMock = jest.fn();
+vi.mock("mapbox-gl", () => {
+  const MapMock = vi.fn(), PopupMock = vi.fn();
   return {
     Map: MapMock, Popup: PopupMock,
     configureMocks() {
-      const sources = new Map<string, { setData: jest.Mock }>();
+      const sources = new Map<string, { setData: Mock }>();
       const layers = new Set<string>(), images = new Set<string>();
       const canvas = globalThis.document.createElement("div");
       const map = {
-        addSource: jest.fn(id => { sources.set(id, { setData: jest.fn() }); return map; }),
-        addLayer: jest.fn(({ id }) => { layers.add(id); return map; }),
-        getSource: jest.fn(id => sources.get(id)), getLayer: jest.fn(id => layers.has(id)),
-        removeLayer: jest.fn(id => { layers.delete(id); return map; }),
-        removeSource: jest.fn(id => { sources.delete(id); return map; }),
-        hasImage: jest.fn(id => images.has(id)), addImage: jest.fn(id => images.add(id)),
-        removeImage: jest.fn(id => images.delete(id)), setFilter: jest.fn(),
-        setLayoutProperty: jest.fn(), setPaintProperty: jest.fn(),
-        getCanvas: jest.fn(() => canvas), getStyle: jest.fn(() => ({ layers: [...layers].map(id => ({ id })) })),
-        getBounds: jest.fn(() => ({ getWest: () => -123, getSouth: () => 45, getEast: () => -122, getNorth: () => 46 })),
-        on: jest.fn(), off: jest.fn(),
+        addSource: vi.fn(id => { sources.set(id, { setData: vi.fn() }); return map; }),
+        addLayer: vi.fn(({ id }) => { layers.add(id); return map; }),
+        getSource: vi.fn(id => sources.get(id)), getLayer: vi.fn(id => layers.has(id)),
+        removeLayer: vi.fn(id => { layers.delete(id); return map; }),
+        removeSource: vi.fn(id => { sources.delete(id); return map; }),
+        hasImage: vi.fn(id => images.has(id)), addImage: vi.fn(id => images.add(id)),
+        removeImage: vi.fn(id => images.delete(id)), setFilter: vi.fn(),
+        setLayoutProperty: vi.fn(), setPaintProperty: vi.fn(),
+        getCanvas: vi.fn(() => canvas), getStyle: vi.fn(() => ({ layers: [...layers].map(id => ({ id })) })),
+        getBounds: vi.fn(() => ({ getWest: () => -123, getSouth: () => 45, getEast: () => -122, getNorth: () => 46 })),
+        on: vi.fn(), off: vi.fn(),
       };
-      MapMock.mockImplementation(() => map);
-      PopupMock.mockImplementation(() => ({
-        remove: jest.fn(), setLngLat: jest.fn().mockReturnThis(),
-        setDOMContent: jest.fn().mockReturnThis(), addTo: jest.fn().mockReturnThis(),
-      }));
+      MapMock.mockImplementation(function () { return map; });
+      PopupMock.mockImplementation(function () { return {
+        remove: vi.fn(), setLngLat: vi.fn().mockReturnThis(),
+        setDOMContent: vi.fn().mockReturnThis(), addTo: vi.fn().mockReturnThis(),
+      }; });
       return { sources, layers, images };
     },
   };
@@ -48,18 +49,18 @@ const metadata = {
 };
 
 describe("package-owned place and reference overlays", () => {
-  let map: jest.Mocked<MapboxMap>;
-  let resources: { sources: Map<string, { setData: jest.Mock }>; layers: Set<string>; images: Set<string> };
-  beforeEach(() => {
-    resources = jest.requireMock("mapbox-gl").configureMocks();
-    map = jest.mocked(new MapboxMap({ container: document.createElement("div") }));
+  let map: Mocked<MapboxMap>;
+  let resources: { sources: Map<string, { setData: Mock }>; layers: Set<string>; images: Set<string> };
+  beforeEach(async () => {
+    resources = (await vi.importMock("mapbox-gl")).configureMocks();
+    map = vi.mocked(new MapboxMap({ container: document.createElement("div") }));
   });
 
   it("uses injected icons, updates place selection/data, and removes its listeners and rendering resources", () => {
-    const error = jest.fn(), bounds = jest.fn();
+    const error = vi.fn(), bounds = vi.fn();
     const image = { width: 48, height: 48, data: new Uint8ClampedArray(48 * 48 * 4), colorSpace: "srgb" as const };
-    const icons = jest.fn(() => image);
-    const props = { map, onSelect: jest.fn(), onCoincident: jest.fn(), onBounds: bounds, onError: error, createIconImage: icons };
+    const icons = vi.fn(() => image);
+    const props = { map, onSelect: vi.fn(), onCoincident: vi.fn(), onBounds: bounds, onError: error, createIconImage: icons };
     const { rerender, unmount } = render(<PlacesMap {...props} places={[park]} />);
     expect(icons).toHaveBeenCalledWith("park");
     expect(error).toHaveBeenLastCalledWith(false);
@@ -77,12 +78,12 @@ describe("package-owned place and reference overlays", () => {
     expect(resources.sources.size).toBe(0);
     expect(resources.layers.size).toBe(0);
     expect(resources.images.size).toBe(0);
-    expect(jest.mocked(Popup).mock.results[0].value.remove).toHaveBeenCalled();
+    expect(vi.mocked(Popup).mock.results[0].value.remove).toHaveBeenCalled();
   });
 
   it("preserves polygon visibility and source attribution across style reloads", () => {
     const snapshot: NeighborhoodSnapshot = { ...metadata, type: "FeatureCollection", features: [] };
-    const error = jest.fn();
+    const error = vi.fn();
     const { rerender, unmount } = render(<NeighborhoodsMap map={map} snapshot={snapshot} polygonsShown={false} onError={error} />);
     rerender(<NeighborhoodsMap map={map} snapshot={snapshot} polygonsShown onError={error} />);
     expect(map.setLayoutProperty).toHaveBeenLastCalledWith("nearby-neighborhoods-fill", "visibility", "visible");
@@ -101,7 +102,7 @@ describe("package-owned place and reference overlays", () => {
 
   it("updates viewport context without reinstalling layers and reports line rendering failures", () => {
     const snapshot: ContextSnapshot = { type: "FeatureCollection", category: "street-trees", features: [] };
-    const error = jest.fn();
+    const error = vi.fn();
     const { rerender, unmount } = render(<ContextOverlayMap map={map} snapshot={snapshot} onError={error} />);
     const updated: ContextSnapshot = { ...snapshot, features: [{
       type: "Feature", id: "tree-1", geometry: { type: "Point", coordinates: park.coordinates },

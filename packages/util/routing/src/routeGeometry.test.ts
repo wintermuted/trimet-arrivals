@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { getRouteGeometry } from ".";
 
 describe("route geometry loading", () => {
@@ -10,7 +11,7 @@ describe("route geometry loading", () => {
   it.each(["", "/overworld", "/pr-123/"])(
     "loads geometry from the supplied asset base %s and forwards cancellation",
     async baseUrl => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => feature });
+      global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => feature });
       const signal = new AbortController().signal;
       await expect(getRouteGeometry("54", 1, { baseUrl, signal })).resolves.toEqual(feature);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -22,7 +23,7 @@ describe("route geometry loading", () => {
 
   it("normalizes nested line collections without joining disconnected segments", async () => {
     const other = [[-122.5, 45.7], [-122.4, 45.8]];
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         ...feature,
@@ -43,7 +44,7 @@ describe("route geometry loading", () => {
 
   it("preserves multiline assets", async () => {
     const multiline = { ...feature, geometry: { type: "MultiLineString", coordinates: [line.coordinates] } };
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => multiline });
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => multiline });
     await expect(getRouteGeometry("54", 1, { baseUrl: "" })).resolves.toEqual(multiline);
   });
 
@@ -53,16 +54,16 @@ describe("route geometry loading", () => {
     [{ type: "GeometryCollection", geometries: [] }, "Empty route geometry"],
     [{ type: "GeometryCollection", geometries: [{ type: "Point", coordinates: [0, 0] }] }, "Unsupported route geometry"]
   ])("rejects unusable geometry", async (geometry, message) => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ ...feature, geometry }) });
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ...feature, geometry }) });
     await expect(getRouteGeometry("54", 1, { baseUrl: "" })).rejects.toThrow(String(message));
   });
 
   it("reports HTTP failures and propagates cancellation", async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 404, statusText: "Not Found" });
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: "Not Found" });
     await expect(getRouteGeometry("54", 1, { baseUrl: "" }))
       .rejects.toThrow("Unable to load route geometry 54/54_1.json: 404 Not Found");
     const aborted = new DOMException("Aborted", "AbortError");
-    global.fetch = jest.fn().mockRejectedValue(aborted);
+    global.fetch = vi.fn().mockRejectedValue(aborted);
     await expect(getRouteGeometry("54", 1, { baseUrl: "" })).rejects.toBe(aborted);
   });
 });

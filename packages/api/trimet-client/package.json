@@ -43,7 +43,7 @@
     ],
     "targets": {
       "test:package": {
-        "command": "jest --selectProjects trimet-client-package trimet-client-react-package --runInBand",
+        "command": "vitest run --project trimet-client-package --project trimet-client-react-package --maxWorkers=1",
         "cache": false
       }
     }

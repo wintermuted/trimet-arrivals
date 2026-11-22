@@ -1,23 +1,24 @@
+import { vi, type MockedFunction } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import { Map as MapboxMap } from "mapbox-gl";
 import type { TripPlannerItinerary } from "@overworld/trimet-client";
 import { PlannerPaths, type PlannerPathRequest, type PlannerPathsResult } from "../planner";
 
-jest.mock("mapbox-gl", () => {
-  const MapMock = jest.fn(), BoundsMock = jest.fn();
+vi.mock("mapbox-gl", () => {
+  const MapMock = vi.fn(), BoundsMock = vi.fn();
   return {
     Map: MapMock, LngLatBounds: BoundsMock,
     configureMocks() {
       const sources = new Set<string>(), layers = new Set<string>();
       const map = {
-        addSource: jest.fn(id => sources.add(id)), addLayer: jest.fn(({ id }) => layers.add(id)),
-        getSource: jest.fn(id => sources.has(id)), getLayer: jest.fn(id => layers.has(id)),
-        removeLayer: jest.fn(id => layers.delete(id)), removeSource: jest.fn(id => sources.delete(id)),
-        setFilter: jest.fn(), on: jest.fn(), off: jest.fn(), fitBounds: jest.fn(),
-        getContainer: jest.fn(() => ({ clientWidth: 600, clientHeight: 300 })),
+        addSource: vi.fn(id => sources.add(id)), addLayer: vi.fn(({ id }) => layers.add(id)),
+        getSource: vi.fn(id => sources.has(id)), getLayer: vi.fn(id => layers.has(id)),
+        removeLayer: vi.fn(id => layers.delete(id)), removeSource: vi.fn(id => sources.delete(id)),
+        setFilter: vi.fn(), on: vi.fn(), off: vi.fn(), fitBounds: vi.fn(),
+        getContainer: vi.fn(() => ({ clientWidth: 600, clientHeight: 300 })),
       };
-      MapMock.mockImplementation(() => map);
-      BoundsMock.mockImplementation(() => ({ extend: jest.fn() }));
+      MapMock.mockImplementation(function () { return map; });
+      BoundsMock.mockImplementation(function () { return { extend: vi.fn() }; });
       return { sources, layers };
     },
   };
@@ -33,10 +34,10 @@ const renderStatus: React.ComponentProps<typeof PlannerPaths>["renderStatus"] = 
 
 describe("injected planner map renderer", () => {
   it("installs and highlights paths, retains the camera when suspending, and cleans up on unmount", async () => {
-    const resources = jest.requireMock("mapbox-gl").configureMocks();
-    const map = jest.mocked(new MapboxMap({ container: document.createElement("div") }));
-    const request: jest.MockedFunction<PlannerPathRequest> = jest.fn().mockResolvedValue(paths);
-    const props = { map, loadPaths: request, itineraries, selected: 0, walkingEnabled: true, onMapLeg: jest.fn(), renderStatus };
+    const resources = (await vi.importMock("mapbox-gl")).configureMocks();
+    const map = vi.mocked(new MapboxMap({ container: document.createElement("div") }));
+    const request: MockedFunction<PlannerPathRequest> = vi.fn().mockResolvedValue(paths);
+    const props = { map, loadPaths: request, itineraries, selected: 0, walkingEnabled: true, onMapLeg: vi.fn(), renderStatus };
     let result: ReturnType<typeof render>;
     await act(async () => { result = render(<PlannerPaths {...props} />); });
     expect(request).toHaveBeenCalledWith(itineraries, expect.any(AbortSignal), true);
@@ -58,11 +59,11 @@ describe("injected planner map renderer", () => {
 
   it("cancels superseded providers and ignores their late results", async () => {
     let finish: (result: PlannerPathsResult) => void;
-    const request: jest.MockedFunction<PlannerPathRequest> = jest.fn(() => new Promise(resolve => { finish = resolve; }));
-    const props = { itineraries, selected: 0, walkingEnabled: true, onMapLeg: jest.fn(), renderStatus };
+    const request: MockedFunction<PlannerPathRequest> = vi.fn(() => new Promise(resolve => { finish = resolve; }));
+    const props = { itineraries, selected: 0, walkingEnabled: true, onMapLeg: vi.fn(), renderStatus };
     const result = render(<PlannerPaths {...props} loadPaths={request} />);
     const signal = request.mock.calls[0][1];
-    const current = jest.fn().mockResolvedValue({ data: { type: "FeatureCollection", features: [] } });
+    const current = vi.fn().mockResolvedValue({ data: { type: "FeatureCollection", features: [] } });
     await act(async () => result.rerender(<PlannerPaths {...props} loadPaths={current} />));
     expect(signal.aborted).toBe(true);
     expect(request).toHaveBeenCalledWith(itineraries, expect.any(AbortSignal), false);
@@ -71,9 +72,9 @@ describe("injected planner map renderer", () => {
   });
 
   it("surfaces provider failures through the required status renderer", async () => {
-    const request = jest.fn().mockRejectedValue(new Error("Provider unavailable"));
+    const request = vi.fn().mockRejectedValue(new Error("Provider unavailable"));
     await act(async () => render(<PlannerPaths itineraries={itineraries} selected={0} walkingEnabled={false}
-      loadPaths={request} onMapLeg={jest.fn()} renderStatus={renderStatus} />));
+      loadPaths={request} onMapLeg={vi.fn()} renderStatus={renderStatus} />));
     expect(screen.getByText("Map failed")).toBeInTheDocument();
   });
 });

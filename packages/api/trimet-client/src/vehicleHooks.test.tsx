@@ -1,3 +1,4 @@
+import { vi, type MockedFunction } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import { useVehiclePositions, useVehicleTrip } from "./react";
 import type { VehiclePositionRequest, VehicleTripRequest, VehicleViewport } from "./react";
@@ -14,10 +15,10 @@ describe("injected vehicle requests", () => {
   const snapshot: VehicleSnapshot = { vehicles: [vehicle], queryTime: now, rejected: 0 };
   let move: () => void;
   let removed: () => void;
-  let getVehicles: jest.MockedFunction<VehiclePositionRequest>;
+  let getVehicles: MockedFunction<VehiclePositionRequest>;
   let feed: ReturnType<typeof useVehiclePositions>;
-  const unsubscribeMove = jest.fn();
-  const unsubscribeRemove = jest.fn();
+  const unsubscribeMove = vi.fn();
+  const unsubscribeRemove = vi.fn();
   const viewport: VehicleViewport = {
     getBounds: () => [-123, 45, -122, 46],
     subscribeMove(listener) { move = listener; return unsubscribeMove; },
@@ -28,17 +29,17 @@ describe("injected vehicle requests", () => {
     return <output>{feed.status}: {feed.vehicles.length}</output>;
   }
   async function advance(ms: number) {
-    await act(async () => { jest.advanceTimersByTime(ms); });
+    await act(async () => { vi.advanceTimersByTime(ms); });
   }
 
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(now);
-    getVehicles = jest.fn().mockResolvedValue(snapshot);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+    getVehicles = vi.fn().mockResolvedValue(snapshot);
     Object.defineProperty(document, "hidden", { configurable: true, value: false });
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
     Reflect.deleteProperty(document, "hidden");
   });
 
@@ -89,7 +90,7 @@ describe("injected vehicle requests", () => {
 });
 
 describe("injected trip progress requests", () => {
-  let request: jest.MockedFunction<VehicleTripRequest>;
+  let request: MockedFunction<VehicleTripRequest>;
   let trip: ReturnType<typeof useVehicleTrip>;
   const data: VehicleTripSnapshot = {
     queryTime: 1800000000000, partial: false,
@@ -102,13 +103,13 @@ describe("injected trip progress requests", () => {
     return <output>{trip.data?.trip?.tripId} {trip.error}</output>;
   }
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(1800000000000);
-    request = jest.fn().mockResolvedValue(data);
+    vi.useFakeTimers();
+    vi.setSystemTime(1800000000000);
+    request = vi.fn().mockResolvedValue(data);
     Object.defineProperty(document, "hidden", { configurable: true, value: false });
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
     Reflect.deleteProperty(document, "hidden");
   });
 
@@ -117,11 +118,11 @@ describe("injected trip progress requests", () => {
     await act(async () => {});
     expect(trip.data).toBe(data);
     request.mockRejectedValueOnce(new VehicleRequestError("Throttled", false, 60000));
-    jest.setSystemTime(1800000015000);
+    vi.setSystemTime(1800000015000);
     await act(async () => { rerender(<Harness />); });
     expect(trip.error).toContain("could not be updated");
     expect(trip.data).toBe(data);
-    jest.setSystemTime(1800000030000);
+    vi.setSystemTime(1800000030000);
     rerender(<Harness />);
     expect(request).toHaveBeenCalledTimes(2);
     await act(async () => { trip.retry(); });
@@ -144,7 +145,7 @@ describe("injected trip progress requests", () => {
     rerender(<Harness tripId="next" enabled={false} />);
     expect(secondSignal.aborted).toBe(true);
     unmount();
-    act(() => jest.runAllTicks());
-    expect(jest.getTimerCount()).toBe(0);
+    act(() => vi.runAllTicks());
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import type { StopCatalogStop } from "@overworld/trimet-client";
@@ -10,7 +11,7 @@ const stop = (locid: number, desc: string, aliases: string[] = []): StopCatalogS
 describe("router-free planner stop picker", () => {
   it("uses injected common-place aliases only for verified catalog stops and deduplicates saved groups", () => {
     const station = stop(101, "NE Example Station");
-    const change = jest.fn();
+    const change = vi.fn();
     render(<ThemeProvider><label htmlFor="picker">Destination</label><PlannerStopSelect
       id="picker" stops={[station]} loading={false} onChange={change}
       savedStops={[{ id: 101, label: "Home" }, { id: 101, label: "Work" }]}
@@ -35,7 +36,7 @@ describe("router-free planner stop picker", () => {
       modes: ["Bus"], routes: [{ id: 2, label: "FX2-Division", color: "#123456" }],
     });
     render(<ThemeProvider><label htmlFor="picker">Origin</label><PlannerStopSelect
-      id="picker" stops={stops} loading={false} onChange={jest.fn()}
+      id="picker" stops={stops} loading={false} onChange={vi.fn()}
     /></ThemeProvider>);
     const input = screen.getByRole("combobox", { name: "Origin" });
     fireEvent.keyDown(input, { key: "ArrowDown" });
@@ -50,12 +51,12 @@ describe("router-free planner stop picker", () => {
   it("keeps ambiguous aliases in Other stops and disables an empty catalog", () => {
     const { rerender } = render(<ThemeProvider><label htmlFor="picker">Origin</label><PlannerStopSelect
       id="picker" stops={[stop(101, "NE Central", ["SW Central"])]}
-      loading={false} onChange={jest.fn()}
+      loading={false} onChange={vi.fn()}
     /></ThemeProvider>);
     fireEvent.keyDown(screen.getByRole("combobox", { name: "Origin" }), { key: "ArrowDown" });
     expect(screen.getByText("Other stops")).toBeInTheDocument();
     rerender(<ThemeProvider><label htmlFor="picker">Origin</label><PlannerStopSelect
-      id="picker" stops={[]} loading onChange={jest.fn()}
+      id="picker" stops={[]} loading onChange={vi.fn()}
     /></ThemeProvider>);
     expect(screen.getByLabelText("Origin")).toBeDisabled();
   });

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
   buildStopCatalog,
   getStopCatalog,
@@ -6,7 +7,7 @@ import {
 import { RouteDataResultSet, TrimetRoute } from "./interfaces/routes";
 import { getAllRoutes } from "./routeConfig";
 
-jest.mock("./routeConfig", () => ({ getAllRoutes: jest.fn() }));
+vi.mock("./routeConfig", () => ({ getAllRoutes: vi.fn() }));
 
 function route(
   routeId: number,
@@ -33,7 +34,7 @@ const stop = (
 
 describe("stop catalog", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("deduplicates route references without merging distinct platform IDs", () => {
@@ -121,7 +122,7 @@ describe("stop catalog", () => {
     const data = {
       route: [route(1, "Route 1", [stop(100, "Transit Center")])],
     };
-    const loadRoutes = jest.mocked(getAllRoutes);
+    const loadRoutes = vi.mocked(getAllRoutes);
     loadRoutes.mockResolvedValue(data);
 
     const first = await getStopCatalog(true);

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Provider } from "react-redux";
@@ -14,9 +15,9 @@ import { NearbyStopsDetail } from "../view/nearby/components/NearbyStopsDetail";
 import reducers from "../store/reducers";
 import { rootSaga } from "../store/sagas";
 
-jest.mock("../api/trimet/arrivals");
-jest.mock("../api/trimet/stops");
-jest.mock("../api/mapbox/walking");
+vi.mock("../api/trimet/arrivals");
+vi.mock("../api/trimet/stops");
+vi.mock("../api/mapbox/walking");
 
 function stopData(id: number): ArrivalData {
   return {
@@ -59,14 +60,14 @@ describe("general Nearby stop walking access", () => {
   let root: Root;
   let store: ReturnType<typeof createStore>;
   let saga: Task;
-  const handleStopOpened = jest.fn();
-  const close = jest.fn();
-  const onWalkingRouteChanged = jest.fn(() => close);
+  const handleStopOpened = vi.fn();
+  const close = vi.fn();
+  const onWalkingRouteChanged = vi.fn(() => close);
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.mocked(getArrivals).mockReset().mockResolvedValue(stopData(340));
-    jest.mocked(getNearbyStops).mockReset().mockResolvedValue({
+    vi.clearAllMocks();
+    vi.mocked(getArrivals).mockReset().mockResolvedValue(stopData(340));
+    vi.mocked(getNearbyStops).mockReset().mockResolvedValue({
       queryTime: "",
       location: [340, 367].map((locid) => ({
         locid, desc: `Example stop ${locid}`, dir: "E", lat: 0.001, lng: 0.001,
@@ -76,7 +77,7 @@ describe("general Nearby stop walking access", () => {
         ]
       }))
     });
-    jest.mocked(getWalkingRoute).mockReset().mockResolvedValue(walking);
+    vi.mocked(getWalkingRoute).mockReset().mockResolvedValue(walking);
     onWalkingRouteChanged.mockReturnValue(close);
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -119,7 +120,7 @@ describe("general Nearby stop walking access", () => {
   }
 
   it("saves and removes the exact stop through the Nearby bookmark action", async () => {
-    jest.mocked(getArrivals).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue({
       ...stopData(340),
       location: [...stopData(367).location, ...stopData(340).location]
     });
@@ -157,14 +158,14 @@ describe("general Nearby stop walking access", () => {
     expect(onWalkingRouteChanged).toHaveBeenCalledTimes(1);
     await render(false);
     expect(close).toHaveBeenCalledTimes(1);
-    expect(jest.mocked(getWalkingRoute).mock.calls[0][2].aborted).toBe(true);
+    expect(vi.mocked(getWalkingRoute).mock.calls[0][2].aborted).toBe(true);
     expect(getArrivals).toHaveBeenCalledTimes(1);
   });
 
   it("removes the previous path before loading another stop and ignores stale stop responses", async () => {
     let resolveStop: (data: ArrivalData) => void;
     await render(true);
-    jest.mocked(getArrivals).mockImplementationOnce(
+    vi.mocked(getArrivals).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveStop = resolve;
@@ -186,7 +187,7 @@ describe("general Nearby stop walking access", () => {
   });
 
   it("offers retry for failed stop data and never routes to an unrelated stop", async () => {
-    jest
+    vi
       .mocked(getArrivals)
       .mockResolvedValueOnce(stopData(367))
       .mockResolvedValueOnce(stopData(340));
@@ -203,7 +204,7 @@ describe("general Nearby stop walking access", () => {
 
   it("preserves the route referrer while loading and after the stop loads", async () => {
     let resolveStop: (data: ArrivalData) => void;
-    jest.mocked(getArrivals).mockImplementationOnce(() => new Promise((resolve) => {
+    vi.mocked(getArrivals).mockImplementationOnce(() => new Promise((resolve) => {
       resolveStop = resolve;
     }));
     const referrer = "/nearby/simple-routes?route=54&keep=yes#directions";
@@ -216,7 +217,7 @@ describe("general Nearby stop walking access", () => {
   });
 
   it("retains the route referrer when the stop fails to load", async () => {
-    jest.mocked(getArrivals).mockRejectedValueOnce(new Error("Unavailable"));
+    vi.mocked(getArrivals).mockRejectedValueOnce(new Error("Unavailable"));
     const referrer = "/nearby/simple-routes?route=54";
     await render(false, `/nearby/stops/340?${new URLSearchParams({ referrer })}`);
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
@@ -239,7 +240,7 @@ describe("general Nearby stop walking access", () => {
   });
 
   it("shows all routes serving the exact stop even when there are no departures", async () => {
-    jest.mocked(getNearbyStops).mockResolvedValueOnce({
+    vi.mocked(getNearbyStops).mockResolvedValueOnce({
       queryTime: "",
       location: [
         { locid: 999, desc: "Other stop", dir: "E", lat: 0.001, lng: 0.001,
@@ -267,7 +268,7 @@ describe("general Nearby stop walking access", () => {
       { ...arrival1, id: "8", route: 8, shortSign: "Route 8", scheduled: 2000 },
       { ...arrival1, id: "56", route: 56, shortSign: "Route 56", scheduled: 3000 },
     ];
-    jest.mocked(getArrivals).mockResolvedValueOnce(data);
+    vi.mocked(getArrivals).mockResolvedValueOnce(data);
     await render();
     const badge = (route: number) => container.querySelector<HTMLButtonElement>(
       `.transit-stop-route-filter[aria-label^="Route ${route}"]`
@@ -288,15 +289,15 @@ describe("general Nearby stop walking access", () => {
     act(() => badge(56).click());
     expect(departures()).toHaveLength(3);
     act(() => badge(8).click());
-    jest.mocked(getArrivals).mockResolvedValueOnce({ ...stopData(367), arrival: data.arrival });
+    vi.mocked(getArrivals).mockResolvedValueOnce({ ...stopData(367), arrival: data.arrival });
     await act(async () => container.querySelector<HTMLAnchorElement>('a[href="/nearby/stops/367"]').click());
     expect(departures()).toHaveLength(3);
     expect(badge(8).getAttribute("aria-pressed")).toBe("false");
   });
 
   it("keeps departure route badges usable if route metadata fails", async () => {
-    jest.mocked(getNearbyStops).mockRejectedValueOnce(new Error("Unavailable"));
-    jest.mocked(getArrivals).mockResolvedValueOnce({
+    vi.mocked(getNearbyStops).mockRejectedValueOnce(new Error("Unavailable"));
+    vi.mocked(getArrivals).mockResolvedValueOnce({
       ...stopData(340),
       arrival: [{ ...arrival1, id: "54", route: 54, shortSign: "Route 54" }]
     });
@@ -309,7 +310,7 @@ describe("general Nearby stop walking access", () => {
   });
 
   it("reports missing stop metadata instead of displaying another stop's routes", async () => {
-    jest.mocked(getNearbyStops).mockResolvedValueOnce({
+    vi.mocked(getNearbyStops).mockResolvedValueOnce({
       queryTime: "", location: [{
         locid: 999, desc: "Other stop", dir: "E", lat: 0.001, lng: 0.001,
         route: [{ route: 99, desc: "Other route", type: "bus", dir: [] }]
@@ -321,7 +322,7 @@ describe("general Nearby stop walking access", () => {
   });
 
   it("reports route lookup errors and retries without losing the stop", async () => {
-    jest.mocked(getNearbyStops).mockRejectedValueOnce(new Error("Unavailable"));
+    vi.mocked(getNearbyStops).mockRejectedValueOnce(new Error("Unavailable"));
     await render();
     expect(container.querySelector('[role="alert"]')?.textContent).toContain("Routes could not be loaded");
     expect(container.textContent).toContain("Example stop 340");
@@ -331,10 +332,10 @@ describe("general Nearby stop walking access", () => {
   });
 
   it("removes the selected stop marker on navigation", async () => {
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     handleStopOpened.mockReturnValueOnce(cleanup);
     await render();
-    jest.mocked(getArrivals).mockResolvedValueOnce(stopData(367));
+    vi.mocked(getArrivals).mockResolvedValueOnce(stopData(367));
     await act(async () => container.querySelector<HTMLAnchorElement>('a[href="/nearby/stops/367"]').click());
     expect(cleanup).toHaveBeenCalledTimes(1);
     expect(handleStopOpened).toHaveBeenLastCalledWith(stopData(367).location[0]);
@@ -343,7 +344,7 @@ describe("general Nearby stop walking access", () => {
   it.each(["https://example.com", "//example.com", "/\\example.com", "/nearby/../../outside", "/outside", ""])(
     "rejects an unsafe or invalid referrer %s",
     async (referrer) => {
-      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       try {
         await render(false, `/nearby/stops/340?${new URLSearchParams({ referrer })}`);
         expect(container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]').getAttribute("href")).toBe("/nearby/stops");

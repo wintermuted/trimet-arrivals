@@ -16,7 +16,7 @@
     ],
     "targets": {
       "test:package": {
-        "command": "jest --selectProjects journeys-package --runInBand",
+        "command": "vitest run --project journeys-package --maxWorkers=1",
         "cache": false
       }
     }

@@ -1,11 +1,12 @@
+import { vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import BookmarkSectionNameControl from "./BookmarkSectionNameControl";
 
 it("shows the name and toggles editing through the labeled control", async () => {
-  const toggleEditMode = jest.fn();
-  render(<BookmarkSectionNameControl editMode={false} name="Commute" removeBookmarkSection={jest.fn()} toggleEditMode={toggleEditMode} updateBookmarkSectionName={jest.fn()} />);
+  const toggleEditMode = vi.fn();
+  render(<BookmarkSectionNameControl editMode={false} name="Commute" removeBookmarkSection={vi.fn()} toggleEditMode={toggleEditMode} updateBookmarkSectionName={vi.fn()} />);
   expect(screen.getByRole("heading", { name: "Commute" })).toBeInTheDocument();
   expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   await userEvent.setup().click(screen.getByRole("button", { name: "Edit bookmark section" }));
@@ -13,8 +14,8 @@ it("shows the name and toggles editing through the labeled control", async () =>
 });
 
 it("edits the name and exposes removal controls in edit mode", async () => {
-  const updateBookmarkSectionName = jest.fn();
-  render(<BookmarkSectionNameControl editMode name="Commute" removeBookmarkSection={jest.fn()} toggleEditMode={jest.fn()} updateBookmarkSectionName={updateBookmarkSectionName} />);
+  const updateBookmarkSectionName = vi.fn();
+  render(<BookmarkSectionNameControl editMode name="Commute" removeBookmarkSection={vi.fn()} toggleEditMode={vi.fn()} updateBookmarkSectionName={updateBookmarkSectionName} />);
   const input = screen.getByRole("textbox", { name: "Bookmark section name" });
   expect(input).toHaveValue("Commute");
   await userEvent.setup().type(input, " home");

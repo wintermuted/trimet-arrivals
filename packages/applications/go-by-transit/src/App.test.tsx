@@ -1,22 +1,21 @@
+import { vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import React from "react";
 import App from "./App";
 
-jest.mock("./store/store", () => ({
-  __esModule: true,
-  default: () => {
-    const { createStore } = jest.requireActual("redux");
-    return createStore(jest.requireActual("./store/reducers").default);
-  }
+vi.mock("./store/store", async () => {
+  const { createStore } = await vi.importActual<typeof import("redux")>("redux");
+  const { default: reducers } = await vi.importActual<typeof import("./store/reducers")>("./store/reducers");
+  return { default: () => createStore(reducers) };
+});
+vi.mock("./view/nearby/util/mapbox/initializeMap", () => ({
+  initializeMap: vi.fn(() => { throw new Error("No WebGL in JSDOM"); })
 }));
-jest.mock("./view/nearby/util/mapbox/initializeMap", () => ({
-  initializeMap: jest.fn(() => { throw new Error("No WebGL in JSDOM"); })
-}));
-jest.mock("./api/trimet/stopCatalog", () => ({
-  ...jest.requireActual("./api/trimet/stopCatalog"),
+vi.mock("./api/trimet/stopCatalog", async () => ({
+  ...(await vi.importActual<typeof import("./api/trimet/stopCatalog")>("./api/trimet/stopCatalog")),
   getStopCatalog: () => Promise.resolve({ stops: [] })
 }));
-jest.mock("./api/trimet/alerts", () => ({
+vi.mock("./api/trimet/alerts", () => ({
   getSystemAlerts: () => Promise.resolve({ alert: [], queryTime: "" })
 }));
 

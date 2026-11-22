@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -8,7 +9,7 @@ import { arrival1 } from "../api/trimet/fixture/arrival";
 import { Arrival } from "../api/trimet/interfaces/arrivals";
 import { ArrivalList } from "../view/nearby/components/NearbyStopArrivals";
 
-jest.mock("../api/trimet/stops");
+vi.mock("../api/trimet/stops");
 
 it("shows borderless stop departures in the route disclosure style and preserves links and collapsed state", async () => {
   const container = document.createElement("div");
@@ -219,7 +220,7 @@ it("keeps the icon-labeled panels independent and preserves contents and collaps
     { locid: 102, seq: 2, desc: "Second stop", dir: "E", tp: true, lat: 1, lng: 1 }
   ];
   // Keep enrichment pending: the test exercises the disclosures, not nearby routes.
-  jest.mocked(getNearbyStops).mockImplementation(() => new Promise(() => {}));
+  vi.mocked(getNearbyStops).mockImplementation(() => new Promise(() => {}));
   function panels(remaining = stops) {
     return <>
       <SelectableDepartures arrivals={[arrival1]} />

@@ -1,9 +1,10 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { getWalkingRoute, WalkingRoute } from "../api/mapbox/walking";
 import WalkingAccess from "../view/nearby/components/WalkingAccess";
 
-jest.mock("../api/mapbox/walking");
+vi.mock("../api/mapbox/walking");
 
 const stop = { lat: 0.001, lng: 0.001, locid: 340 };
 const walkingRoute: WalkingRoute = {
@@ -27,8 +28,8 @@ const walkingRoute: WalkingRoute = {
 describe("walking access to the selected boarding stop", () => {
   let container: HTMLDivElement;
   let root: Root;
-  const close = jest.fn();
-  const onRouteChanged = jest.fn(() => close);
+  const close = vi.fn();
+  const onRouteChanged = vi.fn(() => close);
   const props = {
     currentLocation: [0, 0],
     enabled: true,
@@ -37,9 +38,9 @@ describe("walking access to the selected boarding stop", () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     onRouteChanged.mockReturnValue(close);
-    jest.mocked(getWalkingRoute).mockReset().mockResolvedValue(walkingRoute);
+    vi.mocked(getWalkingRoute).mockReset().mockResolvedValue(walkingRoute);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -65,19 +66,19 @@ describe("walking access to the selected boarding stop", () => {
       root.render(<WalkingAccess {...props} enabled={false} />)
     );
     expect(close).toHaveBeenCalledTimes(1);
-    expect(jest.mocked(getWalkingRoute).mock.calls[0][2].aborted).toBe(true);
+    expect(vi.mocked(getWalkingRoute).mock.calls[0][2].aborted).toBe(true);
   });
 
   it("ignores a late response from a previous location", async () => {
     let resolveRoute: (route: WalkingRoute) => void;
-    jest.mocked(getWalkingRoute).mockImplementationOnce(
+    vi.mocked(getWalkingRoute).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveRoute = resolve;
         })
     );
     await act(async () => root.render(<WalkingAccess {...props} />));
-    const oldSignal = jest.mocked(getWalkingRoute).mock.calls[0][2];
+    const oldSignal = vi.mocked(getWalkingRoute).mock.calls[0][2];
     expect(container.textContent).toContain("Calculating walk...");
     await act(async () =>
       root.render(<WalkingAccess {...props} currentLocation={[0.001, 0]} />)
@@ -90,7 +91,7 @@ describe("walking access to the selected boarding stop", () => {
   });
 
   it("offers explicit retry after a routing error and never draws an unreachable route", async () => {
-    jest
+    vi
       .mocked(getWalkingRoute)
       .mockRejectedValueOnce(new Error("Mapbox routing access is unavailable."))
       .mockResolvedValueOnce({ status: "unreachable" });
@@ -109,7 +110,7 @@ describe("walking access to the selected boarding stop", () => {
   });
 
   it("explains an unreliable walking-path snap without claiming an accessible route", async () => {
-    jest.mocked(getWalkingRoute).mockResolvedValue({ status: "uncertain" });
+    vi.mocked(getWalkingRoute).mockResolvedValue({ status: "uncertain" });
     await act(async () => root.render(<WalkingAccess {...props} />));
     expect(container.textContent).toContain(
       "could not match this location reliably"

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 import { Provider } from "react-redux";
@@ -15,7 +16,7 @@ it("renders stop data from Redux and requests its arrivals on mount", () => {
     ...state,
     stopsReducer: { ...state.stopsReducer, stopLocations: { 123: stop } }
   });
-  const dispatch = jest.spyOn(populatedStore, "dispatch");
+  const dispatch = vi.spyOn(populatedStore, "dispatch");
   render(<Provider store={populatedStore}><MemoryRouter><StopContainer locationId={123} showArrivals={false} /></MemoryRouter></Provider>);
   expect(screen.getByText(/Main Street/)).toBeInTheDocument();
   expect(dispatch).toHaveBeenCalledWith(loadArrivalDataRequest(123));

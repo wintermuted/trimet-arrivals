@@ -40,7 +40,7 @@
     ],
     "targets": {
       "test:package": {
-        "command": "jest --selectProjects routing-package --runInBand",
+        "command": "vitest run --project routing-package --maxWorkers=1",
         "cache": false
       }
     }

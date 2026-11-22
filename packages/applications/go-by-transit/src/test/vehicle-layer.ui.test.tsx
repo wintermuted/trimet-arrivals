@@ -1,9 +1,10 @@
+import { vi, type Mock } from "vitest";
 import { Map as MapboxMap, GeoJSONSource } from "mapbox-gl";
 import { createVehicleLayer } from "../view/nearby/util/mapbox/vehicleLayer";
 import { VehiclePosition } from "../api/trimet/interfaces/vehicles";
 
-jest.mock("../view/nearby/util/mapbox/vehicleTooltip", () => ({
-  createVehicleTooltips: () => ({ refresh: jest.fn(), hide: jest.fn(), dispose: jest.fn() }),
+vi.mock("../view/nearby/util/mapbox/vehicleTooltip", () => ({
+  createVehicleTooltips: () => ({ refresh: vi.fn(), hide: vi.fn(), dispose: vi.fn() }),
 }));
 
 describe("vehicle symbol layer", () => {
@@ -12,7 +13,7 @@ describe("vehicle symbol layer", () => {
   const originalMatchMedia = window.matchMedia;
   const originalPath = window.Path2D;
   const handlers = new Map<string, (event?: { originalEvent?: Event }) => void>();
-  const sources = new Map<string, { setData: jest.Mock }>();
+  const sources = new Map<string, { setData: Mock }>();
   const layers = new Set<string>();
   const images = new Set<string>();
   let time = 0;
@@ -20,34 +21,34 @@ describe("vehicle symbol layer", () => {
   let motionChanged: () => void;
   let scheduled: FrameRequestCallback;
   let layer: ReturnType<typeof createVehicleLayer>;
-  const onError = jest.fn();
-  const setData = jest.fn();
+  const onError = vi.fn();
+  const setData = vi.fn();
   const map = {
-    on: jest.fn((name, handler) => handlers.set(name, handler)),
-    off: jest.fn(name => handlers.delete(name)),
-    getSource: jest.fn(id => sources.get(id)),
-    addSource: jest.fn(id => sources.set(id, { setData })),
-    removeSource: jest.fn(id => sources.delete(id)),
-    getLayer: jest.fn(id => layers.has(id)),
-    addLayer: jest.fn(({ id }) => layers.add(id)),
-    removeLayer: jest.fn(id => layers.delete(id)),
-    hasImage: jest.fn(id => images.has(id)),
-    addImage: jest.fn(id => images.add(id)),
-    removeImage: jest.fn(id => images.delete(id)),
+    on: vi.fn((name, handler) => handlers.set(name, handler)),
+    off: vi.fn(name => handlers.delete(name)),
+    getSource: vi.fn(id => sources.get(id)),
+    addSource: vi.fn(id => sources.set(id, { setData })),
+    removeSource: vi.fn(id => sources.delete(id)),
+    getLayer: vi.fn(id => layers.has(id)),
+    addLayer: vi.fn(({ id }) => layers.add(id)),
+    removeLayer: vi.fn(id => layers.delete(id)),
+    hasImage: vi.fn(id => images.has(id)),
+    addImage: vi.fn(id => images.add(id)),
+    removeImage: vi.fn(id => images.delete(id)),
     getCenter: () => ({ lng: 0, lat: 0 }),
-    getBearing: jest.fn(),
-    getPitch: jest.fn(),
-    getZoom: jest.fn(),
-    getContainer: jest.fn(),
-    easeTo: jest.fn(),
-    stop: jest.fn(),
-    jumpTo: jest.fn(),
+    getBearing: vi.fn(),
+    getPitch: vi.fn(),
+    getZoom: vi.fn(),
+    getContainer: vi.fn(),
+    easeTo: vi.fn(),
+    stop: vi.fn(),
+    jumpTo: vi.fn(),
   };
   const lastData = () => setData.mock.calls[setData.mock.calls.length - 1][0];
   const point = (id = "bus") => lastData().features.find(feature => feature.id === id).geometry.coordinates;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     handlers.clear(); sources.clear(); layers.clear(); images.clear();
     map.on.mockImplementation((name, handler) => handlers.set(name, handler));
     map.off.mockImplementation(name => handlers.delete(name));
@@ -66,26 +67,26 @@ describe("vehicle symbol layer", () => {
     map.getContainer.mockReturnValue({ clientHeight: 600 });
     time = 0;
     reduced = false;
-    jest.spyOn(performance, "now").mockImplementation(() => time);
-    jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => { scheduled = callback; return 1; });
-    jest.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    vi.spyOn(performance, "now").mockImplementation(() => time);
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation(callback => { scheduled = callback; return 1; });
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
     Object.defineProperty(document, "hidden", { configurable: true, value: false });
-    window.matchMedia = jest.fn().mockImplementation(() => ({
+    window.matchMedia = vi.fn().mockImplementation(() => ({
       get matches() { return reduced; },
       addEventListener: (_name, listener) => { motionChanged = listener; },
-      removeEventListener: jest.fn(),
+      removeEventListener: vi.fn(),
     }));
-    window.Path2D = jest.fn();
-    jest.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(() => ({
-      translate: jest.fn(), scale: jest.fn(), fill: jest.fn(), stroke: jest.fn(),
-      beginPath: jest.fn(), moveTo: jest.fn(), lineTo: jest.fn(), closePath: jest.fn(),
+    window.Path2D = vi.fn();
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(() => ({
+      translate: vi.fn(), scale: vi.fn(), fill: vi.fn(), stroke: vi.fn(),
+      beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), closePath: vi.fn(),
       getImageData: () => ({ width: 64, height: 64, data: new Uint8ClampedArray(64 * 64 * 4) }),
     } as CanvasRenderingContext2D));
-    layer = createVehicleLayer(map as MapboxMap, onError, jest.fn());
+    layer = createVehicleLayer(map as MapboxMap, onError, vi.fn());
   });
   afterEach(() => {
     layer.dispose();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     window.matchMedia = originalMatchMedia;
     window.Path2D = originalPath;
     Reflect.deleteProperty(document, "hidden");
@@ -186,7 +187,7 @@ describe("vehicle symbol layer", () => {
 
   it("does not touch a destroyed map during cleanup and surfaces drawing failures", () => {
     const source = map.getSource("nearby-vehicles") as GeoJSONSource;
-    jest.mocked(source.setData).mockImplementationOnce(() => { throw new Error("Source failed"); });
+    vi.mocked(source.setData).mockImplementationOnce(() => { throw new Error("Source failed"); });
     layer.update([bus]);
     expect(onError).toHaveBeenLastCalledWith(true);
     handlers.get("remove")();

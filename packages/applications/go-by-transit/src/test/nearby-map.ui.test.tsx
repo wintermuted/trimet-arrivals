@@ -1,13 +1,14 @@
+import { vi } from "vitest";
 import React, { act, createRef } from "react";
 import { createRoot } from "react-dom/client";
 import NearbyMapV2 from "../view/nearby/components/NearbyMapV2";
 
 it("resizes the map when its available panel changes and disposes it on unmount", () => {
   const originalResizeObserver = window.ResizeObserver;
-  const observe = jest.fn();
-  const disconnect = jest.fn();
+  const observe = vi.fn();
+  const disconnect = vi.fn();
   let notifyResize: () => void;
-  window.ResizeObserver = jest.fn().mockImplementation(callback => {
+  window.ResizeObserver = vi.fn().mockImplementation(function (callback) {
     notifyResize = callback;
     return { observe, disconnect };
   });
@@ -15,11 +16,11 @@ it("resizes the map when its available panel changes and disposes it on unmount"
   document.body.appendChild(container);
   const root = createRoot(container);
   const mapContainerRef = createRef<HTMLDivElement>();
-  const resize = jest.fn();
-  const remove = jest.fn();
-  const onRadiusChange = jest.fn();
-  const onVehiclesToggle = jest.fn();
-  const initializeMap = jest.fn(() => {
+  const resize = vi.fn();
+  const remove = vi.fn();
+  const onRadiusChange = vi.fn();
+  const onVehiclesToggle = vi.fn();
+  const initializeMap = vi.fn(() => {
     expect(mapContainerRef.current).not.toBeNull();
   });
 
@@ -30,9 +31,9 @@ it("resizes the map when its available panel changes and disposes it on unmount"
           mapRef={{ current: { resize, remove } }}
           mapContainerRef={mapContainerRef}
           initializeMap={initializeMap}
-          onSearchArea={jest.fn()}
-          onDropPin={jest.fn()}
-          onFindMe={jest.fn()}
+          onSearchArea={vi.fn()}
+          onDropPin={vi.fn()}
+          onFindMe={vi.fn()}
           radiusSize={1000}
           onRadiusChange={onRadiusChange}
           isLocating={false}
@@ -42,7 +43,7 @@ it("resizes the map when its available panel changes and disposes it on unmount"
           onVehiclesToggle={onVehiclesToggle}
           vehicleFeed={{ vehicles: [], rejected: 0, status: "empty" }}
           vehicleMapError={false}
-          onVehiclesRetry={jest.fn()}
+          onVehiclesRetry={vi.fn()}
         />
       )
     );

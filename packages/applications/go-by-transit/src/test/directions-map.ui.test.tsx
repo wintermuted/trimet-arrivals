@@ -1,3 +1,4 @@
+import { vi, type Mocked } from "vitest";
 import { act } from "react";
 import { LngLatBounds, Map as MapboxMap, Marker, Popup } from "mapbox-gl";
 import { DirectionsSelection, highlightDirectionsStop, showDirectionsSelection } from "../view/nearby/util/mapbox/directionsSelection";
@@ -7,60 +8,59 @@ import { setCurrentLocationMarker } from "../view/nearby/util/mapbox/currentLoca
 import { showWalkingRoute } from "../view/nearby/util/mapbox/walkingRoute";
 import { highlightRouteInfoStop, showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 
-jest.mock("!mapbox-gl", () => jest.requireMock("mapbox-gl"), { virtual: true });
-
-jest.mock("mapbox-gl", () => {
-  const createMap = () => ({
-    getContainer: jest.fn().mockReturnValue({ clientWidth: 800, clientHeight: 400 }),
-    getCanvas: jest.fn().mockReturnValue(global.document.createElement("canvas")),
-    getCenter: jest.fn().mockReturnValue({ lng: 0, lat: 0 }),
-    getZoom: jest.fn().mockReturnValue(14),
-    getLayoutProperty: jest.fn().mockReturnValue("visible"),
-    setLayoutProperty: jest.fn(),
-    fitBounds: jest.fn(),
-    flyTo: jest.fn(),
-    jumpTo: jest.fn(),
-    loaded: jest.fn().mockReturnValue(true),
-    on: jest.fn(),
-    off: jest.fn(),
-    setPaintProperty: jest.fn(),
-    addSource: jest.fn(),
-    addLayer: jest.fn(),
-    moveLayer: jest.fn(),
-    getLayer: jest.fn().mockReturnValue({ id: "directions-route" }),
-    getSource: jest.fn().mockReturnValue({ type: "geojson" }),
-    removeLayer: jest.fn(),
-    removeSource: jest.fn()
-  });
-  const createBounds = () => ({
-    extend: jest.fn().mockReturnThis(),
-    isEmpty: jest.fn().mockReturnValue(false)
-  });
-  const createMarker = () => ({
-    setLngLat: jest.fn().mockReturnThis(),
-    setPopup: jest.fn().mockReturnThis(),
-    addTo: jest.fn().mockReturnThis(),
-    getElement: jest.fn().mockReturnValue(global.document.createElement("div")),
-    remove: jest.fn()
-  });
-  const createPopup = () => ({
-    addTo: jest.fn().mockReturnThis(),
-    getElement: jest.fn(() => global.document.createElement("div")),
-    on: jest.fn().mockReturnThis(),
-    remove: jest.fn().mockReturnThis(),
-    setDOMContent: jest.fn().mockReturnThis(),
-    setHTML: jest.fn().mockReturnThis(),
-    setLngLat: jest.fn().mockReturnThis(),
-    setText: jest.fn().mockReturnThis()
-  });
+vi.mock("mapbox-gl", () => {
+  const createMap = function () { return {
+    getContainer: vi.fn().mockReturnValue({ clientWidth: 800, clientHeight: 400 }),
+    getCanvas: vi.fn().mockReturnValue(global.document.createElement("canvas")),
+    getCenter: vi.fn().mockReturnValue({ lng: 0, lat: 0 }),
+    getZoom: vi.fn().mockReturnValue(14),
+    getLayoutProperty: vi.fn().mockReturnValue("visible"),
+    setLayoutProperty: vi.fn(),
+    fitBounds: vi.fn(),
+    flyTo: vi.fn(),
+    jumpTo: vi.fn(),
+    loaded: vi.fn().mockReturnValue(true),
+    on: vi.fn(),
+    off: vi.fn(),
+    setPaintProperty: vi.fn(),
+    addSource: vi.fn(),
+    addLayer: vi.fn(),
+    moveLayer: vi.fn(),
+    getLayer: vi.fn().mockReturnValue({ id: "directions-route" }),
+    getSource: vi.fn().mockReturnValue({ type: "geojson" }),
+    removeLayer: vi.fn(),
+    removeSource: vi.fn()
+  }; };
+  const createBounds = function () { return {
+    extend: vi.fn().mockReturnThis(),
+    isEmpty: vi.fn().mockReturnValue(false)
+  }; };
+  const createMarker = function () { return {
+    setLngLat: vi.fn().mockReturnThis(),
+    setPopup: vi.fn().mockReturnThis(),
+    addTo: vi.fn().mockReturnThis(),
+    getElement: vi.fn().mockReturnValue(global.document.createElement("div")),
+    remove: vi.fn()
+  }; };
+  const createPopup = function () { return {
+    addTo: vi.fn().mockReturnThis(),
+    getElement: vi.fn(() => global.document.createElement("div")),
+    on: vi.fn().mockReturnThis(),
+    remove: vi.fn().mockReturnThis(),
+    setDOMContent: vi.fn().mockReturnThis(),
+    setHTML: vi.fn().mockReturnThis(),
+    setLngLat: vi.fn().mockReturnThis(),
+    setText: vi.fn().mockReturnThis()
+  }; };
   const mocks = {
-    Map: jest.fn(),
-    LngLatBounds: jest.fn(),
-    Marker: jest.fn(),
-    Popup: jest.fn()
+    Map: vi.fn(),
+    LngLatBounds: vi.fn(),
+    Marker: vi.fn(),
+    Popup: vi.fn()
   };
   return {
     ...mocks,
+    default: mocks,
     configureMocks() {
       mocks.Map.mockImplementation(createMap);
       mocks.LngLatBounds.mockImplementation(createBounds);
@@ -84,14 +84,14 @@ const geometry = {
 
 describe("directions route line and endpoint framing", () => {
   const originalFetch = global.fetch;
-  let map: jest.Mocked<MapboxMap>;
-  const onError = jest.fn();
+  let map: Mocked<MapboxMap>;
+  const onError = vi.fn();
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.requireMock("mapbox-gl").configureMocks();
-    map = jest.mocked(new MapboxMap({ container: document.createElement("div") }));
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => geometry });
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    (await vi.importMock("mapbox-gl")).configureMocks();
+    map = vi.mocked(new MapboxMap({ container: document.createElement("div") }));
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => geometry });
   });
 
   afterEach(() => {
@@ -100,7 +100,7 @@ describe("directions route line and endpoint framing", () => {
 
   it("opens a downstream stop popover on hover and chooses the exact destination", async () => {
     const stop = { ...selection.destination, desc: "<Example stop>" };
-    const onChooseDestination = jest.fn();
+    const onChooseDestination = vi.fn();
     const close = showDirectionsSelection(map, {
       ...selection, destination: undefined, destinationStops: [stop], onChooseDestination
     }, onError);
@@ -108,7 +108,7 @@ describe("directions route line and endpoint framing", () => {
     hover({ features: [{ properties: { locid: selection.origin.locid } }] } as Parameters<typeof hover>[0]);
     expect(Popup).toHaveBeenCalledTimes(1); // Boarding marker only.
     hover({ features: [{ properties: { locid: stop.locid } }] } as Parameters<typeof hover>[0]);
-    const popup = jest.mocked(Popup).mock.results[1].value;
+    const popup = vi.mocked(Popup).mock.results[1].value;
     const content = popup.setDOMContent.mock.calls[0][0] as HTMLElement;
     expect(content.querySelector("strong")?.textContent).toBe("<Example stop>");
     expect(content.textContent).toContain("Stop ID: 103");
@@ -133,7 +133,7 @@ describe("directions route line and endpoint framing", () => {
     expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
       id: "stop-detail-marker", source: "stop-detail-marker"
     }));
-    const popup = jest.mocked(Popup).mock.results[0].value;
+    const popup = vi.mocked(Popup).mock.results[0].value;
     expect(Popup).toHaveBeenCalledWith(expect.objectContaining({
       closeButton: false, closeOnClick: false, offset: 10
     }));
@@ -156,7 +156,7 @@ describe("directions route line and endpoint framing", () => {
   });
 
   it("removes marker resources if the stop popup cannot be created", () => {
-    jest.mocked(Popup).mockImplementationOnce(() => { throw new Error("Popup unavailable"); });
+    vi.mocked(Popup).mockImplementationOnce(() => { throw new Error("Popup unavailable"); });
     expect(() => showStopDetailMarker(map, {
       id: 8455, desc: "Example stop", dir: "E", lat: 2, lng: 1, passengerCode: "E"
     })).toThrow("Popup unavailable");
@@ -194,7 +194,7 @@ describe("directions route line and endpoint framing", () => {
 
   it("reports failed geometry and ignores late responses after the panel closes", async () => {
     let resolveGeometry: (value: any) => void;
-    global.fetch = jest.fn()
+    global.fetch = vi.fn()
       .mockRejectedValueOnce(new Error("Unavailable"))
       .mockImplementationOnce(() => new Promise((resolve) => { resolveGeometry = resolve; }));
     const route = {
@@ -239,10 +239,10 @@ describe("directions route line and endpoint framing", () => {
         { ...selection.origin, desc: "<Example First>" }, selection.destination
       ] }]
     };
-    const onStopClick = jest.fn();
+    const onStopClick = vi.fn();
     let close: () => void;
     await act(async () => { close = showRouteInfo(map, route, onError, onStopClick); });
-    const popup = jest.mocked(Popup).mock.results[0].value;
+    const popup = vi.mocked(Popup).mock.results[0].value;
     const handler = (name: string) => map.on.mock.calls.find(([event, layer]) =>
       event === name && layer === "route-info-stops")[2] as (event?: any) => void;
     const enter = handler("mouseenter");
@@ -300,7 +300,7 @@ describe("directions route line and endpoint framing", () => {
     const previousTheme = document.documentElement.dataset.theme;
     document.documentElement.dataset.theme = theme;
     try {
-      setNearbyStops(map, {}, ["54"], jest.fn());
+      setNearbyStops(map, {}, ["54"], vi.fn());
       updateStopMarkerColor(map, "368", "#ff0000");
       setCurrentLocationMarker(map, 0, 0, 1000);
       expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
@@ -347,8 +347,8 @@ describe("directions route line and endpoint framing", () => {
       101: { desc: "Example First", dir: "E", lat: 0, lng: 0, locid: 101, route: [] },
       102: { desc: "Example Next", dir: "E", lat: 1, lng: 1, locid: 102, route: [] }
     };
-    setNearbyStops(map, stops, ["54", "12"], jest.fn());
-    const popup = jest.mocked(Popup).mock.results[0].value;
+    setNearbyStops(map, stops, ["54", "12"], vi.fn());
+    const popup = vi.mocked(Popup).mock.results[0].value;
     highlightNearbyStop(map, 101);
     expect(popup.setLngLat).toHaveBeenLastCalledWith([0, 0]);
     expect(popup.setHTML).toHaveBeenLastCalledWith(
@@ -376,9 +376,9 @@ describe("directions route line and endpoint framing", () => {
     popup.addTo.mockClear();
     highlightNearbyStop(map, 101);
     expect(popup.addTo).not.toHaveBeenCalled();
-    setNearbyStops(map, stops, ["54", "12"], jest.fn());
+    setNearbyStops(map, stops, ["54", "12"], vi.fn());
     highlightNearbyStop(map, 102);
-    expect(jest.mocked(Popup).mock.results[1].value.addTo).toHaveBeenCalledWith(map);
+    expect(vi.mocked(Popup).mock.results[1].value.addTo).toHaveBeenCalledWith(map);
     expect(popup.addTo).not.toHaveBeenCalled();
   });
 
@@ -397,7 +397,7 @@ describe("directions route line and endpoint framing", () => {
       id: "directions-route", source: "directions-route", type: "line"
     }));
     expect(LngLatBounds).toHaveBeenCalledWith([0, 0], [0, 0]);
-    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    const bounds = vi.mocked(LngLatBounds).mock.results[0].value;
     expect(bounds.extend).toHaveBeenCalledWith([2, 1]);
     expect(map.fitBounds).toHaveBeenCalledWith(bounds, {
       padding: { top: 48, bottom: 48, left: 48, right: 48 },
@@ -406,11 +406,11 @@ describe("directions route line and endpoint framing", () => {
     });
     expect(map.flyTo).not.toHaveBeenCalled();
     expect(Marker).toHaveBeenCalledTimes(2);
-    const markers = jest.mocked(Marker).mock.results.map(result => result.value);
+    const markers = vi.mocked(Marker).mock.results.map(result => result.value);
     expect(markers[0].setLngLat).toHaveBeenCalledWith([0, 0]);
     expect(markers[1].setLngLat).toHaveBeenCalledWith([2, 1]);
-    expect(jest.mocked(Popup).mock.results[0].value.setText).toHaveBeenCalledWith("Board at: Example First (101)");
-    expect(jest.mocked(Popup).mock.results[1].value.setText).toHaveBeenCalledWith("Get off at: Example Last (103)");
+    expect(vi.mocked(Popup).mock.results[0].value.setText).toHaveBeenCalledWith("Board at: Example First (101)");
+    expect(vi.mocked(Popup).mock.results[1].value.setText).toHaveBeenCalledWith("Get off at: Example Last (103)");
     expect(onError).not.toHaveBeenCalled();
     close();
     expect(map.removeLayer).toHaveBeenCalledWith("directions-route");
@@ -433,7 +433,7 @@ describe("directions route line and endpoint framing", () => {
   it("shows downstream stops and fits the route from boarding to the terminus", async () => {
     const middle = { ...selection.destination, locid: 102, seq: 20, lng: 1, lat: 0 };
     const destinationStops = [middle, middle, selection.destination];
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         ...geometry,
@@ -470,14 +470,14 @@ describe("directions route line and endpoint framing", () => {
       data: expect.objectContaining({ geometry: geometry.geometry })
     }));
     expect(map.moveLayer).toHaveBeenCalledWith("directions-route", "directions-stops");
-    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    const bounds = vi.mocked(LngLatBounds).mock.results[0].value;
     expect(bounds.extend).toHaveBeenCalledWith([2, 1]);
     expect(bounds.extend).not.toHaveBeenCalledWith([-1, 0]);
     expect(bounds.extend).not.toHaveBeenCalledWith([3, 1]);
     expect(map.fitBounds).toHaveBeenLastCalledWith(bounds, expect.anything());
     expect(map.flyTo).not.toHaveBeenCalled();
     expect(Marker).toHaveBeenCalledTimes(1);
-    expect(jest.mocked(Marker).mock.results[0].value.setLngLat).toHaveBeenCalledWith([0, 0]);
+    expect(vi.mocked(Marker).mock.results[0].value.setLngLat).toHaveBeenCalledWith([0, 0]);
     close();
     expect(map.removeLayer).toHaveBeenCalledWith("directions-stops");
     expect(map.removeSource).toHaveBeenCalledWith("directions-stops");
@@ -495,9 +495,9 @@ describe("directions route line and endpoint framing", () => {
     expect(map.addSource).toHaveBeenCalledWith("directions-route", expect.objectContaining({
       data: expect.objectContaining({ geometry: { type: "LineString", coordinates: [[0, 0], [1, 0]] } })
     }));
-    expect(jest.mocked(Marker).mock.results.map(({ value }) => value.setLngLat.mock.calls[0][0]))
+    expect(vi.mocked(Marker).mock.results.map(({ value }) => value.setLngLat.mock.calls[0][0]))
       .toEqual([[0, 0], [1, 0]]);
-    expect(jest.mocked(LngLatBounds).mock.results[0].value.extend).not.toHaveBeenCalledWith([2, 1]);
+    expect(vi.mocked(LngLatBounds).mock.results[0].value.extend).not.toHaveBeenCalledWith([2, 1]);
   });
 
   it("highlights and restores a stop without refetching geometry or moving the camera", async () => {
@@ -536,7 +536,7 @@ describe("directions route line and endpoint framing", () => {
       ...geometry,
       geometry: { type: "LineString", coordinates: [[-1, 0], ...geometry.geometry.coordinates, [3, 1]] }
     };
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => fullGeometry });
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => fullGeometry });
     await act(async () => showDirectionsSelection(map, {
       ...selection,
       destination: undefined,
@@ -545,7 +545,7 @@ describe("directions route line and endpoint framing", () => {
     expect(map.addSource).toHaveBeenCalledWith("directions-route", expect.objectContaining({
       data: expect.objectContaining({ geometry: geometry.geometry })
     }));
-    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    const bounds = vi.mocked(LngLatBounds).mock.results[0].value;
     expect(bounds.extend).not.toHaveBeenCalledWith([-1, 0]);
     expect(bounds.extend).not.toHaveBeenCalledWith([3, 1]);
     expect(map.fitBounds).toHaveBeenCalled();
@@ -563,13 +563,13 @@ describe("directions route line and endpoint framing", () => {
     expect(source.data.geometry.coordinates).toEqual([[2, 1], [2, 1]]);
     const stopSource = map.addSource.mock.calls.find(([id]) => id === "directions-stops")[1];
     expect(stopSource.data.features).toEqual([]);
-    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    const bounds = vi.mocked(LngLatBounds).mock.results[0].value;
     expect(bounds.extend).not.toHaveBeenCalledWith([0, 0]);
   });
 
   it("removes choosing markers and ignores a late route response after cancellation", async () => {
     let resolveFetch: (response: object) => void;
-    global.fetch = jest.fn().mockImplementation(() => new Promise(resolve => { resolveFetch = resolve; }));
+    global.fetch = vi.fn().mockImplementation(() => new Promise(resolve => { resolveFetch = resolve; }));
     const close = showDirectionsSelection(map, {
       ...selection, destination: undefined, destinationStops: [selection.destination]
     }, onError);
@@ -582,7 +582,7 @@ describe("directions route line and endpoint framing", () => {
   });
 
   it("draws a solid selected route and includes intervening road bends in the fitted bounds", async () => {
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         ...geometry,
@@ -590,7 +590,7 @@ describe("directions route line and endpoint framing", () => {
       })
     });
     await act(async () => showDirectionsSelection(map, selection, onError));
-    const bounds = jest.mocked(LngLatBounds).mock.results[0].value;
+    const bounds = vi.mocked(LngLatBounds).mock.results[0].value;
     expect(bounds.extend).toHaveBeenCalledWith([0, -2]);
     expect(bounds.extend).toHaveBeenCalledWith([2, -2]);
     expect(map.fitBounds).toHaveBeenLastCalledWith(bounds, expect.anything());
@@ -601,7 +601,7 @@ describe("directions route line and endpoint framing", () => {
   });
 
   it("loads existing line GeometryCollections without discarding their parts", async () => {
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         ...geometry,
@@ -636,12 +636,12 @@ describe("directions route line and endpoint framing", () => {
 
   it("removes its markers and route overlay and ignores responses after cleanup", async () => {
     let resolveFetch: (response: object) => void;
-    global.fetch = jest.fn().mockImplementation(() => new Promise(resolve => { resolveFetch = resolve; }));
+    global.fetch = vi.fn().mockImplementation(() => new Promise(resolve => { resolveFetch = resolve; }));
     const close = showDirectionsSelection(map, selection, onError);
-    const signal = jest.mocked(global.fetch).mock.calls[0][1].signal;
+    const signal = vi.mocked(global.fetch).mock.calls[0][1].signal;
     close();
     expect(signal.aborted).toBe(true);
-    jest.mocked(Marker).mock.results.forEach(result => {
+    vi.mocked(Marker).mock.results.forEach(result => {
       expect(result.value.remove).toHaveBeenCalledTimes(1);
     });
     await act(async () => resolveFetch({ ok: true, json: async () => geometry }));
@@ -650,7 +650,7 @@ describe("directions route line and endpoint framing", () => {
   });
 
   it.each([404, "invalid geometry"])("reports %s without drawing a false route", async failure => {
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: failure !== 404,
       status: 404,
       statusText: "Not Found",
@@ -662,7 +662,7 @@ describe("directions route line and endpoint framing", () => {
   });
 
   it("preserves other views' partial success when one route geometry is unavailable", async () => {
-    jest.mocked(global.fetch)
+    vi.mocked(global.fetch)
       .mockResolvedValueOnce({ ok: false, status: 404, statusText: "Not Found" })
       .mockResolvedValueOnce({ ok: true, json: async () => geometry });
     const routes = await setRoutes(map, {

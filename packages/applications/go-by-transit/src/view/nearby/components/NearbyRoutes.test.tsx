@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
@@ -64,7 +65,7 @@ describe("NearbyRoutes", () => {
           <NearbyRoutes
             nearbyRoutes={{ "54": [route] }}
             radiusSize={1000}
-            handleRadiusSelectionChange={jest.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={1}
             stopCount={2}
           />
@@ -90,7 +91,7 @@ describe("NearbyRoutes", () => {
           <NearbyRoutes
             nearbyRoutes={{ "54": [route] }}
             radiusSize={1000}
-            handleRadiusSelectionChange={jest.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={1}
             stopCount={2}
           />
@@ -135,7 +136,7 @@ describe("NearbyRoutes", () => {
           <NearbyRoutes
             nearbyRoutes={{}}
             radiusSize={1000}
-            handleRadiusSelectionChange={jest.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={0}
             stopCount={0}
           />

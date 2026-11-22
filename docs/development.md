@@ -49,13 +49,15 @@ Vite build. To run the app test targets used by both workflows:
 npx nx run-many -t test:ui,test:unit --outputStyle=stream
 ```
 
-Jest 30 runs the React tests through `babel-jest` with the Babel 8 env, React, and
-TypeScript presets, independently of Vite. Keep Jest, `babel-jest`, and
-`jest-environment-jsdom` on matching versions. Modern fake timers use
-`jest.useFakeTimers()` without the old `"modern"` argument.
-Jest's transitive Babel 7 syntax plugins still declare incompatible Babel core
-peer ranges against Babel 8. The full test suite passes, but `npm ls @babel/core`
-continues to report these upstream peer mismatches.
+Vitest 5 runs TypeScript and React tests through the app's Vite configuration,
+with JSDOM for DOM tests and Node for the core TriMet client tests. Keep Vitest
+and `@vitest/coverage-v8` on matching versions. `npm test` runs once; use
+`npx vitest` for interactive watch mode.
+Import `vi` and mock types from `vitest`; suite, assertion, and lifecycle globals
+are enabled in `vitest.config.mts`. Mock factories return an export object,
+including `default` for default exports, and use asynchronous `vi.importActual`
+for partial mocks. Constructor mocks must use constructable functions, not
+arrows. Modern fake timers use `vi.useFakeTimers()`.
 Nx caches the place-data tests locally. UI tests still
 run every time, and builds are uncached because each Pages deployment needs its
 own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
@@ -66,7 +68,7 @@ Oxlint checks all workspace TypeScript and TSX files using native rules in
 `.oxlintrc.json`, migrated from the previous ESLint TypeScript/React configuration.
 Oxfmt handles formatting. Existing `any` types, TypeScript
 suppression comments, unused declarations, and the automatic JSX runtime remain
-supported. Jest globals and CommonJS mock imports are enabled only in test files;
+supported. Vitest globals are enabled only in test files;
 React props use TypeScript rather than runtime PropTypes.
 
 The native-only migration retains 77 enabled rules, including
@@ -97,9 +99,8 @@ Type checking uses TypeScript 7 with bundler
 module resolution, an ES2020 language target, and explicit Node/React ambient
 types. The `typecheck` npm/Nx target invokes `tsc --noEmit`. Vite controls
 production JavaScript output. Oxlint does not require the old compiler API, so
-TypeScript 5 and the `typescript-native` alias are no longer needed. Jest uses a
-CommonJS configuration and does not need ts-node, though npm may retain it as an
-optional Jest peer dependency.
+TypeScript 5 and the `typescript-native` alias are no longer needed. Vitest uses
+an ESM configuration and does not need Babel presets or ts-node.
 Commitlint 21 uses Jiti for TypeScript configuration and no longer depends on
 `cosmiconfig-typescript-loader`; this repository keeps its JavaScript config.
 
@@ -113,7 +114,7 @@ jest-dom 7 requires Node 22 or newer and Testing Library DOM 10, both covered by
 the repository's Node 26 target and React Testing Library dependencies. Node
 ambient types likewise track Node 26.
 
-All app `*.test.tsx` files run in the `ui` Jest project, including the migrated
+All app `*.test.tsx` files run in the `ui` Vitest project, including the migrated
 Enzyme coverage, so the deployment workflows run them. Non-React app tests run
 in the `unit` project through `npm run test:unit`; both app projects run in CI.
 Shared package tests keep their existing projects.
@@ -127,21 +128,23 @@ were retired rather than retained as passing coverage.
 
 ## Coverage reports and badge
 
-Both deployment workflows run all Jest projects once with coverage, instead of
+Both deployment workflows run all Vitest projects once with V8 coverage, instead of
 running separate app and shared-package test commands. Place-data tests and the
 coverage-report script tests still run separately through Nx. Typecheck and
 build steps remain unchanged.
 
 ```powershell
-npm run test:coverage -- --runInBand
+npm run test:coverage -- --maxWorkers=1
 npm run coverage:report
 ```
 
 Reports in ignored `coverage/` include HTML (`index.html`), LCOV, JSON summary,
 Cobertura XML, and a generated line-coverage percentage badge (`badge.svg`).
-CI retains the report as the `coverage-report` artifact, including when Jest
+CI retains the report as the `coverage-report` artifact, including when Vitest
 fails, and appends all four coverage metrics to the job summary after successful
 tests. Coverage measures the app and workspace packages, not place-data scripts.
+V8 instrumentation differs from Jest's previous instrumentation, so percentages
+can change even when the tests and source coverage scope stay the same.
 
 Production publishes the report at
 [coverage/](https://wintermuted.github.io/overworld/coverage/) alongside the

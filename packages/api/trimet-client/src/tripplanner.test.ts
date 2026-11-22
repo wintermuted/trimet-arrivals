@@ -1,4 +1,5 @@
-/** @jest-environment jsdom */
+import { vi } from "vitest";
+/** @vitest-environment jsdom */
 import { parsePlannerCoordinates, parseTripPlannerResponse, planTrip } from "./index";
 
 const response = `<?xml version="1.0" encoding="UTF-8"?>
@@ -19,7 +20,7 @@ const response = `<?xml version="1.0" encoding="UTF-8"?>
 describe("TriMet trip planner response", () => {
   it("encodes mixed endpoints with the corresponding TriMet parameters", async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = jest.fn().mockResolvedValue({ ok: true, text: async () => response });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => response });
     const { signal } = new AbortController();
     globalThis.fetch = fetchMock;
     try {

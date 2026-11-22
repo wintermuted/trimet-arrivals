@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
@@ -8,8 +9,8 @@ import FollowedVehicleTrip from "../view/nearby/components/FollowedVehicleTrip";
 import { VehicleFeed } from "../view/nearby/util/useVehiclePositions";
 import { VehicleFollowView } from "../view/nearby/util/mapbox/vehicleLayer";
 
-jest.mock("../api/trimet/vehicleTrip", () => ({
-  ...jest.requireActual("../api/trimet/vehicleTrip"), getVehicleTrip: jest.fn(),
+vi.mock("../api/trimet/vehicleTrip", async () => ({
+  ...(await vi.importActual<typeof import("../api/trimet/vehicleTrip")>("../api/trimet/vehicleTrip")), getVehicleTrip: vi.fn(),
 }));
 
 describe("following a vehicle's current run", () => {
@@ -32,30 +33,30 @@ describe("following a vehicle's current run", () => {
   let container: HTMLDivElement;
   let feed: VehicleFeed;
   let view: VehicleFollowView;
-  const onViewChange = jest.fn();
-  const onBack = jest.fn();
+  const onViewChange = vi.fn();
+  const onBack = vi.fn();
   async function render() {
     await act(async () => { root.render(<MemoryRouter><FollowedVehicleTrip selection={selection} feed={feed}
       view={view} onViewChange={onViewChange} backTo="/nearby/planner?from=101#options" onBack={onBack} /></MemoryRouter>); });
   }
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(now);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
     Object.defineProperty(document, "hidden", { configurable: true, value: false });
     feed = { vehicles: [selection], status: "current", updatedAt: now, rejected: 0 };
     view = "north-up";
-    jest.mocked(getVehicleTrip).mockResolvedValue(snapshot());
+    vi.mocked(getVehicleTrip).mockResolvedValue(snapshot());
     container = document.createElement("div");
     root = createRoot(container);
   });
   afterEach(() => {
     act(() => root.unmount());
-    jest.useRealTimers();
+    vi.useRealTimers();
     Reflect.deleteProperty(document, "hidden");
   });
 
   it("shows a shared sidebar header with a back action even before trip legs load", async () => {
-    jest.mocked(getVehicleTrip).mockImplementation(() => new Promise(() => {}));
+    vi.mocked(getVehicleTrip).mockImplementation(() => new Promise(() => {}));
     await render();
     const header = container.querySelector("header.transit-detail-header");
     expect(header.querySelector("h3").textContent).toBe("Following Route 15");
@@ -72,8 +73,8 @@ describe("following a vehicle's current run", () => {
     expect(getVehicleTrip).toHaveBeenCalledWith("1547", "trip", expect.any(AbortSignal));
     expect(container.querySelector('[aria-current="step"]').textContent).toContain("Bravo");
     expect(container.querySelectorAll(".transit-follow-legs li")).toHaveLength(3);
-    jest.setSystemTime(now + 15000);
-    jest.mocked(getVehicleTrip).mockResolvedValue(snapshot(2));
+    vi.setSystemTime(now + 15000);
+    vi.mocked(getVehicleTrip).mockResolvedValue(snapshot(2));
     feed = { ...feed, updatedAt: now + 15000 };
     await render();
     expect(container.querySelector('[aria-current="step"]').textContent).toContain("Charlie");
@@ -82,7 +83,7 @@ describe("following a vehicle's current run", () => {
   });
 
   it("labels schedule-based progress instead of claiming observed passed stops", async () => {
-    jest.mocked(getVehicleTrip).mockResolvedValue(snapshot(2, false));
+    vi.mocked(getVehicleTrip).mockResolvedValue(snapshot(2, false));
     await render();
     expect(container.textContent).toContain("schedule-based");
     expect(container.textContent).toContain("Scheduled past");
@@ -91,18 +92,18 @@ describe("following a vehicle's current run", () => {
 
   it("keeps last-known legs on failure and honors backoff while position polling continues", async () => {
     await render();
-    jest.mocked(getVehicleTrip).mockRejectedValue(new VehicleRequestError("Throttled", false, 60000));
-    jest.setSystemTime(now + 15000);
+    vi.mocked(getVehicleTrip).mockRejectedValue(new VehicleRequestError("Throttled", false, 60000));
+    vi.setSystemTime(now + 15000);
     feed = { ...feed, updatedAt: now + 15000 };
     await render();
     expect(container.textContent).toContain("could not be updated");
     expect(container.textContent).toContain("last report");
     expect(container.querySelector('[aria-current="step"]')).toBeNull();
-    jest.setSystemTime(now + 30000);
+    vi.setSystemTime(now + 30000);
     feed = { ...feed, updatedAt: now + 30000 };
     await render();
     expect(getVehicleTrip).toHaveBeenCalledTimes(2);
-    jest.mocked(getVehicleTrip).mockResolvedValue(snapshot(2));
+    vi.mocked(getVehicleTrip).mockResolvedValue(snapshot(2));
     await act(async () => { Array.from(container.querySelectorAll("button"))
       .find(button => button.textContent === "Retry trip progress").click(); });
     expect(getVehicleTrip).toHaveBeenCalledTimes(3);
@@ -121,15 +122,15 @@ describe("following a vehicle's current run", () => {
   });
 
   it("aborts trip-detail work when updates pause or the sidebar unmounts", async () => {
-    jest.mocked(getVehicleTrip).mockImplementation(() => new Promise(() => {}));
+    vi.mocked(getVehicleTrip).mockImplementation(() => new Promise(() => {}));
     await render();
-    const signal = jest.mocked(getVehicleTrip).mock.calls[0][2];
+    const signal = vi.mocked(getVehicleTrip).mock.calls[0][2];
     feed = { ...feed, status: "paused" };
     await render();
     expect(signal.aborted).toBe(true);
     // React 19 queues microtasks that Jest's fake timers also count.
-    act(() => jest.runAllTicks());
-    expect(jest.getTimerCount()).toBe(0);
+    act(() => vi.runAllTicks());
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("exposes pressed-state map views and explains missing headings without restarting trip requests", async () => {

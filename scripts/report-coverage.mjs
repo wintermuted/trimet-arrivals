@@ -32,7 +32,7 @@ export async function reportCoverage(directory = "coverage", summaryFile = proce
     const rows = metrics.map(metric =>
       `| ${metric} | ${total[metric].pct.toFixed(2)}% | ${total[metric].covered}/${total[metric].total} |`
     );
-    await appendFile(summaryFile, `## Jest coverage\n\nApp and workspace packages; place-data scripts are tested separately.\n\n| Metric | Coverage | Covered/total |\n| --- | ---: | ---: |\n${rows.join("\n")}\n\nDownload the coverage-report artifact for the browsable HTML report.\n`);
+    await appendFile(summaryFile, `## Vitest coverage\n\nApp and workspace packages; place-data scripts are tested separately.\n\n| Metric | Coverage | Covered/total |\n| --- | ---: | ---: |\n${rows.join("\n")}\n\nDownload the coverage-report artifact for the browsable HTML report.\n`);
   }
 }
 

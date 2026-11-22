@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
@@ -10,10 +11,10 @@ import { RouteDirectionStop } from "../api/trimet/interfaces/routes";
 import NearbySimpleRouteArrivals from "../view/nearby/components/NearbySimpleRouteArrivals";
 import { StopsOnRoute } from "../view/nearby/components/common/StopsOnRoute";
 
-jest.mock("../api/trimet/arrivals");
-jest.mock("../api/trimet/routeConfig");
-jest.mock("../api/trimet/stops");
-jest.mock("../view/nearby/components/common/InfoCard", () => ({ InfoCard: () => null }));
+vi.mock("../api/trimet/arrivals");
+vi.mock("../api/trimet/routeConfig");
+vi.mock("../api/trimet/stops");
+vi.mock("../view/nearby/components/common/InfoCard", () => ({ InfoCard: () => null }));
 
 const now = Date.parse("2026-11-15T06:00:00Z");
 const minute = 60000;
@@ -28,18 +29,18 @@ const arrival = (overrides: Partial<Arrival> = {}): Arrival => ({
 const response = (arrivals: Arrival[]): ArrivalData => ({
   arrival: arrivals, location: [], detour: [], queryTime: String(now)
 });
-const load = jest.mocked(getArrivals);
+const load = vi.mocked(getArrivals);
 
 describe("selected departure stop predictions", () => {
   let container: HTMLDivElement;
   let root: Root;
 
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(now);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
     load.mockReset();
-    jest.mocked(getRouteByIdAndDirection).mockReset();
-    jest.mocked(getNearbyStops).mockReset().mockImplementation(() => new Promise(() => {}));
+    vi.mocked(getRouteByIdAndDirection).mockReset();
+    vi.mocked(getNearbyStops).mockReset().mockImplementation(() => new Promise(() => {}));
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -48,7 +49,7 @@ describe("selected departure stop predictions", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   async function renderStops(stops: RouteDirectionStop[], selected = arrival(), repeated: number[] = []) {
@@ -110,10 +111,10 @@ describe("selected departure stop predictions", () => {
     await act(async () => container.querySelector<HTMLButtonElement>("button").click());
     expect(row(1000).textContent).toContain("10:20 PM Estimated · Last received");
     expect(row(1128).textContent).toContain("10:30 PM Estimated");
-    await act(async () => jest.advanceTimersByTime(30000));
+    await act(async () => vi.advanceTimersByTime(30000));
     expect(load).toHaveBeenCalledTimes(6);
     act(() => root.render(null));
-    await act(async () => jest.advanceTimersByTime(60000));
+    await act(async () => vi.advanceTimersByTime(60000));
     expect(load).toHaveBeenCalledTimes(6);
   });
 
@@ -145,7 +146,7 @@ describe("selected departure stop predictions", () => {
   it("switches predictions with departure selection and ignores the earlier trip's late response", async () => {
     const first = arrival();
     const second = arrival({ id: "b", tripID: "trip-b", estimated: now + 15 * minute });
-    jest.mocked(getRouteByIdAndDirection).mockResolvedValue({
+    vi.mocked(getRouteByIdAndDirection).mockResolvedValue({
       route: [{ route: 54, id: 54, desc: "Example", routeColor: "", routeSortOrder: 54, type: "B",
         dir: [{ dir: 1, desc: "To Example", stop: [stop(101, 1), stop(102, 2)] }] }]
     });
@@ -157,7 +158,7 @@ describe("selected departure stop predictions", () => {
       if (downstreamCalls === 1) return new Promise(resolve => { resolveOld = resolve; });
       return Promise.resolve(response([arrival({ locid: 102, tripID: "trip-b", estimated: now + 30 * minute })]));
     });
-    const map = jest.fn();
+    const map = vi.fn();
     await act(async () => root.render(
       <MemoryRouter initialEntries={["/nearby/simple-routes/54?stop=101&direction=1"]}>
         <Routes><Route path="/nearby/simple-routes/:id" element={<NearbySimpleRouteArrivals onSelectionChanged={map} />} /></Routes>
@@ -175,7 +176,7 @@ describe("selected departure stop predictions", () => {
     load.mockImplementation(async id => id === "101"
       ? response([first])
       : response([arrival({ locid: 102, estimated: now + 20 * minute })]));
-    await act(async () => jest.advanceTimersByTime(30000));
+    await act(async () => vi.advanceTimersByTime(30000));
     expect(container.querySelector<HTMLButtonElement>(".transit-departure-option").getAttribute("aria-pressed")).toBe("true");
     expect(row(102).textContent).toContain("10:20 PM Estimated");
 
@@ -183,7 +184,7 @@ describe("selected departure stop predictions", () => {
       if (id === "101") throw new Error("Offline");
       return response([arrival({ locid: 102, estimated: now + 20 * minute })]);
     });
-    await act(async () => jest.advanceTimersByTime(30000));
+    await act(async () => vi.advanceTimersByTime(30000));
     expect(container.querySelector('[role="alert"]').textContent).toContain("last received departures");
     expect(container.querySelector(".transit-departure-option")).not.toBeNull();
   });
@@ -193,7 +194,7 @@ describe("selected departure stop predictions", () => {
     ["direction", 54, 0],
     ["origin", 54, 1]
   ])("ignores old stop predictions after changing %s", async (_change, nextRoute, nextDirection) => {
-    jest.mocked(getRouteByIdAndDirection).mockImplementation(async (routeId, direction) => ({
+    vi.mocked(getRouteByIdAndDirection).mockImplementation(async (routeId, direction) => ({
       route: [{ route: routeId, id: routeId, desc: "Example", routeColor: "", routeSortOrder: routeId, type: "B",
         dir: [{ dir: direction, desc: "To Example", stop: routeId === 54 && direction === 1
           ? [stop(101, 1), stop(102, 2), stop(201, 3), stop(202, 4)]
@@ -217,7 +218,7 @@ describe("selected departure stop predictions", () => {
     await act(async () => root.render(
       <MemoryRouter initialEntries={["/nearby/simple-routes/54?stop=101&direction=1"]}>
         <ChangeSelection />
-        <Routes><Route path="/nearby/simple-routes/:id" element={<NearbySimpleRouteArrivals onSelectionChanged={jest.fn()} />} /></Routes>
+        <Routes><Route path="/nearby/simple-routes/:id" element={<NearbySimpleRouteArrivals onSelectionChanged={vi.fn()} />} /></Routes>
       </MemoryRouter>
     ));
     await act(async () => container.querySelector<HTMLButtonElement>("button").click());

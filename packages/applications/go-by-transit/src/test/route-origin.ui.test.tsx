@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom";
@@ -9,13 +10,13 @@ import { RouteDataResultSet } from "../api/trimet/interfaces/routes";
 import { arrival1 } from "../api/trimet/fixture/arrival";
 import NearbySimpleRouteArrivals from "../view/nearby/components/NearbySimpleRouteArrivals";
 
-jest.mock("../api/trimet/arrivals");
-jest.mock("../api/mapbox/walking");
-jest.mock("../api/trimet/routeConfig");
-jest.mock("../view/nearby/components/common/StopsOnRoute", () => ({
+vi.mock("../api/trimet/arrivals");
+vi.mock("../api/mapbox/walking");
+vi.mock("../api/trimet/routeConfig");
+vi.mock("../view/nearby/components/common/StopsOnRoute", () => ({
   StopsOnRoute: ({ remainingStopsOnRoute }) => <p data-testid="remaining">{remainingStopsOnRoute.map(stop => stop.locid).join(",")}</p>
 }));
-jest.mock("../view/nearby/components/common/InfoCard", () => ({ InfoCard: () => null }));
+vi.mock("../view/nearby/components/common/InfoCard", () => ({ InfoCard: () => null }));
 
 const stops = [
   { locid: 101, seq: 1, desc: "First", dir: "E", tp: true, lat: 1, lng: 1 },
@@ -41,12 +42,12 @@ function HistoryControls() {
 describe("route origin selection", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
-  const map = jest.fn();
-  const routeInfoMap = jest.fn();
+  const map = vi.fn();
+  const routeInfoMap = vi.fn();
   beforeEach(() => {
-    jest.mocked(getRouteByIdAndDirection).mockReset().mockResolvedValue(route);
-    jest.mocked(getRouteById).mockReset().mockResolvedValue(route);
-    jest.mocked(getArrivals).mockReset().mockImplementation(async id => result(Number(id)));
+    vi.mocked(getRouteByIdAndDirection).mockReset().mockResolvedValue(route);
+    vi.mocked(getRouteById).mockReset().mockResolvedValue(route);
+    vi.mocked(getArrivals).mockReset().mockImplementation(async id => result(Number(id)));
     map.mockReset();
     routeInfoMap.mockReset();
     container = document.createElement("div");
@@ -77,11 +78,11 @@ describe("route origin selection", () => {
   }
 
   it("opens route information from a truncated header and restores the stop and map", async () => {
-    const cleanupSelection = jest.fn();
-    const cleanupInfo = jest.fn();
+    const cleanupSelection = vi.fn();
+    const cleanupInfo = vi.fn();
     map.mockReturnValue(cleanupSelection);
     routeInfoMap.mockReturnValue(cleanupInfo);
-    jest.mocked(getArrivals).mockResolvedValueOnce({
+    vi.mocked(getArrivals).mockResolvedValueOnce({
       ...result(102),
       arrival: [...result(102).arrival, { ...result(102).arrival[0], id: "another-departure" }]
     });
@@ -117,9 +118,9 @@ describe("route origin selection", () => {
       feature: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[0, 0], [1, 1]] } },
       meters: 200, seconds: 150, status: "ready"
     };
-    const cleanupWalking = jest.fn();
-    const showWalking = jest.fn(() => cleanupWalking);
-    jest.mocked(getWalkingRoute).mockReset().mockResolvedValue(walking);
+    const cleanupWalking = vi.fn();
+    const showWalking = vi.fn(() => cleanupWalking);
+    vi.mocked(getWalkingRoute).mockReset().mockResolvedValue(walking);
     await render(undefined, showWalking);
     expect(showWalking).toHaveBeenCalledTimes(1);
     await act(async () => container.querySelector<HTMLAnchorElement>('[aria-label="View Route 54 details"]').click());
@@ -167,7 +168,7 @@ describe("route origin selection", () => {
   });
 
   it("keeps the selector available when no departures are found", async () => {
-    jest.mocked(getArrivals).mockImplementation(async id =>
+    vi.mocked(getArrivals).mockImplementation(async id =>
       id === "101" ? { ...result(101, false), arrival: undefined } : result(Number(id))
     );
     await render();
@@ -180,7 +181,7 @@ describe("route origin selection", () => {
 
   it("ignores an earlier stop response arriving after a later selection", async () => {
     let resolveFirst: (value: ArrivalData) => void;
-    jest.mocked(getArrivals).mockImplementation(id =>
+    vi.mocked(getArrivals).mockImplementation(id =>
       id === "101" ? new Promise(resolve => { resolveFirst = resolve; }) : Promise.resolve(result(Number(id)))
     );
     await render();
@@ -193,14 +194,14 @@ describe("route origin selection", () => {
   });
 
   it("reports departure failures and allows retry for the selected stop", async () => {
-    jest.mocked(getArrivals).mockImplementation(async id => {
+    vi.mocked(getArrivals).mockImplementation(async id => {
       if (id === "101") throw new Error("Offline");
       return result(Number(id));
     });
     await render();
     await choose("101");
     expect(container.querySelector('[role="alert"]').textContent).toContain("Could not load departures");
-    jest.mocked(getArrivals).mockResolvedValue(result(101));
+    vi.mocked(getArrivals).mockResolvedValue(result(101));
     const retry = Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Try again");
     await act(async () => retry.click());
     expect(container.querySelector(".transit-departure-option")).not.toBeNull();
