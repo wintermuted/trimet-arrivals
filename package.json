@@ -52,7 +52,7 @@
     "@types/node": "26.6.6",
     "@vitejs/plugin-react": "^6.3.0",
     "@vitest/coverage-v8": "5.1.0",
-    "autoprefixer": "^10.4.22",
+    "autoprefixer": "^10.6.2",
     "husky": "^9.1.7",
     "jsdom": "^31.0.1",
     "nvm": "^0.0.4",
