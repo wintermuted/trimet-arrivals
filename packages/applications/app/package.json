@@ -28,7 +28,7 @@
     "react-fontawesome": "^1.7.1",
     "react-redux": "^9.2.0",
     "react-router": "^6.0.0",
-    "react-router-dom": "^6.0.0",
+    "react-router-dom": "^6.30.6",
     "react-select": "^5.10.2",
     "redux": "^5.0.1",
     "redux-saga": "^1.1.3",
