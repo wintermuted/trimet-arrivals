@@ -7,6 +7,8 @@ The package exports `TimeDisplayProvider`, `useTimeDisplay`, and
 The arrival indicators retain their existing Moment-based behavior and package
 their styles; the badge uses the shared UI theme. See the [design system guide](../../../docs/design-system.md)
 for shared UI conventions.
+Indicator components include their own styles; on-time and early states use the
+theme success color without requiring arrivals-table styles.
 
 `ui/transit` also exports `ArrivalRow`, `ArrivalRows`, `ArrivalsTable`, and
 `ArrivalsTableLoadMore`, including their prop types and styles. Callers supply
