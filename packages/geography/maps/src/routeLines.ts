@@ -115,7 +115,10 @@ export async function setRoutes(
 ): Promise<string[]> {
   const promises = Object.entries(nearbyRouteIds).flatMap(([routeId, route]) =>
     route.directions.map(directionId =>
-      getRouteGeometry(routeId, directionId).catch(error => {
+      getRouteGeometry(routeId, directionId).then(feature => ({
+        ...feature,
+        properties: { ...feature.properties, route_number: routeId, direction: directionId }
+      })).catch(error => {
         console.error(error);
         return undefined;
       })
