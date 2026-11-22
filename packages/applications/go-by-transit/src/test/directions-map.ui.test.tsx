@@ -156,10 +156,12 @@ describe("directions route line and endpoint framing", () => {
   });
 
   it("removes marker resources if the stop popup cannot be created", () => {
-    vi.mocked(Popup).mockImplementationOnce(() => { throw new Error("Popup unavailable"); });
+    const failure = new Error("Popup unavailable");
+    vi.mocked(Popup).mockImplementationOnce(function () { throw failure; });
     expect(() => showStopDetailMarker(map, {
       id: 8455, desc: "Example stop", dir: "E", lat: 2, lng: 1, passengerCode: "E"
-    })).toThrow("Popup unavailable");
+    })).toThrow(failure);
+    expect(vi.mocked(Popup).mock.results.at(-1).value).toBe(failure);
     expect(map.removeLayer).toHaveBeenCalledWith("stop-detail-marker");
     expect(map.removeSource).toHaveBeenCalledWith("stop-detail-marker");
   });

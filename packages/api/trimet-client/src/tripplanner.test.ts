@@ -1,5 +1,5 @@
-import { vi } from "vitest";
 /** @vitest-environment jsdom */
+import { vi } from "vitest";
 import { parsePlannerCoordinates, parseTripPlannerResponse, planTrip } from "./index";
 
 const response = `<?xml version="1.0" encoding="UTF-8"?>
