@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { useBookmarkShortcuts } from "./react";
 import { BOOKMARK_SHORTCUTS, removeShortcutsForBookmark, setBookmarkShortcut } from "./bookmarkShortcuts";
@@ -5,7 +6,7 @@ import { BOOKMARK_SHORTCUTS, removeShortcutsForBookmark, setBookmarkShortcut } f
 const stops = { 101: { desc: "Saved stop" } };
 
 beforeEach(() => localStorage.clear());
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => vi.restoreAllMocks());
 
 it("synchronizes same-tab assignments and bookmark deletion between consumers", () => {
   const first = renderHook(() => useBookmarkShortcuts(stops));
@@ -18,7 +19,7 @@ it("synchronizes same-tab assignments and bookmark deletion between consumers", 
 });
 
 it("refreshes relevant cross-tab changes and storage clears, and removes subscriptions on unmount", () => {
-  const remove = jest.spyOn(window, "removeEventListener");
+  const remove = vi.spyOn(window, "removeEventListener");
   const hook = renderHook(() => useBookmarkShortcuts(stops));
   localStorage.setItem(BOOKMARK_SHORTCUTS, JSON.stringify({ work_location: 101 }));
   act(() => window.dispatchEvent(new StorageEvent("storage", { key: "unrelated" })));
@@ -34,7 +35,7 @@ it("refreshes relevant cross-tab changes and storage clears, and removes subscri
 });
 
 it("reports read and write failures, recovers on refresh, and retains other consumers after failed saves", () => {
-  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
   localStorage.setItem(BOOKMARK_SHORTCUTS, "{");
   const first = renderHook(() => useBookmarkShortcuts(stops));
   expect(first.result.current.error).toContain("Could not read");
@@ -43,8 +44,8 @@ it("reports read and write failures, recovers on refresh, and retains other cons
   expect(first.result.current.error).toBeUndefined();
   act(() => setBookmarkShortcut("home_location", 101, stops));
   const second = renderHook(() => useBookmarkShortcuts(stops));
-  const dispatch = jest.spyOn(window, "dispatchEvent");
-  jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Storage blocked"); });
+  const dispatch = vi.spyOn(window, "dispatchEvent");
+  vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Storage blocked"); });
   act(() => first.result.current.setShortcut("home_location"));
   expect(first.result.current.error).toContain("Could not save");
   expect(first.result.current.shortcuts).toEqual({ home_location: 101 });

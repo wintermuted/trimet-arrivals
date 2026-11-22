@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Map as MapboxMap } from "mapbox-gl";
@@ -5,15 +6,15 @@ import { getVehicles, VehicleRequestError } from "../api/trimet/vehicles";
 import { VehicleSnapshot } from "../api/trimet/interfaces/vehicles";
 import { useVehiclePositions } from "../view/nearby/util/useVehiclePositions";
 
-jest.mock("../api/trimet/vehicles", () => ({
-  ...jest.requireActual("../api/trimet/vehicles"),
-  getVehicles: jest.fn(),
+vi.mock("../api/trimet/vehicles", async () => ({
+  ...(await vi.importActual<typeof import("../api/trimet/vehicles")>("../api/trimet/vehicles")),
+  getVehicles: vi.fn(),
 }));
 
 const now = 1800000000000;
 const vehicle = { id: "bus-1", type: "bus" as const, longitude: -122.68, latitude: 45.51, time: now, expires: now + 300000 };
 const snapshot = (): VehicleSnapshot => ({ vehicles: [{ ...vehicle, time: Date.now() }], queryTime: Date.now(), rejected: 0 });
-const get = jest.mocked(getVehicles);
+const get = vi.mocked(getVehicles);
 
 describe("vehicle viewport polling", () => {
   let root: Root;
@@ -23,9 +24,9 @@ describe("vehicle viewport polling", () => {
   const handlers = new Map<string, () => void>();
   const originalHidden = Object.getOwnPropertyDescriptor(document, "hidden");
   const map = {
-    on: jest.fn((name, handler) => { handlers.set(name, handler); }),
-    off: jest.fn((name, handler) => { if (handlers.get(name) === handler) handlers.delete(name); }),
-    getBounds: jest.fn(() => ({
+    on: vi.fn((name, handler) => { handlers.set(name, handler); }),
+    off: vi.fn((name, handler) => { if (handlers.get(name) === handler) handlers.delete(name); }),
+    getBounds: vi.fn(() => ({
       getWest: () => -123, getSouth: () => 45, getEast: () => -122, getNorth: () => 46,
     })),
   };
@@ -37,7 +38,7 @@ describe("vehicle viewport polling", () => {
     await act(async () => { root.render(<Harness enabled={enabled} ready={ready} vehicleId={vehicleId} />); });
   }
   async function advance(ms: number) {
-    await act(async () => { jest.advanceTimersByTime(ms); });
+    await act(async () => { vi.advanceTimersByTime(ms); });
   }
   async function visibility(value: boolean) {
     hidden = value;
@@ -45,9 +46,9 @@ describe("vehicle viewport polling", () => {
     await advance(0);
   }
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(now);
-    jest.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+    vi.clearAllMocks();
     handlers.clear();
     map.on.mockImplementation((name, handler) => { handlers.set(name, handler); });
     map.off.mockImplementation((name, handler) => { if (handlers.get(name) === handler) handlers.delete(name); });
@@ -63,7 +64,7 @@ describe("vehicle viewport polling", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
-    jest.useRealTimers();
+    vi.useRealTimers();
     if (originalHidden) Object.defineProperty(document, "hidden", originalHidden);
     else Reflect.deleteProperty(document, "hidden");
   });
@@ -158,8 +159,8 @@ describe("vehicle viewport polling", () => {
     expect(feed.message).toContain("timed out");
     await render(false);
     // React 19 queues microtasks that Jest's fake timers also count.
-    act(() => jest.runAllTicks());
-    expect(jest.getTimerCount()).toBe(0);
+    act(() => vi.runAllTicks());
+    expect(vi.getTimerCount()).toBe(0);
     expect(handlers.size).toBe(0);
   });
 

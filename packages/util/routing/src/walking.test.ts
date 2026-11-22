@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
   clearWalkingCache,
   getWalkingEstimates,
@@ -43,12 +44,12 @@ describe("Mapbox walking routing", () => {
   const originalFetch = global.fetch;
   beforeEach(() => {
     setWalkingAccessToken("pk.synthetic-test-token");
-    global.fetch = jest.fn().mockResolvedValue(response(matrix()));
+    global.fetch = vi.fn().mockResolvedValue(response(matrix()));
   });
   afterEach(() => {
     global.fetch = originalFetch;
     clearWalkingCache();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("requests one-to-many walking distance and time without straight-line substitution, deduplicating stop IDs", async () => {
@@ -57,7 +58,7 @@ describe("Mapbox walking routing", () => {
       [stops[0], ...stops],
       new AbortController().signal
     );
-    const url = new URL(jest.mocked(global.fetch).mock.calls[0][0].toString());
+    const url = new URL(vi.mocked(global.fetch).mock.calls[0][0].toString());
     expect(url.pathname).toContain("/directions-matrix/v1/mapbox/walking/");
     expect(url.searchParams.get("sources")).toBe("0");
     expect(url.searchParams.get("destinations")).toBe("1;2");
@@ -82,7 +83,7 @@ describe("Mapbox walking routing", () => {
       lng: 0,
       locid: index + 1,
     }));
-    jest
+    vi
       .mocked(global.fetch)
       .mockResolvedValueOnce(response(matrix(many.slice(0, 24))))
       .mockResolvedValueOnce(response(directions()));
@@ -92,7 +93,7 @@ describe("Mapbox walking routing", () => {
       new AbortController().signal
     );
     expect(result.size).toBe(25);
-    const urls = jest
+    const urls = vi
       .mocked(global.fetch)
       .mock.calls.map(([url]) => new URL(url.toString()));
     expect(urls[0].pathname.split("/").pop().split(";")).toHaveLength(25);
@@ -101,7 +102,7 @@ describe("Mapbox walking routing", () => {
   });
 
   it("caches briefly by origin and stop coordinates and invalidates on token changes", async () => {
-    const clock = jest.spyOn(Date, "now").mockReturnValue(1000);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1000);
     await getWalkingEstimates(origin, stops, new AbortController().signal);
     await getWalkingEstimates(
       origin,
@@ -124,7 +125,7 @@ describe("Mapbox walking routing", () => {
     data.distances[0][0] = null;
     data.durations[0][0] = null;
     data.destinations[1].distance = 100;
-    jest.mocked(global.fetch).mockResolvedValue(response(data));
+    vi.mocked(global.fetch).mockResolvedValue(response(data));
     const result = await getWalkingEstimates(
       origin,
       stops,
@@ -137,7 +138,7 @@ describe("Mapbox walking routing", () => {
   it.each(["NoRoute", "NoSegment"])(
     "handles %s without inventing a walking distance",
     async (code) => {
-      jest.mocked(global.fetch).mockResolvedValue(response({ code }));
+      vi.mocked(global.fetch).mockResolvedValue(response({ code }));
       const result = await getWalkingEstimates(
         origin,
         stops,
@@ -153,7 +154,7 @@ describe("Mapbox walking routing", () => {
   it.each([403, 429])(
     "surfaces HTTP %s without automatic retry loops",
     async (status) => {
-      jest.mocked(global.fetch).mockResolvedValue({ ok: false, status });
+      vi.mocked(global.fetch).mockResolvedValue({ ok: false, status });
       await expect(
         getWalkingEstimates(origin, stops, new AbortController().signal)
       ).rejects.toThrow(status === 429 ? "limit reached" : "routing access");
@@ -164,7 +165,7 @@ describe("Mapbox walking routing", () => {
   it("rejects malformed or negative results instead of caching them as success", async () => {
     const data = matrix();
     data.distances[0][0] = -1;
-    jest
+    vi
       .mocked(global.fetch)
       .mockResolvedValueOnce(response(data))
       .mockResolvedValueOnce(response(matrix()));
@@ -180,7 +181,7 @@ describe("Mapbox walking routing", () => {
 
   it("aborts pending batches and does not cache late results", async () => {
     let resolveFetch: (value: object) => void;
-    jest.mocked(global.fetch).mockImplementationOnce(
+    vi.mocked(global.fetch).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveFetch = resolve;
@@ -212,7 +213,7 @@ describe("Mapbox walking routing", () => {
   });
 
   it("returns validated walking geometry and refuses distant snapping", async () => {
-    jest.mocked(global.fetch).mockResolvedValueOnce(response(directions()));
+    vi.mocked(global.fetch).mockResolvedValueOnce(response(directions()));
     const result = await getWalkingRoute(
       origin,
       stops[0],
@@ -233,14 +234,14 @@ describe("Mapbox walking routing", () => {
     clearWalkingCache();
     const data = directions();
     data.waypoints[0].distance = 51;
-    jest.mocked(global.fetch).mockResolvedValueOnce(response(data));
+    vi.mocked(global.fetch).mockResolvedValueOnce(response(data));
     expect(
       await getWalkingRoute(origin, stops[0], new AbortController().signal)
     ).toEqual({ status: "uncertain" });
   });
 
   it("sanitizes transport errors instead of exposing request URLs", async () => {
-    jest
+    vi
       .mocked(global.fetch)
       .mockRejectedValue(
         new Error("Request failed: https://example.invalid/private-coordinate")

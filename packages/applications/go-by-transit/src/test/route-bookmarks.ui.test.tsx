@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { act } from "react";
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
@@ -9,7 +10,7 @@ import RouteBookmarkButton from "../view/bookmarks/component/RouteBookmarkButton
 import BookmarkSectionComponent from "../view/bookmarks/component/bookmarkSections/BookmarkSectionComponent";
 import BookmarkSections from "../view/bookmarks/component/bookmarkSections/BookmarkSections";
 
-jest.mock("../view/bookmarks/container/BookmarkSectionContainer", () => ({
+vi.mock("../view/bookmarks/container/BookmarkSectionContainer", () => ({
   __esModule: true,
   default: ({ bookmarkSectionId }) => (
     <span data-testid="section-id">{typeof bookmarkSectionId}:{bookmarkSectionId}</span>
@@ -48,8 +49,8 @@ describe("route bookmark controls", () => {
   });
 
   it("adds and removes a route bookmark with an accessible pressed state", () => {
-    const onBookmark = jest.fn();
-    const onRemove = jest.fn();
+    const onBookmark = vi.fn();
+    const onRemove = vi.fn();
     const render = (isBookmarked: boolean) =>
       act(() =>
         root.render(
@@ -78,7 +79,7 @@ describe("route bookmark controls", () => {
   });
 
   it("navigates to a saved route and can remove it from its group", () => {
-    const onRemove = jest.fn();
+    const onRemove = vi.fn();
     act(() =>
       root.render(
         <MemoryRouter>
@@ -105,11 +106,11 @@ describe("route bookmark controls", () => {
             id={2}
             bookmarksInSection={[]}
             routesInSection={[savedRoute]}
-            removeBookmarkSection={jest.fn()}
+            removeBookmarkSection={vi.fn()}
             allBookmarks={[]}
-            removeBookmarkFromSection={jest.fn()}
-            removeRouteFromSection={jest.fn()}
-            updateBookmarkSectionName={jest.fn()}
+            removeBookmarkFromSection={vi.fn()}
+            removeRouteFromSection={vi.fn()}
+            updateBookmarkSectionName={vi.fn()}
           />
         </MemoryRouter>
       )

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";
@@ -13,19 +14,19 @@ import { ConnectedTripPlannerView } from "../tripPlanner/TripPlannerView";
 import { BOOKMARK_SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
 import SearchHome from "./SearchHome";
 
-jest.mock("../nearby/util/mapbox/initializeMap", () => ({
-  initializeMap: jest.fn(() => {
+vi.mock("../nearby/util/mapbox/initializeMap", () => ({
+  initializeMap: vi.fn(() => {
     throw new Error("No WebGL");
   }),
 }));
-jest.mock("../../api/trimet/alerts");
-jest.mock("../../api/trimet/tripplanner");
-jest.mock("../../api/trimet/stopCatalog", () => ({
-  ...jest.requireActual("../../api/trimet/stopCatalog"),
-  getStopCatalog: jest.fn(),
+vi.mock("../../api/trimet/alerts");
+vi.mock("../../api/trimet/tripplanner");
+vi.mock("../../api/trimet/stopCatalog", async () => ({
+  ...(await vi.importActual<typeof import("../../api/trimet/stopCatalog")>("../../api/trimet/stopCatalog")),
+  getStopCatalog: vi.fn(),
 }));
 
-const loadCatalog = jest.mocked(getStopCatalog);
+const loadCatalog = vi.mocked(getStopCatalog);
 const stop = {
   aliases: [],
   dir: "E",
@@ -56,10 +57,10 @@ describe("Search homepage", () => {
   beforeEach(() => {
     localStorage.clear();
     loadCatalog.mockReset().mockResolvedValue(catalog);
-    jest
+    vi
       .mocked(getSystemAlerts)
       .mockResolvedValue({ alert: [], queryTime: "" });
-    jest
+    vi
       .mocked(planTrip)
       .mockReset()
       .mockResolvedValue({

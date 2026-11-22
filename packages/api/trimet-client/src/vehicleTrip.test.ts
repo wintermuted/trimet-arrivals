@@ -1,9 +1,10 @@
+import { vi } from "vitest";
 import { getVehicleTrip, parseVehicleTrip } from "./vehicleTrip";
 import { requestVehicleData } from "./vehicles";
 
 const options = { baseUrl: "https://example.test/ws/", appId: "test-id" };
-jest.mock("./vehicles", () => ({
-  ...jest.requireActual("./vehicles"), requestVehicleData: jest.fn(),
+vi.mock("./vehicles", async () => ({
+  ...(await vi.importActual<typeof import("./vehicles")>("./vehicles")), requestVehicleData: vi.fn(),
 }));
 
 const now = 1800000000000;
@@ -35,10 +36,10 @@ it("matches the exact block and trip and sorts stop occurrences by sequence", ()
 });
 
 it("uses the compact, verified blockStatus filter rather than the unfiltered tripStatus endpoint", async () => {
-  jest.mocked(requestVehicleData).mockResolvedValue(response());
+  vi.mocked(requestVehicleData).mockResolvedValue(response());
   const signal = new AbortController().signal;
   await getVehicleTrip("1547", "target", options, signal);
-  const [url, actualSignal] = jest.mocked(requestVehicleData).mock.calls[0];
+  const [url, actualSignal] = vi.mocked(requestVehicleData).mock.calls[0];
   expect(url.pathname).toBe("/ws/v2/blockStatus");
   expect(url.searchParams.get("blockID")).toBe("1547");
   expect(url.searchParams.get("showRoutes")).toBe("false");

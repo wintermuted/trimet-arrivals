@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import moment from "moment";
@@ -23,7 +24,7 @@ it("sorts and limits arrivals, expands and collapses, and uses injected presenta
     feet: index * 100, estimated: now.valueOf() + index * 60000,
     scheduled: now.valueOf() + index * 60000,
   }));
-  const formatDistance = jest.fn((feet: number) => `${feet} feet`);
+  const formatDistance = vi.fn((feet: number) => `${feet} feet`);
   const { container } = render(<TimeDisplayProvider><ArrivalsTableLoadMore
     arrivals={arrivals} loading={false} now={now} stopLocation={stop}
     renderRouteIndicator={(id, route) => <a href={`/routes/${id}`}>{route?.desc}</a>}

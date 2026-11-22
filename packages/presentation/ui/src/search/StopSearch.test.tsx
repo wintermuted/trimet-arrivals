@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { StopCatalog } from "@overworld/trimet-client";
@@ -16,7 +17,7 @@ const renderStopLinks = (stop: StopCatalog["stops"][number]) =>
   <a href={`/choose/${stop.locid}`}>Choose {stop.locid}</a>;
 
 it("prioritizes exact IDs, caps results at six, searches aliases, and renders caller links", () => {
-  render(<StopSearch catalog={catalog} loading={false} error={false} onRetry={jest.fn()}
+  render(<StopSearch catalog={catalog} loading={false} error={false} onRetry={vi.fn()}
     renderStopLinks={renderStopLinks} footer={<a href="/browse">Browse injected stops</a>} />);
   const input = screen.getByRole("searchbox", { name: "Stop name or ID" });
   fireEvent.change(input, { target: { value: " 200 " } });
@@ -30,7 +31,7 @@ it("prioritizes exact IDs, caps results at six, searches aliases, and renders ca
 });
 
 it("preserves typed queries across loading, failure, retry, and partial catalog recovery", () => {
-  const onRetry = jest.fn();
+  const onRetry = vi.fn();
   const props = { loading: true, error: false, onRetry, renderStopLinks };
   const { rerender } = render(<StopSearch {...props} />);
   const input = screen.getByRole("searchbox", { name: "Stop name or ID" });
@@ -51,8 +52,8 @@ it("preserves typed queries across loading, failure, retry, and partial catalog 
 });
 
 it("gives multiple standalone instances unique input and heading associations", () => {
-  render(<><StopSearch loading error={false} onRetry={jest.fn()} renderStopLinks={renderStopLinks} />
-    <StopSearch loading error={false} onRetry={jest.fn()} renderStopLinks={renderStopLinks} /></>);
+  render(<><StopSearch loading error={false} onRetry={vi.fn()} renderStopLinks={renderStopLinks} />
+    <StopSearch loading error={false} onRetry={vi.fn()} renderStopLinks={renderStopLinks} /></>);
   const inputs = screen.getAllByRole("searchbox", { name: "Stop name or ID" });
   expect(inputs[0].id).not.toBe(inputs[1].id);
   const regions = screen.getAllByRole("region", { name: "Find a stop" });

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
   fetchStoredRouteBookmarks,
   removeStoredRouteBookmark,
@@ -24,7 +25,7 @@ describe("routeBookmarks local storage", () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("keeps route bookmarks separate, versioned, and duplicate-safe", () => {
@@ -69,14 +70,14 @@ describe("routeBookmarks local storage", () => {
     ).toThrow("Stored route bookmarks are malformed.");
     expect(localStorage.getItem(ROUTE_BOOKMARKS)).toBe("{");
 
-    jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("Storage unavailable");
     });
     expect(() => fetchStoredRouteBookmarks()).toThrow("Storage unavailable");
 
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     localStorage.removeItem(ROUTE_BOOKMARKS);
-    jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("Storage unavailable");
     });
     expect(() => storeRouteBookmark(makeRoute(9, "Powell"))).toThrow(

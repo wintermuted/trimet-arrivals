@@ -1,11 +1,12 @@
+import { vi } from "vitest";
 import { Map as MapboxMap, MapLayerMouseEvent, Popup } from "mapbox-gl";
 import { getRouteById } from "../api/trimet/routeConfig";
 import { RouteDataResultSet } from "../api/trimet/interfaces/routes";
 import { VehiclePosition } from "../api/trimet/interfaces/vehicles";
 import { createVehicleTooltips } from "../view/nearby/util/mapbox/vehicleTooltip";
 
-jest.mock("mapbox-gl", () => ({ Popup: jest.fn() }));
-jest.mock("../api/trimet/routeConfig", () => ({ getRouteById: jest.fn() }));
+vi.mock("mapbox-gl", () => ({ Popup: vi.fn() }));
+vi.mock("../api/trimet/routeConfig", () => ({ getRouteById: vi.fn() }));
 
 describe("vehicle hover details", () => {
   const bus: VehiclePosition = {
@@ -18,15 +19,15 @@ describe("vehicle hover details", () => {
   const canvas = document.createElement("canvas");
   const content = document.createElement("div");
   const popupElement = document.createElement("div");
-  const onFollow = jest.fn();
+  const onFollow = vi.fn();
   let closed: () => void;
   let tooltip: ReturnType<typeof createVehicleTooltips>;
   const popup = {
-    setLngLat: jest.fn(), setDOMContent: jest.fn(), addTo: jest.fn(),
-    remove: jest.fn(), on: jest.fn(), getElement: jest.fn(),
+    setLngLat: vi.fn(), setDOMContent: vi.fn(), addTo: vi.fn(),
+    remove: vi.fn(), on: vi.fn(), getElement: vi.fn(),
   };
   const map = {
-    on: jest.fn(), off: jest.fn(), getCanvas: () => canvas,
+    on: vi.fn(), off: vi.fn(), getCanvas: () => canvas,
     getLayer: () => true, queryRenderedFeatures: () => [],
   };
   const route = (id = 15): RouteDataResultSet => ({
@@ -59,14 +60,14 @@ describe("vehicle hover details", () => {
     popup.remove.mockImplementation(() => { popupElement.remove(); closed?.(); return popup; });
     popup.on.mockImplementation((_name, callback) => { closed = callback; return popup; });
     popup.getElement.mockReturnValue(popupElement);
-    jest.mocked(Popup).mockImplementation(() => popup as Popup);
+    vi.mocked(Popup).mockImplementation(function () { return popup as Popup; });
     map.on.mockImplementation((name, layerOrHandler, handler) => {
       handlers.set(typeof layerOrHandler === "function" ? `map:${name}` : name, handler || layerOrHandler);
     });
     map.off.mockImplementation((name, layerOrHandler) => {
       handlers.delete(typeof layerOrHandler === "function" ? `map:${name}` : name);
     });
-    jest.mocked(getRouteById).mockResolvedValue(route());
+    vi.mocked(getRouteById).mockResolvedValue(route());
     tooltip = createVehicleTooltips(map as MapboxMap, "vehicle-layer", id => {
       const vehicle = vehicles.get(id);
       return vehicle && { vehicle, point: [vehicle.longitude, vehicle.latitude] };
@@ -102,9 +103,9 @@ describe("vehicle hover details", () => {
 
   it("aborts superseded lookups and ignores late route results", async () => {
     let resolve: (value: RouteDataResultSet) => void;
-    jest.mocked(getRouteById).mockImplementationOnce(() => new Promise(done => { resolve = done; }));
+    vi.mocked(getRouteById).mockImplementationOnce(() => new Promise(done => { resolve = done; }));
     show();
-    const signal = jest.mocked(getRouteById).mock.calls[0][1];
+    const signal = vi.mocked(getRouteById).mock.calls[0][1];
     vehicles.set("rail", { ...bus, id: "rail", type: "rail", routeNumber: 90 });
     show("rail");
     expect(signal.aborted).toBe(true);
@@ -115,7 +116,7 @@ describe("vehicle hover details", () => {
   });
 
   it("labels unavailable route metadata explicitly and retries on a new hover", async () => {
-    jest.mocked(getRouteById).mockRejectedValueOnce(new Error("Service unavailable"));
+    vi.mocked(getRouteById).mockRejectedValueOnce(new Error("Service unavailable"));
     show();
     await flush();
     expect(content.textContent).toContain("route details unavailable");
@@ -137,7 +138,7 @@ describe("vehicle hover details", () => {
     vehicles.clear();
     tooltip.refresh();
     expect(canvas.style.cursor).toBe("");
-    expect(jest.mocked(getRouteById).mock.calls[0][1].aborted).toBe(true);
+    expect(vi.mocked(getRouteById).mock.calls[0][1].aborted).toBe(true);
   });
 
   it("supports tap and Escape dismissal and removes all event handlers on disposal", () => {
@@ -167,8 +168,8 @@ describe("vehicle hover details", () => {
     const originalCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
     show();
-    const getCanvas = jest.spyOn(map, "getCanvas").mockReturnValue(undefined);
-    const removeListener = jest.spyOn(canvas, "removeEventListener");
+    const getCanvas = vi.spyOn(map, "getCanvas").mockReturnValue(undefined);
+    const removeListener = vi.spyOn(canvas, "removeEventListener");
     try {
       expect(() => {
         tooltip.dispose();

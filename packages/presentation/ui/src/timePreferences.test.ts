@@ -33,7 +33,7 @@ describe("time display preferences", () => {
   });
 
   it("reports blocked writes instead of failing the time display", () => {
-    const setItem = jest
+    const setItem = vi
       .spyOn(Storage.prototype, "setItem")
       .mockImplementation(() => {
         throw new Error("storage blocked");

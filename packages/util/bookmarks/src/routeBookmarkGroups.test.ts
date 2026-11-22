@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
   addStoredRouteToBookmarkGroup,
   fetchStoredRouteBookmarkGroups,
@@ -12,7 +13,7 @@ describe("route bookmark groups local storage", () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("keeps route membership separate from existing stop sections", () => {
@@ -79,15 +80,15 @@ describe("route bookmark groups local storage", () => {
     );
     expect(localStorage.getItem(ROUTE_BOOKMARK_GROUPS)).toBe(unsupported);
 
-    jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("Storage unavailable");
     });
     expect(() => fetchStoredRouteBookmarkGroups()).toThrow(
       "Storage unavailable"
     );
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     localStorage.removeItem(ROUTE_BOOKMARK_GROUPS);
-    jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("Storage unavailable");
     });
     expect(() => addStoredRouteToBookmarkGroup(1, 9)).toThrow(

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
@@ -10,12 +11,12 @@ import {
 import { TrimetRoute } from "../../api/trimet/interfaces/routes";
 import StopCatalogView from "./StopCatalogView";
 
-jest.mock("../../api/trimet/stopCatalog", () => {
-  const actual = jest.requireActual("../../api/trimet/stopCatalog");
-  return { ...actual, getStopCatalog: jest.fn() };
+vi.mock("../../api/trimet/stopCatalog", async () => {
+  const actual = (await vi.importActual<typeof import("../../api/trimet/stopCatalog")>("../../api/trimet/stopCatalog"));
+  return { ...actual, getStopCatalog: vi.fn() };
 });
 
-const loadCatalog = jest.mocked(getStopCatalog);
+const loadCatalog = vi.mocked(getStopCatalog);
 
 function testCatalog() {
   return buildStopCatalog({

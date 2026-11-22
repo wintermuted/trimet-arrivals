@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
@@ -16,9 +17,9 @@ import NearbySimpleRoutes, {
   getRouteArrivals,
 } from "./NearbySimpleRoutes";
 
-jest.mock("../../../api/trimet/arrivals");
-jest.mock("../../../api/trimet/routeConfig");
-jest.mock("../../../api/mapbox/walking");
+vi.mock("../../../api/trimet/arrivals");
+vi.mock("../../../api/trimet/routeConfig");
+vi.mock("../../../api/mapbox/walking");
 
 const now = Date.parse("2026-11-15T10:00:00Z");
 const minute = 60 * 1000;
@@ -96,9 +97,9 @@ describe("NearbySimpleRoutes", () => {
   let root: Root;
 
   beforeEach(() => {
-    jest.mocked(getArrivals).mockReset();
-    jest.mocked(getRouteById).mockReset();
-    jest.mocked(getWalkingEstimates).mockReset();
+    vi.mocked(getArrivals).mockReset();
+    vi.mocked(getRouteById).mockReset();
+    vi.mocked(getWalkingEstimates).mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -110,13 +111,13 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("only requests walking distances after consent and ranks by walking connections, not radial proximity", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
     const walking = new Map<number, WalkingEstimate>([
       [101, { meters: 900, seconds: 600, status: "ready" }],
       [102, { meters: 100, seconds: 60, status: "ready" }],
       [103, { meters: 50, seconds: 40, status: "ready" }]
     ]);
-    jest.mocked(getWalkingEstimates).mockResolvedValue(walking);
+    vi.mocked(getWalkingEstimates).mockResolvedValue(walking);
     const candidates = {
       ...nearbyStops,
       location: [...nearbyStops.location, { ...stop(103, 0.03), route: [{ ...route, route: 12 }] }]
@@ -125,7 +126,7 @@ describe("NearbySimpleRoutes", () => {
       return (
         <NearbySimpleRoutes
           nearbyStops={candidates} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
           routeCount={2} stopCount={3} walkingEnabled={enabled}
         />
       );
@@ -142,13 +143,13 @@ describe("NearbySimpleRoutes", () => {
     expect(Array.from(north.querySelectorAll("[data-stop-id]")).map(link => link.getAttribute("data-stop-id"))).toEqual(["102", "101"]);
     expect(north.textContent).toContain("328 ft walk");
     await act(async () => root.render(<MemoryRouter><WalkingRoutes enabled={false} /></MemoryRouter>));
-    expect(jest.mocked(getWalkingEstimates).mock.calls[0][2].aborted).toBe(true);
+    expect(vi.mocked(getWalkingEstimates).mock.calls[0][2].aborted).toBe(true);
     expect(north.textContent).not.toContain("ft walk");
     expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("54");
   });
 
   it("omits a route number prefix from the route name", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
     const prefixedStops = {
       ...nearbyStops,
       location: nearbyStops.location.map((nearbyStop) => ({
@@ -164,8 +165,8 @@ describe("NearbySimpleRoutes", () => {
             nearbyStops={prefixedStops}
             currentLocation={[0, 0]}
             radiusSize={1000}
-            handleSimpleRoutesOpened={jest.fn()}
-            handleRadiusSelectionChange={jest.fn()}
+            handleSimpleRoutesOpened={vi.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={1}
             stopCount={2}
           />
@@ -181,8 +182,8 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("labels walking failures and retries without silently treating straight-line distances as walking", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
-    jest.mocked(getWalkingEstimates)
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getWalkingEstimates)
       .mockRejectedValueOnce(new Error("Mapbox walking request limit reached."))
       .mockResolvedValueOnce(new Map<number, WalkingEstimate>([
         [101, { status: "unreachable" }],
@@ -192,7 +193,7 @@ describe("NearbySimpleRoutes", () => {
       <MemoryRouter>
         <NearbySimpleRoutes
           nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
           routeCount={1} stopCount={2} walkingEnabled
         />
       </MemoryRouter>
@@ -239,8 +240,8 @@ describe("NearbySimpleRoutes", () => {
       ],
       queryTime: "",
     };
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
-    jest.mocked(getRouteById).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getRouteById).mockResolvedValue({
       route: [{
         route: 54, id: 54, desc: "Beaverton", type: "bus",
         routeColor: "", routeSortOrder: 54,
@@ -250,8 +251,8 @@ describe("NearbySimpleRoutes", () => {
         ]
       }]
     });
-    const cleanupMap = jest.fn();
-    const onRouteInfoChanged = jest.fn(() => cleanupMap);
+    const cleanupMap = vi.fn();
+    const onRouteInfoChanged = vi.fn(() => cleanupMap);
     await act(async () =>
       root.render(
         <MemoryRouter>
@@ -259,8 +260,8 @@ describe("NearbySimpleRoutes", () => {
             nearbyStops={directionalStops}
             currentLocation={[0, 0]}
             radiusSize={1000}
-            handleSimpleRoutesOpened={jest.fn()}
-            handleRadiusSelectionChange={jest.fn()}
+            handleSimpleRoutesOpened={vi.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={1}
             stopCount={3}
             onRouteInfoChanged={onRouteInfoChanged}
@@ -352,20 +353,20 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("opens route info in the URL and follows browser back and forward", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
-    jest.mocked(getRouteById).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getRouteById).mockResolvedValue({
       route: [{
         route: 54, id: 54, desc: "Beaverton", type: "bus",
         routeColor: "", routeSortOrder: 54,
         dir: [{ dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
       }]
     });
-    const cleanupMap = jest.fn();
-    const showMap = jest.fn(() => cleanupMap);
+    const cleanupMap = vi.fn();
+    const showMap = vi.fn(() => cleanupMap);
     await act(async () => root.render(
       <MemoryRouter initialEntries={["/nearby/simple-routes?keep=yes"]}>
         <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
           routeCount={1} stopCount={2} onRouteInfoChanged={showMap} />
         <CurrentLocation /><BrowserHistory />
       </MemoryRouter>
@@ -389,19 +390,19 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("loads a deep-linked route even when it is not in the nearby stops", async () => {
-    jest.mocked(getRouteById).mockResolvedValue({
+    vi.mocked(getRouteById).mockResolvedValue({
       route: [{
         route: 12, id: 12, desc: "Sandy", type: "bus",
         routeColor: "", routeSortOrder: 12,
         dir: [{ dir: 0, desc: "Eastbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
       }]
     });
-    const showMap = jest.fn(() => jest.fn());
+    const showMap = vi.fn(() => vi.fn());
     await act(async () => root.render(
       <MemoryRouter initialEntries={["/nearby/simple-routes?route=12&keep=yes"]}>
         <NearbySimpleRoutes nearbyStops={{ location: [], queryTime: "" }}
-          currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={jest.fn()}
-          handleRadiusSelectionChange={jest.fn()} routeCount={0} stopCount={0}
+          currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={vi.fn()}
+          handleRadiusSelectionChange={vi.fn()} routeCount={0} stopCount={0}
           onRouteInfoChanged={showMap} />
         <CurrentLocation />
       </MemoryRouter>
@@ -418,8 +419,8 @@ describe("NearbySimpleRoutes", () => {
       await act(async () => root.render(
         <MemoryRouter initialEntries={[`/nearby/simple-routes?route=${query}&keep=yes`]}>
           <NearbySimpleRoutes nearbyStops={{ location: [], queryTime: "" }}
-            currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={jest.fn()}
-            handleRadiusSelectionChange={jest.fn()} routeCount={0} stopCount={0} />
+            currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={vi.fn()}
+            handleRadiusSelectionChange={vi.fn()} routeCount={0} stopCount={0} />
           <CurrentLocation />
         </MemoryRouter>
       ));
@@ -432,7 +433,7 @@ describe("NearbySimpleRoutes", () => {
 
   it("ignores an earlier route response after the query changes", async () => {
     let resolveFirst: (value: any) => void;
-    jest.mocked(getRouteById)
+    vi.mocked(getRouteById)
       .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
       .mockResolvedValueOnce({
         route: [{
@@ -441,12 +442,12 @@ describe("NearbySimpleRoutes", () => {
           dir: [{ dir: 0, desc: "Eastbound", stop: [{ ...stop(102, 0.02), seq: 1, tp: false }] }]
         }]
       });
-    const showMap = jest.fn(() => jest.fn());
+    const showMap = vi.fn(() => vi.fn());
     await act(async () => root.render(
       <MemoryRouter initialEntries={["/nearby/simple-routes?route=54"]}>
         <NearbySimpleRoutes nearbyStops={{ location: [], queryTime: "" }}
-          currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={jest.fn()}
-          handleRadiusSelectionChange={jest.fn()} routeCount={0} stopCount={0}
+          currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={vi.fn()}
+          handleRadiusSelectionChange={vi.fn()} routeCount={0} stopCount={0}
           onRouteInfoChanged={showMap} />
         <BrowserHistory />
       </MemoryRouter>
@@ -465,8 +466,8 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("collapses route directions independently and highlights hovered or focused stops", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
-    jest.mocked(getRouteById).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getRouteById).mockResolvedValue({
       route: [{
         route: 54, id: 54, desc: "Beaverton", type: "bus",
         routeColor: "", routeSortOrder: 54,
@@ -476,11 +477,11 @@ describe("NearbySimpleRoutes", () => {
         ]
       }]
     });
-    const highlight = jest.fn();
+    const highlight = vi.fn();
     await act(async () => root.render(
       <MemoryRouter>
         <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
           routeCount={1} stopCount={2} onRouteInfoStopHighlighted={highlight} />
       </MemoryRouter>
     ));
@@ -511,8 +512,8 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("opens the selected route stop from the details list", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
-    jest.mocked(getRouteById).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getRouteById).mockResolvedValue({
       route: [{
         route: 54, id: 54, desc: "Beaverton", type: "bus",
         routeColor: "", routeSortOrder: 54,
@@ -522,7 +523,7 @@ describe("NearbySimpleRoutes", () => {
     await act(async () => root.render(
       <MemoryRouter initialEntries={["/nearby/simple-routes?route=54&keep=yes#directions"]}>
         <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
           routeCount={1} stopCount={2} />
         <CurrentLocation />
       </MemoryRouter>
@@ -535,8 +536,8 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("reports route detail failures and retries without leaving the nearby list", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
-    jest.mocked(getRouteById)
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getRouteById)
       .mockRejectedValueOnce(new Error("Unavailable"))
       .mockResolvedValueOnce({
         route: [{
@@ -548,7 +549,7 @@ describe("NearbySimpleRoutes", () => {
     await act(async () => root.render(
       <MemoryRouter>
         <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={jest.fn()} handleRadiusSelectionChange={jest.fn()}
+          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
           routeCount={1} stopCount={2} />
       </MemoryRouter>
     ));
@@ -566,8 +567,8 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("highlights the exact stop on hover and focus and clears hidden or removed rows", async () => {
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
-    const onStopHighlightChanged = jest.fn();
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
+    const onStopHighlightChanged = vi.fn();
     async function renderList(data = nearbyStops) {
       await act(async () => root.render(
         <MemoryRouter>
@@ -575,8 +576,8 @@ describe("NearbySimpleRoutes", () => {
             nearbyStops={data}
             currentLocation={[0, 0]}
             radiusSize={1000}
-            handleSimpleRoutesOpened={jest.fn()}
-            handleRadiusSelectionChange={jest.fn()}
+            handleSimpleRoutesOpened={vi.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             onStopHighlightChanged={onStopHighlightChanged}
             routeCount={1}
             stopCount={data.location.length}
@@ -632,7 +633,7 @@ describe("NearbySimpleRoutes", () => {
   });
 
   it("shows a recoverable error when arrivals fail", async () => {
-    jest.mocked(getArrivals).mockRejectedValueOnce(new Error("Offline"));
+    vi.mocked(getArrivals).mockRejectedValueOnce(new Error("Offline"));
     await act(async () =>
       root.render(
         <MemoryRouter>
@@ -640,8 +641,8 @@ describe("NearbySimpleRoutes", () => {
             nearbyStops={nearbyStops}
             currentLocation={[0, 0]}
             radiusSize={1000}
-            handleSimpleRoutesOpened={jest.fn()}
-            handleRadiusSelectionChange={jest.fn()}
+            handleSimpleRoutesOpened={vi.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={1}
             stopCount={2}
           />
@@ -653,7 +654,7 @@ describe("NearbySimpleRoutes", () => {
       "Nearby arrivals could not be loaded."
     );
 
-    jest.mocked(getArrivals).mockResolvedValue(response([]));
+    vi.mocked(getArrivals).mockResolvedValue(response([]));
     const retryButton = container.querySelector<HTMLButtonElement>(
       '[role="alert"] button'
     );
@@ -681,7 +682,7 @@ describe("NearbySimpleRoutes", () => {
       ],
       queryTime: "",
     };
-    jest.mocked(getArrivals).mockResolvedValue(
+    vi.mocked(getArrivals).mockResolvedValue(
       response([
         arrival({ estimated: now + 30 * minute, locid: 101, route: 54 }),
         arrival({ estimated: now + 5 * minute, locid: 103, route: 54 }),
@@ -701,8 +702,8 @@ describe("NearbySimpleRoutes", () => {
             nearbyStops={stops}
             currentLocation={[0, 0]}
             radiusSize={1000}
-            handleSimpleRoutesOpened={jest.fn()}
-            handleRadiusSelectionChange={jest.fn()}
+            handleSimpleRoutesOpened={vi.fn()}
+            handleRadiusSelectionChange={vi.fn()}
             routeCount={2}
             stopCount={3}
           />

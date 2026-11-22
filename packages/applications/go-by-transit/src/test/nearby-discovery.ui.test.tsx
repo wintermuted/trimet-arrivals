@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
@@ -9,8 +10,8 @@ import NearbyPlannerPaths from "../view/nearby/components/NearbyPlannerPaths";
 import { loadPlannerPaths } from "../view/nearby/util/mapbox/plannerPaths";
 import { TripPlannerItinerary } from "../api/trimet/tripplanner";
 
-jest.mock("mapbox-gl", () => ({}));
-jest.mock("../view/nearby/util/mapbox/plannerPaths", () => ({ loadPlannerPaths: jest.fn() }));
+vi.mock("mapbox-gl", () => ({}));
+vi.mock("../view/nearby/util/mapbox/plannerPaths", () => ({ loadPlannerPaths: vi.fn() }));
 const park: InterestPlace = { id: "portland:park:1", category: "park", name: "Example Park",
   coordinates: [-122.67, 45.55], sourceUrl: "https://www.portlandmaps.com/", arrival: "approximate" };
 
@@ -27,7 +28,7 @@ describe("Places discovery tools", () => {
     act(() => root.unmount());
     container.remove();
     localStorage.clear();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("round-trips empty categories, all layer types, Unicode search and map position without sharing saved data", () => {
@@ -125,7 +126,7 @@ describe("Places discovery tools", () => {
   });
 
   it("does not overwrite unreadable saved data and reports failed writes without optimistic success", async () => {
-    jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     localStorage.setItem(SAVED_PLACES_KEY, "broken");
     await act(async () => root.render(<SavedHarness />));
     expect(container.textContent).toContain("could not be read");
@@ -133,7 +134,7 @@ describe("Places discovery tools", () => {
     expect(localStorage.getItem(SAVED_PLACES_KEY)).toBe("broken");
     localStorage.removeItem(SAVED_PLACES_KEY);
     await act(async () => container.querySelectorAll("button")[1].click());
-    jest.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => { throw new Error("quota"); });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => { throw new Error("quota"); });
     await act(async () => container.querySelector("button").click());
     expect(container.textContent).toContain("Your changes were not saved");
     expect(container.querySelector("button").getAttribute("aria-pressed")).toBe("false");
@@ -149,15 +150,15 @@ describe("Places discovery tools", () => {
   });
 
   it("copies a basename-aware view link and supplies manual copy when the clipboard is unavailable", async () => {
-    const writeText = jest.fn().mockRejectedValueOnce(new Error("blocked")).mockResolvedValue(undefined);
+    const writeText = vi.fn().mockRejectedValueOnce(new Error("blocked")).mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-    const onPreset = jest.fn();
+    const onPreset = vi.fn();
     const search = placesViewSearch(placesPreset("parks"));
     await act(async () => root.render(<MemoryRouter basename="/transit" initialEntries={["/transit/nearby/places"]}>
       <NearbyDiscoveryControls view={placesPreset("parks")} onPreset={onPreset} shareHref={`/nearby/places${search}`}
-        savedPlaces={{ saved: {}, toggle: jest.fn(), remove: jest.fn(), retry: jest.fn() }}
-        savedOnly={false} onSavedOnly={jest.fn()} unavailable={[]} alongTrip={false} onAlongTrip={jest.fn()}
-        distance={500} onDistance={jest.fn()} />
+        savedPlaces={{ saved: {}, toggle: vi.fn(), remove: vi.fn(), retry: vi.fn() }}
+        savedOnly={false} onSavedOnly={vi.fn()} unavailable={[]} alongTrip={false} onAlongTrip={vi.fn()}
+        distance={500} onDistance={vi.fn()} />
     </MemoryRouter>));
     const copy = [...container.querySelectorAll("button")].find(button => button.textContent === "Copy view link");
     await act(async () => copy.click());
@@ -179,18 +180,18 @@ describe("Places discovery tools", () => {
       { type: "Feature", properties: { trip: 1, legIndex: 0, walk: false },
         geometry: { type: "LineString", coordinates } }
     ] } };
-    jest.mocked(loadPlannerPaths).mockResolvedValue(response);
+    vi.mocked(loadPlannerPaths).mockResolvedValue(response);
     const itineraries: TripPlannerItinerary[] = [
       { partial: false, legs: [{ partial: false }] },
       { partial: true, legs: [{ partial: false }, { partial: true }] }
     ];
-    const discover = jest.fn();
+    const discover = vi.fn();
     await act(async () => root.render(<NearbyPlannerPaths itineraries={itineraries} selected={1}
-      previewTrip={0} walkingEnabled={false} onMapLeg={jest.fn()} onDiscoverPlaces={discover} />));
+      previewTrip={0} walkingEnabled={false} onMapLeg={vi.fn()} onDiscoverPlaces={discover} />));
     await act(async () => container.querySelector("button").click());
     expect(discover).toHaveBeenCalledWith({ lines: [coordinates], incomplete: true });
     await act(async () => root.render(<NearbyPlannerPaths itineraries={itineraries} selected={-1}
-      walkingEnabled={false} onMapLeg={jest.fn()} onDiscoverPlaces={discover} />));
+      walkingEnabled={false} onMapLeg={vi.fn()} onDiscoverPlaces={discover} />));
     expect(container.querySelector("button")).toBeNull();
   });
 });

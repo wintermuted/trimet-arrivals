@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
   getAlertsByLocationId,
   getAlertsByRouteId,
@@ -13,7 +14,7 @@ import { arrival1 } from "./fixture/arrival";
 
 const options = { baseUrl: "https://example.test/ws/", appId: "test-id" };
 const location = { coords: { latitude: 45.52, longitude: -122.68 } };
-const fetchMock = jest.fn();
+const fetchMock = vi.fn();
 const originalFetch = globalThis.fetch;
 
 beforeEach(() => {

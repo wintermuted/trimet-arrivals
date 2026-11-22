@@ -1,3 +1,6 @@
+import { vi, type Mock } from "vitest";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Popup } from "mapbox-gl";
@@ -10,7 +13,7 @@ import NearbyContextMap, { contextSource } from "../view/nearby/components/Nearb
 import NearbyPlaces from "../view/nearby/components/NearbyPlaces";
 import { DEFAULT_PLACE_FILTERS, emptyPlaceSources } from "@overworld/places/catalog";
 
-jest.mock("mapbox-gl", () => ({ Popup: jest.fn() }));
+vi.mock("mapbox-gl", () => ({ Popup: vi.fn() }));
 const feature = (category: ContextCategory, id = 1): ContextFeatures["features"][number] => ({
   type: "Feature", id: `portland:${category}:${id}`, properties: { name: "Inventory item", detail: "Source context" },
   geometry: category === "sidewalks" ?
@@ -28,10 +31,10 @@ const area: MapBounds = [-122.7, 45.5, -122.65, 45.54];
 describe("Viewport-loaded walking and street-tree context", () => {
   let container: HTMLDivElement, root: Root;
   beforeEach(() => {
-    jest.mocked(Popup).mockImplementation(() => ({
-      setLngLat: jest.fn().mockReturnThis(), setDOMContent: jest.fn().mockReturnThis(),
-      addTo: jest.fn().mockReturnThis(), remove: jest.fn()
-    } as never));
+    vi.mocked(Popup).mockImplementation(function () { return {
+      setLngLat: vi.fn().mockReturnThis(), setDOMContent: vi.fn().mockReturnThis(),
+      addTo: vi.fn().mockReturnThis(), remove: vi.fn()
+    } as never; });
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -50,13 +53,13 @@ describe("Viewport-loaded walking and street-tree context", () => {
     }] }, category, indexFor(category).tiles[0])).toThrow();
   });
   it("explains zoom thresholds and independent loading/retry without changing point filters", () => {
-    const source = { loading: false, error: false, zoomRequired: false, retry: jest.fn() };
-    const onShown = jest.fn(), onRetry = jest.fn(), onFilters = jest.fn();
+    const source = { loading: false, error: false, zoomRequired: false, retry: vi.fn() };
+    const onShown = vi.fn(), onRetry = vi.fn(), onFilters = vi.fn();
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
-      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[]} onSelect={jest.fn()}
-      onRetry={jest.fn()} mapReady mapError={false}
-      neighborhoods={{ shown: false, onShown: jest.fn(), polygonsShown: false, onPolygonsShown: jest.fn(),
-        loading: false, error: false, mapError: false, onRetry: jest.fn() }}
+      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[]} onSelect={vi.fn()}
+      onRetry={vi.fn()} mapReady mapError={false}
+      neighborhoods={{ shown: false, onShown: vi.fn(), polygonsShown: false, onPolygonsShown: vi.fn(),
+        loading: false, error: false, mapError: false, onRetry: vi.fn() }}
       contextOverlays={{ shown: { "street-trees": true, sidewalks: true, crossings: true, "crossing-deficiencies": true },
         sources: { "street-trees": { ...source, zoomRequired: true }, sidewalks: { ...source, error: true },
           crossings: { ...source, loading: true }, "crossing-deficiencies": source },
@@ -86,7 +89,7 @@ describe("Viewport-loaded walking and street-tree context", () => {
     const second = { ...feature(category, 2), geometry: { type: "Point", coordinates: [-122.4, 45.6] } };
     const originalFetch = global.fetch;
     let fail = true;
-    const fetch = jest.fn(async (url: string) => {
+    const fetch = vi.fn(async (url: string) => {
       if (url.endsWith(`${category}.json`)) return { ok: true, json: async () => index };
       if (url.includes("24-12") && fail) throw new Error("Tile unavailable");
       return { ok: true, json: async () => ({ type: "FeatureCollection",
@@ -123,28 +126,28 @@ describe("Viewport-loaded walking and street-tree context", () => {
   it("orders mixed geometry below line overlays and POIs, restores on style reload and cleans up only its own sources", () => {
     const base = ["nearby-lines-park-trails-halo", "nearby-places-park-points"];
     let layers = [...base];
-    const sources = new Map<string, { setData: jest.Mock }>();
+    const sources = new Map<string, { setData: Mock }>();
     const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
     const map = {
-      getSource: jest.fn(id => sources.get(id)),
-      addSource: jest.fn(id => sources.set(id, { setData: jest.fn() })),
-      getLayer: jest.fn(id => layers.includes(id)),
-      addLayer: jest.fn((layer, before) => {
+      getSource: vi.fn(id => sources.get(id)),
+      addSource: vi.fn(id => sources.set(id, { setData: vi.fn() })),
+      getLayer: vi.fn(id => layers.includes(id)),
+      addLayer: vi.fn((layer, before) => {
         const index = layers.indexOf(before);
         layers.splice(index < 0 ? layers.length : index, 0, layer.id);
       }),
       getStyle: () => ({ layers: layers.map(id => ({ id })) }),
-      on: jest.fn((event, ...args) => {
+      on: vi.fn((event, ...args) => {
         const key = args.length === 2 ? `${event}:${args[0]}` : event;
         if (!listeners.has(key)) listeners.set(key, new Set());
         listeners.get(key).add(args[args.length - 1]);
-      }), off: jest.fn(),
-      removeLayer: jest.fn(id => { layers = layers.filter(layer => layer !== id); }),
-      removeSource: jest.fn(id => sources.delete(id)),
-      queryRenderedFeatures: jest.fn(() => [{ source: contextSource("street-trees"),
+      }), off: vi.fn(),
+      removeLayer: vi.fn(id => { layers = layers.filter(layer => layer !== id); }),
+      removeSource: vi.fn(id => sources.delete(id)),
+      queryRenderedFeatures: vi.fn(() => [{ source: contextSource("street-trees"),
         properties: { name: "<not-markup>", detail: "Source-listed inventory" } }])
     };
-    const onError = jest.fn();
+    const onError = vi.fn();
     act(() => root.render(<>{CONTEXT_CATEGORIES.map(category =>
       <NearbyContextMap key={category} map={map as never}
         snapshot={{ type: "FeatureCollection", category, features: [feature(category)] }} onError={onError} />)}</>));
@@ -158,7 +161,7 @@ describe("Viewport-loaded walking and street-tree context", () => {
     for (const listener of listeners.get(`mousemove:${contextSource("street-trees")}-features`)) {
       listener({ point: { x: 1, y: 1 }, lngLat: { lng: -122.67, lat: 45.52 } });
     }
-    const popup = jest.mocked(Popup).mock.results[0].value;
+    const popup = vi.mocked(Popup).mock.results[0].value;
     const content = popup.setDOMContent.mock.calls[0][0];
     expect(content.querySelector("not-markup")).toBeNull();
     expect(content.textContent).toContain("<not-markup>");

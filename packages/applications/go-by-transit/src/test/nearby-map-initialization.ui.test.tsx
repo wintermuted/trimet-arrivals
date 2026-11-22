@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";
@@ -31,49 +32,49 @@ function StopDetailWithStore() {
   return <Provider store={store}><NearbyStopDetailComponent /></Provider>;
 }
 
-jest.mock("../view/nearby/components/NearbyVehicles", () => jest.fn(() => null));
-jest.mock("../view/nearby/util/useVehiclePositions", () => ({
-  useVehiclePositions: () => ({ vehicles: [], rejected: 0, status: "empty", retry: jest.fn() }),
+vi.mock("../view/nearby/components/NearbyVehicles", () => ({ default: vi.fn(() => null) }));
+vi.mock("../view/nearby/util/useVehiclePositions", () => ({
+  useVehiclePositions: () => ({ vehicles: [], rejected: 0, status: "empty", retry: vi.fn() }),
 }));
-jest.mock("../api/geolocation/getCurrentPosition");
-jest.mock("../api/trimet/stops");
-jest.mock("../api/trimet/arrivals");
-jest.mock("../api/trimet/routeConfig");
-jest.mock("../api/trimet/stopCatalog", () => ({
-  ...jest.requireActual("../api/trimet/stopCatalog"),
-  getStopCatalog: jest.fn(),
+vi.mock("../api/geolocation/getCurrentPosition");
+vi.mock("../api/trimet/stops");
+vi.mock("../api/trimet/arrivals");
+vi.mock("../api/trimet/routeConfig");
+vi.mock("../api/trimet/stopCatalog", async () => ({
+  ...(await vi.importActual<typeof import("../api/trimet/stopCatalog")>("../api/trimet/stopCatalog")),
+  getStopCatalog: vi.fn(),
 }));
-jest.mock("../api/trimet/tripplanner");
-jest.mock("../view/nearby/util/mapbox/routeLines", () => ({
-  ...jest.requireActual("../view/nearby/util/mapbox/routeLines"),
-  getRouteGeometry: jest.fn(),
+vi.mock("../api/trimet/tripplanner");
+vi.mock("../view/nearby/util/mapbox/routeLines", async () => ({
+  ...(await vi.importActual<typeof import("../view/nearby/util/mapbox/routeLines")>("../view/nearby/util/mapbox/routeLines")),
+  getRouteGeometry: vi.fn(),
 }));
-jest.mock("../api/mapbox/walking");
-jest.mock("../view/nearby/util/mapbox/routeInfo", () => ({
-  highlightRouteInfoStop: jest.fn(),
-  showRouteInfo: jest.fn(),
+vi.mock("../api/mapbox/walking");
+vi.mock("../view/nearby/util/mapbox/routeInfo", () => ({
+  highlightRouteInfoStop: vi.fn(),
+  showRouteInfo: vi.fn(),
 }));
-jest.mock("../view/nearby/util/mapbox/initializeMap", () => ({
-  initializeMap: jest.fn(),
+vi.mock("../view/nearby/util/mapbox/initializeMap", () => ({
+  initializeMap: vi.fn(),
 }));
-jest.mock("../view/nearby/components/NearbyPlacesMap", () => ({
+vi.mock("../view/nearby/components/NearbyPlacesMap", () => ({
   __esModule: true,
-  default: jest.fn()
+  default: vi.fn()
 }));
-jest.mock("../view/nearby/util/mapbox/currentLocation", () => ({
-  initializeCurrentLocationMarker: jest.fn(),
-  setCurrentLocationMarker: jest.fn(),
+vi.mock("../view/nearby/util/mapbox/currentLocation", () => ({
+  initializeCurrentLocationMarker: vi.fn(),
+  setCurrentLocationMarker: vi.fn(),
 }));
-jest.mock("../view/nearby/util/mapbox/stopLocationMarker.util", () => ({
-  highlightNearbyStop: jest.fn(),
-  removeCurrentLocationMarkers: jest.fn(),
-  removeStopLocationLayers: jest.fn(),
-  setNearbyStops: jest.fn(),
-  showStopDetailMarker: jest.fn(() => jest.fn()),
-  updateStopMarkerColor: jest.fn(),
+vi.mock("../view/nearby/util/mapbox/stopLocationMarker.util", () => ({
+  highlightNearbyStop: vi.fn(),
+  removeCurrentLocationMarkers: vi.fn(),
+  removeStopLocationLayers: vi.fn(),
+  setNearbyStops: vi.fn(),
+  showStopDetailMarker: vi.fn(() => vi.fn()),
+  updateStopMarkerColor: vi.fn(),
 }));
-jest.mock("mapbox-gl", () => {
-  const Marker = jest.fn();
+vi.mock("mapbox-gl", () => {
+  const Marker = vi.fn();
   return {
     __esModule: true,
     default: { accessToken: "pk.synthetic-test-token", Marker },
@@ -122,7 +123,7 @@ function WalkingToggle() {
 }
 
 function mockVehicleFollow() {
-  jest.mocked(NearbyVehicles).mockImplementation(({ onFollow }) => <button onClick={() => onFollow({
+  vi.mocked(NearbyVehicles).mockImplementation(({ onFollow }) => <button onClick={() => onFollow({
     id: "4003", type: "bus", tripId: "trip", blockId: "1547", routeNumber: 15,
     longitude: -122.68, latitude: 45.51, time: Date.now(), expires: Date.now() + 60000,
   })}>Follow test trip</button>);
@@ -146,29 +147,29 @@ describe("Nearby map initialization independently of the sidebar", () => {
   const images = new Set<string>();
   const canvas = document.createElement("canvas");
   const map = {
-    on: jest.fn(), remove: jest.fn(), resize: jest.fn(), flyTo: jest.fn(),
-    getZoom: jest.fn(() => 12), jumpTo: jest.fn(), easeTo: jest.fn(),
-    getCenter: jest.fn(() => ({ lng: 1, lat: 2 })), setZoom: jest.fn(),
-    getContainer: jest.fn(() => ({ clientWidth: 390, clientHeight: 230 })),
-    fitBounds: jest.fn(), setFilter: jest.fn(), off: jest.fn(),
-    queryRenderedFeatures: jest.fn(),
-    addSource: jest.fn((id, _data) => sources.add(id)),
-    addLayer: jest.fn(({ id }) => layers.add(id)),
-    getSource: jest.fn(id => sources.has(id) ? { setData: jest.fn() } : undefined),
-    getStyle: jest.fn(() => ({ layers: [...layers].map(id => ({ id })) })),
-    getLayer: jest.fn(id => layers.has(id)),
-    removeLayer: jest.fn(id => layers.delete(id)),
-    removeSource: jest.fn(id => sources.delete(id)),
+    on: vi.fn(), remove: vi.fn(), resize: vi.fn(), flyTo: vi.fn(),
+    getZoom: vi.fn(() => 12), jumpTo: vi.fn(), easeTo: vi.fn(),
+    getCenter: vi.fn(() => ({ lng: 1, lat: 2 })), setZoom: vi.fn(),
+    getContainer: vi.fn(() => ({ clientWidth: 390, clientHeight: 230 })),
+    fitBounds: vi.fn(), setFilter: vi.fn(), off: vi.fn(),
+    queryRenderedFeatures: vi.fn(),
+    addSource: vi.fn((id, _data) => sources.add(id)),
+    addLayer: vi.fn(({ id }) => layers.add(id)),
+    getSource: vi.fn(id => sources.has(id) ? { setData: vi.fn() } : undefined),
+    getStyle: vi.fn(() => ({ layers: [...layers].map(id => ({ id })) })),
+    getLayer: vi.fn(id => layers.has(id)),
+    removeLayer: vi.fn(id => layers.delete(id)),
+    removeSource: vi.fn(id => sources.delete(id)),
     getBounds: () => ({ getWest: () => -122.8, getEast: () => -122.5, getSouth: () => 45.4, getNorth: () => 45.7 }),
     getCanvas: () => canvas,
-    hasImage: jest.fn(id => images.has(id)),
-    addImage: jest.fn(id => images.add(id)),
-    removeImage: jest.fn(id => images.delete(id)),
-    setLayoutProperty: jest.fn(),
+    hasImage: vi.fn(id => images.has(id)),
+    addImage: vi.fn(id => images.add(id)),
+    removeImage: vi.fn(id => images.delete(id)),
+    setLayoutProperty: vi.fn(),
   };
   const marker = {
-    setLngLat: jest.fn(), addTo: jest.fn(), getLngLat: jest.fn(() => ({ lng: 3, lat: 4 })),
-    on: jest.fn(), off: jest.fn(), remove: jest.fn(), setPopup: jest.fn(), togglePopup: jest.fn()
+    setLngLat: vi.fn(), addTo: vi.fn(), getLngLat: vi.fn(() => ({ lng: 3, lat: 4 })),
+    on: vi.fn(), off: vi.fn(), remove: vi.fn(), setPopup: vi.fn(), togglePopup: vi.fn()
   };
   const previousResizeObserver = global.ResizeObserver;
   const originalFetch = global.fetch;
@@ -178,14 +179,14 @@ describe("Nearby map initialization independently of the sidebar", () => {
     geometry: { type: "LineString", coordinates: [[0, 0], [1, 1]] }
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => routeGeometry });
-    jest.mocked(NearbyVehicles).mockReturnValue(null);
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => routeGeometry });
+    vi.mocked(NearbyVehicles).mockReturnValue(null);
     sources.clear();
     layers.clear();
     images.clear();
-    jest.mocked(NearbyPlacesMap).mockImplementation(function PlaceMap({ map, onBounds }) {
+    vi.mocked(NearbyPlacesMap).mockImplementation(function PlaceMap({ map, onBounds }) {
       React.useEffect(() => {
         if (map) onBounds([-122.8, 45.4, -122.5, 45.7]);
       }, [map, onBounds]);
@@ -194,7 +195,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     map.getContainer.mockReturnValue({ clientWidth: 390, clientHeight: 230 });
     map.addSource.mockImplementation(id => sources.add(id));
     map.addLayer.mockImplementation(({ id }) => layers.add(id));
-    map.getSource.mockImplementation(id => sources.has(id) ? { setData: jest.fn() } : undefined);
+    map.getSource.mockImplementation(id => sources.has(id) ? { setData: vi.fn() } : undefined);
     map.getLayer.mockImplementation(id => layers.has(id));
     map.removeLayer.mockImplementation(id => layers.delete(id));
     map.removeSource.mockImplementation(id => sources.delete(id));
@@ -205,12 +206,12 @@ describe("Nearby map initialization independently of the sidebar", () => {
     marker.setLngLat.mockReturnValue(marker);
     marker.setPopup.mockReturnValue(marker);
     marker.addTo.mockReturnValue(marker);
-    jest.requireMock("mapbox-gl").default.Marker.mockImplementation(() => marker);
-    global.ResizeObserver = jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(),
-      observe: jest.fn(),
-    }));
-    jest.mocked(getCurrentPosition).mockResolvedValue({
+    (await vi.importMock("mapbox-gl")).default.Marker.mockImplementation(function () { return marker; });
+    global.ResizeObserver = vi.fn().mockImplementation(function () { return {
+      disconnect: vi.fn(),
+      observe: vi.fn(),
+    }; });
+    vi.mocked(getCurrentPosition).mockResolvedValue({
       coords: {
         accuracy: 1,
         altitude: null,
@@ -222,11 +223,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
       },
       timestamp: 0,
     });
-    jest.mocked(getNearbyStops).mockResolvedValue(stops);
-    jest.mocked(getArrivals).mockResolvedValue({
+    vi.mocked(getNearbyStops).mockResolvedValue(stops);
+    vi.mocked(getArrivals).mockResolvedValue({
       arrival: [], detour: [], location: [], queryTime: ""
     });
-    jest.mocked(getRouteById).mockResolvedValue({
+    vi.mocked(getRouteById).mockResolvedValue({
       route: [{
         route: 56, id: 56, desc: "Example route", type: "bus",
         routeColor: "", routeSortOrder: 56,
@@ -235,20 +236,16 @@ describe("Nearby map initialization independently of the sidebar", () => {
         ] }]
       }]
     });
-    jest.mocked(showRouteInfo).mockReturnValue(jest.fn());
-    jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util")
-      .showStopDetailMarker.mockImplementation(() => jest.fn());
-    jest
-      .requireMock("../view/nearby/util/mapbox/initializeMap")
+    vi.mocked(showRouteInfo).mockReturnValue(vi.fn());
+    (await vi.importMock("../view/nearby/util/mapbox/stopLocationMarker.util"))
+      .showStopDetailMarker.mockImplementation(() => vi.fn());
+    (await vi.importMock("../view/nearby/util/mapbox/initializeMap"))
       .initializeMap.mockReturnValue(map);
-    jest
-      .requireMock("../view/nearby/util/mapbox/currentLocation")
+    (await vi.importMock("../view/nearby/util/mapbox/currentLocation"))
       .initializeCurrentLocationMarker.mockReturnValue(map);
-    jest
-      .requireMock("../view/nearby/util/mapbox/stopLocationMarker.util")
+    (await vi.importMock("../view/nearby/util/mapbox/stopLocationMarker.util"))
       .setNearbyStops.mockReturnValue(map);
-    jest
-      .requireMock("../view/nearby/util/mapbox/stopLocationMarker.util")
+    (await vi.importMock("../view/nearby/util/mapbox/stopLocationMarker.util"))
       .removeStopLocationLayers.mockReturnValue(map);
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -260,7 +257,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     container.remove();
     global.ResizeObserver = previousResizeObserver;
     global.fetch = originalFetch;
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     localStorage.removeItem(SAVED_PLACES_KEY);
   });
 
@@ -300,14 +297,14 @@ describe("Nearby map initialization independently of the sidebar", () => {
   it("loads the Portland overview while locating in the background, then recovers Explore without requesting again", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
     let resolveStops: (value: StopData) => void;
-    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
-    jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveStops = resolve; }));
+    vi.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    vi.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveStops = resolve; }));
 
     await render("/nearby", true);
     const sidebarSkeleton = () => container.querySelector(".transit-nearby-results-skeleton");
     const mapSkeleton = () => container.querySelector(".transit-nearby-map-skeleton");
     const mapCanvas = container.querySelector(".transit-nearby-map-canvas");
-    const { initializeMap } = jest.requireMock("../view/nearby/util/mapbox/initializeMap");
+    const { initializeMap } = (await vi.importMock("../view/nearby/util/mapbox/initializeMap"));
     expect(initializeMap).toHaveBeenLastCalledWith(-122.6784, 45.5152, expect.anything(), 10);
     expect(mapSkeleton()?.textContent).toBe("Loading map…");
     expect(sidebarSkeleton()).toBeNull();
@@ -333,14 +330,14 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(layers.has(NEARBY_ROUTE_LINES)).toBe(true);
 
     const { removeCurrentLocationMarkers, removeStopLocationLayers } =
-      jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util");
+      (await vi.importMock("../view/nearby/util/mapbox/stopLocationMarker.util"));
     const { setCurrentLocationMarker } =
-      jest.requireMock("../view/nearby/util/mapbox/currentLocation");
+      (await vi.importMock("../view/nearby/util/mapbox/currentLocation"));
     expect(setCurrentLocationMarker).toHaveBeenCalledWith(map, 0, 0, 1000);
     removeCurrentLocationMarkers.mockClear();
     removeStopLocationLayers.mockClear();
     setCurrentLocationMarker.mockClear();
-    jest.mocked(setNearbyStops).mockClear();
+    vi.mocked(setNearbyStops).mockClear();
 
     await act(async () => container.querySelector<HTMLAnchorElement>('.transit-detail-back').click());
     expect(map.flyTo).toHaveBeenLastCalledWith(expect.objectContaining({ center: [-122.6784, 45.5152], zoom: 10 }));
@@ -359,7 +356,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
 
   it("does not recenter the landing map or load transit when a pending location arrives after going back", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
-    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    vi.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
     await render("/nearby/simple-routes");
     finishMapLoading();
 
@@ -404,17 +401,17 @@ describe("Nearby map initialization independently of the sidebar", () => {
       source: "City of Portland", sourceUrl: "https://www.portlandmaps.com/", license: "PDDL-1.0",
       licenseUrl: "https://opendatacommons.org/licenses/pddl/1-0/", coverage: "Test", places
     };
-    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({ places,
-      sources: { ...placesApi.emptyPlaceSources(), park: { snapshot, loading: false, error: false } }, retry: jest.fn() });
+    vi.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({ places,
+      sources: { ...placesApi.emptyPlaceSources(), park: { snapshot, loading: false, error: false } }, retry: vi.fn() });
   }
   const discoveryPark: placesApi.InterestPlace = { id: "portland:park:1", category: "park", name: "Example Park",
     coordinates: [-122.67, 45.55], sourceUrl: "https://www.portlandmaps.com/", arrival: "approximate" };
 
   it("removes Places layers, sources, icons and popup listeners before destroying the map on navigation away", async () => {
-    jest.mocked(NearbyPlacesMap).mockImplementation(
-      jest.requireActual("../view/nearby/components/NearbyPlacesMap").default
+    vi.mocked(NearbyPlacesMap).mockImplementation(
+      (await vi.importActual<typeof import("../view/nearby/components/NearbyPlacesMap")>("../view/nearby/components/NearbyPlacesMap")).default
     );
-    jest.spyOn(placeIcons, "createPlaceIconImage").mockReturnValue({
+    vi.spyOn(placeIcons, "createPlaceIconImage").mockReturnValue({
       width: 48, height: 48, data: new Uint8Array(48 * 48 * 4)
     });
     discoveryCatalog([discoveryPark]);
@@ -426,7 +423,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     });
     map.getSource.mockImplementation(id => {
       if (removed) throw new Error("Cannot query a destroyed map style");
-      return sources.has(id) ? { setData: jest.fn() } : undefined;
+      return sources.has(id) ? { setData: vi.fn() } : undefined;
     });
     await act(async () => root.render(<FeatureFlagsProvider>
       <MemoryRouter initialEntries={["/", "/nearby/places"]}>
@@ -455,10 +452,10 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it.each(["icon creation", "layer installation"])("keeps selectable results when initial %s fails, and recovers through marker retry", async failure => {
-    jest.mocked(NearbyPlacesMap).mockImplementation(
-      jest.requireActual("../view/nearby/components/NearbyPlacesMap").default
+    vi.mocked(NearbyPlacesMap).mockImplementation(
+      (await vi.importActual<typeof import("../view/nearby/components/NearbyPlacesMap")>("../view/nearby/components/NearbyPlacesMap")).default
     );
-    const createIcon = jest.spyOn(placeIcons, "createPlaceIconImage").mockReturnValue({
+    const createIcon = vi.spyOn(placeIcons, "createPlaceIconImage").mockReturnValue({
       width: 48, height: 48, data: new Uint8Array(48 * 48 * 4)
     });
     if (failure === "icon creation") createIcon.mockImplementation(() => { throw new Error("Canvas unavailable"); });
@@ -484,7 +481,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
 
   it("keeps Places and details usable while permission is pending and adds the routing origin when it arrives", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
-    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    vi.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
     discoveryCatalog([discoveryPark]);
     await render("/nearby/places");
     expect(getCurrentPosition).toHaveBeenCalledTimes(1);
@@ -505,7 +502,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("keeps Places after denial and recovers its dependent routing origin through the inline retry", async () => {
-    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    vi.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
     discoveryCatalog([discoveryPark]);
     await render(placesApi.placeDetailLink(discoveryPark.id));
     finishMapLoading();
@@ -524,7 +521,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     discoveryCatalog([discoveryPark]);
     await render("/nearby/places");
     finishMapLoading();
-    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("timeout"));
+    vi.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("timeout"));
     await act(async () => button("Find near me").click());
 
     const message = "Current location is unavailable. Check browser permissions and retry, or keep browsing the map.";
@@ -542,13 +539,13 @@ describe("Nearby map initialization independently of the sidebar", () => {
 
   it("does not wait for background location before planning an explicit trip or move its map when the fix arrives", async () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
-    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
-    jest.mocked(getStopCatalog).mockResolvedValue({
+    vi.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    vi.mocked(getStopCatalog).mockResolvedValue({
       stops: [101, 202].map(locid => ({ ...stops.location[0], locid, aliases: [], seq: 1, tp: false })),
       routeCount: 1, directionCount: 1, stopReferenceCount: 2,
       incompleteRouteCount: 0, incompleteDirectionCount: 0, incompleteRouteNames: [], invalidStopCount: 0
     });
-    jest.mocked(planTrip).mockResolvedValue({ success: true, partial: false, itineraries: [] });
+    vi.mocked(planTrip).mockResolvedValue({ success: true, partial: false, itineraries: [] });
     await render("/nearby/planner?from=101&to=202");
     expect(planTrip).toHaveBeenCalledWith(expect.objectContaining({ fromPlace: "101", toPlace: "202" }));
     expect(container.querySelector(".transit-planner")).not.toBeNull();
@@ -584,7 +581,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
 
   it("restores shared filters, reference layers and map position and retains the view through detail/planner header Back", async () => {
     discoveryCatalog([discoveryPark]);
-    jest.mocked(getStopCatalog).mockRejectedValue(new Error("catalog unavailable"));
+    vi.mocked(getStopCatalog).mockRejectedValue(new Error("catalog unavailable"));
     const view = placesPreset("parks");
     view.filters.search = "Example";
     view.context.crossings = true;
@@ -671,13 +668,13 @@ describe("Nearby map initialization independently of the sidebar", () => {
       source: "City of Portland", sourceUrl: "https://www.portlandmaps.com/", license: "PDDL-1.0",
       licenseUrl: "https://opendatacommons.org/licenses/pddl/1-0/", coverage: "Test", places: [place]
     };
-    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
+    vi.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
       places: [place], sources: { ...placesApi.emptyPlaceSources(), park: { snapshot, loading: false, error: false },
-        "food-cart-pod": { loading: false, error: true } }, retry: jest.fn()
+        "food-cart-pod": { loading: false, error: true } }, retry: vi.fn()
     });
-    jest.mocked(getCurrentPosition).mockRejectedValue(new Error("denied"));
-    jest.mocked(getNearbyStops).mockRejectedValue(new Error("unavailable"));
-    jest.mocked(getStopCatalog).mockRejectedValue(new Error("catalog unavailable"));
+    vi.mocked(getCurrentPosition).mockRejectedValue(new Error("denied"));
+    vi.mocked(getNearbyStops).mockRejectedValue(new Error("unavailable"));
+    vi.mocked(getStopCatalog).mockRejectedValue(new Error("catalog unavailable"));
     await render("/nearby/places");
     finishMapLoading();
     expect(getCurrentPosition).toHaveBeenCalledTimes(1);
@@ -755,8 +752,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
       version: 1, category, retrievedAt: "2026-11-19T12:00:00Z", source: "Test", sourceUrl: place.sourceUrl,
       license: "Test", licenseUrl: place.sourceUrl, coverage: "Test", places: [place]
     };
-    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({ places: [place],
-      sources: { ...placesApi.emptyPlaceSources(), [category]: { snapshot, loading: false, error: false } }, retry: jest.fn() });
+    vi.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({ places: [place],
+      sources: { ...placesApi.emptyPlaceSources(), [category]: { snapshot, loading: false, error: false } }, retry: vi.fn() });
     await render(placesApi.placeDetailLink(id));
     finishMapLoading();
     expect(container.querySelector("#selected-place-heading").textContent).toBe(place.name);
@@ -771,8 +768,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("keeps a direct place route while loading and retrying, then reports an absent place without opening the list", async () => {
-    const retry = jest.fn();
-    const catalog = jest.spyOn(placesApi, "usePlaceCatalog");
+    const retry = vi.fn();
+    const catalog = vi.spyOn(placesApi, "usePlaceCatalog");
     catalog.mockReturnValue({ places: [], sources: { ...placesApi.emptyPlaceSources(),
       park: { loading: true, error: false } }, retry });
     const path = placesApi.placeDetailLink("portland:park:99999");
@@ -799,12 +796,12 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("opens the sidebar planner with the exact stop detail destination and no boarding stop", async () => {
-    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    vi.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
     const stop = { desc: "Shared platform name", dir: "E", id: 8455, lat: 45.52, lng: -122.67, passengerCode: "E" };
-    jest.mocked(getArrivals).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue({
       arrival: [], detour: [], queryTime: "", location: [stop]
     });
-    jest.mocked(getStopCatalog).mockResolvedValue({
+    vi.mocked(getStopCatalog).mockResolvedValue({
       stops: [8454, 8455].map(locid => ({
         ...stop, locid, aliases: [], seq: 1, tp: false,
       })),
@@ -829,8 +826,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("plans a deep-linked trip without geolocation and switches views without replacing the map", async () => {
-    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
-    jest.mocked(getStopCatalog).mockResolvedValue({
+    vi.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    vi.mocked(getStopCatalog).mockResolvedValue({
       stops: [101, 202].map(locid => ({
         ...stops.location[0], locid, aliases: [], seq: 1, tp: false,
       })),
@@ -838,7 +835,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       incompleteRouteCount: 0, incompleteDirectionCount: 0,
       incompleteRouteNames: [], invalidStopCount: 0,
     });
-    jest.mocked(planTrip).mockResolvedValue({
+    vi.mocked(planTrip).mockResolvedValue({
       success: true, partial: false, itineraries: [],
     });
     await render("/nearby/planner?from=101&to=202");
@@ -877,7 +874,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
 
   it.each(["/nearby/planner?keep=yes#options", "/nearby/simple-routes?keep=yes#routes"])(
     "returns to the captured referrer %s when trip following ends", async referrer => {
-    jest.mocked(getStopCatalog).mockResolvedValue({
+    vi.mocked(getStopCatalog).mockResolvedValue({
       stops: [], routeCount: 0, directionCount: 0, stopReferenceCount: 0,
       incompleteRouteCount: 0, incompleteDirectionCount: 0,
       incompleteRouteNames: [], invalidStopCount: 0,
@@ -927,11 +924,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
         ...branded[id],
         dir: [{ dir: 0, desc: "Eastbound", stop: [origin, destination] }]
     });
-    jest.mocked(getStopCatalog).mockResolvedValue(buildStopCatalog({
+    vi.mocked(getStopCatalog).mockResolvedValue(buildStopCatalog({
       route: [42, 100, 45, 194, 2, 190, 290].map(configFor),
     }));
-    jest.mocked(getRouteById).mockImplementation(async id => ({ route: [configFor(id)] }));
-    jest.mocked(getRouteGeometry).mockImplementation(async id => {
+    vi.mocked(getRouteById).mockImplementation(async id => ({ route: [configFor(id)] }));
+    vi.mocked(getRouteGeometry).mockImplementation(async id => {
       if (id === "45") throw new Error("No shape");
       if (id === "42") return {
         type: "Feature", properties: {},
@@ -945,7 +942,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
         geometry: { type: "LineString", coordinates: [[0, 0], [0.005, Number(id) / 100000], [0.01, 0]] }
       };
     });
-    jest.mocked(planTrip).mockResolvedValue({
+    vi.mocked(planTrip).mockResolvedValue({
       success: true, partial: false,
       itineraries: [42, 100, 45, 194, 2, 190, 290].map((id, index) => ({
         id: String(id), duration: 15 + index, partial: false,
@@ -967,7 +964,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     });
 
     await render("/nearby/planner?from=101&to=202");
-    const Marker = jest.requireMock("mapbox-gl").Marker;
+    const Marker = (await vi.importMock("mapbox-gl")).Marker;
     await act(async () => finishMapLoading());
     expect(setNearbyStops).not.toHaveBeenCalled();
     expect(Marker).not.toHaveBeenCalled();
@@ -1144,7 +1141,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       .toEqual(["Get off: Test route 45", "Board: Test route 46"]);
     expect(getWalkingPath).not.toHaveBeenCalled();
     const walkingGeometry = { type: "LineString" as const, coordinates: [[0.01, 0], [0.0105, 0], [0.011, 0.001]] };
-    jest.mocked(getWalkingPath).mockResolvedValue({
+    vi.mocked(getWalkingPath).mockResolvedValue({
       status: "ready", meters: 100, seconds: 80,
       feature: { type: "Feature", properties: {}, geometry: walkingGeometry }
     });
@@ -1158,7 +1155,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     }));
     expect(map.setFilter).toHaveBeenCalledWith("planner-itineraries-selected-walk", ["all", ["==", ["get", "trip"], 2], ["==", ["get", "walk"], true]]);
     await act(async () => button("Toggle walking estimates").click());
-    expect(jest.mocked(getWalkingPath).mock.calls[0][2].aborted).toBe(true);
+    expect(vi.mocked(getWalkingPath).mock.calls[0][2].aborted).toBe(true);
     expect(map.addSource).toHaveBeenLastCalledWith("planner-itineraries", expect.objectContaining({
       data: expect.objectContaining({
         features: expect.not.arrayContaining([expect.objectContaining({ properties: expect.objectContaining({ walk: true }) })])
@@ -1186,7 +1183,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("draws nearby route directions once and clears them for empty results without moving the map", async () => {
-    jest.mocked(getNearbyStops).mockResolvedValueOnce({
+    vi.mocked(getNearbyStops).mockResolvedValueOnce({
       ...stops,
       location: [...stops.location, { ...stops.location[0], locid: 102 }]
     });
@@ -1202,7 +1199,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     });
     expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: NEARBY_ROUTE_LINES, type: "line" }));
 
-    jest.mocked(getNearbyStops).mockResolvedValueOnce({ ...stops, location: [] });
+    vi.mocked(getNearbyStops).mockResolvedValueOnce({ ...stops, location: [] });
     await act(async () => button("Search this area").click());
     expect(layers.has(NEARBY_ROUTE_LINES)).toBe(false);
     expect(sources.has(NEARBY_ROUTE_LINES)).toBe(false);
@@ -1212,7 +1209,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("ignores an old route response after searching a different area", async () => {
-    const fetchGeometry = jest.mocked(global.fetch);
+    const fetchGeometry = vi.mocked(global.fetch);
     let resolveOlder: (response: Pick<Response, "ok" | "json">) => void;
     fetchGeometry.mockImplementationOnce(() => new Promise(resolve => {
       resolveOlder = response => resolve(response as Response);
@@ -1220,7 +1217,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await render("/nearby/simple-routes");
     await act(async () => finishMapLoading());
     const signal = fetchGeometry.mock.calls[0][1].signal;
-    jest.mocked(getNearbyStops).mockResolvedValueOnce({ ...stops, location: [] });
+    vi.mocked(getNearbyStops).mockResolvedValueOnce({ ...stops, location: [] });
     await act(async () => button("Search this area").click());
     expect(signal.aborted).toBe(true);
     await act(async () => resolveOlder({ ok: true, json: async () => routeGeometry }));
@@ -1241,7 +1238,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 3, latitude: 4 } }, 1000);
     expect(marker.remove).toHaveBeenCalled();
 
-    jest.mocked(getCurrentPosition).mockResolvedValueOnce({ coords: { latitude: 6, longitude: 5 } });
+    vi.mocked(getCurrentPosition).mockResolvedValueOnce({ coords: { latitude: 6, longitude: 5 } });
     await act(async () => button("Find near me").click());
     expect(getNearbyStops).toHaveBeenLastCalledWith({ coords: { longitude: 5, latitude: 6 } }, 1000);
     expect(map.flyTo).toHaveBeenCalledWith(expect.objectContaining({ center: [5, 6] }));
@@ -1249,7 +1246,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("keeps the map usable when location is denied and retries location", async () => {
-    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    vi.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
     await render("/nearby/stops");
     expect(container.textContent).toContain("Location unavailable");
     expect(getNearbyStops).not.toHaveBeenCalled();
@@ -1265,7 +1262,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     let resolveLocation: (value: { coords: { latitude: number; longitude: number } }) => void;
     await render("/nearby/stops");
     await act(async () => finishMapLoading());
-    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
+    vi.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise(resolve => { resolveLocation = resolve; }));
     await act(async () => button("Find near me").click());
     await act(async () => button("Search this area").click());
     await act(async () => resolveLocation({ coords: { longitude: 8, latitude: 9 } }));
@@ -1276,7 +1273,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
   it("retries a failed stop search without changing its location", async () => {
     await render("/nearby/stops");
     await act(async () => finishMapLoading());
-    jest.mocked(getNearbyStops).mockRejectedValueOnce(new Error("network"));
+    vi.mocked(getNearbyStops).mockRejectedValueOnce(new Error("network"));
     await act(async () => button("Search this area").click());
     expect(container.textContent).toContain("Nearby stops could not be loaded");
     await act(async () => button("Retry").click());
@@ -1296,7 +1293,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
       </Routes></MemoryRouter></FeatureFlagsProvider>
     ));
     await act(async () => finishMapLoading());
-    jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveOlder = resolve; }));
+    vi.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveOlder = resolve; }));
     const select = container.querySelector<HTMLSelectElement>('[aria-label="Test radius"]');
     await act(async () => {
       select.value = "500";
@@ -1317,9 +1314,9 @@ describe("Nearby map initialization independently of the sidebar", () => {
       </Routes></MemoryRouter></FeatureFlagsProvider>
     ));
     await act(async () => finishMapLoading());
-    const cleanup = jest.mocked(showRouteInfo).mock.results[0].value;
+    const cleanup = vi.mocked(showRouteInfo).mock.results[0].value;
     let resolveSearch: (value: StopData) => void;
-    jest.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveSearch = resolve; }));
+    vi.mocked(getNearbyStops).mockImplementationOnce(() => new Promise(resolve => { resolveSearch = resolve; }));
     await act(async () => button("Search this area").click());
     expect(cleanup).toHaveBeenCalled();
     await act(async () => { resolveSearch(stops); });
@@ -1336,7 +1333,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => finishMapLoading());
     const details = container.querySelector('[aria-label="Route 56 details"]');
     expect(details).not.toBeNull();
-    const [, , , , canFit, isActive] = jest.mocked(showRouteInfo).mock.calls[0];
+    const [, , , , canFit, isActive] = vi.mocked(showRouteInfo).mock.calls[0];
     expect(canFit()).toBe(true);
     await act(async () => button("Follow test trip").click());
     expect(details.closest("[hidden]")).not.toBeNull();
@@ -1369,12 +1366,12 @@ describe("Nearby map initialization independently of the sidebar", () => {
   );
 
   it("opens a homepage stop outside the radius before location or the map is ready", async () => {
-    jest.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise<never>(() => {}));
-    jest.mocked(getArrivals).mockResolvedValue({
+    vi.mocked(getCurrentPosition).mockImplementationOnce(() => new Promise<never>(() => {}));
+    vi.mocked(getArrivals).mockResolvedValue({
       arrival: [], detour: [], queryTime: "",
       location: [{ desc: "Far stop", dir: "E", id: 8455, lat: 2, lng: 1, passengerCode: "E" }]
     });
-    const showMarker = jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util").showStopDetailMarker;
+    const showMarker = (await vi.importMock("../view/nearby/util/mapbox/stopLocationMarker.util")).showStopDetailMarker;
     await act(async () => root.render(
       <FeatureFlagsProvider>
         <MemoryRouter initialEntries={["/nearby/stops/8455?referrer=%2F"]}>
@@ -1402,8 +1399,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("shows a direct stop when device location is denied", async () => {
-    jest.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
-    jest.mocked(getArrivals).mockResolvedValue({
+    vi.mocked(getCurrentPosition).mockRejectedValueOnce(new Error("denied"));
+    vi.mocked(getArrivals).mockResolvedValue({
       arrival: [], detour: [], queryTime: "",
       location: [{ desc: "Far stop", dir: "E", id: 8455, lat: 2, lng: 1, passengerCode: "E" }]
     });
@@ -1423,7 +1420,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await render("/nearby/stops");
     finishMapLoading();
     await act(async () => root.render(null));
-    jest.mocked(setNearbyStops).mockClear();
+    vi.mocked(setNearbyStops).mockClear();
     await render("/nearby/stops");
     expect(setNearbyStops).not.toHaveBeenCalled();
     finishMapLoading();
@@ -1431,11 +1428,11 @@ describe("Nearby map initialization independently of the sidebar", () => {
   });
 
   it("shows a directly opened stop outside the nearby radius and removes its marker on exit", async () => {
-    jest.mocked(getArrivals).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue({
       arrival: [], detour: [], queryTime: "",
       location: [{ desc: "Far stop", dir: "E", id: 8455, lat: 2, lng: 1, passengerCode: "E" }]
     });
-    const showMarker = jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util").showStopDetailMarker;
+    const showMarker = (await vi.importMock("../view/nearby/util/mapbox/stopLocationMarker.util")).showStopDetailMarker;
     await act(async () => root.render(
       <FeatureFlagsProvider>
         <MemoryRouter initialEntries={["/nearby/stops/8455"]}>
@@ -1469,18 +1466,18 @@ describe("Nearby map initialization independently of the sidebar", () => {
       </FeatureFlagsProvider>
     ));
     await act(async () => finishMapLoading());
-    jest.mocked(getArrivals).mockResolvedValue({
+    vi.mocked(getArrivals).mockResolvedValue({
       arrival: [], detour: [], queryTime: "",
       location: [{ desc: "Example stop", dir: "E", id: 101, lat: 0, lng: 0.001, passengerCode: "E" }]
     });
-    const stopClick = jest.mocked(showRouteInfo).mock.calls[0][3];
+    const stopClick = vi.mocked(showRouteInfo).mock.calls[0][3];
     await act(async () => stopClick(101));
-    expect(jest.requireMock("../view/nearby/util/mapbox/stopLocationMarker.util").showStopDetailMarker)
+    expect((await vi.importMock("../view/nearby/util/mapbox/stopLocationMarker.util")).showStopDetailMarker)
       .toHaveBeenCalledWith(map, expect.objectContaining({ id: 101, lat: 0, lng: 0.001 }));
     const back = container.querySelector<HTMLAnchorElement>('a[aria-label="Back"]');
     expect(back.getAttribute("href")).toBe("/nearby/simple-routes?route=56&keep=yes#directions");
     await act(async () => back.click());
     expect(container.querySelector('[aria-label="Route 56 details"]')).not.toBeNull();
-    expect(jest.mocked(showRouteInfo).mock.results[0].value).toHaveBeenCalled();
+    expect(vi.mocked(showRouteInfo).mock.results[0].value).toHaveBeenCalled();
   });
 });

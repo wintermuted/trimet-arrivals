@@ -51,7 +51,7 @@
     ],
     "targets": {
       "test:package": {
-        "command": "jest --selectProjects ui-package --runInBand",
+        "command": "vitest run --project ui-package --maxWorkers=1",
         "cache": false
       }
     }

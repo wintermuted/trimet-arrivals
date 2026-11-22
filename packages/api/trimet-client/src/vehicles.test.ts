@@ -1,4 +1,5 @@
-/** @jest-environment jsdom */
+import { vi } from "vitest";
+/** @vitest-environment jsdom */
 import { getVehicles, parseVehicleSnapshot } from "./index";
 
 const options = { baseUrl: "https://example.test/ws/", appId: "test-id" };
@@ -12,7 +13,7 @@ afterEach(() => { global.fetch = originalFetch; });
 
 it("requests a viewport snapshot with an abort signal, not arrival parameters", async () => {
   const signal = new AbortController().signal;
-  const fetchMock = jest.fn().mockResolvedValue({
+  const fetchMock = vi.fn().mockResolvedValue({
     ok: true, json: async () => ({ resultSet: { queryTime: now, vehicle: [bus] } }),
   });
   global.fetch = fetchMock;
@@ -54,7 +55,7 @@ it("distinguishes an empty snapshot from malformed and service-error responses",
 });
 
 it.each([429, 503, 401])("surfaces HTTP %s and preserves throttling/permanent failure information", async status => {
-  global.fetch = jest.fn().mockResolvedValue({
+  global.fetch = vi.fn().mockResolvedValue({
     ok: false, status, headers: { get: () => "45" },
   });
   await expect(getVehicles(bounds, options)).rejects.toMatchObject({
@@ -63,7 +64,7 @@ it.each([429, 503, 401])("surfaces HTTP %s and preserves throttling/permanent fa
 });
 
 it("does not fetch invalid bounds or an already aborted request", async () => {
-  global.fetch = jest.fn();
+  global.fetch = vi.fn();
   await expect(getVehicles([-122, 46, -123, 45], options)).rejects.toThrow("bounds");
   const controller = new AbortController();
   controller.abort();
@@ -72,11 +73,11 @@ it("does not fetch invalid bounds or an already aborted request", async () => {
 });
 
 it("looks up a followed vehicle by identity without viewport restrictions", async () => {
-  global.fetch = jest.fn().mockResolvedValue({
+  global.fetch = vi.fn().mockResolvedValue({
     ok: true, json: async () => ({ resultSet: { queryTime: now, vehicle: [bus] } }),
   });
   await getVehicles(undefined, options, undefined, "1");
-  const url = new URL(jest.mocked(global.fetch).mock.calls[0][0].toString());
+  const url = new URL(vi.mocked(global.fetch).mock.calls[0][0].toString());
   expect(url.searchParams.get("ids")).toBe("1");
   expect(url.searchParams.has("bbox")).toBe(false);
 });

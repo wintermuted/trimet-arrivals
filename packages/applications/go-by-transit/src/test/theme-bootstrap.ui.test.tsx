@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { execFileSync } from "child_process";
 import { readFileSync } from "fs";
 import { resolve } from "path";
@@ -28,7 +29,7 @@ describe("Vite HTML theme bootstrap", () => {
     ["invalid", true, "dark"],
   ])("resolves preference %s with dark system %s", (preference, systemDark, expected) => {
     const root = { dataset: { theme: "" }, style: { colorScheme: "" } };
-    const getItem = jest.fn(() => preference);
+    const getItem = vi.fn(() => preference);
     runInNewContext(match![1], {
       document: { documentElement: root },
       localStorage: { getItem },
@@ -41,7 +42,7 @@ describe("Vite HTML theme bootstrap", () => {
 
   it("falls back to the system preference when storage is unavailable", () => {
     const root = { dataset: { theme: "" }, style: { colorScheme: "" } };
-    const warn = jest.fn();
+    const warn = vi.fn();
     runInNewContext(match![1], {
       console: { warn },
       document: { documentElement: root },

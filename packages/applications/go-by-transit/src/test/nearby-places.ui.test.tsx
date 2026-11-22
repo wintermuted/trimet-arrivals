@@ -1,3 +1,6 @@
+import { vi, type Mock } from "vitest";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
@@ -14,11 +17,11 @@ import { NeighborhoodSnapshot, parseNeighborhoodSnapshot, useNeighborhoods } fro
 import { DEFAULT_LINE_OVERLAYS, LINE_CAUTION_COLOR, LineOverlayCategory, LineOverlaySnapshot,
   parseLineOverlaySnapshot, useLineOverlay } from "@overworld/places/lineOverlays";
 import NearbyLineOverlayMap, { lineOverlaySource } from "../view/nearby/components/NearbyLineOverlayMap";
-jest.mock("../view/nearby/util/mapbox/placeIcons", () => ({
-  ...jest.requireActual("../view/nearby/util/mapbox/placeIcons"),
-  createPlaceIconImage: jest.fn(() => ({ width: 48, height: 48, data: new Uint8Array(48 * 48 * 4) }))
+vi.mock("../view/nearby/util/mapbox/placeIcons", async () => ({
+  ...(await vi.importActual<typeof import("../view/nearby/util/mapbox/placeIcons")>("../view/nearby/util/mapbox/placeIcons")),
+  createPlaceIconImage: vi.fn(() => ({ width: 48, height: 48, data: new Uint8Array(48 * 48 * 4) }))
 }));
-jest.mock("mapbox-gl", () => ({ Popup: jest.fn() }));
+vi.mock("mapbox-gl", () => ({ Popup: vi.fn() }));
 
 const park: InterestPlace = {
   id: "portland:park:1", name: "Example Park", category: "park", coordinates: [-122.67, 45.52],
@@ -89,10 +92,10 @@ describe("Places filtering, selection and map layers", () => {
   let container: HTMLDivElement;
   let root: Root;
   beforeEach(() => {
-    jest.mocked(Popup).mockImplementation(() => ({
-      setLngLat: jest.fn().mockReturnThis(), setDOMContent: jest.fn().mockReturnThis(),
-      addTo: jest.fn().mockReturnThis(), remove: jest.fn()
-    } as never));
+    vi.mocked(Popup).mockImplementation(function () { return {
+      setLngLat: vi.fn().mockReturnThis(), setDOMContent: vi.fn().mockReturnThis(),
+      addTo: vi.fn().mockReturnThis(), remove: vi.fn()
+    } as never; });
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -108,7 +111,7 @@ describe("Places filtering, selection and map layers", () => {
       x, y, width, height, left: x, top: y, right: x + width, bottom: y + height,
       toJSON: () => ({ x, y, width, height })
     });
-    const measure = jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+    const measure = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
       if (this.classList.contains("transit-nearby-map-stage")) {
         return mobile ? bounds(0, 350, 390, 240) : bounds(288, 54, 700, 700);
       }
@@ -144,10 +147,10 @@ describe("Places filtering, selection and map layers", () => {
         <button onClick={() => setSelected(selected ? undefined : park)}>Toggle detail</button>
         <NearbyPlaces sources={{ ...emptyPlaceSources(), park: { snapshot, loading: false, error: false } }}
           filters={filters} onFilters={setFilters} visiblePlaces={[park]} selected={selected}
-          onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false}
+          onSelect={vi.fn()} onRetry={vi.fn()} mapReady mapError={false}
           discovery={<button>Discovery action</button>}
-          neighborhoods={{ shown: true, onShown: jest.fn(), polygonsShown: false, onPolygonsShown: jest.fn(),
-            loading: false, error: true, mapError: false, onRetry: jest.fn() }} />
+          neighborhoods={{ shown: true, onShown: vi.fn(), polygonsShown: false, onPolygonsShown: vi.fn(),
+            loading: false, error: true, mapError: false, onRetry: vi.fn() }} />
       </MemoryRouter>;
     }
     await act(async () => root.render(<Harness />));
@@ -221,7 +224,7 @@ describe("Places filtering, selection and map layers", () => {
 
   it("retries only the requested failed place source and retains its last snapshot on a subsequent failure", async () => {
     const originalFetch = global.fetch;
-    const fetch = jest.fn().mockRejectedValue(new Error("Unavailable source"));
+    const fetch = vi.fn().mockRejectedValue(new Error("Unavailable source"));
     global.fetch = fetch;
     let catalog: ReturnType<typeof usePlaceCatalog>;
     function Harness() {
@@ -262,10 +265,10 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it("keeps source errors beside collapsed sections, groups and category rows with exact-message tooltips and isolated retries", async () => {
-    const retry = jest.fn(), onFilters = jest.fn();
+    const retry = vi.fn(), onFilters = vi.fn();
     const sources = { ...emptyPlaceSources(), cafe: { loading: false, error: true } };
     await act(async () => root.render(<MemoryRouter><NearbyPlaces sources={sources} filters={DEFAULT_PLACE_FILTERS}
-      onFilters={onFilters} visiblePlaces={[]} onSelect={jest.fn()} onRetry={retry} mapReady mapError={false} /></MemoryRouter>));
+      onFilters={onFilters} visiblePlaces={[]} onSelect={vi.fn()} onRetry={retry} mapReady mapError={false} /></MemoryRouter>));
     const section = container.querySelector<HTMLDetailsElement>("details");
     const summaryRetry = section.querySelector<HTMLButtonElement>('summary button[aria-label="Retry place categories"]');
     await act(async () => summaryRetry.click());
@@ -291,18 +294,18 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it("shows a layer's retained-snapshot or drawing failure only at its row and exposes a real marker retry", async () => {
-    const retry = jest.fn(), retryMap = jest.fn();
+    const retry = vi.fn(), retryMap = vi.fn();
     const sources = {
-      "park-trails": { loading: false, error: true, snapshot: overlaySnapshot("park-trails"), retry: jest.fn() },
-      "bicycle-network": { loading: false, error: false, retry: jest.fn() },
-      "recommended-bike-routes": { loading: false, error: false, retry: jest.fn() }
+      "park-trails": { loading: false, error: true, snapshot: overlaySnapshot("park-trails"), retry: vi.fn() },
+      "bicycle-network": { loading: false, error: false, retry: vi.fn() },
+      "recommended-bike-routes": { loading: false, error: false, retry: vi.fn() }
     };
     await act(async () => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()} filters={DEFAULT_PLACE_FILTERS}
-      onFilters={jest.fn()} visiblePlaces={[]} onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError onRetryMap={retryMap}
-      neighborhoods={{ shown: false, onShown: jest.fn(), polygonsShown: false, onPolygonsShown: jest.fn(),
-        loading: false, error: false, mapError: false, onRetry: jest.fn() }}
+      onFilters={vi.fn()} visiblePlaces={[]} onSelect={vi.fn()} onRetry={vi.fn()} mapReady mapError onRetryMap={retryMap}
+      neighborhoods={{ shown: false, onShown: vi.fn(), polygonsShown: false, onPolygonsShown: vi.fn(),
+        loading: false, error: false, mapError: false, onRetry: vi.fn() }}
       lineOverlays={{ shown: { ...DEFAULT_LINE_OVERLAYS, "park-trails": true }, sources,
-        mapErrors: DEFAULT_LINE_OVERLAYS, onShown: jest.fn(), onRetry: retry }} /></MemoryRouter>));
+        mapErrors: DEFAULT_LINE_OVERLAYS, onShown: vi.fn(), onRetry: retry }} /></MemoryRouter>));
     const markerRetry = container.querySelector<HTMLButtonElement>('button[aria-label="Retry place categories"]');
     await act(async () => markerRetry.click());
     expect(retryMap).toHaveBeenCalledTimes(1);
@@ -324,7 +327,7 @@ describe("Places filtering, selection and map layers", () => {
       updateFilters = setFilters;
       currentFilters = filters;
       return <MemoryRouter><NearbyPlaces sources={emptyPlaceSources()} filters={filters} onFilters={setFilters}
-        visiblePlaces={[]} onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false} /></MemoryRouter>;
+        visiblePlaces={[]} onSelect={vi.fn()} onRetry={vi.fn()} mapReady mapError={false} /></MemoryRouter>;
     }
     act(() => root.render(<Harness />));
     const groups = [...container.querySelectorAll<HTMLFieldSetElement>(".transit-places-category-group")];
@@ -395,7 +398,7 @@ describe("Places filtering, selection and map layers", () => {
   it.each(["park-trails", "bicycle-network", "recommended-bike-routes"] as const)(
     "loads %s only when enabled and retries failures independently", async category => {
       const originalFetch = global.fetch;
-      const fetch = jest.fn().mockRejectedValueOnce(new Error("network"))
+      const fetch = vi.fn().mockRejectedValueOnce(new Error("network"))
         .mockResolvedValue({ ok: true, json: async () => overlaySnapshot(category) });
       global.fetch = fetch;
       function Harness({ enabled }: { enabled: boolean }) {
@@ -417,17 +420,17 @@ describe("Places filtering, selection and map layers", () => {
     });
 
   it("keeps line controls, legends and retries independent of place filters and neighborhood loading", () => {
-    const onFilters = jest.fn(), onShown = jest.fn(), onRetry = jest.fn();
+    const onFilters = vi.fn(), onShown = vi.fn(), onRetry = vi.fn();
     const sources = {
-      "park-trails": { loading: true, error: false, retry: jest.fn() },
-      "bicycle-network": { loading: false, error: true, retry: jest.fn() },
-      "recommended-bike-routes": { loading: false, error: false, retry: jest.fn() }
+      "park-trails": { loading: true, error: false, retry: vi.fn() },
+      "bicycle-network": { loading: false, error: true, retry: vi.fn() },
+      "recommended-bike-routes": { loading: false, error: false, retry: vi.fn() }
     };
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
-      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[park]} onSelect={jest.fn()}
-      onRetry={jest.fn()} mapReady mapError={false}
-      neighborhoods={{ shown: false, onShown: jest.fn(), polygonsShown: false, onPolygonsShown: jest.fn(),
-        loading: false, error: false, mapError: false, onRetry: jest.fn() }}
+      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[park]} onSelect={vi.fn()}
+      onRetry={vi.fn()} mapReady mapError={false}
+      neighborhoods={{ shown: false, onShown: vi.fn(), polygonsShown: false, onPolygonsShown: vi.fn(),
+        loading: false, error: false, mapError: false, onRetry: vi.fn() }}
       lineOverlays={{ shown: { "park-trails": true, "bicycle-network": true, "recommended-bike-routes": true },
         sources, mapErrors: DEFAULT_LINE_OVERLAYS, onShown, onRetry }}
     /></MemoryRouter>));
@@ -461,13 +464,13 @@ describe("Places filtering, selection and map layers", () => {
     const layers = new Set<string>(["nearby-places-park-points"]);
     const listeners = new Map<string, (event?: { error: Error; sourceId: string }) => void>();
     const map = {
-      getSource: jest.fn(id => sources.has(id)), addSource: jest.fn(id => sources.add(id)),
-      getLayer: jest.fn(id => layers.has(id)), addLayer: jest.fn((layer, _before?: string) => layers.add(layer.id)),
+      getSource: vi.fn(id => sources.has(id)), addSource: vi.fn(id => sources.add(id)),
+      getLayer: vi.fn(id => layers.has(id)), addLayer: vi.fn((layer, _before?: string) => layers.add(layer.id)),
       getStyle: () => ({ layers: [...layers].map(id => ({ id })) }),
-      on: jest.fn((name, handler) => listeners.set(name, handler)), off: jest.fn(),
-      removeLayer: jest.fn(id => layers.delete(id)), removeSource: jest.fn(id => sources.delete(id))
+      on: vi.fn((name, handler) => listeners.set(name, handler)), off: vi.fn(),
+      removeLayer: vi.fn(id => layers.delete(id)), removeSource: vi.fn(id => sources.delete(id))
     };
-    const onError = jest.fn();
+    const onError = vi.fn();
     const data = overlaySnapshot(category);
     act(() => root.render(<NearbyLineOverlayMap map={map as never} snapshot={data} onError={onError} />));
     expect(map.addLayer.mock.calls.every(call => call[1] === "nearby-places-park-points")).toBe(true);
@@ -510,13 +513,13 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it("keeps the neighborhood toggle and retry independent of place categories and results", () => {
-    const onFilters = jest.fn();
-    const onShown = jest.fn();
-    const onPolygonsShown = jest.fn();
-    const onRetry = jest.fn();
+    const onFilters = vi.fn();
+    const onShown = vi.fn();
+    const onPolygonsShown = vi.fn();
+    const onRetry = vi.fn();
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
-      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[park]} onSelect={jest.fn()}
-      onRetry={jest.fn()} mapReady mapError={false}
+      filters={DEFAULT_PLACE_FILTERS} onFilters={onFilters} visiblePlaces={[park]} onSelect={vi.fn()}
+      onRetry={vi.fn()} mapReady mapError={false}
       neighborhoods={{ shown: true, onShown, polygonsShown: false, onPolygonsShown,
         loading: false, error: true, mapError: false, onRetry }}
     /></MemoryRouter>));
@@ -536,7 +539,7 @@ describe("Places filtering, selection and map layers", () => {
 
   it("loads neighborhoods only when enabled and recovers after an independent fetch failure", async () => {
     const originalFetch = global.fetch;
-    const fetch = jest.fn().mockRejectedValueOnce(new Error("network"))
+    const fetch = vi.fn().mockRejectedValueOnce(new Error("network"))
       .mockResolvedValue({ ok: true, json: async () => neighborhoodSnapshot });
     global.fetch = fetch;
     function Harness({ enabled }: { enabled: boolean }) {
@@ -564,14 +567,14 @@ describe("Places filtering, selection and map layers", () => {
     const layers = new Set<string>(["nearby-places-park-points"]);
     const listeners = new Map<string, () => void>();
     const map = {
-      getSource: jest.fn(id => sources.has(id)), addSource: jest.fn(id => sources.add(id)),
-      getLayer: jest.fn(id => layers.has(id)), addLayer: jest.fn((layer, _before?: string) => layers.add(layer.id)),
+      getSource: vi.fn(id => sources.has(id)), addSource: vi.fn(id => sources.add(id)),
+      getLayer: vi.fn(id => layers.has(id)), addLayer: vi.fn((layer, _before?: string) => layers.add(layer.id)),
       getStyle: () => ({ layers: [...layers].map(id => ({ id })) }),
-      setLayoutProperty: jest.fn(), setPaintProperty: jest.fn(),
-      on: jest.fn((name, handler) => listeners.set(name, handler)), off: jest.fn(),
-      removeLayer: jest.fn(id => layers.delete(id)), removeSource: jest.fn(id => sources.delete(id))
+      setLayoutProperty: vi.fn(), setPaintProperty: vi.fn(),
+      on: vi.fn((name, handler) => listeners.set(name, handler)), off: vi.fn(),
+      removeLayer: vi.fn(id => layers.delete(id)), removeSource: vi.fn(id => sources.delete(id))
     };
-    const onError = jest.fn();
+    const onError = vi.fn();
     act(() => root.render(<NearbyNeighborhoodsMap map={map as never} snapshot={neighborhoodSnapshot} polygonsShown={false} onError={onError} />));
     expect(map.addSource).toHaveBeenCalledWith(NEIGHBORHOOD_SOURCE, expect.objectContaining({ data: neighborhoodSnapshot }));
     expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ type: "symbol",
@@ -695,8 +698,8 @@ describe("Places filtering, selection and map layers", () => {
 
   it.each([garden, market, restroom, tree, ...everydayPlaces, ...amenities, ...culturalPlaces, ...outingPlaces])("shows $category details, caveats, and an approximate named planner destination", place => {
     act(() => root.render(<MemoryRouter><NearbyPlaces sources={emptyPlaceSources()}
-      filters={DEFAULT_PLACE_FILTERS} onFilters={jest.fn()} visiblePlaces={[place]} selected={place}
-      onSelect={jest.fn()} onRetry={jest.fn()} mapReady mapError={false} /></MemoryRouter>));
+      filters={DEFAULT_PLACE_FILTERS} onFilters={vi.fn()} visiblePlaces={[place]} selected={place}
+      onSelect={vi.fn()} onRetry={vi.fn()} mapReady mapError={false} /></MemoryRouter>));
     expect(container.querySelector("#selected-place-heading").textContent).toBe(place.name);
     const params = new URLSearchParams(container.querySelector<HTMLAnchorElement>('a[href*="toPlaceId"]').search);
     expect(params.get("toPlaceId")).toBe(place.id);
@@ -750,8 +753,8 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it("exposes accessible individual results and route context even when one source failed", () => {
-    const select = jest.fn();
-    const retry = jest.fn();
+    const select = vi.fn();
+    const retry = vi.fn();
     let clearSelection: () => void;
     function Harness() {
       const [selected, setSelected] = React.useState<InterestPlace>();
@@ -760,7 +763,7 @@ describe("Places filtering, selection and map layers", () => {
       ...emptyPlaceSources(),
       park: { snapshot, loading: false, error: false },
       "food-cart-pod": { loading: false, error: true }
-    }} filters={DEFAULT_PLACE_FILTERS} onFilters={jest.fn()}
+    }} filters={DEFAULT_PLACE_FILTERS} onFilters={vi.fn()}
       visiblePlaces={[park]} selected={selected} onSelect={(id, pan) => {
         select(id, pan);
         setSelected(id === park.id ? park : undefined);
@@ -788,38 +791,38 @@ describe("Places filtering, selection and map layers", () => {
   });
 
   it("expands clusters, offers coincident locations, restores style layers and cleans up listeners", async () => {
-    const sources = new Map<string, { setData: jest.Mock; getClusterExpansionZoom: jest.Mock; getClusterLeaves: jest.Mock }>();
+    const sources = new Map<string, { setData: Mock; getClusterExpansionZoom: Mock; getClusterLeaves: Mock }>();
     const layers = new Set<string>();
     const images = new Set<string>();
     const listeners = new Map<string, (...args: unknown[]) => void>();
-    const source = { setData: jest.fn(), getClusterExpansionZoom: jest.fn((_id, callback) => callback(null, 15)),
-      getClusterLeaves: jest.fn((_id, _limit, _offset, callback) => callback(null, [{ properties: { id: park.id } }, { properties: { id: pod.id } }])) };
+    const source = { setData: vi.fn(), getClusterExpansionZoom: vi.fn((_id, callback) => callback(null, 15)),
+      getClusterLeaves: vi.fn((_id, _limit, _offset, callback) => callback(null, [{ properties: { id: park.id } }, { properties: { id: pod.id } }])) };
     const canvas = document.createElement("canvas");
     const fakeMap = {
-      getSource: jest.fn(id => sources.get(id)),
-      addSource: jest.fn(id => sources.set(id, source)),
-      getLayer: jest.fn(id => layers.has(id)),
-      addLayer: jest.fn(layer => layers.add(layer.id)),
-      setFilter: jest.fn(),
-      setLayoutProperty: jest.fn(),
-      hasImage: jest.fn(id => images.has(id)),
-      addImage: jest.fn(id => images.add(id)),
-      removeImage: jest.fn(id => images.delete(id)),
+      getSource: vi.fn(id => sources.get(id)),
+      addSource: vi.fn(id => sources.set(id, source)),
+      getLayer: vi.fn(id => layers.has(id)),
+      addLayer: vi.fn(layer => layers.add(layer.id)),
+      setFilter: vi.fn(),
+      setLayoutProperty: vi.fn(),
+      hasImage: vi.fn(id => images.has(id)),
+      addImage: vi.fn(id => images.add(id)),
+      removeImage: vi.fn(id => images.delete(id)),
       getBounds: () => ({ getWest: () => -122.8, getEast: () => -122.5, getSouth: () => 45.4, getNorth: () => 45.7 }),
       getCanvas: () => canvas,
-      on: jest.fn((name, handler) => listeners.set(name, handler)),
-      off: jest.fn(),
-      removeLayer: jest.fn(id => layers.delete(id)),
-      removeSource: jest.fn(id => sources.delete(id)),
-      getZoom: jest.fn(() => 12), getMaxZoom: () => 22, easeTo: jest.fn(),
-      queryRenderedFeatures: jest.fn()
+      on: vi.fn((name, handler) => listeners.set(name, handler)),
+      off: vi.fn(),
+      removeLayer: vi.fn(id => layers.delete(id)),
+      removeSource: vi.fn(id => sources.delete(id)),
+      getZoom: vi.fn(() => 12), getMaxZoom: () => 22, easeTo: vi.fn(),
+      queryRenderedFeatures: vi.fn()
     };
-    const onCoincident = jest.fn();
-    const onSelect = jest.fn();
-    const onError = jest.fn();
+    const onCoincident = vi.fn();
+    const onSelect = vi.fn();
+    const onError = vi.fn();
     const hoverPlace = { ...park, name: "Example <img> Park", address: "100 <b>Main</b> Street" };
     act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace, pod]} selectedId={park.id}
-      onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
+      onSelect={onSelect} onCoincident={onCoincident} onBounds={vi.fn()} onError={onError} />));
     expect(fakeMap.addSource).toHaveBeenCalledWith("nearby-places-park", expect.objectContaining({ cluster: true }));
     expect(images.size).toBe(PLACE_CATEGORIES.length);
     expect(fakeMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({
@@ -840,7 +843,7 @@ describe("Places filtering, selection and map layers", () => {
           expect.objectContaining({ attribution: expect.stringContaining("OpenStreetMap contributors (ODbL)") }));
       }
     }
-    const popup = jest.mocked(Popup).mock.results.slice(-1)[0].value;
+    const popup = vi.mocked(Popup).mock.results.slice(-1)[0].value;
     fakeMap.queryRenderedFeatures.mockReturnValue([{ source: "nearby-places-park",
       geometry: { type: "Point", coordinates: park.coordinates }, properties: { id: park.id } }]);
     act(() => listeners.get("mousemove")({ point: { x: 1, y: 1 }, lngLat: { lng: -122.67 } }));
@@ -878,14 +881,14 @@ describe("Places filtering, selection and map layers", () => {
     await act(async () => listeners.get("click")({ point: { x: 1, y: 1 } }));
     expect(onCoincident).toHaveBeenCalledWith([park.id, pod.id]);
     act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace]} selectedId={park.id}
-      onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
+      onSelect={onSelect} onCoincident={onCoincident} onBounds={vi.fn()} onError={onError} />));
     for (const suffix of ["clusters", "counts", "points", "icons", "selection"]) {
       expect(fakeMap.setLayoutProperty).toHaveBeenCalledWith(`nearby-places-food-cart-pod-${suffix}`, "visibility", "none");
     }
     expect(fakeMap.setLayoutProperty).toHaveBeenCalledWith("nearby-places-park-points", "visibility", "visible");
     fakeMap.setLayoutProperty.mockClear();
     act(() => root.render(<NearbyPlacesMap map={fakeMap as never} places={[hoverPlace, pod]} selectedId={park.id}
-      onSelect={onSelect} onCoincident={onCoincident} onBounds={jest.fn()} onError={onError} />));
+      onSelect={onSelect} onCoincident={onCoincident} onBounds={vi.fn()} onError={onError} />));
     for (const suffix of ["clusters", "counts", "points", "icons", "selection"]) {
       expect(fakeMap.setLayoutProperty).toHaveBeenCalledWith(`nearby-places-food-cart-pod-${suffix}`, "visibility", "visible");
     }

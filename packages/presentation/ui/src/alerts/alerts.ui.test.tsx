@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { Alert, RouteConfigRoute } from "@overworld/trimet-client";
 import { AllAlertsCard, StopAlertsCard, SystemAlertsCard } from "../alerts";
@@ -11,11 +12,11 @@ const alert: Alert = {
   system_wide_flag: false, info_link_url: "https://example.com/notice", route: [route],
   location: [{ id: 101, desc: "Example stop", dir: "N", lat: 45, lng: -122, no_service_flag: false, passengerCode: "101" }],
 };
-const state = { loading: false, error: false, onRefresh: jest.fn(), loadingContent: <p role="status">Injected loading</p> };
+const state = { loading: false, error: false, onRefresh: vi.fn(), loadingContent: <p role="status">Injected loading</p> };
 
 describe("injected alert presentation", () => {
   it("retains received system alerts during a failed refresh and exposes initial loading", () => {
-    const refresh = jest.fn();
+    const refresh = vi.fn();
     const { rerender } = render(<SystemAlertsCard {...state} onRefresh={refresh} error systemAlertsData={[alert]} />);
     expect(screen.getByRole("alert")).toHaveTextContent("Showing the last received alerts");
     expect(screen.getByText("Notice details")).toBeInTheDocument();

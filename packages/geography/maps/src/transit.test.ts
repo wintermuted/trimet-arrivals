@@ -1,38 +1,39 @@
+import { vi, type Mocked, type MockedFunction } from "vitest";
 import { Map as MapboxMap } from "mapbox-gl";
 import { removeRoutes, setRoutes, showNearbyRouteLines } from "./transit";
 import type { RouteGeometryLoader } from "./transit";
 
-jest.mock("mapbox-gl", () => {
-  const MapMock = jest.fn();
+vi.mock("mapbox-gl", () => {
+  const MapMock = vi.fn();
   return {
     Map: MapMock,
     configureMocks() {
       const sources = new Set<string>();
       const layers = new Set<string>();
       const map = {
-        addSource: jest.fn(id => { sources.add(id); return map; }),
-        addLayer: jest.fn(({ id }) => { layers.add(id); return map; }),
-        getSource: jest.fn(id => sources.has(id)),
-        getLayer: jest.fn(id => layers.has(id)),
-        removeLayer: jest.fn(id => { layers.delete(id); return map; }),
-        removeSource: jest.fn(id => { sources.delete(id); return map; })
+        addSource: vi.fn(id => { sources.add(id); return map; }),
+        addLayer: vi.fn(({ id }) => { layers.add(id); return map; }),
+        getSource: vi.fn(id => sources.has(id)),
+        getLayer: vi.fn(id => layers.has(id)),
+        removeLayer: vi.fn(id => { layers.delete(id); return map; }),
+        removeSource: vi.fn(id => { sources.delete(id); return map; })
       };
-      MapMock.mockImplementation(() => map);
+      MapMock.mockImplementation(function () { return map; });
     }
   };
 });
 
 describe("transit geometry provider boundary", () => {
-  let map: jest.Mocked<MapboxMap>;
-  let load: jest.MockedFunction<RouteGeometryLoader>;
+  let map: Mocked<MapboxMap>;
+  let load: MockedFunction<RouteGeometryLoader>;
   const feature = {
     type: "Feature" as const, properties: { route_number: 54, direction: 1 },
     geometry: { type: "LineString" as const, coordinates: [[0, 0], [1, 1]] }
   };
-  beforeEach(() => {
-    jest.requireMock("mapbox-gl").configureMocks();
-    map = jest.mocked(new MapboxMap({ container: document.createElement("div") }));
-    load = jest.fn().mockResolvedValue(feature);
+  beforeEach(async () => {
+    (await vi.importMock("mapbox-gl")).configureMocks();
+    map = vi.mocked(new MapboxMap({ container: document.createElement("div") }));
+    load = vi.fn().mockResolvedValue(feature);
   });
 
   it("deduplicates nearby directions and prevents late geometry from reinstalling closed layers", async () => {
@@ -51,7 +52,7 @@ describe("transit geometry provider boundary", () => {
 
   it("preserves usable route geometry when one injected request fails and removes its source with its layer", async () => {
     const error = new Error("Route unavailable");
-    const report = jest.spyOn(console, "error").mockImplementation(() => {});
+    const report = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
       load.mockRejectedValueOnce(error);
       const ids = await setRoutes(map, { 54: { directions: [0, 1] } }, load);

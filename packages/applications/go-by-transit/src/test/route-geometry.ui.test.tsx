@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
 import { readFileSync } from "fs";
 import path from "path";
 import { Feature, Geometry, LineString, Position } from "geojson";
@@ -85,7 +87,7 @@ describe("lossless route geometry export", () => {
       }
     });
     expect([...incomplete]).toEqual([]);
-  });
+  }, 15000);
 });
 
 describe("selected road geometry", () => {

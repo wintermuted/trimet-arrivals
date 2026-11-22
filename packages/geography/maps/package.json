@@ -53,7 +53,7 @@
     ],
     "targets": {
       "test:package": {
-        "command": "jest --selectProjects maps-package --runInBand",
+        "command": "vitest run --project maps-package --maxWorkers=1",
         "cache": false
       }
     }

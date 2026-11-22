@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
@@ -16,19 +17,19 @@ import TripPlannerView from "./TripPlannerView";
 import type { SavedPlannerStop } from "./PlannerStopSelect";
 import * as placesApi from "@overworld/places/catalog";
 
-jest.mock("../../api/trimet/stopCatalog", () => {
-  const actual = jest.requireActual("../../api/trimet/stopCatalog");
-  return { ...actual, getStopCatalog: jest.fn() };
+vi.mock("../../api/trimet/stopCatalog", async () => {
+  const actual = (await vi.importActual<typeof import("../../api/trimet/stopCatalog")>("../../api/trimet/stopCatalog"));
+  return { ...actual, getStopCatalog: vi.fn() };
 });
 
-jest.mock("../../api/trimet/tripplanner", () => ({
-  ...jest.requireActual("../../api/trimet/tripplanner"),
-  planTrip: jest.fn(),
+vi.mock("../../api/trimet/tripplanner", async () => ({
+  ...(await vi.importActual<typeof import("../../api/trimet/tripplanner")>("../../api/trimet/tripplanner")),
+  planTrip: vi.fn(),
 }));
-jest.mock("../../api/geolocation/geoLocateCurrentPosition");
+vi.mock("../../api/geolocation/geoLocateCurrentPosition");
 
-const loadCatalog = jest.mocked(getStopCatalog);
-const requestTrip = jest.mocked(planTrip);
+const loadCatalog = vi.mocked(getStopCatalog);
+const requestTrip = vi.mocked(planTrip);
 
 function catalog(): StopCatalog {
   return {
@@ -155,14 +156,14 @@ describe("TripPlannerView", () => {
     localStorage.clear();
     loadCatalog.mockReset().mockResolvedValue(catalog());
     requestTrip.mockReset().mockResolvedValue(itineraryResponse());
-    jest.mocked(geoLocateCurrentPosition).mockReset();
+    vi.mocked(geoLocateCurrentPosition).mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     act(() => root.unmount());
     container.remove();
   });
@@ -212,8 +213,8 @@ describe("TripPlannerView", () => {
       id: "portland:park:101", name: "Example Park", category: "park",
       coordinates: [-122.6815, 45.5231], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/"
     };
-    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
-      places: [place], sources: placesApi.emptyPlaceSources(), retry: jest.fn()
+    vi.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
+      places: [place], sources: placesApi.emptyPlaceSources(), retry: vi.fn()
     });
     await render("/nearby/planner?from=8356&toCoord=-122.6815,45.5231&toPlaceId=portland:park:101&confirmPlace=1", true);
     expect(requestTrip).not.toHaveBeenCalled();
@@ -246,8 +247,8 @@ describe("TripPlannerView", () => {
       id, name, category,
       coordinates: [-122.6815, 45.5231], arrival: "approximate", sourceUrl: "https://www.portlandmaps.com/"
     };
-    jest.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
-      places: [place], sources: placesApi.emptyPlaceSources(), retry: jest.fn()
+    vi.spyOn(placesApi, "usePlaceCatalog").mockReturnValue({
+      places: [place], sources: placesApi.emptyPlaceSources(), retry: vi.fn()
     });
     await render(`/nearby/planner?toCoord=-122.6815,45.5231&toPlaceId=${id}&confirmPlace=1`, true);
     expect(container.textContent).toContain(name);
@@ -264,7 +265,7 @@ describe("TripPlannerView", () => {
     if (failure === "malformed") {
       localStorage.setItem("overworld:recent-journeys", "{invalid");
     } else {
-      jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
         throw new DOMException("Storage blocked", "SecurityError");
       });
     }
@@ -515,7 +516,7 @@ describe("TripPlannerView", () => {
   });
 
   it("requests device location only on demand and uses only the chosen public stop ID", async () => {
-    jest.mocked(geoLocateCurrentPosition).mockRejectedValueOnce(new Error("denied"))
+    vi.mocked(geoLocateCurrentPosition).mockRejectedValueOnce(new Error("denied"))
       .mockResolvedValueOnce({ coords: { longitude: -122.43582, latitude: 45.50568 } });
     await render("/planner?to=7777", true);
     const nearest = container.querySelector<HTMLButtonElement>('[aria-label="Use nearest stop to me for boarding"]');
@@ -562,7 +563,7 @@ describe("TripPlannerView", () => {
 
   it("swaps a single chosen stop and ignores a pending nearest-stop result", async () => {
     let finishLocation: (position: Awaited<ReturnType<typeof geoLocateCurrentPosition>>) => void;
-    jest.mocked(geoLocateCurrentPosition).mockImplementationOnce(() => new Promise(resolve => {
+    vi.mocked(geoLocateCurrentPosition).mockImplementationOnce(() => new Promise(resolve => {
       finishLocation = resolve;
     }));
     await render("/planner?to=7777", true);

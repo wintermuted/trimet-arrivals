@@ -1,10 +1,11 @@
+import { vi } from "vitest";
 import mapboxgl from "mapbox-gl";
 import distance from "@turf/distance";
 import { createThemedMap, initializeCurrentLocationMarker, setCurrentLocationMarker } from ".";
 import type { MapTheme } from ".";
 
-jest.mock("mapbox-gl", () => {
-  const MapMock = jest.fn();
+vi.mock("mapbox-gl", () => {
+  const MapMock = vi.fn();
   return {
     __esModule: true,
     default: { Map: MapMock },
@@ -12,18 +13,18 @@ jest.mock("mapbox-gl", () => {
       const listeners: Record<string, () => void> = {};
       let preset: string;
       const map = {
-        on: jest.fn((name, listener) => { listeners[name] = listener; }),
-        off: jest.fn((name, listener) => {
+        on: vi.fn((name, listener) => { listeners[name] = listener; }),
+        off: vi.fn((name, listener) => {
           if (listeners[name] === listener) delete listeners[name];
         }),
-        getConfigProperty: jest.fn(() => preset),
-        setConfigProperty: jest.fn((_scope, _name, value) => { preset = value; }),
-        addSource: jest.fn(),
-        addLayer: jest.fn(),
-        remove: jest.fn(() => listeners.remove?.())
+        getConfigProperty: vi.fn(() => preset),
+        setConfigProperty: vi.fn((_scope, _name, value) => { preset = value; }),
+        addSource: vi.fn(),
+        addLayer: vi.fn(),
+        remove: vi.fn(() => listeners.remove?.())
       };
       map.addLayer.mockImplementation(() => map);
-      MapMock.mockImplementation(options => {
+      MapMock.mockImplementation(function (options) {
         preset = options.config.basemap.lightPreset;
         return map;
       });
@@ -35,7 +36,7 @@ jest.mock("mapbox-gl", () => {
 describe("map lifecycle primitives", () => {
   let preset: "day" | "night";
   let notify: () => void;
-  const unsubscribe = jest.fn();
+  const unsubscribe = vi.fn();
   let mock: { emit(name: string): void };
   const theme: MapTheme = {
     lightPreset: () => preset,
@@ -44,9 +45,9 @@ describe("map lifecycle primitives", () => {
   function create() {
     return createThemedMap({ container: document.createElement("div"), center: [0, 0], zoom: 12 }, theme);
   }
-  beforeEach(() => {
+  beforeEach(async () => {
     preset = "night";
-    mock = jest.requireMock("mapbox-gl").configureMocks();
+    mock = (await vi.importMock("mapbox-gl")).configureMocks();
   });
 
   it("uses the injected theme at creation and applies changes only after style readiness", () => {
@@ -88,7 +89,7 @@ describe("map lifecycle primitives", () => {
       type: "geojson",
       data: expect.objectContaining({ geometry: expect.objectContaining({ type: "Polygon" }) })
     }));
-    const radiusSource = jest.mocked(map.addSource).mock.calls[1][1];
+    const radiusSource = vi.mocked(map.addSource).mock.calls[1][1];
     if (radiusSource.type !== "geojson" || typeof radiusSource.data === "string" ||
         radiusSource.data.type !== "Feature" || radiusSource.data.geometry.type !== "Polygon") {
       throw new Error("Expected a search-radius polygon");

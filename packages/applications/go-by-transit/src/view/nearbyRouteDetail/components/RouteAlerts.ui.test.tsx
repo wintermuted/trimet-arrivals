@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Alert } from "../../../api/trimet/interfaces/alertsData";
@@ -49,7 +50,7 @@ describe("route alerts states", () => {
       alerts: [],
       loading: false,
       error: false,
-      onRetry: jest.fn()
+      onRetry: vi.fn()
     });
     expect(container.textContent).toContain("No active alerts for this route.");
     expect(container.textContent).not.toContain("Loading route alerts");
@@ -61,7 +62,7 @@ describe("route alerts states", () => {
       alerts: [alert(1, [54]), alert(2, [8])],
       loading: false,
       error: true,
-      onRetry: jest.fn()
+      onRetry: vi.fn()
     });
     expect(container.textContent).toContain("Could not refresh alerts");
     expect(container.textContent).toContain("Route notice 1");
@@ -69,7 +70,7 @@ describe("route alerts states", () => {
   });
 
   it("offers a retry when the initial request fails", () => {
-    const onRetry = jest.fn();
+    const onRetry = vi.fn();
     render({
       id: 54,
       alerts: undefined,

@@ -32,7 +32,7 @@ jobs:
 
       - name: Test app and workspace packages with coverage
         id: coverage
-        run: npm run test:coverage -- --runInBand
+        run: npm run test:coverage -- --maxWorkers=1
 
       - name: Generate coverage badge and job summary
         run: npm run coverage:report

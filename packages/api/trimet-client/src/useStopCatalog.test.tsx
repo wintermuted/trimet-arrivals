@@ -1,3 +1,4 @@
+import { vi, type MockedFunction } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useStopCatalog, type StopCatalogRequest } from "./react";
 import type { StopCatalog } from "./stopCatalog";
@@ -10,7 +11,7 @@ const catalog: StopCatalog & { receivedAt: string; plannerColor: string } = {
 
 describe("injected stop catalog resource", () => {
   it("retains catalog metadata and receipt time through a failed forced refresh", async () => {
-    const request: jest.MockedFunction<StopCatalogRequest<typeof catalog>> = jest.fn().mockResolvedValue(catalog);
+    const request: MockedFunction<StopCatalogRequest<typeof catalog>> = vi.fn().mockResolvedValue(catalog);
     const { result } = renderHook(() => useStopCatalog(request));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(request).toHaveBeenCalledWith(false);
@@ -29,7 +30,7 @@ describe("injected stop catalog resource", () => {
 
   it("ignores superseded results and preserves last-known data during a pending retry", async () => {
     let finish: (value: typeof catalog) => void;
-    const request: jest.MockedFunction<StopCatalogRequest<typeof catalog>> = jest.fn()
+    const request: MockedFunction<StopCatalogRequest<typeof catalog>> = vi.fn()
       .mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }))
       .mockResolvedValueOnce(catalog);
     const { result } = renderHook(() => useStopCatalog(request));
@@ -47,7 +48,7 @@ describe("injected stop catalog resource", () => {
   });
 
   it("handles a synchronous loader failure and ignores results after the loader changes", async () => {
-    const failing = jest.fn(() => { throw new Error("Missing configuration"); });
+    const failing = vi.fn(() => { throw new Error("Missing configuration"); });
     const { result, rerender } = renderHook(
       ({ request }: { request: StopCatalogRequest<typeof catalog> }) => useStopCatalog(request),
       { initialProps: { request: failing } },
@@ -55,9 +56,9 @@ describe("injected stop catalog resource", () => {
     await waitFor(() => expect(result.current.error).toBe(true));
     expect(result.current.catalog).toBeUndefined();
     let finish: (value: typeof catalog) => void;
-    const pending = jest.fn(() => new Promise<typeof catalog>(resolve => { finish = resolve; }));
+    const pending = vi.fn(() => new Promise<typeof catalog>(resolve => { finish = resolve; }));
     rerender({ request: pending });
-    const current = jest.fn().mockResolvedValue(catalog);
+    const current = vi.fn().mockResolvedValue(catalog);
     rerender({ request: current });
     await waitFor(() => expect(result.current.catalog).toBe(catalog));
     await act(async () => finish({ ...catalog, routeCount: 999 }));

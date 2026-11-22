@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import { TimeDiffBadge } from ".";
@@ -7,10 +8,10 @@ describe("arrival time badge", () => {
   const scheduled = now.getTime() + 10 * 60000;
 
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(now);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
   });
-  afterEach(() => { jest.useRealTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
 
   it.each([
     [scheduled, scheduled, "10 min | On Time"],
