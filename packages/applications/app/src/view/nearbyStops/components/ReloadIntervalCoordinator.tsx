@@ -24,7 +24,7 @@ export default class ReloadIntervalCoordinator extends React.Component<
   Props,
   State
 > {
-  public refreshInterval?: ReturnType<typeof setInterval>;
+  public refreshInterval?: number;
   private onClick: (e: Event) => void;
 
   constructor(props: Props) {
@@ -64,12 +64,12 @@ export default class ReloadIntervalCoordinator extends React.Component<
   }
 
   public setNewInterval() {
-    this.refreshInterval = setInterval(() => this.onInterval(), ONE_SECOND);
+    this.refreshInterval = window.setInterval(() => this.onInterval(), ONE_SECOND);
   }
 
   public clearIntervalListener() {
     if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
+      window.clearInterval(this.refreshInterval);
     }
   }
 
