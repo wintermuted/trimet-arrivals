@@ -63,7 +63,6 @@ export default function RouteListItem({ route }: { route: TrimetRoute }) {
   }
 
   const routeId = route.route;
-  // tslint:disable-next-line:no-empty
   const onClick = () => {};
 
   const bg = color => {

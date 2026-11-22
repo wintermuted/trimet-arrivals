@@ -15,6 +15,7 @@
     "node": ">=26.0.0"
   },
   "scripts": {
+    "prepare": "husky",
     "places:refresh": "node scripts/refresh-places.mjs",
     "test:places-data": "node --test scripts/refresh-places.test.mjs",
     "watch": "vite",
@@ -25,12 +26,13 @@
     "test:unit": "jest --selectProjects unit --runInBand",
     "test:coverage": "jest --coverage",
     "test:coverage-report": "node --test scripts/report-coverage.test.mjs",
+    "test:hooks": "node --test scripts/check-staged.test.mjs",
     "coverage:report": "node scripts/report-coverage.mjs",
     "codecov": "codecov",
-    "prettier": "prettier --check \"packages/applications/app/src/**/*.ts*\"",
-    "prettier:fix": "prettier --write \"packages/applications/app/src/**/*.ts*\"",
-    "tslint": "tslint \"packages/applications/app/src/**/*.ts*\"",
-    "tslint:fix": "tslint --fix \"packages/applications/app/src/**/*.ts*\"",
+    "format": "oxfmt --check \"packages/applications/app/src/**/*.ts*\"",
+    "format:fix": "oxfmt --write \"packages/applications/app/src/**/*.ts*\"",
+    "lint": "oxlint packages",
+    "lint:fix": "oxlint packages --fix",
     "semantic-release": "semantic-release",
     "trimet": "node ./scripts/split_routes.js"
   },
@@ -39,19 +41,6 @@
       "argue-cli": "3.2.0"
     }
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "prettier --write",
-      "tslint --fix",
-      "git add"
-    ]
-  },
   "browserslist": [
     ">0.2%",
     "not dead",
@@ -59,33 +48,29 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@babel/core": "7.28.5",
-    "@babel/preset-env": "7.28.5",
-    "@babel/preset-react": "7.28.5",
-    "@babel/preset-typescript": "7.28.5",
-    "@commitlint/cli": "^20.1.0",
+    "@babel/core": "8.1.2",
+    "@babel/preset-env": "8.0.7",
+    "@babel/preset-react": "8.0.1",
+    "@babel/preset-typescript": "8.0.7",
+    "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
-    "@types/jest": "26.0.21",
-    "@types/node": "24.3.0",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@types/jest": "30.0.0",
+    "@types/node": "26.6.6",
+    "@vitejs/plugin-react": "^6.3.0",
     "autoprefixer": "^10.4.22",
-    "babel-jest": "27.5.1",
+    "babel-jest": "30.5.2",
     "codecov": "^3.8.3",
-    "husky": "^4.0.6",
+    "husky": "^9.1.7",
     "identity-obj-proxy": "3.0.0",
-    "jest": "27.5.1",
-    "jest-environment-jsdom": "27.5.1",
-    "lint-staged": "^16.2.6",
+    "jest": "30.5.2",
+    "jest-environment-jsdom": "30.5.2",
     "nvm": "^0.0.4",
     "nx": "24.0.6",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
     "postcss": "^8.5.6",
-    "prettier": "3.10.0",
     "sass": "^1.94.0",
-    "ts-node": "^10.9.2",
-    "tslint": "^5.20.1",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-react": "^4.1.0",
-    "typescript": "^5.9.3",
-    "vite": "^5.4.19"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
   }
 }

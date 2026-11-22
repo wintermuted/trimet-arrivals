@@ -1,4 +1,3 @@
-// tslint:disable:no-submodule-imports
 import "@wintermuted/ui-theme/index.css";
 import { initTheme } from "@wintermuted/ui-theme/theme";
 import "font-awesome/css/font-awesome.css";

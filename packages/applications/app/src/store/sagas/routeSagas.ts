@@ -1,4 +1,3 @@
-// tslint:disable:no-submodule-imports
 import { call, put } from "redux-saga/effects";
 import { TrimetRoute } from "../../api/trimet/interfaces/routes";
 import { getAllRoutes, getRouteById } from "../../api/trimet/routeConfig";

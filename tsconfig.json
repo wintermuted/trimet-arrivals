@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "downlevelIteration": true,
+    "target": "es2020",
     "lib": [
       "dom",
       "dom.iterable",
@@ -9,14 +8,19 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "rootDir": ".",
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,

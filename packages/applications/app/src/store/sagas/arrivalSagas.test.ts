@@ -1,7 +1,5 @@
-// tslint:disable:no-submodule-imports
 import { call, put } from "redux-saga/effects";
 import { getArrivals } from "../../api/trimet/arrivals";
-// tslint:enable:no-submodule-imports
 import { LOAD_ARRIVALS, LOAD_ARRIVALS_COMPLETE } from "../constants";
 import { loadArrivalData } from "./arrivalSagas";
 

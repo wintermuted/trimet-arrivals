@@ -35,7 +35,7 @@ describe("selected departure stop predictions", () => {
   let root: Root;
 
   beforeEach(() => {
-    jest.useFakeTimers("modern");
+    jest.useFakeTimers();
     jest.setSystemTime(now);
     load.mockReset();
     jest.mocked(getRouteByIdAndDirection).mockReset();

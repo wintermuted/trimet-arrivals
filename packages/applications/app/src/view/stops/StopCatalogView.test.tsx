@@ -1,7 +1,5 @@
-// tslint:disable-next-line:no-submodule-imports
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
-// tslint:disable-next-line:no-submodule-imports
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";

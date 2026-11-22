@@ -10,7 +10,7 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@trimet-arrivals/trimet-client": "0.0.0",
-    "@turf/distance": "^7.1.0"
+    "@turf/distance": "^7.4.0"
   },
   "typesVersions": {
     "*": {

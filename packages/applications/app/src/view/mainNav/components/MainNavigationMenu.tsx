@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-submodule-imports
 import { Button, Nav } from "@wintermuted/ui-theme/react";
 import React, { useEffect, useId, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";

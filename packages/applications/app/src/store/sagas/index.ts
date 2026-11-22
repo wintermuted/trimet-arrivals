@@ -1,6 +1,4 @@
-// tslint:disable:no-submodule-imports
 import { takeEvery } from "redux-saga/effects";
-// tslint:enable:no-submodule-imports
 import {
   BOOKMARK_STOP_REQUEST,
   CHANGE_VIEW_REQUEST,

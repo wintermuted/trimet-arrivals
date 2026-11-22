@@ -94,7 +94,7 @@ describe("selected-stop trip times view", () => {
   let root: Root;
 
   beforeEach(() => {
-    jest.useFakeTimers("modern");
+    jest.useFakeTimers();
     jest.setSystemTime(now);
     loadArrivals.mockReset();
     loadArrivals.mockResolvedValue(response());

@@ -1,7 +1,5 @@
-// tslint:disable-next-line:no-submodule-imports
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
 import React, { act } from "react";
-// tslint:disable-next-line:no-submodule-imports
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import ServiceNavigation from "../view/lines/component/ServiceNavigation";

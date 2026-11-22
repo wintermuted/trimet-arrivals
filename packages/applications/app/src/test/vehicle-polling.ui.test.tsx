@@ -45,7 +45,7 @@ describe("vehicle viewport polling", () => {
     await advance(0);
   }
   beforeEach(() => {
-    jest.useFakeTimers("modern");
+    jest.useFakeTimers();
     jest.setSystemTime(now);
     jest.clearAllMocks();
     handlers.clear();

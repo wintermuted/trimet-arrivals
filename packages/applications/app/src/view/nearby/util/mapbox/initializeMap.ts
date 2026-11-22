@@ -1,5 +1,4 @@
 // @ts-ignore
-// tslint:disable-next-line:no-implicit-dependencies
 import mapboxgl, { Map } from "!mapbox-gl";
 import { createThemedMap } from "./themedMap";
 

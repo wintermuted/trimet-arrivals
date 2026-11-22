@@ -19,9 +19,7 @@ const mapStateToProps = (state: RootState) => {
 
 const BookmarksViewContainer = connect(
   mapStateToProps,
-  // tslint:disable:no-empty
   () => {}
-  // tslint:enable:no-empty
 )(BookmarksViewComponent);
 
 export default BookmarksViewContainer;

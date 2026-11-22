@@ -1,8 +1,6 @@
-// tslint:disable:no-submodule-imports
 import { call, put } from "redux-saga/effects";
 import getCurrentPosition from "../../api/geolocation/getCurrentPosition";
 import { Location } from "../../api/trimet/interfaces/types";
-// tslint:enable:no-submodule-imports
 import { getNearbyStops } from "../../api/trimet/stops";
 import {
   CURRENT_LOCATION_LOAD_COMPLETE,

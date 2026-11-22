@@ -39,7 +39,7 @@ describe("following a vehicle's current run", () => {
       view={view} onViewChange={onViewChange} backTo="/nearby/planner?from=101#options" onBack={onBack} /></MemoryRouter>); });
   }
   beforeEach(() => {
-    jest.useFakeTimers("modern");
+    jest.useFakeTimers();
     jest.setSystemTime(now);
     Object.defineProperty(document, "hidden", { configurable: true, value: false });
     feed = { vehicles: [selection], status: "current", updatedAt: now, rejected: 0 };

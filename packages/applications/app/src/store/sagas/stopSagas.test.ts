@@ -1,7 +1,5 @@
-// tslint:disable:no-submodule-imports
 import { call, put } from "redux-saga/effects";
 import getCurrentPosition from "../../api/geolocation/getCurrentPosition";
-// tslint:enable:no-submodule-imports
 import { CURRENT_LOCATION_LOAD_COMPLETE, LOAD_STOPS } from "../constants";
 import { loadStopData } from "./stopSagas";
 

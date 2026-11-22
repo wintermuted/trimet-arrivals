@@ -5,10 +5,11 @@ const common = {
   resetMocks: true,
   transform: {
     "^.+\\.[cm]?[jt]sx?$": ["babel-jest", {
+      targets: { node: "current" },
       presets: [
-        ["@babel/preset-env", { targets: { node: "current" } }],
+        "@babel/preset-env",
         ["@babel/preset-react", { runtime: "automatic" }],
-        "@babel/preset-typescript"
+        ["@babel/preset-typescript", { onlyRemoveTypeImports: false }]
       ]
     }]
   },

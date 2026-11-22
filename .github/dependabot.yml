@@ -7,9 +7,6 @@ updates:
     time: "13:00"
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: husky
-    versions:
-    - 5.2.0
   - dependency-name: js-yaml
     versions:
     - 3.14.1
