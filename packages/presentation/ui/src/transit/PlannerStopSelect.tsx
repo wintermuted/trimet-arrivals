@@ -2,7 +2,7 @@ import { faBus, faCableCar, faTrain, faTrainTram } from "@fortawesome/free-solid
 import { Badge } from "@wintermuted/ui-theme/react";
 import { MultiSelect } from "@wintermuted/ui-theme/react/select";
 import React, { useMemo, useState } from "react";
-import { searchStopCatalog, type StopCatalogStop, type StopMode } from "@trimet-arrivals/trimet-client";
+import { searchStopCatalog, type StopCatalogStop, type StopMode } from "@overworld/trimet-client";
 import "./PlannerStopSelect.scss";
 
 export interface SavedPlannerStop {

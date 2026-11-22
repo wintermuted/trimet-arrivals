@@ -24,7 +24,7 @@ function checkStagedFiles() {
   ], root).toString("utf8").split("\0").filter(file => /\.tsx?$/i.test(file));
   if (files.length === 0) return;
 
-  const snapshot = mkdtempSync(path.join(tmpdir(), "trimet-arrivals-staged-"));
+  const snapshot = mkdtempSync(path.join(tmpdir(), "overworld-staged-"));
   try {
     for (const config of [".oxfmtrc.json", ".oxlintrc.json", ".gitignore"]) {
       copyFileSync(path.join(root, config), path.join(snapshot, config));

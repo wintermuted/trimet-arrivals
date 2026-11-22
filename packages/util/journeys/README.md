@@ -1,4 +1,4 @@
-# @trimet-arrivals/journeys
+# @overworld/journeys
 
 Recent journey storage and trip planner endpoint rules.
 It keeps the five latest distinct, directional endpoint pairs under the existing
@@ -10,4 +10,4 @@ verified place metadata is a type-only dependency on `places`.
 The app owns planner navigation, URL state, bookmark integration, and place
 verification against loaded snapshots.
 
-From the repository root: `npx nx run @trimet-arrivals/journeys:test:package`.
+From the repository root: `npx nx run @overworld/journeys:test:package`.

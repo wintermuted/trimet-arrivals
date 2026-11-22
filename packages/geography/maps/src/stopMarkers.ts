@@ -1,7 +1,7 @@
 import mapboxgl from "mapbox-gl";
 import type { Map, MapLayerMouseEvent, MapboxGeoJSONFeature } from "mapbox-gl";
 import type { Feature, Point } from "geojson";
-import type { ArrivalLocation, StopLocation } from "@trimet-arrivals/trimet-client";
+import type { ArrivalLocation, StopLocation } from "@overworld/trimet-client";
 import {
   STOP_LOCATION_LAYER,
   STOP_LOCATIONS_SOURCE,

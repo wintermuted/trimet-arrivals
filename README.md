@@ -1,13 +1,20 @@
-# Go By Transit
+# Overworld
 
-[![Production CI/deploy](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pages.yml/badge.svg?branch=master)](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pages.yml) [![PR preview CI](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pr-preview.yml/badge.svg?event=pull_request)](https://github.com/wintermuted/trimet-arrivals/actions/workflows/deploy-pr-preview.yml)
-[![Line coverage](https://wintermuted.github.io/trimet-arrivals/coverage/badge.svg)](https://wintermuted.github.io/trimet-arrivals/coverage/)
+Overworld is a workspace for apps and reusable libraries. Its first app is
+**Go By Transit**, focused on exploring Portland by transit. Future apps can
+live alongside it and consume the shared packages.
 
-Explore Portland by transit: find TriMet stops and arrivals, plan trips, follow
+[![Production CI/deploy](https://github.com/wintermuted/overworld/actions/workflows/deploy-pages.yml/badge.svg?branch=master)](https://github.com/wintermuted/overworld/actions/workflows/deploy-pages.yml) [![PR preview CI](https://github.com/wintermuted/overworld/actions/workflows/deploy-pr-preview.yml/badge.svg?event=pull_request)](https://github.com/wintermuted/overworld/actions/workflows/deploy-pr-preview.yml)
+[![Line coverage](https://wintermuted.github.io/overworld/coverage/badge.svg)](https://wintermuted.github.io/overworld/coverage/)
+
+## Go By Transit
+
+The app lives in [`packages/applications/go-by-transit`](packages/applications/go-by-transit/README.md).
+Find TriMet stops and arrivals, plan trips, follow
 reported bus and train positions, and discover places along the way.
 Built with TypeScript, React, Redux, and Mapbox.
 
-**[Open the app](https://wintermuted.github.io/trimet-arrivals/)** · **[Documentation](docs/README.md)** · [Report a bug](https://github.com/wintermuted/trimet-arrivals/issues/new?template=bug_report.md)
+**[Open the app](https://wintermuted.github.io/overworld/)** · **[Documentation](docs/README.md)** · [Report a bug](https://github.com/wintermuted/overworld/issues/new?template=bug_report.md)
 
 ## What you can do
 

@@ -22,7 +22,7 @@ stop-to-stop planner without changing the route-specific Nearby flow.
 ## Progress and integration strategy
 
 The following status reflects merged `master` through the service-wide catalog
-in [#970](https://github.com/wintermuted/trimet-arrivals/pull/970), plus
+in [#970](https://github.com/wintermuted/overworld/pull/970), plus
 increment 7 on this feature branch:
 
 | Increment | Status | Current scope |
@@ -37,7 +37,7 @@ increment 7 on this feature branch:
 | Search homepage | Implemented | `/` opens service-wide stop search with planner, arrivals, recent journeys, bookmarks, alerts, and Nearby entry points. |
 
 These statuses summarize the merged increments through the service-wide catalog
-in [#970](https://github.com/wintermuted/trimet-arrivals/pull/970), plus the
+in [#970](https://github.com/wintermuted/overworld/pull/970), plus the
 planner implemented here. Before each subsequent increment, verify the current
 behavior and remaining acceptance criteria rather than assuming either
 completeness or absence.
@@ -79,9 +79,9 @@ replacements for dropped-pin searches or general transfer planning.
 
 ### 1. Selected-departure stop predictions — implemented
 
-Merged in [#964](https://github.com/wintermuted/trimet-arrivals/pull/964),
+Merged in [#964](https://github.com/wintermuted/overworld/pull/964),
 then extended alongside route and stop interactions in
-[#965](https://github.com/wintermuted/trimet-arrivals/pull/965). The original
+[#965](https://github.com/wintermuted/overworld/pull/965). The original
 acceptance criteria remain useful regression expectations for future changes.
 
 - Keep shared selection stable by arrival ID and retain its fallback if the
@@ -102,7 +102,7 @@ acceptance criteria remain useful regression expectations for future changes.
 
 ### 2. Richer Nearby route lists — implemented
 
-Merged in [#965](https://github.com/wintermuted/trimet-arrivals/pull/965).
+Merged in [#965](https://github.com/wintermuted/overworld/pull/965).
 That PR also added inline route details, route/stop map interactions, destination
 selection refinements, stop-departure controls and optional walking access.
 Retain the following acceptance criteria when building on those flows.
@@ -118,7 +118,7 @@ Retain the following acceptance criteria when building on those flows.
 
 ### 3. Location and map controls — implemented
 
-Merged in [#967](https://github.com/wintermuted/trimet-arrivals/pull/967).
+Merged in [#967](https://github.com/wintermuted/overworld/pull/967).
 
 - Audit the current radius, location, map and walking flows against the original
   feature behavior and acceptance criteria. Preserve existing route details,

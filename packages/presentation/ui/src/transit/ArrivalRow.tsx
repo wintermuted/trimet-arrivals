@@ -1,6 +1,6 @@
 import moment, { Moment } from "moment";
 import React from "react";
-import type { TrimetRoute } from "@trimet-arrivals/trimet-client";
+import type { TrimetRoute } from "@overworld/trimet-client";
 import OnTimeIndicator from "../arrivalIndicator/OnTimeIndicator";
 import TimeToArrivalIndicator from "../arrivalIndicator/TimeToArrivalIndicator";
 import { useTimeDisplay } from "../TimeDisplay";

@@ -1,8 +1,8 @@
 import { faBus, faTrain } from "@fortawesome/free-solid-svg-icons";
-import { easeOutCubic, vehiclePoint } from "@trimet-arrivals/routing";
+import { easeOutCubic, vehiclePoint } from "@overworld/routing";
 import { FeatureCollection, Point } from "geojson";
 import { CameraOptions, GeoJSONSource, Map as MapboxMap, MapboxEvent } from "mapbox-gl";
-import type { VehiclePosition } from "@trimet-arrivals/trimet-client";
+import type { VehiclePosition } from "@overworld/trimet-client";
 import type { createVehicleTooltips } from "./vehicleTooltip";
 
 const SOURCE = "nearby-vehicles";

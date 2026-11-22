@@ -1,8 +1,8 @@
 import { FeatureCollection, Point } from "geojson";
 import { LngLatBounds, Map as MapboxMap, MapLayerMouseEvent, Marker, Popup } from "mapbox-gl";
-import type { RouteDirectionStop } from "@trimet-arrivals/trimet-client";
+import type { RouteDirectionStop } from "@overworld/trimet-client";
 import { addMapboxLayer, removeRoutes } from "./routeLines";
-import { getSelectedRouteSegment } from "@trimet-arrivals/routing";
+import { getSelectedRouteSegment } from "@overworld/routing";
 import type { RouteGeometryLoader } from "./transitTypes";
 
 export interface DirectionsSelection {

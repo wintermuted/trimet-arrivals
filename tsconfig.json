@@ -28,7 +28,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "packages/applications/app/src"
+    "packages/applications/go-by-transit/src"
   ],
   "exclude": [
     "**/*.test.ts",

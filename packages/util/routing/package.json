@@ -1,5 +1,5 @@
 {
-  "name": "@trimet-arrivals/routing",
+  "name": "@overworld/routing",
   "version": "0.0.0",
   "private": true,
   "description": "Walking estimates and React hook, route geometry, and vehicle interpolation.",
@@ -9,7 +9,7 @@
   },
   "types": "./src/index.ts",
   "dependencies": {
-    "@trimet-arrivals/trimet-client": "0.0.0",
+    "@overworld/trimet-client": "0.0.0",
     "@turf/distance": "^7.4.0"
   },
   "typesVersions": {

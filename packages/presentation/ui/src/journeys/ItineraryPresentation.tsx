@@ -1,5 +1,5 @@
 import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
-import type { TripPlannerItinerary, TripPlannerLeg } from "@trimet-arrivals/trimet-client";
+import type { TripPlannerItinerary, TripPlannerLeg } from "@overworld/trimet-client";
 import React, { useId, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { DirectionsStopPair } from "./DirectionsStopPair";

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { ThemeProvider } from "@wintermuted/ui-theme/react";
-import type { StopCatalogStop } from "@trimet-arrivals/trimet-client";
+import type { StopCatalogStop } from "@overworld/trimet-client";
 import { PlannerStopSelect } from "../transit";
 
 const stop = (locid: number, desc: string, aliases: string[] = []): StopCatalogStop => ({

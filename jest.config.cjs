@@ -1,4 +1,4 @@
-const appSource = "<rootDir>/packages/applications/app/src";
+const appSource = "<rootDir>/packages/applications/go-by-transit/src";
 
 const common = {
   testEnvironment: "jsdom",
@@ -17,27 +17,27 @@ const common = {
     "/node_modules/(?!@wintermuted/ui-theme/)"
   ],
   moduleNameMapper: {
-    "^@trimet-arrivals/bookmarks$": "<rootDir>/packages/util/bookmarks/src/index.ts",
-    "^@trimet-arrivals/bookmarks/react$": "<rootDir>/packages/util/bookmarks/src/react.ts",
-    "^@trimet-arrivals/geolocation$": "<rootDir>/packages/api/geolocation/src/index.ts",
-    "^@trimet-arrivals/journeys$": "<rootDir>/packages/util/journeys/src/index.ts",
-    "^@trimet-arrivals/maps$": "<rootDir>/packages/geography/maps/src/index.ts",
-    "^@trimet-arrivals/maps/transit$": "<rootDir>/packages/geography/maps/src/transit.ts",
-    "^@trimet-arrivals/maps/places$": "<rootDir>/packages/geography/maps/src/places.ts",
-    "^@trimet-arrivals/maps/planner$": "<rootDir>/packages/geography/maps/src/planner.ts",
-    "^@trimet-arrivals/ui/journeys$": "<rootDir>/packages/presentation/ui/src/journeys.ts",
-    "^@trimet-arrivals/ui/alerts$": "<rootDir>/packages/presentation/ui/src/alerts.ts",
-    "^@trimet-arrivals/ui/vehicles$": "<rootDir>/packages/presentation/ui/src/vehicles.ts",
-    "^@trimet-arrivals/ui/search$": "<rootDir>/packages/presentation/ui/src/search.ts",
-    "^@trimet-arrivals/places/catalog$": "<rootDir>/packages/api/places/src/places.ts",
-    "^@trimet-arrivals/places/(contextOverlays|discovery|lineOverlays|neighborhoods|savedPlaces)$": "<rootDir>/packages/api/places/src/$1.ts",
-    "^@trimet-arrivals/ui$": "<rootDir>/packages/presentation/ui/src/index.ts",
-    "^@trimet-arrivals/ui/transit$": "<rootDir>/packages/presentation/ui/src/transit.ts",
-    "^@trimet-arrivals/routing$": "<rootDir>/packages/util/routing/src/index.ts",
-    "^@trimet-arrivals/routing/react$": "<rootDir>/packages/util/routing/src/react.ts",
-    "^@trimet-arrivals/trimet-client$": "<rootDir>/packages/api/trimet-client/src/index.ts",
-    "^@trimet-arrivals/trimet-client/react$": "<rootDir>/packages/api/trimet-client/src/react.ts",
-    "^@trimet-arrivals/trimet-client/fixtures$": "<rootDir>/packages/api/trimet-client/src/fixture/arrival.ts",
+    "^@overworld/bookmarks$": "<rootDir>/packages/util/bookmarks/src/index.ts",
+    "^@overworld/bookmarks/react$": "<rootDir>/packages/util/bookmarks/src/react.ts",
+    "^@overworld/geolocation$": "<rootDir>/packages/api/geolocation/src/index.ts",
+    "^@overworld/journeys$": "<rootDir>/packages/util/journeys/src/index.ts",
+    "^@overworld/maps$": "<rootDir>/packages/geography/maps/src/index.ts",
+    "^@overworld/maps/transit$": "<rootDir>/packages/geography/maps/src/transit.ts",
+    "^@overworld/maps/places$": "<rootDir>/packages/geography/maps/src/places.ts",
+    "^@overworld/maps/planner$": "<rootDir>/packages/geography/maps/src/planner.ts",
+    "^@overworld/ui/journeys$": "<rootDir>/packages/presentation/ui/src/journeys.ts",
+    "^@overworld/ui/alerts$": "<rootDir>/packages/presentation/ui/src/alerts.ts",
+    "^@overworld/ui/vehicles$": "<rootDir>/packages/presentation/ui/src/vehicles.ts",
+    "^@overworld/ui/search$": "<rootDir>/packages/presentation/ui/src/search.ts",
+    "^@overworld/places/catalog$": "<rootDir>/packages/api/places/src/places.ts",
+    "^@overworld/places/(contextOverlays|discovery|lineOverlays|neighborhoods|savedPlaces)$": "<rootDir>/packages/api/places/src/$1.ts",
+    "^@overworld/ui$": "<rootDir>/packages/presentation/ui/src/index.ts",
+    "^@overworld/ui/transit$": "<rootDir>/packages/presentation/ui/src/transit.ts",
+    "^@overworld/routing$": "<rootDir>/packages/util/routing/src/index.ts",
+    "^@overworld/routing/react$": "<rootDir>/packages/util/routing/src/react.ts",
+    "^@overworld/trimet-client$": "<rootDir>/packages/api/trimet-client/src/index.ts",
+    "^@overworld/trimet-client/react$": "<rootDir>/packages/api/trimet-client/src/react.ts",
+    "^@overworld/trimet-client/fixtures$": "<rootDir>/packages/api/trimet-client/src/fixture/arrival.ts",
     "\\.(css|sass|scss)$": "identity-obj-proxy",
     "\\.(gif|jpe?g|png|svg|woff2?)$": `${appSource}/test/fileMock.cjs`,
     "^!mapbox-gl$": "mapbox-gl"
@@ -47,9 +47,9 @@ const common = {
 module.exports = {
   coverageReporters: ["text-summary", "html", "lcov", "json-summary", "cobertura"],
   collectCoverageFrom: [
-    "packages/applications/app/src/{api,component,store,view}/**/*.{ts,tsx}",
+    "packages/applications/go-by-transit/src/{api,component,store,view}/**/*.{ts,tsx}",
     "packages/{api,util,geography,presentation}/*/src/**/*.{ts,tsx}",
-    "packages/applications/app/src/App.tsx"
+    "packages/applications/go-by-transit/src/App.tsx"
   ],
   projects: [
     {

@@ -1,6 +1,6 @@
 import { ExpressionSpecification, Map as MapboxMap } from "mapbox-gl";
 import { useEffect, useRef } from "react";
-import { NeighborhoodSnapshot } from "@trimet-arrivals/places/neighborhoods";
+import { NeighborhoodSnapshot } from "@overworld/places/neighborhoods";
 
 export const NEIGHBORHOOD_SOURCE = "nearby-neighborhoods";
 export const NEIGHBORHOOD_LAYERS = ["fill", "boundary", "labels"].map(suffix => `${NEIGHBORHOOD_SOURCE}-${suffix}`);

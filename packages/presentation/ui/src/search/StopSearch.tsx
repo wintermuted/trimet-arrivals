@@ -1,6 +1,6 @@
 import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
-import { searchStopCatalog } from "@trimet-arrivals/trimet-client";
-import type { StopCatalog, StopCatalogStop } from "@trimet-arrivals/trimet-client";
+import { searchStopCatalog } from "@overworld/trimet-client";
+import type { StopCatalog, StopCatalogStop } from "@overworld/trimet-client";
 import React, { useId, useMemo, useState } from "react";
 import "./StopSearch.scss";
 

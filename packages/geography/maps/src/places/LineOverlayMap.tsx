@@ -1,6 +1,6 @@
 import { ExpressionSpecification, Map as MapboxMap } from "mapbox-gl";
 import { useEffect } from "react";
-import { LINE_CAUTION_COLOR, LINE_OVERLAY_INFO, LineOverlayCategory, LineOverlaySnapshot } from "@trimet-arrivals/places/lineOverlays";
+import { LINE_CAUTION_COLOR, LINE_OVERLAY_INFO, LineOverlayCategory, LineOverlaySnapshot } from "@overworld/places/lineOverlays";
 
 export const lineOverlaySource = (category: LineOverlayCategory) => `nearby-lines-${category}`;
 export default function LineOverlayMap({ map, snapshot, onError }: {

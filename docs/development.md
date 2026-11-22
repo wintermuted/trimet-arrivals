@@ -137,7 +137,7 @@ fails, and appends all four coverage metrics to the job summary after successful
 tests. Coverage measures the app and workspace packages, not place-data scripts.
 
 Production publishes the report at
-[coverage/](https://wintermuted.github.io/trimet-arrivals/coverage/) alongside the
+[coverage/](https://wintermuted.github.io/overworld/coverage/) alongside the
 app; the README badge links there. The badge represents the latest successful
 production deployment, not an individual PR. PR previews publish their own
 report under `pr-<number>/coverage/` without overwriting production coverage.
@@ -175,7 +175,7 @@ scripts. Node.js 26.13.1 (see `.nvmrc`) and npm must be available on your PATH.
 - **Run** starts the Vite dev server with `npm run watch`. The app detects its
   local URL and opens it in the integrated browser.
 - **Run with Nx** starts the same server through Nx. Both run options use the
-  repository root; the app source lives in `packages/applications/app/src`.
+  repository root; the app source lives in `packages/applications/go-by-transit/src`.
 
 Merge the configuration into the default branch to make it available to new
 sessions created from that branch.
@@ -186,8 +186,9 @@ See [architecture](architecture.md#workspace-packages) for the package index
 and each workspace's responsibilities.
 
 npm discovers workspace manifests with `packages/*/*`; Nx uses those same
-manifests and the app's `project.json` at its nested root. Projects retain their
-existing names and targets and carry `domain:<folder>` and `type:application`
+manifests and the app's `project.json` at its nested root. Workspace projects use
+`@overworld/*` names, with `@overworld/go-by-transit` for the app and `overworld`
+for root tooling. They retain their targets and carry `domain:<folder>` and `type:application`
 or `type:library` tags for graph filtering. These tags describe organization;
 they do not impose new dependency restrictions. New libraries belong under a
 domain folder within `packages`, and new apps under `packages/applications`.
@@ -205,11 +206,11 @@ substitute for declaring a dependency in its consuming workspace.
 
 ```powershell
 npx nx run-many -t test:package
-npx nx run '@trimet-arrivals/bookmarks:test:package'
-npx nx run '@trimet-arrivals/journeys:test:package'
-npx nx run '@trimet-arrivals/ui:test:package'
-npx nx run '@trimet-arrivals/routing:test:package'
-npx nx run '@trimet-arrivals/trimet-client:test:package'
+npx nx run '@overworld/bookmarks:test:package'
+npx nx run '@overworld/journeys:test:package'
+npx nx run '@overworld/ui:test:package'
+npx nx run '@overworld/routing:test:package'
+npx nx run '@overworld/trimet-client:test:package'
 npx nx show projects --affected --base=origin/master --head=HEAD
 ```
 

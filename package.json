@@ -1,12 +1,12 @@
 {
-  "name": "trimet-arrivals",
+  "name": "overworld",
   "private": true,
   "workspaces": [
     "packages/*/*"
   ],
   "nx": {
     "implicitDependencies": [
-      "@trimet-arrivals/app"
+      "@overworld/go-by-transit"
     ]
   },
   "author": "Jameson Nyeholt <jameson.nyeholt@gmail.com>",
@@ -29,8 +29,8 @@
     "test:hooks": "node --test scripts/check-staged.test.mjs",
     "coverage:report": "node scripts/report-coverage.mjs",
     "codecov": "codecov",
-    "format": "oxfmt --check \"packages/applications/app/src/**/*.ts*\"",
-    "format:fix": "oxfmt --write \"packages/applications/app/src/**/*.ts*\"",
+    "format": "oxfmt --check \"packages/applications/go-by-transit/src/**/*.ts*\"",
+    "format:fix": "oxfmt --write \"packages/applications/go-by-transit/src/**/*.ts*\"",
     "lint": "oxlint packages",
     "lint:fix": "oxlint packages --fix",
     "semantic-release": "semantic-release",

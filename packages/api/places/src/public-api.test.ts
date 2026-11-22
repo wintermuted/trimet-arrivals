@@ -1,6 +1,6 @@
-import { parsePlaceSnapshot } from "@trimet-arrivals/places/catalog";
-import { placesPreset, placesViewSearch, readPlacesView } from "@trimet-arrivals/places/discovery";
-import { readSavedPlaces, SAVED_PLACES_KEY } from "@trimet-arrivals/places/savedPlaces";
+import { parsePlaceSnapshot } from "@overworld/places/catalog";
+import { placesPreset, placesViewSearch, readPlacesView } from "@overworld/places/discovery";
+import { readSavedPlaces, SAVED_PLACES_KEY } from "@overworld/places/savedPlaces";
 
 const cafes = require("../../../../public/data/places/cafes.json");
 

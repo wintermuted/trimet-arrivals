@@ -1,6 +1,6 @@
 import { GeoJSONSource, Map as MapboxMap, MapLayerMouseEvent, Popup } from "mapbox-gl";
 import { useEffect, useRef } from "react";
-import { CONTEXT_OVERLAY_INFO, ContextCategory, ContextSnapshot } from "@trimet-arrivals/places/contextOverlays";
+import { CONTEXT_OVERLAY_INFO, ContextCategory, ContextSnapshot } from "@overworld/places/contextOverlays";
 
 export const contextSource = (category: ContextCategory) => `nearby-context-${category}`;
 export default function ContextOverlayMap({ map, snapshot, onError }: {

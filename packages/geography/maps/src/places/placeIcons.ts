@@ -2,7 +2,7 @@ import { faBook, faLeaf, faBasketShopping, faRestroom, faSeedling, faTree, faUse
   faCartShopping, faRecycle, faCarrot, faBicycle, faFaucetDrip, faChair, faPalette,
   faLandmark, faImages, faMasksTheater, faPaintbrush, faBinoculars, faChildReaching, faWater,
   faMonument, faSprayCan, faBasketball, faPersonSkating, faSpa, faMountainSun, faMugSaucer, faBreadSlice } from "@fortawesome/free-solid-svg-icons";
-import type { PlaceCategory } from "@trimet-arrivals/places/catalog";
+import type { PlaceCategory } from "@overworld/places/catalog";
 
 const definitions = { park: faTree, "food-cart-pod": faUtensils, "community-center": faUsers, library: faBook,
   "community-garden": faLeaf, "farmers-market": faBasketShopping, "public-restroom": faRestroom, "heritage-tree": faSeedling,

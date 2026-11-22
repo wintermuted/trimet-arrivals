@@ -1,9 +1,9 @@
 import { act, render } from "@testing-library/react";
 import { Map as MapboxMap, Popup } from "mapbox-gl";
-import type { InterestPlace } from "@trimet-arrivals/places/catalog";
-import type { NeighborhoodSnapshot } from "@trimet-arrivals/places/neighborhoods";
-import type { LineOverlaySnapshot } from "@trimet-arrivals/places/lineOverlays";
-import type { ContextSnapshot } from "@trimet-arrivals/places/contextOverlays";
+import type { InterestPlace } from "@overworld/places/catalog";
+import type { NeighborhoodSnapshot } from "@overworld/places/neighborhoods";
+import type { LineOverlaySnapshot } from "@overworld/places/lineOverlays";
+import type { ContextSnapshot } from "@overworld/places/contextOverlays";
 import { PlacesMap, NeighborhoodsMap, LineOverlayMap, ContextOverlayMap } from "../places";
 
 jest.mock("mapbox-gl", () => {

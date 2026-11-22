@@ -1,4 +1,4 @@
-# @trimet-arrivals/trimet-client
+# @overworld/trimet-client
 
 TriMet API clients, stop catalog indexing and search, and vehicle freshness rules.
 The clients handle arrivals, stops, alerts, route configuration, trip planning,
@@ -6,7 +6,7 @@ and vehicle data. The package also matches same-route arrivals across stops and
 groups nearby stop and route data. The app supplies the API URL and ID and owns
 configured catalog requests, caching, and planner colors.
 
-The optional `@trimet-arrivals/trimet-client/react` entry exports
+The optional `@overworld/trimet-client/react` entry exports
 `useVehiclePositions(viewport, enabled, requestVehicles, vehicleId?)` and
 `useVehicleTrip(blockId, tripId, updatedAt, enabled, requestTrip)`.
 The hooks own request cancellation, freshness, backoff, tab visibility, and
@@ -30,4 +30,4 @@ extra catalog metadata supplied by the app, ignores superseded/unmounted
 results, and retains previous data when a refresh fails. Callers render the
 returned `loading` and `error` states and invoke `refresh()` for recovery.
 
-From the repository root: `npx nx run @trimet-arrivals/trimet-client:test:package`.
+From the repository root: `npx nx run @overworld/trimet-client:test:package`.

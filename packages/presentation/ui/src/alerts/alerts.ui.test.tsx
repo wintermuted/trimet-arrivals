@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { Alert, RouteConfigRoute } from "@trimet-arrivals/trimet-client";
+import type { Alert, RouteConfigRoute } from "@overworld/trimet-client";
 import { AllAlertsCard, StopAlertsCard, SystemAlertsCard } from "../alerts";
 
 const route: RouteConfigRoute = {

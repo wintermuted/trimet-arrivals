@@ -1,6 +1,6 @@
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { VehiclePosition, VehicleTripSnapshot } from "@trimet-arrivals/trimet-client";
+import type { VehiclePosition, VehicleTripSnapshot } from "@overworld/trimet-client";
 import { VehicleTripProgress } from "../vehicles";
 
 const now = Date.parse("2026-11-21T13:00:00Z");

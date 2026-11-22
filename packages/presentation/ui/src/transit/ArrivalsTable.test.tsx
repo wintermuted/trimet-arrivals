@@ -1,8 +1,8 @@
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import moment from "moment";
-import { arrival1 } from "@trimet-arrivals/trimet-client/fixtures";
-import type { StopLocation } from "@trimet-arrivals/trimet-client";
+import { arrival1 } from "@overworld/trimet-client/fixtures";
+import type { StopLocation } from "@overworld/trimet-client";
 import { ArrivalsTableLoadMore } from "../transit";
 import { TimeDisplayProvider } from "../TimeDisplay";
 import { storeTimeFormat, storeTimezone } from "../timePreferences";

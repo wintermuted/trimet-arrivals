@@ -3,8 +3,8 @@ import {
   getWalkingEstimates,
   getWalkingRoute,
   setWalkingAccessToken,
-} from "@trimet-arrivals/routing";
-import type { WalkingStop } from "@trimet-arrivals/routing";
+} from "@overworld/routing";
+import type { WalkingStop } from "@overworld/routing";
 
 const origin = [0, 0];
 const stops: WalkingStop[] = [
