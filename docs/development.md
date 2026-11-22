@@ -2,7 +2,14 @@
 
 [Documentation](README.md) / [Project home](../README.md)
 
-The app uses TypeScript, React, and Redux. Vite 8 serves local development and
+This guide covers Overworld's shared development tooling and its current
+Go By Transit tenant. Run workspace commands from the repository root.
+Root watch/build targets, Vite entry/assets, and Pages workflows currently
+serve Go By Transit only; they are not a multi-tenant launcher or deployment system.
+See [architecture](architecture.md#repository-and-application-tenants) before
+adding another application tenant.
+
+Go By Transit uses TypeScript, React, and Redux. Vite 8 serves local development and
 builds the production site with the compatible `@vitejs/plugin-react` 6 plugin.
 Use Sass `@use` rather than deprecated `@import` rules. Refresh stale browser
 compatibility data with `npx update-browserslist-db@latest` and commit the lockfile.

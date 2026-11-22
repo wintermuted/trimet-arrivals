@@ -1,8 +1,22 @@
-# Documentation
+# Overworld documentation
 
-[Project home](../README.md) | [Open the app](https://wintermuted.github.io/overworld/)
+[Overworld home](../README.md) | [Go By Transit tenant](../packages/applications/go-by-transit/README.md)
 
-## Using the app
+Overworld hosts application tenants and shared `@overworld/*` libraries.
+Go By Transit is currently its only tenant. User guides, screenshots, transit
+data maintenance, and app-shell conventions below describe Go By Transit,
+not a repository-wide product or a runtime multi-tenant service.
+
+## Workspace development
+
+| Guide | What you will find |
+| --- | --- |
+| [Architecture](architecture.md) | Application tenants, reusable libraries, package responsibilities, and dependency boundaries. |
+| [Development](development.md) | Shared npm/Nx tooling, CI, test commands, Copilot app setup, and the current Go By Transit deployment. |
+
+## Using Go By Transit
+
+[Open Go By Transit](https://wintermuted.github.io/overworld/).
 
 | Guide | What you will find |
 | --- | --- |
@@ -17,12 +31,10 @@ Location and trip data have different privacy and persistence rules. See the
 and [shared-view privacy](places.md#share-a-view-and-understand-privacy) before
 enabling routing or sharing links.
 
-## Developing and maintaining the app
+## Developing and maintaining Go By Transit
 
 | Guide | What you will find |
 | --- | --- |
-| [Development](development.md) | Setup, development server, CI, existing test commands, geometry exports, Copilot app setup, and screenshot updates. |
-| [Architecture](architecture.md) | Workspace packages, their responsibilities, and the boundaries between the app and its libraries. |
 | [Design system](design-system.md) | Shared UI components, theme preferences, responsive layout, navigation, and map styling. |
 | [Place-data maintenance](place-data.md) | Full and targeted refreshes, source validation, spatial tiles, source dates, attribution, and licenses. |
 
