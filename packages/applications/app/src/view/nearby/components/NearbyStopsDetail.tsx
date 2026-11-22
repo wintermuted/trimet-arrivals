@@ -96,7 +96,7 @@ export function NearbyStopsDetail({
         <TopNavBar id={`Stop ${id}`} backTo={backTo} truncateTitle />
         {state.id === id && state.error ? (
           <div role="alert">
-            <p>Could not load this stop's departures and location.</p>
+            <p>Could not load this stop&apos;s departures and location.</p>
             <Button onClick={retryStop}>Retry stop</Button>
           </div>
         ) : (

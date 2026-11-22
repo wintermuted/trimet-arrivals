@@ -20,7 +20,7 @@ const initialState = {
 
 interface Action {
   type: string;
-  payload?: {};
+  payload?: unknown;
 }
 
 interface LoadRouteCompleteAction extends Action {

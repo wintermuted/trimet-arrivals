@@ -69,7 +69,7 @@ const arrivalsReducer = (state = initialState, action: Action) => {
           true
         )
       };
-    case LOAD_ARRIVALS_COMPLETE:
+    case LOAD_ARRIVALS_COMPLETE: {
       const arrivals = getArrivals(action.payload.arrivalData.arrival);
 
       return {
@@ -81,6 +81,7 @@ const arrivalsReducer = (state = initialState, action: Action) => {
           false
         )
       };
+    }
     default:
       return {
         ...state

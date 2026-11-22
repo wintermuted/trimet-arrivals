@@ -41,13 +41,14 @@ jobs:
         run: npm run lint
 
       - name: Test app and workspace packages with coverage
+        id: coverage
         run: npm run test:coverage -- --runInBand
 
       - name: Generate coverage badge and job summary
         run: npm run coverage:report
 
       - name: Capture coverage artifact
-        if: ${{ always() && !cancelled() }}
+        if: ${{ always() && !cancelled() && steps.coverage.outcome != 'skipped' }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report

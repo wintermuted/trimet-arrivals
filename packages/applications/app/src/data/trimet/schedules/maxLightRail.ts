@@ -25,7 +25,7 @@ export interface LineSchedule {
     saturday?: DaySchedule;
     sunday?: DaySchedule;
   };
-  holidays?: {};
+  holidays?: Record<string, unknown>;
 }
 
 export interface LineScheduleInfo {

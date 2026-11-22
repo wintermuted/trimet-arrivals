@@ -20,7 +20,7 @@ import { StopsCard } from "./StopsCard";
 interface Props {
   route: TrimetRoute;
   id: number;
-  loadRouteData: (id: number) => {};
+  loadRouteData: (id: number) => void;
 }
 
 interface RouteAlertsState {

@@ -124,7 +124,7 @@ describe("Viewport-loaded walking and street-tree context", () => {
     const base = ["nearby-lines-park-trails-halo", "nearby-places-park-points"];
     let layers = [...base];
     const sources = new Map<string, { setData: jest.Mock }>();
-    const listeners = new Map<string, Set<Function>>();
+    const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
     const map = {
       getSource: jest.fn(id => sources.get(id)),
       addSource: jest.fn(id => sources.set(id, { setData: jest.fn() })),

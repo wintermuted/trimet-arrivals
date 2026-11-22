@@ -17,7 +17,7 @@ interface Props {
 const interval = 30000;
 
 export default class StopComponent extends React.Component<Props> {
-  public refreshInterval: {};
+  public refreshInterval?: ReturnType<typeof setInterval>;
   private loadArrivalData: (locId: number) => void;
 
   constructor(props) {
@@ -38,7 +38,7 @@ export default class StopComponent extends React.Component<Props> {
 
   public loadArrivals(locationId: number) {
     if (this.refreshInterval) {
-      clearInterval(this.refreshInterval as number);
+      clearInterval(this.refreshInterval);
     }
     this.loadAndSetInterval(locationId);
   }
