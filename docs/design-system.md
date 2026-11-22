@@ -2,7 +2,10 @@
 
 [Documentation](README.md) / [Project home](../README.md)
 
-Contributor conventions for the shared theme, app shell, and maps.
+Contributor conventions for the Go By Transit tenant's theme, app shell, and maps.
+Shared library APIs and theme primitives can be reused by other Overworld tenants;
+Go By Transit's navigation, layouts, transit colors, and map UX are not requirements
+for every application.
 
 ## Shared theme and components
 
@@ -21,7 +24,7 @@ picker uses `MultiSelect` from `@wintermuted/ui-theme/react/select`, with
 shared navigation/list components rather than wrapping controls in link bridges.
 Bootstrap styles, components, and router adapters are no longer used.
 
-App-owned reusable React components live in `@overworld/ui`. Use its
+Reusable React presentation components live in the shared `@overworld/ui` library. Use its
 public API for `TimeDisplayProvider`, `useTimeDisplay`, and `TimeDisplaySettings`.
 Navigation wrappers stay in the app; `@wintermuted/ui-theme` remains the source
 for shared design tokens and primitives.

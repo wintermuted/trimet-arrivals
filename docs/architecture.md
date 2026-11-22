@@ -2,7 +2,26 @@
 
 [Documentation](README.md) / [Project home](../README.md)
 
-## App at runtime
+## Repository and application tenants
+
+Overworld is the repository and shared tooling workspace. Go By Transit
+(`@overworld/go-by-transit`) is its first application tenant. A tenant here is
+an application workspace, not a customer account, authentication boundary, or
+runtime tenancy service.
+
+Application tenants live in `packages/applications/<app-name>` and consume
+public `@overworld/*` library APIs. Each tenant owns its navigation, state
+orchestration, service configuration, and product-specific UX. Shared libraries
+must not depend on tenant source. Domain-specific libraries such as
+`trimet-client` remain transit-specific; other tenants can choose only the
+capabilities they need. All packages are currently private workspaces.
+
+Only Go By Transit exists today. Root Vite configuration, HTML, public assets,
+and Pages workflows still target that tenant. Adding another application does
+not automatically provide a build target, deployment, or runtime tenant selector;
+define its entry/assets and execution/deployment wiring when onboarding it.
+
+## Go By Transit at runtime
 
 GitHub Pages serves the Vite build as a static site. The React app runs in the
 browser and coordinates requests to external services and reads and writes to
