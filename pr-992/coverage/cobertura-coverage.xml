@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage lines-valid="7633" lines-covered="5006" line-rate="0.6557999999999999" branches-valid="5692" branches-covered="4684" branch-rate="0.8229000000000001" timestamp="1795324855656" complexity="0" version="0.1">
+<coverage lines-valid="7633" lines-covered="5006" line-rate="0.6557999999999999" branches-valid="5692" branches-covered="4684" branch-rate="0.8229000000000001" timestamp="1795325276711" complexity="0" version="0.1">
   <sources>
     <source>/home/runner/work/trimet-arrivals/trimet-arrivals</source>
   </sources>
@@ -10785,9 +10785,9 @@
                 <line number="91" hits="40"/>
               </lines>
             </method>
-            <method name="(anonymous_15)" hits="15" signature="()V">
+            <method name="(anonymous_15)" hits="17" signature="()V">
               <lines>
-                <line number="96" hits="15"/>
+                <line number="96" hits="17"/>
               </lines>
             </method>
             <method name="(anonymous_16)" hits="60" signature="()V">
@@ -10853,7 +10853,7 @@
             <line number="86" hits="0" branch="false"/>
             <line number="87" hits="0" branch="false"/>
             <line number="92" hits="40" branch="false"/>
-            <line number="97" hits="15" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="97" hits="17" branch="true" condition-coverage="100% (2/2)"/>
             <line number="103" hits="60" branch="false"/>
             <line number="107" hits="1" branch="false"/>
             <line number="108" hits="1" branch="false"/>
@@ -12525,9 +12525,9 @@
                 <line number="268" hits="59"/>
               </lines>
             </method>
-            <method name="handleDisclosureToggle" hits="97" signature="()V">
+            <method name="handleDisclosureToggle" hits="98" signature="()V">
               <lines>
-                <line number="272" hits="97"/>
+                <line number="272" hits="98"/>
               </lines>
             </method>
             <method name="(anonymous_23)" hits="28" signature="()V">
@@ -12782,7 +12782,7 @@
             <line number="266" hits="108" branch="true" condition-coverage="50% (1/2)"/>
             <line number="268" hits="108" branch="false"/>
             <line number="269" hits="59" branch="false"/>
-            <line number="273" hits="97" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="273" hits="98" branch="true" condition-coverage="100% (2/2)"/>
             <line number="274" hits="5" branch="false"/>
             <line number="278" hits="108" branch="false"/>
             <line number="279" hits="28" branch="false"/>
@@ -21337,30 +21337,30 @@
           <methods>
             <method name="isEstimatedEarly" hits="2" signature="()V">
               <lines>
-                <line number="11" hits="2"/>
+                <line number="12" hits="2"/>
               </lines>
             </method>
-            <method name="estimatedToArriveAtSameTime" hits="19" signature="()V">
+            <method name="estimatedToArriveAtSameTime" hits="20" signature="()V">
               <lines>
-                <line number="15" hits="19"/>
+                <line number="16" hits="20"/>
               </lines>
             </method>
-            <method name="OnTimeIndicator" hits="20" signature="()V">
+            <method name="OnTimeIndicator" hits="21" signature="()V">
               <lines>
-                <line number="22" hits="20"/>
+                <line number="23" hits="21"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="12" hits="2" branch="false"/>
-            <line number="19" hits="19" branch="false"/>
-            <line number="23" hits="20" branch="true" condition-coverage="100% (4/4)"/>
-            <line number="24" hits="19" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="25" hits="17" branch="false"/>
-            <line number="27" hits="2" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="28" hits="1" branch="false"/>
-            <line number="30" hits="1" branch="false"/>
-            <line number="35" hits="1" branch="false"/>
+            <line number="13" hits="2" branch="false"/>
+            <line number="20" hits="20" branch="false"/>
+            <line number="24" hits="21" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="25" hits="20" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="26" hits="18" branch="false"/>
+            <line number="28" hits="2" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="29" hits="1" branch="false"/>
+            <line number="31" hits="1" branch="false"/>
+            <line number="36" hits="1" branch="false"/>
           </lines>
         </class>
         <class name="TimeToArrivalIndicator.tsx" filename="packages/presentation/ui/src/arrivalIndicator/TimeToArrivalIndicator.tsx" line-rate="1" branch-rate="1">
