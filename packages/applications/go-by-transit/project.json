@@ -1,0 +1,7 @@
+{
+  "name": "@overworld/go-by-transit",
+  "projectType": "application",
+  "sourceRoot": "packages/applications/go-by-transit/src",
+  "tags": ["domain:applications", "type:application"],
+  "implicitDependencies": ["@overworld/bookmarks", "@overworld/geolocation", "@overworld/journeys", "@overworld/maps", "@overworld/places", "@overworld/routing", "@overworld/trimet-client", "@overworld/ui"]
+}

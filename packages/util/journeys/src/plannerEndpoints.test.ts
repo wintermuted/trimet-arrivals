@@ -1,6 +1,6 @@
 import { endpointLabel, endpointParams, locationEndpoint, sameEndpoint, sameEndpointMessage } from ".";
 import type { PlannerEndpoint } from ".";
-import type { InterestPlace } from "@trimet-arrivals/places/catalog";
+import type { InterestPlace } from "@overworld/places/catalog";
 
 describe("planner endpoint modeling", () => {
   const stop: PlannerEndpoint = {

@@ -1,7 +1,7 @@
 import { Button } from "@wintermuted/ui-theme/react";
 import { Moment } from "moment";
 import React from "react";
-import type { Arrival, StopLocation } from "@trimet-arrivals/trimet-client";
+import type { Arrival, StopLocation } from "@overworld/trimet-client";
 import type { ArrivalRowProps } from "./ArrivalRow";
 import "./Arrivals.css";
 import ArrivalsTable from "./ArrivalsTable";

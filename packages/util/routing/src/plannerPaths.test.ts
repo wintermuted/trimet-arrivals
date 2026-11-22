@@ -1,6 +1,6 @@
 import { loadPlannerPaths } from ".";
 import type { PlannerPathProviders } from ".";
-import type { TripPlannerItinerary, TripPlannerLeg, RouteDataResultSet } from "@trimet-arrivals/trimet-client";
+import type { TripPlannerItinerary, TripPlannerLeg, RouteDataResultSet } from "@overworld/trimet-client";
 
 describe("planner geometry assembly", () => {
   const origin = { locid: 101, seq: 1, desc: "Board", lng: 0, lat: 0, dir: "E", tp: true };

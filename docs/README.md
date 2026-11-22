@@ -1,6 +1,6 @@
 # Documentation
 
-[Project home](../README.md) | [Open the app](https://wintermuted.github.io/trimet-arrivals/)
+[Project home](../README.md) | [Open the app](https://wintermuted.github.io/overworld/)
 
 ## Using the app
 

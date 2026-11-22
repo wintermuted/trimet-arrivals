@@ -1,5 +1,5 @@
 import type { Feature, LineString, MultiLineString } from "geojson";
-import type { RouteDataResultSet } from "@trimet-arrivals/trimet-client";
+import type { RouteDataResultSet } from "@overworld/trimet-client";
 
 export type RouteGeometryLoader = (
   routeId: string, direction: number, signal?: AbortSignal

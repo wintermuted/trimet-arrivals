@@ -1,7 +1,7 @@
 import { Alert, Button, Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
-import type { Alert as IAlert } from "@trimet-arrivals/trimet-client";
+import type { Alert as IAlert } from "@overworld/trimet-client";
 import type { AlertFeedState } from "./types";
 
 export interface SystemAlertsCardProps extends AlertFeedState {

@@ -1,6 +1,6 @@
 import { readRecentJourneys, recordRecentJourney } from "./recentJourneys";
 
-const key = "trimet-arrivals:recent-journeys";
+const key = "overworld:recent-journeys";
 const stop = (locid: number) => ({ desc: `Stop ${locid}`, locid });
 
 beforeEach(() => localStorage.clear());

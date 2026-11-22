@@ -1,6 +1,6 @@
 import { act, render, screen } from "@testing-library/react";
 import { Map as MapboxMap } from "mapbox-gl";
-import type { TripPlannerItinerary } from "@trimet-arrivals/trimet-client";
+import type { TripPlannerItinerary } from "@overworld/trimet-client";
 import { PlannerPaths, type PlannerPathRequest, type PlannerPathsResult } from "../planner";
 
 jest.mock("mapbox-gl", () => {

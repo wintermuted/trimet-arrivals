@@ -1,4 +1,4 @@
-# @trimet-arrivals/routing
+# @overworld/routing
 
 Mapbox walking estimates, route geometry, and vehicle interpolation.
 Walking requests are cached; transit segment selection and vehicle interpolation
@@ -7,7 +7,7 @@ loads route assets and normalizes line-based geometry collections without
 joining disconnected segments. The app supplies the asset base URL and walking
 token and owns animation scheduling, cameras, and map layers.
 
-The optional `@trimet-arrivals/routing/react` entry exports
+The optional `@overworld/routing/react` entry exports
 `useWalkingEstimates(origin, stops, enabled, requestEstimates?)`. It handles
 opt-in, input validation, cancellation, stale results, request states, and
 manual refresh. Requests default to the package's cached walking client; an
@@ -22,4 +22,4 @@ legs when other geometry is unavailable. It never bridges disconnected shapes
 or requests walking routes without opt-in. Failed requests are logged; aborted
 requests do not publish warnings.
 
-From the repository root: `npx nx run @trimet-arrivals/routing:test:package`.
+From the repository root: `npx nx run @overworld/routing:test:package`.

@@ -1,5 +1,5 @@
 import { omit } from "lodash";
-import type { StopLocation } from "@trimet-arrivals/trimet-client";
+import type { StopLocation } from "@overworld/trimet-client";
 import { removeShortcutsForBookmark } from "./bookmarkShortcuts";
 
 export const BOOKMARKS = "BOOKMARKS";

@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useMemo, useState } from "react";
 import { LngLatBounds, Map as MapboxMap, MapMouseEvent, Marker, Popup } from "mapbox-gl";
-import type { TripPlannerItinerary } from "@trimet-arrivals/trimet-client";
-import type { PlannerPath, PlannerPathProperties } from "@trimet-arrivals/routing";
+import type { TripPlannerItinerary } from "@overworld/trimet-client";
+import type { PlannerPath, PlannerPathProperties } from "@overworld/routing";
 import type { Feature, FeatureCollection } from "geojson";
 import "./PlannerPaths.scss";
 

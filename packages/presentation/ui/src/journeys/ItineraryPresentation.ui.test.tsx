@@ -1,6 +1,6 @@
 import { createRef } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import type { TripPlannerItinerary } from "@trimet-arrivals/trimet-client";
+import type { TripPlannerItinerary } from "@overworld/trimet-client";
 import { ItineraryDetails, JourneyDirections, TripOptionSummary } from "../journeys";
 
 const itinerary: TripPlannerItinerary = {

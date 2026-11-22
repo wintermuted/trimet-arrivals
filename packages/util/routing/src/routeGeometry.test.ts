@@ -7,7 +7,7 @@ describe("route geometry loading", () => {
 
   afterEach(() => { global.fetch = originalFetch; });
 
-  it.each(["", "/trimet-arrivals", "/pr-123/"])(
+  it.each(["", "/overworld", "/pr-123/"])(
     "loads geometry from the supplied asset base %s and forwards cancellation",
     async baseUrl => {
       global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => feature });

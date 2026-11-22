@@ -1,6 +1,6 @@
 import { Feature, FeatureCollection, LineString, MultiLineString, Position } from "geojson";
 import distance from "@turf/distance";
-import type { RouteDataResultSet, TripPlannerItinerary, TripPlannerLeg } from "@trimet-arrivals/trimet-client";
+import type { RouteDataResultSet, TripPlannerItinerary, TripPlannerLeg } from "@overworld/trimet-client";
 import type { WalkingRoute } from "./walking";
 import { getSelectedRouteSegment } from "./routeSegment";
 

@@ -1,6 +1,6 @@
-import { parsePlannerCoordinates } from "@trimet-arrivals/trimet-client";
-import type { StopCatalogStop, TripPlannerLocation } from "@trimet-arrivals/trimet-client";
-import type { InterestPlace } from "@trimet-arrivals/places/catalog";
+import { parsePlannerCoordinates } from "@overworld/trimet-client";
+import type { StopCatalogStop, TripPlannerLocation } from "@overworld/trimet-client";
+import type { InterestPlace } from "@overworld/places/catalog";
 
 export type PlannerEndpoint =
   | { kind: "stop"; stop: StopCatalogStop }

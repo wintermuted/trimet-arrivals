@@ -1,5 +1,5 @@
 {
-  "name": "@trimet-arrivals/trimet-client",
+  "name": "@overworld/trimet-client",
   "version": "0.0.0",
   "private": true,
   "description": "TriMet clients, catalog search, freshness rules, and optional React catalog and vehicle hooks.",

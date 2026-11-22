@@ -1,7 +1,7 @@
 import { sortBy } from "lodash";
 import { Moment } from "moment";
 import React from "react";
-import type { Arrival, StopLocation, TrimetRoute } from "@trimet-arrivals/trimet-client";
+import type { Arrival, StopLocation, TrimetRoute } from "@overworld/trimet-client";
 import ArrivalRow, { type ArrivalRowProps } from "./ArrivalRow";
 import "./Arrivals.css";
 

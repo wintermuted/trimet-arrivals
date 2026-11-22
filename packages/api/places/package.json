@@ -1,5 +1,5 @@
 {
-  "name": "@trimet-arrivals/places",
+  "name": "@overworld/places",
   "version": "0.0.0",
   "private": true,
   "description": "Portland place discovery, saved places, and reference map layers.",

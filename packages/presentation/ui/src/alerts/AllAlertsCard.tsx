@@ -8,7 +8,7 @@ import {
   Table
 } from "@wintermuted/ui-theme/react";
 import React from "react";
-import type { Alert, AlertLocation, RouteConfigRoute } from "@trimet-arrivals/trimet-client";
+import type { Alert, AlertLocation, RouteConfigRoute } from "@overworld/trimet-client";
 import { useTimeDisplay } from "../TimeDisplay";
 import type { AlertFeedState } from "./types";
 import "./Alerts.scss";

@@ -1,6 +1,6 @@
 import { FeatureCollection, Point } from "geojson";
 import { LngLatBounds, Map as MapboxMap, MapLayerMouseEvent, Popup } from "mapbox-gl";
-import type { RouteConfigRoute as TrimetRoute } from "@trimet-arrivals/trimet-client";
+import type { RouteConfigRoute as TrimetRoute } from "@overworld/trimet-client";
 import { STOP_LOCATION_LAYER } from "./consts";
 import { addMapboxLayer, removeRoutes } from "./routeLines";
 import type { RouteGeometryLoader } from "./transitTypes";

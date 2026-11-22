@@ -1,5 +1,5 @@
-import { isVehicleTripStale, vehicleTripLegs } from "@trimet-arrivals/trimet-client";
-import type { VehiclePosition, VehicleTripSnapshot, VehicleTripStop, VehicleTripProgressMode } from "@trimet-arrivals/trimet-client";
+import { isVehicleTripStale, vehicleTripLegs } from "@overworld/trimet-client";
+import type { VehiclePosition, VehicleTripSnapshot, VehicleTripStop, VehicleTripProgressMode } from "@overworld/trimet-client";
 import React from "react";
 import { Button } from "@wintermuted/ui-theme/react";
 import { useTimeDisplay } from "../TimeDisplay";

@@ -1,5 +1,5 @@
 import { Map as MapboxMap, MapLayerMouseEvent, MapMouseEvent, Popup } from "mapbox-gl";
-import type { VehiclePosition } from "@trimet-arrivals/trimet-client";
+import type { VehiclePosition } from "@overworld/trimet-client";
 import type { VehicleRouteDetails } from "./transitTypes";
 
 interface RouteDetails {

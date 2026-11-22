@@ -9,7 +9,7 @@ import {
   CardTitle
 } from "@wintermuted/ui-theme/react";
 import React from "react";
-import type { Alert } from "@trimet-arrivals/trimet-client";
+import type { Alert } from "@overworld/trimet-client";
 import { useTimeDisplay } from "../TimeDisplay";
 import type { AlertFeedState } from "./types";
 

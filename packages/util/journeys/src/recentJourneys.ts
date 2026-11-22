@@ -1,4 +1,4 @@
-const STORAGE_KEY = "trimet-arrivals:recent-journeys";
+const STORAGE_KEY = "overworld:recent-journeys";
 const LIMIT = 5;
 
 interface JourneyStop {

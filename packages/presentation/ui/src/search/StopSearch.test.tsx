@@ -1,6 +1,6 @@
 import React from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import type { StopCatalog } from "@trimet-arrivals/trimet-client";
+import type { StopCatalog } from "@overworld/trimet-client";
 import { StopSearch } from "../search";
 
 const catalog: StopCatalog = {
