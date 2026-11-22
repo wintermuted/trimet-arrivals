@@ -145,6 +145,8 @@ and test helpers it uses. React, Mapbox, and the UI theme remain peer contracts
 where shared libraries require a host-provided instance; hook libraries also
 declare React as a development dependency for their own tests. The app supplies
 the concrete runtime versions and declares the shared workspaces it consumes.
+Select consumers also require `react-select`, an optional UI theme peer that
+must be declared explicitly rather than relying on an existing installation.
 The repository root owns only shared build, test, lint, and release tooling as
 development dependencies. npm may hoist installations, but hoisting is not a
 substitute for declaring a dependency in its consuming workspace.
