@@ -10,9 +10,6 @@
   text-align: left;
 }
 
-.arrival-on-time {
-  color: var(--wm-color-success);
-}
 .arrivals-loading {
   opacity: 0.3;
 }

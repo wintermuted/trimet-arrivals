@@ -2,6 +2,7 @@
   color: var(--wm-color-danger);
 }
 
+.arrival-on-time,
 .arrival-estimated-early {
   color: var(--wm-color-success);
 }

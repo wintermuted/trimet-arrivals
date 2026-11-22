@@ -1,5 +1,6 @@
 import type { Moment } from "moment";
 import React from "react";
+import "./Indicator.css";
 import EarlyIndicator from "./EarlyIndicator";
 import LateIndicator from "./LateIndicator";
 
