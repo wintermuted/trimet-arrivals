@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi, type MockInstance } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";
@@ -36,8 +36,8 @@ function LocationProbe() {
 describe("Global navbar Places search", () => {
   let container: HTMLDivElement, root: Root;
   let catalog: ReturnType<typeof places.usePlaceCatalog>;
-  let loadCatalog: vi.SpyInstance;
-  let sharedLocationHook: vi.SpyInstance;
+  let loadCatalog: MockInstance<typeof places.usePlaceCatalog>;
+  let sharedLocationHook: MockInstance<typeof deviceGeolocation.useSharedDeviceLocation>;
 
   beforeEach(() => {
     container = document.createElement("div");

@@ -1,5 +1,5 @@
-import { vi } from "vitest";
 /** @vitest-environment jsdom */
+import { vi } from "vitest";
 import { getVehicles, parseVehicleSnapshot } from "./index";
 
 const options = { baseUrl: "https://example.test/ws/", appId: "test-id" };
