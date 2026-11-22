@@ -10,9 +10,9 @@ import RouteDirections from "./RouteDirections";
 
 interface Props {
   id: number;
-  loadRouteData: (id: number) => {};
-  loadAlertData: (id: number) => {};
-  retryAlertData: (id: number) => {};
+  loadRouteData: (id: number) => void;
+  loadAlertData: (id: number) => void;
+  retryAlertData: (id: number) => void;
   route: TrimetRoute;
   alerts: Alert[];
   alertRequest: AlertRequestState;

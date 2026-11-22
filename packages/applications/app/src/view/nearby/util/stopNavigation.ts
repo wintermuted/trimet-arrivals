@@ -10,8 +10,10 @@ export function stopBackUrl(search: string): string {
   const referrers = new URLSearchParams(search).getAll("referrer");
   if (!referrers.length) return DEFAULT_STOP_BACK;
   const referrer = referrers[0];
+  // oxlint-disable-next-line no-control-regex -- Reject controls before URL parsing normalizes them.
+  const hasUnsafeCharacters = /[\\\u0000-\u001f\u007f]/.test(referrer);
   if (referrers.length === 1 && referrer.startsWith("/") &&
-      !referrer.startsWith("//") && !/[\\\u0000-\u001f\u007f]/.test(referrer)) {
+      !referrer.startsWith("//") && !hasUnsafeCharacters) {
     try {
       const url = new URL(referrer, LOCAL_ORIGIN);
       if (url.origin === LOCAL_ORIGIN &&
