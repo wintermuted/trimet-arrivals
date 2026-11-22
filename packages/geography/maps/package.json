@@ -28,11 +28,11 @@
     "@trimet-arrivals/places": "0.0.0",
     "@trimet-arrivals/routing": "0.0.0",
     "@trimet-arrivals/trimet-client": "0.0.0",
-    "@turf/circle": "^7.1.0"
+    "@turf/circle": "^7.4.0"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",
-    "@turf/distance": "^7.1.0",
+    "@turf/distance": "^7.4.0",
     "@types/geojson": "^7946.0.16",
     "@types/react": "^19.3.0",
     "react": "^19.3.1"

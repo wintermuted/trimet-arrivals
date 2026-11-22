@@ -2,8 +2,10 @@
 
 [Documentation](README.md) / [Project home](../README.md)
 
-The app uses TypeScript, React, and Redux. Vite serves local development and
-builds the production site.
+The app uses TypeScript, React, and Redux. Vite 8 serves local development and
+builds the production site with the compatible `@vitejs/plugin-react` 6 plugin.
+Use Sass `@use` rather than deprecated `@import` rules. Refresh stale browser
+compatibility data with `npx update-browserslist-db@latest` and commit the lockfile.
 
 ## Setup and local development
 
@@ -40,12 +42,59 @@ Vite build. To run the app test targets used by both workflows:
 npx nx run-many -t test:ui,test:unit --outputStyle=stream
 ```
 
-Jest runs the React tests
-independently of Vite. Nx caches the place-data tests locally. UI tests still
+Jest 30 runs the React tests through `babel-jest` with the Babel 8 env, React, and
+TypeScript presets, independently of Vite. Keep Jest, `babel-jest`, and
+`jest-environment-jsdom` on matching versions. Modern fake timers use
+`jest.useFakeTimers()` without the old `"modern"` argument.
+Jest's transitive Babel 7 syntax plugins still declare incompatible Babel core
+peer ranges against Babel 8. The full test suite passes, but `npm ls @babel/core`
+continues to report these upstream peer mismatches.
+Nx caches the place-data tests locally. UI tests still
 run every time, and builds are uncached because each Pages deployment needs its
 own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
 `npm run test:places-data`, and `npm run build` commands remain available.
 Build/type validation stays in CI.
+
+Oxlint checks all workspace TypeScript and TSX files using native rules in
+`.oxlintrc.json`, migrated from the previous ESLint TypeScript/React configuration.
+Oxfmt handles formatting. Existing `any` types, TypeScript
+suppression comments, unused declarations, and the automatic JSX runtime remain
+supported. Jest globals and CommonJS mock imports are enabled only in test files;
+React props use TypeScript rather than runtime PropTypes.
+
+The native-only migration retains 77 enabled rules, including
+`react/require-render-return` from Oxlint's nursery rules. It intentionally drops
+interface naming conventions and `react/no-deprecated`, which have no equivalent
+in this non-type-aware configuration. No JavaScript plugin bridge or additional
+type-aware backend is enabled.
+
+Use `npm run lint` (or the Nx `lint` target) for checks and `npm run lint:fix`
+for fixes. Both Pages workflows run lint before tests. Agent-run local
+lint/typecheck/build validation remains CI-owned.
+
+Husky 9 installs hooks through `npm install`/`npm ci` via the `prepare` script.
+The pre-commit hook runs Oxfmt checks followed by Oxlint on staged TypeScript/TSX
+contents in a temporary snapshot, without changing the index or working files.
+Partially staged files retain their unstaged edits. Formatting or lint failures
+block the commit; fix the files and stage the intended changes before retrying.
+The commit-msg hook validates the message with Commitlint. lint-staged is no
+longer used. Run `npm run test:hooks` for the isolated hook-runner tests, which
+use stub format/lint tools rather than invoking local lint.
+
+Use `npm run format` to check app TypeScript/TSX formatting and
+`npm run format:fix` to write fixes. `.oxfmtrc.json` keeps the previous 80-column
+print width rather than Oxfmt's 100-column default. Existing source files were
+not reformatted during migration.
+
+Type checking uses TypeScript 7 with bundler
+module resolution, an ES2020 language target, and explicit Node/React ambient
+types. The `typecheck` npm/Nx target invokes `tsc --noEmit`. Vite controls
+production JavaScript output. Oxlint does not require the old compiler API, so
+TypeScript 5 and the `typescript-native` alias are no longer needed. Jest uses a
+CommonJS configuration and does not need ts-node, though npm may retain it as an
+optional Jest peer dependency.
+Commitlint 21 uses Jiti for TypeScript configuration and no longer depends on
+`cosmiconfig-typescript-loader`; this repository keeps its JavaScript config.
 
 The app uses React 19 and `createRoot`. Write component tests with React Testing
 Library: query accessible roles and labels, exercise interactions with
@@ -53,6 +102,9 @@ Library: query accessible roles and labels, exercise interactions with
 `@testing-library/jest-dom`. Do not inspect component instances, internal state,
 or child component names. `fireEvent` is available for focused DOM events in
 existing integration tests; React's removed `Simulate` APIs are not used.
+jest-dom 7 requires Node 22 or newer and Testing Library DOM 10, both covered by
+the repository's Node 26 target and React Testing Library dependencies. Node
+ambient types likewise track Node 26.
 
 All app `*.test.tsx` files run in the `ui` Jest project, including the migrated
 Enzyme coverage, so the deployment workflows run them. Non-React app tests run

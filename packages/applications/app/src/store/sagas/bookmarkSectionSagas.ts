@@ -1,4 +1,3 @@
-// tslint:disable:no-submodule-imports
 import { call, put, select } from "redux-saga/effects";
 import {
   removeAllStoredBookmarksInSection,

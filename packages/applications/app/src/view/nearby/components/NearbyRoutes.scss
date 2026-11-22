@@ -1,5 +1,5 @@
 @use "../../../styles/disclosure";
-@import "../../../styles/routes";
+@use "../../../styles/routes" as *;
 
 .transit-departure-option {
   display: flex;

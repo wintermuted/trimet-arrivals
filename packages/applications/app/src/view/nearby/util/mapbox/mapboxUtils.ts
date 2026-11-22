@@ -1,5 +1,4 @@
 // @ts-ignore
-// tslint:disable-next-line:no-implicit-dependencies
 import mapboxgl from "!mapbox-gl";
 import { LatLngCoords } from "../../components/NearbyMapV2";
 import { createThemedMap } from "./themedMap";

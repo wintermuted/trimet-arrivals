@@ -1,4 +1,4 @@
-@import "../../styles/routes";
+@use "../../styles/routes" as *;
 
 .route-indicator {
   background: $bus-blue;

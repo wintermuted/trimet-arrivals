@@ -163,6 +163,28 @@ describe("vehicle hover details", () => {
     expect(canvas.style.cursor).toBe("");
   });
 
+  it("cleans up active details after Mapbox has released its canvas", () => {
+    const originalCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    show();
+    const getCanvas = jest.spyOn(map, "getCanvas").mockReturnValue(undefined);
+    const removeListener = jest.spyOn(canvas, "removeEventListener");
+    try {
+      expect(() => {
+        tooltip.dispose();
+        tooltip.dispose();
+      }).not.toThrow();
+      expect(canvas.style.cursor).toBe("crosshair");
+      expect(removeListener).toHaveBeenCalledWith("keydown", expect.any(Function));
+      expect(handlers.size).toBe(0);
+      expect(popupElement.isConnected).toBe(false);
+    } finally {
+      getCanvas.mockRestore();
+      removeListener.mockRestore();
+      canvas.style.cursor = originalCursor;
+    }
+  });
+
   it("focuses pinned details from a keyboard trigger and preserves focus across updates", async () => {
     const opener = document.body.appendChild(document.createElement("button"));
     try {

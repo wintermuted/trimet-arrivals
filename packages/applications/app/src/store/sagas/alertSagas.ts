@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-submodule-imports
 import { call, put } from "redux-saga/effects";
 import { getAlertsByRouteId } from "../../api/trimet/alerts";
 import { AlertsData } from "../../api/trimet/interfaces/alertsData";

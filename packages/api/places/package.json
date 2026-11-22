@@ -34,7 +34,7 @@
     }
   },
   "dependencies": {
-    "@turf/distance": "^7.1.0"
+    "@turf/distance": "^7.4.0"
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",

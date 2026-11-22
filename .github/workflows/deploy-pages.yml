@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint app and workspace packages
+        run: npm run lint
+
       - name: Test app and workspace packages with coverage
         run: npm run test:coverage -- --runInBand
 

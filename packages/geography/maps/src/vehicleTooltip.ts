@@ -14,6 +14,8 @@ export function createVehicleTooltips(
   onFollow: (vehicle: VehiclePosition) => void,
   { routeDisplay, getRouteById }: VehicleRouteDetails
 ) {
+  // Mapbox releases the canvas before notifying remove listeners.
+  const canvas = map.getCanvas();
   const popup = new Popup({
     className: "transit-vehicle-popup", closeButton: true, closeOnClick: false,
     focusAfterOpen: false, offset: 18, maxWidth: "280px",
@@ -112,7 +114,7 @@ export function createVehicleTooltips(
     routePending = false;
     popup.remove();
     if (cursor !== undefined) {
-      map.getCanvas().style.cursor = cursor;
+      canvas.style.cursor = cursor;
       cursor = undefined;
     }
   }
@@ -132,8 +134,8 @@ export function createVehicleTooltips(
     hide();
     active = id;
     pinned = pin;
-    cursor = map.getCanvas().style.cursor;
-    map.getCanvas().style.cursor = "pointer";
+    cursor = canvas.style.cursor;
+    canvas.style.cursor = "pointer";
     routeFailed = false;
     const route = target.vehicle.routeNumber;
     routePending = Boolean(route && !routes.has(route));
@@ -202,7 +204,7 @@ export function createVehicleTooltips(
     pinned = false;
     rendered = undefined;
     controller?.abort();
-    if (cursor !== undefined) map.getCanvas().style.cursor = cursor;
+    if (cursor !== undefined) canvas.style.cursor = cursor;
     cursor = undefined;
   });
   map.on("mouseenter", layer, hover);
@@ -210,7 +212,7 @@ export function createVehicleTooltips(
   map.on("mouseleave", layer, leave);
   map.on("click", layer, pin);
   map.on("click", backgroundClick);
-  map.getCanvas().addEventListener("keydown", escape);
+  canvas.addEventListener("keydown", escape);
 
   return {
     openDetails: (id: string, opener: HTMLElement) => show(id, true, opener),
@@ -224,7 +226,7 @@ export function createVehicleTooltips(
       map.off("mouseleave", layer, leave);
       map.off("click", layer, pin);
       map.off("click", backgroundClick);
-      map.getCanvas().removeEventListener("keydown", escape);
+      canvas.removeEventListener("keydown", escape);
     },
   };
 }
