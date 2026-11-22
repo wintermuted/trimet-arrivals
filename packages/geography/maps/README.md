@@ -17,6 +17,7 @@ loaders, route names, route-detail requests, and tooltip factories are injected.
 Nearby inputs are structural stop/route records, not Redux state.
 Request failures retain usable routes and report errors; rendering failures
 clean up resources and propagate instead of returning an empty success.
+Route layer IDs use the requested route and direction, not optional provider properties.
 
 The app owns access-token setup, theme observation, initial camera options,
 configured requests, route display names, navigation, and screen orchestration.

@@ -73,4 +73,29 @@ describe("transit geometry provider boundary", () => {
     await expect(setRoutes(map, { 54: { directions: [1] } }, load)).rejects.toThrow("Layer unavailable");
     expect(map.removeSource).toHaveBeenCalledWith("route-54_1");
   });
+
+  it.each([null, {}, { route_number: 99, direction: 7 }])(
+    "uses requested route identities when provider properties are %p",
+    async properties => {
+      const geometry = Object.freeze({
+        ...feature, properties: properties === null ? null : Object.freeze(properties)
+      });
+      load.mockResolvedValue(geometry);
+      const ids = await setRoutes(map, {
+        54: { directions: [0, 1] }, 55: { directions: [0] }
+      }, load);
+      expect(ids).toEqual(["route-54_0", "route-54_1", "route-55_0"]);
+      expect(map.addSource).toHaveBeenCalledTimes(3);
+      for (const id of ids) {
+        expect(map.addSource).toHaveBeenCalledWith(id, {
+          type: "geojson", data: { type: "Feature", properties: {}, geometry: feature.geometry }
+        });
+      }
+      removeRoutes(map, ids);
+      for (const id of ids) {
+        expect(map.removeLayer).toHaveBeenCalledWith(id);
+        expect(map.removeSource).toHaveBeenCalledWith(id);
+      }
+    }
+  );
 });
