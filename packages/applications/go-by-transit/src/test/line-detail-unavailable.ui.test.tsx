@@ -1,9 +1,11 @@
 import { vi, type Mock } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { getAlertsByRouteId } from "../api/trimet/alerts";
 import { getRouteById } from "../api/trimet/routeConfig";
 import LineDetailView from "../view/lineDetail/component/LineDetailView";
+import LineDetailComponent from "../view/lineDetail/component/LineDetailComponent";
 
 vi.mock("../api/trimet/routeConfig", () => ({
   getRouteById: vi.fn()
@@ -38,7 +40,7 @@ describe("route detail availability", () => {
   it("shows an unavailable state for a route removed from the API", async () => {
     (getRouteById as Mock).mockResolvedValue({ route: [] });
     await act(async () => {
-      root.render(<LineDetailView id={9} route={undefined} loadRouteData={vi.fn()} />);
+      root.render(<LineDetailView id={9} />);
     });
 
     expect(container.querySelector("[role=alert]").textContent).toBe(
@@ -49,11 +51,39 @@ describe("route detail availability", () => {
   it("shows an error when loading a route fails", async () => {
     (getRouteById as Mock).mockRejectedValue(new Error("network"));
     await act(async () => {
-      root.render(<LineDetailView id={9} route={undefined} loadRouteData={vi.fn()} />);
+      root.render(<LineDetailView id={9} />);
     });
 
     expect(container.querySelector("[role=alert]").textContent).toBe(
       "Unable to load this route. Please try again."
     );
+  });
+
+  it("loads routed line details and alerts without a Redux provider", async () => {
+    (getRouteById as Mock).mockResolvedValue({
+      route: [{
+        route: 9,
+        id: 9,
+        desc: "Powell",
+        type: "bus",
+        dir: [],
+        routeColor: "",
+        routeSortOrder: 9
+      }]
+    });
+    await act(async () => {
+      root.render(
+        <MemoryRouter initialEntries={["/lines/9"]}>
+          <Routes>
+            <Route path="/lines/:id" element={<LineDetailComponent />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    expect(container.textContent).toContain("Route details");
+    expect(container.textContent).toContain("No active alerts");
+    expect(getRouteById).toHaveBeenCalledWith(9);
+    expect(getAlertsByRouteId).toHaveBeenCalledWith(9);
   });
 });

@@ -1,16 +1,16 @@
 import { Button } from "@wintermuted/ui-react";
 import React from "react";
-import { TrimetLocation } from "../../../store/reducers/data/arrivalsDataReducer";
+import type { ArrivalLocation } from "../../../api/trimet/interfaces/arrivals";
 import { OnBookmarkClick } from "./StopLocationView";
 
 interface StopLocationHeaderProps {
-  location: TrimetLocation;
+  location: ArrivalLocation;
   stopIsBookmarked: boolean;
   onBookmarkClick: OnBookmarkClick;
 }
 
 function getButton(
-  location: TrimetLocation,
+  location: ArrivalLocation,
   stopIsBookmarked: boolean,
   onBookmarkClick: OnBookmarkClick
 ) {

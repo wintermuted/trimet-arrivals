@@ -84,7 +84,11 @@ bookmark, navigation, homepage, and connected-planner tests in the provider and
 seed the existing `@overworld/bookmarks` storage keys before rendering. Keep
 shared storage APIs React-free. The focused provider tests exercise persistence,
 independent load failures, write failures, partial group cleanup, shortcuts, and
-cross-consumer/remount behavior. Other Redux domains remain unchanged.
+cross-consumer/remount behavior. Redux now retains only legacy stop metadata,
+arrival results/loading, and the legacy arrival-row route cache; its sole saga
+watcher handles arrival requests. Preserve these active paths and their selectors
+until their React migrations are complete. Line-detail tests need router and
+bookmark context when applicable, but no Redux provider.
 
 The native-only migration retains 77 enabled rules, including
 `react/require-render-return` from Oxlint's nursery rules. It intentionally drops
