@@ -1,11 +1,11 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import LineDetailViewContainer from "../container/LineDetailViewContainer";
+import LineDetailView from "./LineDetailView";
 
 function LineDetailComponent() {
   const { id } = useParams();
 
-  return <LineDetailViewContainer id={id} />;
+  return <LineDetailView id={Number(id)} />;
 }
 
 export default LineDetailComponent;
