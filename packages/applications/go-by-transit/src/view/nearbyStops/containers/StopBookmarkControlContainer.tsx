@@ -1,39 +1,29 @@
-import { connect } from "react-redux";
+import React from "react";
 import { StopLocation } from "../../../api/trimet/interfaces/types";
 import BookmarkButton from "../../../component/buttons/BookmarkButton";
 import {
-  bookmarkStopRequest,
-  removeStopBookmarkRequest
-} from "../../../store/action/bookmarkActions";
-import { RootState } from "../../../store/reducers";
-import { stopIsBookmarkedSelector } from "../../../store/selectors/bookmarkSelectors";
+  useBookmarks,
+  useBookmarkCommands,
+} from "../../../state/bookmarks/BookmarksProvider";
 
 interface Props {
   locationId: number;
+  stopLocation: StopLocation;
+  showLabel?: boolean;
 }
 
-const mapStateToProps = (state: RootState, props: Props) => {
-  return {
-    ...props,
-    stopIsBookmarked: stopIsBookmarkedSelector(state, props.locationId)
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    onBookmarkClick(stopLocation: StopLocation, stopIsBookmarked: boolean) {
-      if (stopIsBookmarked) {
-        dispatch(removeStopBookmarkRequest(stopLocation.locid));
-      } else {
-        dispatch(bookmarkStopRequest(stopLocation));
+export default function StopBookmarkControlContainer(props: Props) {
+  const { stops } = useBookmarks();
+  const commands = useBookmarkCommands();
+  return (
+    <BookmarkButton
+      {...props}
+      stopIsBookmarked={Boolean(stops[props.locationId])}
+      onBookmarkClick={(stop, bookmarked) =>
+        bookmarked
+          ? commands.removeStop(stop.locid || stop.id)
+          : commands.bookmarkStop(stop)
       }
-    }
-  };
-};
-
-const StopBookmarkControlContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(BookmarkButton);
-
-export default StopBookmarkControlContainer;
+    />
+  );
+}

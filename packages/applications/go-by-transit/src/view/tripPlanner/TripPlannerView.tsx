@@ -11,7 +11,6 @@ import { MultiSelect } from "@wintermuted/ui-react/select";
 import React, { FormEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";
-import { useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import geoLocateCurrentPosition from "../../api/geolocation/geoLocateCurrentPosition";
 import { SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
@@ -29,7 +28,7 @@ import {
   TripPlannerLeg,
   TripPlannerResponse,
 } from "../../api/trimet/tripplanner";
-import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
+import { useBookmarks } from "../../state/bookmarks/BookmarksProvider";
 import PlannerStopSelect, { SavedPlannerStop } from "./PlannerStopSelect";
 import { EndpointMarker } from "./DirectionsStopPair";
 import "./TripPlannerView.scss";
@@ -75,7 +74,7 @@ interface TripPlannerProps {
 }
 
 export function ConnectedTripPlannerView(props: TripPlannerProps) {
-  const bookmarks = useSelector(selectBookmarks);
+  const { stops: bookmarks } = useBookmarks();
   const { shortcuts, error } = useBookmarkShortcuts(bookmarks);
   const savedStops = SHORTCUTS.flatMap(({ key, kind, label }) => {
     const id = shortcuts[key];

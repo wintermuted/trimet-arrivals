@@ -1,31 +1,26 @@
-import { connect } from "react-redux";
+import React from "react";
 import {
-  addRouteToBookmarkSectionRequest,
-  removeRouteFromBookmarkSectionRequest
-} from "../../../store/action/bookmarkSectionActions";
-import { RootState } from "../../../store/reducers";
-import { routeBookmarksInSectionSelector } from "../../../store/selectors/bookmarkSectionSelectors";
-import { routeBookmarksSelector } from "../../../store/selectors/routeBookmarkSelectors";
+  useBookmarks,
+  useBookmarkCommands,
+} from "../../../state/bookmarks/BookmarksProvider";
 import RouteBookmarksInSectionSelectionHandler from "../component/bookmarkSections/sectionSelector/RouteBookmarksInSectionSelectionHandler";
 
-const mapStateToProps = (state: RootState, ownProps) => ({
-  allRoutes: Object.values(routeBookmarksSelector(state)),
-  routesInSection: routeBookmarksInSectionSelector(
-    state,
-    ownProps.bookmarkSectionId
-  )
-});
-
-const mapDispatchToProps = dispatch => ({
-  addRouteToBookmarkSection(bookmarkSectionId: number, routeId: number) {
-    dispatch(addRouteToBookmarkSectionRequest(bookmarkSectionId, routeId));
-  },
-  removeRouteFromBookmarkSection(bookmarkSectionId: number, routeId: number) {
-    dispatch(removeRouteFromBookmarkSectionRequest(bookmarkSectionId, routeId));
-  }
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(RouteBookmarksInSectionSelectionHandler);
+export default function RouteBookmarksInSectionSelectorContainer({
+  bookmarkSectionId,
+}: {
+  bookmarkSectionId: number;
+}) {
+  const { routes, routeGroups } = useBookmarks();
+  const commands = useBookmarkCommands();
+  return (
+    <RouteBookmarksInSectionSelectionHandler
+      bookmarkSectionId={bookmarkSectionId}
+      allRoutes={Object.values(routes)}
+      routesInSection={(routeGroups[bookmarkSectionId] || [])
+        .map((id) => routes[id])
+        .filter(Boolean)}
+      addRouteToBookmarkSection={commands.addRouteToSection}
+      removeRouteFromBookmarkSection={commands.removeRouteFromSection}
+    />
+  );
+}

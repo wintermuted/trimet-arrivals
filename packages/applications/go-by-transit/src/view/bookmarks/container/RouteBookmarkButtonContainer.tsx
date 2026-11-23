@@ -1,30 +1,27 @@
-import { connect } from "react-redux";
+import React from "react";
+import type { TrimetRoute } from "../../../api/trimet/interfaces/routes";
 import {
-  removeRouteBookmarkRequest,
-  storeRouteBookmarkRequest
-} from "../../../store/action/routeBookmarkActions";
-import { RootState } from "../../../store/reducers";
-import {
-  routeBookmarkErrorSelector,
-  routeIsBookmarkedSelector
-} from "../../../store/selectors/routeBookmarkSelectors";
+  useBookmarks,
+  useBookmarkCommands,
+  useBookmarkError,
+} from "../../../state/bookmarks/BookmarksProvider";
 import RouteBookmarkButton from "../component/RouteBookmarkButton";
 
-const mapStateToProps = (state: RootState, ownProps) => ({
-  error: routeBookmarkErrorSelector(state),
-  isBookmarked: routeIsBookmarkedSelector(state, ownProps.route.route)
-});
-
-const mapDispatchToProps = dispatch => ({
-  onBookmark(route) {
-    dispatch(storeRouteBookmarkRequest(route));
-  },
-  onRemove(routeId: number) {
-    dispatch(removeRouteBookmarkRequest(routeId));
-  }
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(RouteBookmarkButton);
+export default function RouteBookmarkButtonContainer({
+  route,
+}: {
+  route: TrimetRoute;
+}) {
+  const { routes } = useBookmarks();
+  const commands = useBookmarkCommands();
+  const error = useBookmarkError("routes", "routeGroups");
+  return (
+    <RouteBookmarkButton
+      route={route}
+      error={error}
+      isBookmarked={Boolean(routes[route.route])}
+      onBookmark={commands.bookmarkRoute}
+      onRemove={commands.removeRoute}
+    />
+  );
+}

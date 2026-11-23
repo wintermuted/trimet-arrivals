@@ -112,6 +112,22 @@ Future apps belong alongside Go By Transit in `packages/applications` and
 consume these public library entry points. Keep app-specific configuration and
 orchestration in each app rather than coupling libraries to a particular host.
 
+Go By Transit's `BookmarksProvider` owns stop and route bookmarks, collections,
+route membership, and the collection-name draft through React Context and
+`useReducer`. It initializes from `@overworld/bookmarks` once per app mount;
+navigation no longer dispatches bookmark initialization. A separate command
+context provides stable mutation callbacks. Transit requests, polling, arrivals,
+and map/view coordination remain on Redux and sagas.
+
+Bookmark mutations persist through the existing storage APIs before publishing
+state. A failed write leaves the affected domain unchanged and displays an
+error. Route/collection deletion clears route-group membership first; if a later
+write fails, state reflects the successful cleanup without claiming deletion.
+Initialization reads each storage domain independently, preserving malformed
+content and reporting errors without hiding valid bookmarks in other domains.
+Storage keys and payload formats are unchanged. Bookmark state has no new
+cross-tab synchronization; the existing shortcut subscriptions remain separate.
+
 The app supplies the TriMet URL, app ID, and `REACT_APP_USE_FIXTURE` setting
 for requests that support fixtures. For route configuration, only the
 all-routes request uses fixtures. Trip planning uses the browser's `DOMParser`.
@@ -136,7 +152,7 @@ adapters supply route links and the existing distance-formatting policy.
 query and loading/error/partial states, and responsive presentation. Catalog
 requests/caching and planner, arrival, and footer links stay app-owned.
 `bookmarks/react` owns shortcut reads, writes, error state, and same/cross-tab
-subscriptions; Redux registries, bookmark screens, and planner state stay in
+subscriptions; the bookmark provider, screens, and planner state stay in
 the app. Its main entry remains React-free.
 `trimet-client` owns pure vehicle trip-leg derivation, and `ui/vehicles` owns
 progress timelines and map-view controls. Feed orchestration, configured

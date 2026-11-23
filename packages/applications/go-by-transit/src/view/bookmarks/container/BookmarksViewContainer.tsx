@@ -1,25 +1,17 @@
-import { connect } from "react-redux";
-import { RootState } from "../../../store/reducers";
+import React from "react";
 import {
-  bookmarkSectionSelectors,
-  sectionNameInputSelector
-} from "../../../store/selectors/bookmarkSectionSelectors";
-import { bookmarkedStopLocationsSelector } from "../../../store/selectors/bookmarkSelectors";
-import { routeBookmarkErrorSelector } from "../../../store/selectors/routeBookmarkSelectors";
+  useBookmarks,
+  useBookmarkError,
+} from "../../../state/bookmarks/BookmarksProvider";
 import BookmarksViewComponent from "../component/BookmarksViewComponent";
 
-const mapStateToProps = (state: RootState) => {
-  return {
-    bookmarkSectionName: sectionNameInputSelector(state),
-    bookmarkSections: bookmarkSectionSelectors(state),
-    bookmarks: bookmarkedStopLocationsSelector(state),
-    routeBookmarkError: routeBookmarkErrorSelector(state)
-  };
-};
-
-const BookmarksViewContainer = connect(
-  mapStateToProps,
-  () => {}
-)(BookmarksViewComponent);
-
-export default BookmarksViewContainer;
+export default function BookmarksViewContainer() {
+  const { stops } = useBookmarks();
+  const error = useBookmarkError();
+  return (
+    <BookmarksViewComponent
+      bookmarks={Object.values(stops)}
+      routeBookmarkError={error}
+    />
+  );
+}

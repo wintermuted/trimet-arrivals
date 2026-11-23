@@ -1,5 +1,5 @@
 import React from "react";
-import { BookmarkSectionsProps } from "../../../../store/reducers/bookmarkSectionReducer";
+import type { BookmarkSectionsProps } from "@overworld/bookmarks";
 import "../BookmarksViewComponent.css";
 import AddBookmarkSectionControl from "./AddBookmarkSectionControl";
 import BookmarkSections from "./BookmarkSections";
@@ -17,7 +17,7 @@ export default class BookmarksViewComponent extends React.Component<Props> {
       bookmarkSectionName,
       bookmarkSections,
       createBookmarkSection,
-      onSectionNameUpdate
+      onSectionNameUpdate,
     } = this.props;
 
     return (

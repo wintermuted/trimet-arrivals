@@ -1,36 +1,19 @@
-import { connect } from "react-redux";
+import React from "react";
 import {
-  createBookmarkSectionRequest,
-  sectionNameUpdateRequest
-} from "../../../store/action/bookmarkSectionActions";
-import { RootState } from "../../../store/reducers";
-import {
-  bookmarkSectionSelectors,
-  sectionNameInputSelector
-} from "../../../store/selectors/bookmarkSectionSelectors";
+  useBookmarks,
+  useBookmarkCommands,
+} from "../../../state/bookmarks/BookmarksProvider";
 import BookmarkSectionsComponent from "../component/bookmarkSections/BookmarkSectionsComponent";
 
-const mapStateToProps = (state: RootState) => {
-  return {
-    bookmarkSectionName: sectionNameInputSelector(state),
-    bookmarkSections: bookmarkSectionSelectors(state)
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    onSectionNameUpdate(name: string) {
-      dispatch(sectionNameUpdateRequest(name));
-    },
-    createBookmarkSection() {
-      dispatch(createBookmarkSectionRequest());
-    }
-  };
-};
-
-const BookmarkSectionsContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(BookmarkSectionsComponent);
-
-export default BookmarkSectionsContainer;
+export default function BookmarkSectionsContainer() {
+  const { sections, sectionName } = useBookmarks();
+  const commands = useBookmarkCommands();
+  return (
+    <BookmarkSectionsComponent
+      bookmarkSectionName={sectionName}
+      bookmarkSections={sections}
+      onSectionNameUpdate={commands.setSectionName}
+      createBookmarkSection={() => commands.createSection(sectionName)}
+    />
+  );
+}

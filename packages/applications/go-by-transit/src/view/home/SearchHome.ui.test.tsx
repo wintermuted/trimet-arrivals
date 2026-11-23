@@ -10,6 +10,7 @@ import { getSystemAlerts } from "../../api/trimet/alerts";
 import { getStopCatalog, StopCatalog } from "../../api/trimet/stopCatalog";
 import { planTrip } from "../../api/trimet/tripplanner";
 import reducers from "../../store/reducers";
+import { BookmarksProvider } from "../../state/bookmarks/BookmarksProvider";
 import { ConnectedTripPlannerView } from "../tripPlanner/TripPlannerView";
 import { BOOKMARK_SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
 import SearchHome from "./SearchHome";
@@ -22,7 +23,9 @@ vi.mock("../nearby/util/mapbox/initializeMap", () => ({
 vi.mock("../../api/trimet/alerts");
 vi.mock("../../api/trimet/tripplanner");
 vi.mock("../../api/trimet/stopCatalog", async () => ({
-  ...(await vi.importActual<typeof import("../../api/trimet/stopCatalog")>("../../api/trimet/stopCatalog")),
+  ...(await vi.importActual<typeof import("../../api/trimet/stopCatalog")>(
+    "../../api/trimet/stopCatalog",
+  )),
   getStopCatalog: vi.fn(),
 }));
 
@@ -57,11 +60,8 @@ describe("Search homepage", () => {
   beforeEach(() => {
     localStorage.clear();
     loadCatalog.mockReset().mockResolvedValue(catalog);
-    vi
-      .mocked(getSystemAlerts)
-      .mockResolvedValue({ alert: [], queryTime: "" });
-    vi
-      .mocked(planTrip)
+    vi.mocked(getSystemAlerts).mockResolvedValue({ alert: [], queryTime: "" });
+    vi.mocked(planTrip)
       .mockReset()
       .mockResolvedValue({
         success: true,
@@ -83,20 +83,22 @@ describe("Search homepage", () => {
     await act(async () =>
       root.render(
         <Provider store={store}>
-          <MemoryRouter>
-            <Routes>
-              <Route path="/" element={<SearchHome />} />
-              <Route
-                path="/planner"
-                element={
-                  <>
-                    <ConnectedTripPlannerView />
-                    <Link to="/">Return home</Link>
-                  </>
-                }
-              />
-            </Routes>
-          </MemoryRouter>
+          <BookmarksProvider>
+            <MemoryRouter>
+              <Routes>
+                <Route path="/" element={<SearchHome />} />
+                <Route
+                  path="/planner"
+                  element={
+                    <>
+                      <ConnectedTripPlannerView />
+                      <Link to="/">Return home</Link>
+                    </>
+                  }
+                />
+              </Routes>
+            </MemoryRouter>
+          </BookmarksProvider>
         </Provider>,
       ),
     );
@@ -127,16 +129,24 @@ describe("Search homepage", () => {
         .querySelector('[aria-label="Matching stops"] a')
         .getAttribute("href"),
     ).toBe("/planner?to=200");
-    expect(container.querySelector('a[href="/nearby/stops/8200?referrer=%2F"]')).not.toBeNull();
+    expect(
+      container.querySelector('a[href="/nearby/stops/8200?referrer=%2F"]'),
+    ).not.toBeNull();
     type("#homepage-stop", "Central Station");
     expect(
       container.querySelectorAll('[aria-label="Matching stops"] li'),
     ).toHaveLength(2);
     await click('a[href="/planner?to=200"]');
-    act(() => container.querySelector<HTMLInputElement>("#planner-from").focus());
+    act(() =>
+      container.querySelector<HTMLInputElement>("#planner-from").focus(),
+    );
     type("#planner-from", "350");
-    await act(async () => document.querySelector<HTMLElement>('[role="option"]').click());
-    await act(async () => { fireEvent.submit(container.querySelector("form")); });
+    await act(async () =>
+      document.querySelector<HTMLElement>('[role="option"]').click(),
+    );
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form"));
+    });
     expect(planTrip).toHaveBeenCalledWith(
       expect.objectContaining({ fromPlace: "350", toPlace: "200" }),
     );
@@ -167,20 +177,28 @@ describe("Search homepage", () => {
   });
 
   it("keeps existing bookmarks and search available when the optional map fails", async () => {
-    const store = createStore(reducers, {
-      ...reducers(undefined, { type: "test:init" }),
-      bookmarksReducer: {
-        bookmarks: { 200: { ...stop, id: 200, desc: "My stop" } },
-      },
-      routeBookmarksReducer: {
-        ...reducers(undefined, { type: "test:init" }).routeBookmarksReducer,
-        bookmarks: { 54: { route: 54, desc: "My route", type: "B" } },
-      },
-    });
-    localStorage.setItem(BOOKMARK_SHORTCUTS, JSON.stringify({
-      home_location: 200, work_location: 999, home_commute: 54
-    }));
-    await render(store);
+    localStorage.setItem(
+      "BOOKMARKS",
+      JSON.stringify({
+        200: { ...stop, id: 200, desc: "My stop" },
+      }),
+    );
+    localStorage.setItem(
+      "ROUTE_BOOKMARKS_V1",
+      JSON.stringify({
+        version: 1,
+        routes: { 54: { route: 54, desc: "My route", type: "B" } },
+      }),
+    );
+    localStorage.setItem(
+      BOOKMARK_SHORTCUTS,
+      JSON.stringify({
+        home_location: 200,
+        work_location: 999,
+        home_commute: 54,
+      }),
+    );
+    await render();
     expect(
       container.querySelector('a[href="/stop/200"]').textContent,
     ).toContain("Home stop: My stop");

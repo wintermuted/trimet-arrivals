@@ -7,6 +7,10 @@ import { FeatureFlagsProvider } from "./component/feature-flags/FeatureFlags";
 import { TimeDisplayProvider } from "@overworld/ui";
 import RootAppRoutes from "./routes/RootAppRoutes";
 import appStore from "./store/store";
+import {
+  BookmarksProvider,
+  BookmarkStorageErrors,
+} from "./state/bookmarks/BookmarksProvider";
 
 const store = appStore();
 
@@ -15,14 +19,17 @@ export default class App extends React.Component {
     return (
       <ThemeProvider>
         <Provider store={store}>
-          <FeatureFlagsProvider>
-            <TimeDisplayProvider>
-              <div className="transit-app-shell">
-                <RootAppRoutes />
-                <AppFooter />
-              </div>
-            </TimeDisplayProvider>
-          </FeatureFlagsProvider>
+          <BookmarksProvider>
+            <FeatureFlagsProvider>
+              <TimeDisplayProvider>
+                <div className="transit-app-shell">
+                  <BookmarkStorageErrors />
+                  <RootAppRoutes />
+                  <AppFooter />
+                </div>
+              </TimeDisplayProvider>
+            </FeatureFlagsProvider>
+          </BookmarksProvider>
         </Provider>
       </ThemeProvider>
     );

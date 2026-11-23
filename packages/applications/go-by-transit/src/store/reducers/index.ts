@@ -1,31 +1,24 @@
 import { combineReducers } from "redux";
 import arrivalsReducer, { ArrivalsReducerState } from "./arrivalsReducer";
-import bookmarkSectionReducer, {
-  BookmarkSectionReducerState
-} from "./bookmarkSectionReducer";
-import bookmarksReducer, { BookmarksReducerState } from "./bookmarksReducer";
 import currentLocationReducer, {
-  CurrentLocationReducerState
+  CurrentLocationReducerState,
 } from "./currentLocationReducer";
 import alertDataReducer, {
-  AlertDataReducerState
+  AlertDataReducerState,
 } from "./data/alertDataReducer";
 import arrivalsDataReducer, {
-  ArrivalsDataReducerState
+  ArrivalsDataReducerState,
 } from "./data/arrivalsDataReducer";
 import routeDataReducer, {
-  RouteDataReducerState
+  RouteDataReducerState,
 } from "./data/routeDataReducer";
-import routeBookmarksReducer, {
-  RouteBookmarksReducerState
-} from "./routeBookmarksReducer";
 import nearbyViewReducer, { NearbyReducerState } from "./nearbyViewReducer";
 import stopsReducer, { StopsReducerState } from "./stopsReducer";
 import nearbyRoutesDataReducer, {
-  NearbyRoutesDataReducerState
+  NearbyRoutesDataReducerState,
 } from "./view/nearbyRoutesDataReducer";
 import nearbyRoutesViewReducer, {
-  NearbyRoutesViewReducerState
+  NearbyRoutesViewReducerState,
 } from "./view/nearbyRoutesViewReducer";
 import viewReducer, { ViewReducerState } from "./viewReducer";
 
@@ -35,12 +28,9 @@ export interface RootState {
   stopsReducer: StopsReducerState;
   arrivalsReducer: ArrivalsReducerState;
   viewReducer: ViewReducerState;
-  bookmarksReducer: BookmarksReducerState;
-  bookmarkSectionReducer: BookmarkSectionReducerState;
   currentLocationReducer: CurrentLocationReducerState;
   nearbyReducer: NearbyReducerState;
   routeDataReducer: RouteDataReducerState;
-  routeBookmarksReducer: RouteBookmarksReducerState;
   nearbyRoutesDataReducer: NearbyRoutesDataReducerState;
   nearbyRoutesViewReducer: NearbyRoutesViewReducerState;
 }
@@ -49,16 +39,13 @@ const app = combineReducers<RootState>({
   alertDataReducer,
   arrivalsDataReducer,
   arrivalsReducer,
-  bookmarkSectionReducer,
-  bookmarksReducer,
   currentLocationReducer,
   nearbyRoutesDataReducer,
   nearbyRoutesViewReducer,
   nearbyViewReducer,
   routeDataReducer,
-  routeBookmarksReducer,
   stopsReducer,
-  viewReducer
+  viewReducer,
 } as any);
 
 export default app;

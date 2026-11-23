@@ -1,20 +1,14 @@
-import { connect } from "react-redux";
-import { removeRouteBookmarkRequest } from "../../../store/action/routeBookmarkActions";
-import { RootState } from "../../../store/reducers";
-import { routeBookmarksSelector } from "../../../store/selectors/routeBookmarkSelectors";
+import React from "react";
+import {
+  useBookmarks,
+  useBookmarkCommands,
+} from "../../../state/bookmarks/BookmarksProvider";
 import BookmarkedRoutes from "../component/BookmarkedRoutes";
 
-const mapStateToProps = (state: RootState) => ({
-  routes: Object.values(routeBookmarksSelector(state))
-});
-
-const mapDispatchToProps = dispatch => ({
-  onRemove(routeId: number) {
-    dispatch(removeRouteBookmarkRequest(routeId));
-  }
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(BookmarkedRoutes);
+export default function BookmarkedRoutesContainer() {
+  const { routes } = useBookmarks();
+  const { removeRoute } = useBookmarkCommands();
+  return (
+    <BookmarkedRoutes routes={Object.values(routes)} onRemove={removeRoute} />
+  );
+}
