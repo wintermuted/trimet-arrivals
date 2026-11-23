@@ -1,0 +1,465 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for api/places/src/discovery.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../theme.js"></script>
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">api/places/src</a> discovery.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>81/81</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">95.38% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>62/65</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>25/25</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>63/63</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">277x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">277x</span>
+<span class="cline-any cline-yes">111x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3330x</span>
+<span class="cline-any cline-yes">277x</span>
+<span class="cline-any cline-yes">111x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">111x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">958x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2874x</span>
+<span class="cline-any cline-yes">3832x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">958x</span>
+<span class="cline-any cline-yes">28740x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">958x</span>
+<span class="cline-any cline-yes">958x</span>
+<span class="cline-any cline-yes">958x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-yes">860x</span>
+<span class="cline-any cline-yes">22x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">420x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">646x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">31x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">149x</span>
+<span class="cline-any cline-yes">447x</span>
+<span class="cline-any cline-yes">251x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Position } from "geojson";
+import { CONTEXT_CATEGORIES, ContextCategory, DEFAULT_CONTEXT_OVERLAYS } from "./contextOverlays";
+import { DEFAULT_LINE_OVERLAYS, LINE_OVERLAY_CATEGORIES, LineOverlayCategory } from "./lineOverlays";
+import { DEFAULT_PLACE_FILTERS, PLACE_CATEGORIES, PlaceCategory, PlaceFilters } from "./places";
+&nbsp;
+export interface PlacesView {
+  filters: PlaceFilters;
+  neighborhoods: boolean;
+  polygons: boolean;
+  lines: Record&lt;LineOverlayCategory, boolean&gt;;
+  context: Record&lt;ContextCategory, boolean&gt;;
+}
+export interface PlacesViewport { center: [number, number]; zoom: number }
+export interface TripCorridor {
+  lines: Position[][];
+  incomplete: boolean;
+  returnTo: string;
+}
+export const DEFAULT_PLACES_VIEW: PlacesView = {
+  filters: DEFAULT_PLACE_FILTERS, neighborhoods: false, polygons: false,
+  lines: DEFAULT_LINE_OVERLAYS, context: DEFAULT_CONTEXT_OVERLAYS
+};
+export const PLACE_PRESETS = [
+  { id: "parks", label: "Park day" },
+  { id: "errands", label: "Errands" },
+  { id: "cycling", label: "Bike outing" }
+] as const;
+export type PlacePreset = typeof PLACE_PRESETS[number]["id"] | "default";
+&nbsp;
+export function placesPreset(preset: PlacePreset): PlacesView {
+  const view: PlacesView = {
+    ...DEFAULT_PLACES_VIEW, filters: { ...DEFAULT_PLACE_FILTERS },
+    lines: { ...DEFAULT_LINE_OVERLAYS }, context: { ...DEFAULT_CONTEXT_OVERLAYS }
+  };
+  if (preset === "default") return view;
+  const categories: PlaceCategory[] = preset === "parks"
+    ? ["park", "community-garden", "heritage-tree", "drinking-fountain", "public-restroom", "picnic-seating", "park-artwork"]
+    : preset === "errands"
+      ? ["grocery-store", "farmers-market", "reuse-repair", "csa-pickup", "library", "community-center"]
+      : ["park", "food-cart-pod", "bicycle-parking", "drinking-fountain", "public-restroom"];
+  PLACE_CATEGORIES.forEach(category =&gt; { view.filters[category] = categories.includes(category); });
+  if (preset === "parks") view.lines["park-trails"] = true;
+  if (preset === "cycling") {
+    view.lines["bicycle-network"] = true;
+    view.lines["recommended-bike-routes"] = true;
+  }
+  return view;
+}
+const layerNames = ["neighborhoods", "neighborhood-polygons", ...LINE_OVERLAY_CATEGORIES, ...CONTEXT_CATEGORIES];
+export function placesViewSearch(view: PlacesView, viewport?: PlacesViewport) {
+  const layers = [
+    ...(view.neighborhoods ? ["neighborhoods", ...(view.polygons ? ["neighborhood-polygons"] : [])] : []),
+    ...LINE_OVERLAY_CATEGORIES.filter(category =&gt; view.lines[category]),
+    ...CONTEXT_CATEGORIES.filter(category =&gt; view.context[category])
+  ];
+  const params = new URLSearchParams({
+    view: "1", categories: PLACE_CATEGORIES.filter(category =&gt; view.filters[category]).join(","),
+    layers: layers.join(",")
+  });
+  if (view.filters.search) params.set("q", view.filters.search);
+  if (viewport) params.set("map", [...viewport.center.map(value =&gt; Number(value.toFixed(5))), Number(viewport.zoom.toFixed(2))].join(","));
+  return `?${params}`;
+}
+export function readPlacesView(search: string): { view?: PlacesView; viewport?: PlacesViewport; error?: string } {
+  const params = new URLSearchParams(search);
+  if (!params.has("view")) return {};
+  try {
+    if (search.length &gt; 4096 || params.getAll("view").length !== 1 || params.get("view") !== "1" ||
+      ["categories", "layers"].some(key =&gt; params.getAll(key).length !== 1) ||
+      ["q", "map"].some(key =&gt; params.getAll(key).length &gt; 1)) throw new Error("Invalid view settings");
+    const categories = params.get("categories")?.split(",").filter(Boolean) || <span class="branch-1 cbranch-no" title="branch not covered" >[];</span>
+    const layers = params.get("layers")?.split(",").filter(Boolean) || <span class="branch-1 cbranch-no" title="branch not covered" >[];</span>
+    if (categories.some(category =&gt; !PLACE_CATEGORIES.some(known =&gt; known === category)) ||
+      layers.some(layer =&gt; !layerNames.includes(layer)) || new Set(categories).size !== categories.length ||
+      new Set(layers).size !== layers.length || (params.get("q") || "").length &gt; 200 ||
+      (layers.includes("neighborhood-polygons") &amp;&amp; !layers.includes("neighborhoods"))) throw new Error("Invalid filters or layers");
+    const view = placesPreset("default");
+    PLACE_CATEGORIES.forEach(category =&gt; { view.filters[category] = categories.includes(category); });
+    view.filters.search = params.get("q") || "";
+    view.neighborhoods = layers.includes("neighborhoods");
+    view.polygons = layers.includes("neighborhood-polygons");
+    LINE_OVERLAY_CATEGORIES.forEach(category =&gt; { view.lines[category] = layers.includes(category); });
+    CONTEXT_CATEGORIES.forEach(category =&gt; { view.context[category] = layers.includes(category); });
+    let viewport: PlacesViewport;
+    if (params.has("map")) {
+      const parts = params.get("map").split(",");
+      const values = parts.map(Number);
+      if (parts.length !== 3 || parts.some(value =&gt; !value.trim()) || !values.every(Number.isFinite) ||
+        Math.abs(values[0]) &gt; 180 || Math.abs(values[1]) &gt; 85 || values[2] &lt; 0 || values[2] &gt; 22) throw new Error("Invalid map position");
+      viewport = { center: [values[0], values[1]], zoom: values[2] };
+    }
+    return { view, viewport };
+  } catch {
+    return { error: "This shared Places view has invalid or unsupported settings. The current filters have not been replaced. Choose a preset or Reset filters to continue." };
+  }
+}
+&nbsp;
+export function currentPlacePreset(view: PlacesView): PlacePreset | "custom" {
+  const signature = placesViewSearch(view);
+  return (["default", ...PLACE_PRESETS.map(preset =&gt; preset.id)] as PlacePreset[])
+    .find(preset =&gt; placesViewSearch(placesPreset(preset)) === signature) || "custom";
+}
+&nbsp;
+// A local metric projection is sufficient for approximate discovery within Portland.
+export function tripCorridorMatcher(lines: Position[][], meters: number) {
+  const scale = Math.PI / 180 * 6371008.8;
+  const xScale = scale * Math.cos(45.55 * Math.PI / 180);
+  const segments = lines.flatMap(line =&gt; line.slice(1).map((end, index) =&gt; {
+    const start = line[index];
+    return [start[0] * xScale, start[1] * scale, end[0] * xScale, end[1] * scale];
+  }));
+  return ([lng, lat]: number[]) =&gt; {
+    const x = lng * xScale, y = lat * scale;
+    return segments.some(([ax, ay, bx, by]) =&gt; {
+      if (x &lt; Math.min(ax, bx) - meters || x &gt; Math.max(ax, bx) + meters ||
+        y &lt; Math.min(ay, by) - meters || y &gt; Math.max(ay, by) + meters) return false;
+      const dx = bx - ax, dy = by - ay;
+      const length = dx * dx + dy * dy;
+      const t = length ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / length)) : <span class="branch-1 cbranch-no" title="branch not covered" >0;</span>
+      return Math.hypot(x - ax - t * dx, y - ay - t * dy) &lt;= meters;
+    });
+  };
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-11-23T18:37:56.122Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    
