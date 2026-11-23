@@ -219,8 +219,8 @@ select integration, and theme runtime helpers (`@wintermuted/ui-react`).
 The app declares both packages; the shared presentation library peers on
 `ui-react`. Keep CSS imports on `ui-theme` and keep `initTheme` before rendering.
 Vite/Vitest need no package aliases or ESM transform allowlists for this split.
-See [design-system migration status](design-system.md#layout-and-theme-tokens)
-for the current registry-access and lockfile blocker.
+See [design-system package versions](design-system.md#layout-and-theme-tokens)
+for public-registry resolution and lockfile conventions.
 
 ```powershell
 npx nx run-many -t test:package
