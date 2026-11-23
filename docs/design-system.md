@@ -44,16 +44,11 @@ to `1.0.0` in the app. The shared `@overworld/ui` library declares
 Keep every CSS import on `ui-theme`; its legacy React/theme/select exports
 have been removed. React and `react-select` versions and component APIs stay unchanged.
 
-Both packages are published: upstream [registry verification](https://github.com/wintermuted/wintermuted-ui/actions/runs/45098351672)
-confirmed `ui-react@1.0.0` matches its reviewed tarball integrity and
-`ui-theme@1.0.0` is unchanged. Local dependency resolution remains blocked:
-public npm requests fail TLS negotiation, and the machine's Microsoft npm
-mirror does not yet serve either 1.0.0 package.
-The source and manifest migration is prepared, but the single root
-`package-lock.json` still resolves theme `0.21.5`.
-Do not merge or deploy this preparation until published dependencies can be
-installed, the lockfile is regenerated, and migrated tests pass.
-Do not substitute local tarballs or links for published dependencies.
+Both packages are published. The single root `package-lock.json` resolves their
+1.0.0 tarballs from the public npm registry with verified integrity; no local
+tarballs or links are required. If a configured npm mirror lags behind a release,
+use public npm for dependency resolution rather than substituting unpublished
+dependencies. Keep the package manifests and root lockfile updated together.
 
 ## Navigation and page shell
 
