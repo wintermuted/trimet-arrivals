@@ -34,30 +34,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">21.05% </span>
+                <span class="strong">57.89% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/19</span>
+                <span class='fraction'>11/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">60% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/5</span>
+                <span class='fraction'>3/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">21.05% </span>
+                <span class="strong">57.89% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/19</span>
+                <span class='fraction'>11/19</span>
             </div>
         
             
@@ -72,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -223,18 +223,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -249,15 +249,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">103x</span>
+<span class="cline-any cline-yes">108x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">103x</span>
+<span class="cline-any cline-yes">107x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -314,22 +314,22 @@ function <span class="fstat-no" title="function not covered" >getLoadStopComplet
   };
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >getLoadArrivalsCompleteState(</span>
+function getLoadArrivalsCompleteState(
   action: Action,
   state: StopsReducerState
 ) {
-  const { payload } = <span class="cstat-no" title="statement not covered" >action;</span>
+  const { payload } = action;
 &nbsp;
-  const { arrivalData } = <span class="cstat-no" title="statement not covered" >payload;</span>
-  const location = <span class="cstat-no" title="statement not covered" >arrivalData.location;</span>
-  const currentLocation = <span class="cstat-no" title="statement not covered" >{</span>
+  const { arrivalData } = payload;
+  const location = arrivalData.location;
+  const currentLocation = {
     latitude: location[0].lat,
     longitude: location[0].lng
   };
 &nbsp;
-  const stopLocations = <span class="cstat-no" title="statement not covered" >formatStopLocations(location, currentLocation);</span>
+  const stopLocations = formatStopLocations(location, currentLocation);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return {</span>
+  return {
     ...state,
     stopLocations,
     timeOfLastLoad: getFormattedLoadTime(Date.now())
@@ -349,8 +349,8 @@ const stopsReducer = (state = initialState, action: Action) =&gt; {
 <span class="cstat-no" title="statement not covered" >      return getLoadStopsCompleteState(state);</span>
 <span class="branch-1 cbranch-no" title="branch not covered" >    case LOAD_STOP_COMPLETE:</span>
 <span class="cstat-no" title="statement not covered" >      return getLoadStopCompleteState(action, state);</span>
-<span class="branch-2 cbranch-no" title="branch not covered" >    case LOAD_ARRIVALS_COMPLETE:</span>
-<span class="cstat-no" title="statement not covered" >      return getLoadArrivalsCompleteState(action, state);</span>
+    case LOAD_ARRIVALS_COMPLETE:
+      return getLoadArrivalsCompleteState(action, state);
     default:
       return {
         ...state
@@ -366,7 +366,7 @@ export default stopsReducer;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T16:46:53.923Z
+                at 2026-11-23T17:47:54.673Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

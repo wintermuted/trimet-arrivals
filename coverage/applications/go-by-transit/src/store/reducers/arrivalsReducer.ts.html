@@ -34,30 +34,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.36% </span>
+                <span class="strong">90.9% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/11</span>
+                <span class='fraction'>10/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/5</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.36% </span>
+                <span class="strong">90.9% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/11</span>
+                <span class='fraction'>10/11</span>
             </div>
         
             
@@ -72,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -195,7 +195,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -210,7 +210,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -220,27 +220,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">103x</span>
+<span class="cline-any cline-yes">108x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -249,9 +238,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">103x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">106x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -286,8 +286,8 @@ export interface LocationArrivals {
   [index: string]: Arrival[];
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >getArrivals(a</span>rrivals: Arrival[]): LocationArrivals {
-<span class="cstat-no" title="statement not covered" >  return groupBy(<span class="fstat-no" title="function not covered" >arrivals, (a</span>rrival: Arrival) =&gt; {</span>
+function getArrivals(arrivals: Arrival[]): LocationArrivals {
+  return groupBy(<span class="fstat-no" title="function not covered" >arrivals, (a</span>rrival: Arrival) =&gt; {
 <span class="cstat-no" title="statement not covered" >    return arrival.locid;</span>
   });
 }
@@ -297,22 +297,22 @@ const initialState = {
   loading: {}
 };
 &nbsp;
-function <span class="fstat-no" title="function not covered" >setLatestStopLoadingState(</span>
+function setLatestStopLoadingState(
   state: StopLoadingState,
   locationId: number,
   newState: boolean
 ): StopLoadingState {
-<span class="cstat-no" title="statement not covered" >  return {</span>
+  return {
     ...state,
     [locationId]: newState
   };
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >updateArrivalsState(</span>
+function updateArrivalsState(
   state: LocationArrivals,
   newArrivals: LocationArrivals
 ): LocationArrivals {
-<span class="cstat-no" title="statement not covered" >  return {</span>
+  return {
     ...state,
     ...newArrivals
   };
@@ -320,8 +320,8 @@ function <span class="fstat-no" title="function not covered" >updateArrivalsStat
 &nbsp;
 const arrivalsReducer = (state = initialState, action: Action) =&gt; {
   switch (action.type) {
-<span class="branch-0 cbranch-no" title="branch not covered" >    case LOAD_ARRIVALS:</span>
-<span class="cstat-no" title="statement not covered" >      return {</span>
+    case LOAD_ARRIVALS:
+      return {
         ...state,
         loading: setLatestStopLoadingState(
           state.loading,
@@ -329,10 +329,10 @@ const arrivalsReducer = (state = initialState, action: Action) =&gt; {
           true
         )
       };
-<span class="branch-1 cbranch-no" title="branch not covered" >    case LOAD_ARRIVALS_COMPLETE: {</span>
-      const arrivals = <span class="cstat-no" title="statement not covered" >getArrivals(action.payload.arrivalData.arrival);</span>
+    case LOAD_ARRIVALS_COMPLETE: {
+      const arrivals = getArrivals(action.payload.arrivalData.arrival);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      return {</span>
+      return {
         ...state,
         arrivals: updateArrivalsState(state.arrivals, arrivals),
         loading: setLatestStopLoadingState(
@@ -357,7 +357,7 @@ export default arrivalsReducer;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T16:46:53.843Z
+                at 2026-11-23T17:47:54.564Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

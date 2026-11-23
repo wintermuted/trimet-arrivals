@@ -34,30 +34,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -72,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -143,19 +143,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,15 +163,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { getDistance } from "geolib";
@@ -189,22 +189,22 @@ export interface StopLocationWithDistance extends StopLocation {
   distanceOrder: number;
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >calculateDistance(</span>
+function calculateDistance(
   lng: number,
   lat: number,
   currentLocation: Coords
 ): number {
-  const stopLocation = <span class="cstat-no" title="statement not covered" >{ latitude: lat, longitude: lng };</span>
+  const stopLocation = { latitude: lat, longitude: lng };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return getDistance(stopLocation, currentLocation);</span>
+  return getDistance(stopLocation, currentLocation);
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >addDistanceToCurrentLocation(</span>
+function addDistanceToCurrentLocation(
   stopLocation: StopLocation[],
   currentLocation: Coords
 ): StopLocationWithDistance[] {
-<span class="cstat-no" title="statement not covered" >  return map(<span class="fstat-no" title="function not covered" >stopLocation, (l</span>ocation: StopLocation, index) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return {</span>
+  return map(stopLocation, (location: StopLocation, index) =&gt; {
+    return {
       ...location,
       distance: calculateDistance(location.lng, location.lat, currentLocation),
       distanceOrder: index
@@ -212,19 +212,19 @@ function <span class="fstat-no" title="function not covered" >addDistanceToCurre
   });
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >formatStopLocations(</span>
+export default function formatStopLocations(
   stopLocation: StopLocation[],
   currentLocation: Coords
 ): StopLocationsDictionary {
-  const stopLocationsWithDistance = <span class="cstat-no" title="statement not covered" >addDistanceToCurrentLocation(</span>
+  const stopLocationsWithDistance = addDistanceToCurrentLocation(
     stopLocation,
     currentLocation
   );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return mapKeys(<span class="fstat-no" title="function not covered" >stopLocationsWithDistance, (l</span>ocation: StopLocation) =&gt; {</span>
-    const id = <span class="cstat-no" title="statement not covered" >location.locid ? location.locid : location.id;</span>
+  return mapKeys(stopLocationsWithDistance, (location: StopLocation) =&gt; {
+    const id = location.locid ? <span class="branch-0 cbranch-no" title="branch not covered" >location.locid : l</span>ocation.id;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return id;</span>
+    return id;
   });
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -234,7 +234,7 @@ export default function <span class="fstat-no" title="function not covered" >for
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T16:46:53.843Z
+                at 2026-11-23T17:47:54.564Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>
