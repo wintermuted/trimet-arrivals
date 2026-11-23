@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Direction, TrimetRoute } from "../../api/trimet/interfaces/types";

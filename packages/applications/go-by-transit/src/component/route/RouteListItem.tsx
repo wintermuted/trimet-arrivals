@@ -3,7 +3,7 @@ import {
   CardBody,
   CardText,
   CardTitle
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import cx from "classnames";
 import { get, isEmpty } from "lodash";
 import React from "react";

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import { Link, useHref } from "react-router-dom";
 import { currentPlacePreset, PLACE_PRESETS, PlacePreset, PlacesView, TripCorridor } from "@overworld/places/discovery";
 import { SavedPlaceControls } from "@overworld/places/savedPlaces";

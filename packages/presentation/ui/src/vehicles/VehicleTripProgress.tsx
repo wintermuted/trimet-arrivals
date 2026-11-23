@@ -1,7 +1,7 @@
 import { isVehicleTripStale, vehicleTripLegs } from "@overworld/trimet-client";
 import type { VehiclePosition, VehicleTripSnapshot, VehicleTripStop, VehicleTripProgressMode } from "@overworld/trimet-client";
 import React from "react";
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import { useTimeDisplay } from "../TimeDisplay";
 import "./VehicleTripProgress.scss";
 

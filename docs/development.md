@@ -204,15 +204,23 @@ they do not impose new dependency restrictions. New libraries belong under a
 domain folder within `packages`, and new apps under `packages/applications`.
 
 Each leaf package declares its own direct runtime dependencies and the types
-and test helpers it uses. React, Mapbox, and the UI theme remain peer contracts
+and test helpers it uses. React, Mapbox, and `@wintermuted/ui-react` remain peer contracts
 where shared libraries require a host-provided instance; hook libraries also
 declare React as a development dependency for their own tests. The app supplies
 the concrete runtime versions and declares the shared workspaces it consumes.
-Select consumers also require `react-select`, an optional UI theme peer that
+Select consumers also require `react-select`, an optional `ui-react` peer that
 must be declared explicitly rather than relying on an existing installation.
 The repository root owns only shared build, test, lint, and release tooling as
 development dependencies. npm may hoist installations, but hoisting is not a
 substitute for declaring a dependency in its consuming workspace.
+
+Wintermuted 1.0 separates CSS (`@wintermuted/ui-theme`) from React controls,
+select integration, and theme runtime helpers (`@wintermuted/ui-react`).
+The app declares both packages; the shared presentation library peers on
+`ui-react`. Keep CSS imports on `ui-theme` and keep `initTheme` before rendering.
+Vite/Vitest need no package aliases or ESM transform allowlists for this split.
+See [design-system migration status](design-system.md#layout-and-theme-tokens)
+for the current registry-access and lockfile blocker.
 
 ```powershell
 npx nx run-many -t test:package

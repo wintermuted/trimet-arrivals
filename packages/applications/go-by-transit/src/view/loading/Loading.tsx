@@ -1,4 +1,4 @@
-import { Spinner } from "@wintermuted/ui-theme/react";
+import { Spinner } from "@wintermuted/ui-react";
 import React from "react";
 function Loading() {
   return (

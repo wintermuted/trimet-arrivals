@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { ThemeProvider } from "@wintermuted/ui-theme/react";
+import { ThemeProvider } from "@wintermuted/ui-react";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";

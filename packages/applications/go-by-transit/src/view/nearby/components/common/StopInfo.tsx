@@ -3,7 +3,7 @@ import {
   CardBody,
   CardText,
   Button
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React, { useEffect, useState } from "react";
 import { getNearbyStops } from "../../../../api/trimet/stops";
 import { StopLocation, TrimetRoute } from "../../../../api/trimet/interfaces/types";

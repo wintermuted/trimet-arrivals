@@ -1,6 +1,6 @@
 import { faBus, faCableCar, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
-import { Badge } from "@wintermuted/ui-theme/react";
-import { MultiSelect } from "@wintermuted/ui-theme/react/select";
+import { Badge } from "@wintermuted/ui-react";
+import { MultiSelect } from "@wintermuted/ui-react/select";
 import React, { useMemo, useState } from "react";
 import { searchStopCatalog, type StopCatalogStop, type StopMode } from "@overworld/trimet-client";
 import "./PlannerStopSelect.scss";

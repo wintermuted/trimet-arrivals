@@ -4,10 +4,10 @@ import {
   ListGroup,
   ListItem,
   Select,
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import { faBus, faCableCar, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { MultiSelect } from "@wintermuted/ui-theme/react/select";
+import { MultiSelect } from "@wintermuted/ui-react/select";
 import { each, filter, groupBy, join, map } from "lodash";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";

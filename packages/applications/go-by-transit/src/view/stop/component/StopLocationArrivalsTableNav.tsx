@@ -1,4 +1,4 @@
-import { Nav } from "@wintermuted/ui-theme/react";
+import { Nav } from "@wintermuted/ui-react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { NavLink } from "react-router-dom";

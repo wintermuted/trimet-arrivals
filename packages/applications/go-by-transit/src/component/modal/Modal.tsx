@@ -1,4 +1,4 @@
-import { Dialog } from "@wintermuted/ui-theme/react";
+import { Dialog } from "@wintermuted/ui-react";
 import React, { ReactNode } from "react";
 
 interface ModalProps {

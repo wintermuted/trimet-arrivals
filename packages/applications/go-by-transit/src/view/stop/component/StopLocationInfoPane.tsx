@@ -4,7 +4,7 @@ import {
   CardHeader,
   ListGroup,
   ListItem
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React from "react";
 import { ArrivalData } from "../../../api/trimet/interfaces/arrivals";
 

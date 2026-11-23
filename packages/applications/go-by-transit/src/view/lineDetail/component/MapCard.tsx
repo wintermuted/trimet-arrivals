@@ -3,7 +3,7 @@ import {
   CardBody,
   CardHeader,
   CardText
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React from "react";
 export function MapCard() {
   return (

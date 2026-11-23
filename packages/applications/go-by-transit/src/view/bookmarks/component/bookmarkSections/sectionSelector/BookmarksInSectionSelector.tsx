@@ -1,4 +1,4 @@
-import { MultiSelect } from "@wintermuted/ui-theme/react/select";
+import { MultiSelect } from "@wintermuted/ui-react/select";
 import React from "react";
 import { StopLocation } from "../../../../../api/trimet/interfaces/types";
 import { formatStopLocations } from "./sectionSelectorUtil";

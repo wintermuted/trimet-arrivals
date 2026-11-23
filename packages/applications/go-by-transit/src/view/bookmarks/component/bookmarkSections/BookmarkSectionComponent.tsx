@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody } from "@wintermuted/ui-theme/react";
+import { Card, CardHeader, CardBody } from "@wintermuted/ui-react";
 import { isEmpty, map } from "lodash";
 import React, { Component } from "react";
 import { StopLocation } from "../../../../api/trimet/interfaces/types";

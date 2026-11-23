@@ -1,4 +1,4 @@
-import { ListItem } from "@wintermuted/ui-theme/react";
+import { ListItem } from "@wintermuted/ui-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Arrival } from "../../../../api/trimet/interfaces/arrivals";

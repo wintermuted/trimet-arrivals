@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardText,
   CardTitle
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React from "react";
 import type { Alert } from "@overworld/trimet-client";
 import { useTimeDisplay } from "../TimeDisplay";

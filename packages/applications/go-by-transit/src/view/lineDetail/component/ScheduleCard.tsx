@@ -3,7 +3,7 @@ import {
   CardBody,
   CardHeader,
   CardText
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React from "react";
 import { TrimetRoute } from "../../../api/trimet/interfaces/routes";
 import FrequentServiceIndicator from "../../../component/route/FrequentServiceIndicator";

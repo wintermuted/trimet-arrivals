@@ -6,7 +6,7 @@ import {
   CardBody,
   CardHeader,
   Table
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React from "react";
 import type { Alert, AlertLocation, RouteConfigRoute } from "@overworld/trimet-client";
 import { useTimeDisplay } from "../TimeDisplay";

@@ -1,4 +1,4 @@
-import { Button, Tooltip } from "@wintermuted/ui-theme/react";
+import { Button, Tooltip } from "@wintermuted/ui-react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Link, useNavigate } from "react-router-dom";

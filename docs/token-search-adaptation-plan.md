@@ -67,7 +67,7 @@ replacements for dropped-pin searches or general transfer planning.
   endpoint fitting, trip-ID-based paired times, theme-aware maps, walking access,
   collapsible panels, and working stop bookmark sections. Extend these instead
   of importing older replacements.
-- Use `@wintermuted/ui-theme` controls and tokens, existing navigation and
+- Use `@wintermuted/ui-react` controls and `@wintermuted/ui-theme` tokens, existing navigation and
   data-fetching patterns, transit identity colors, and the current responsive
   shell. No wholesale map rewrite, Bootstrap restoration, separate theme
   system, dependency churn, or unrelated cleanup.

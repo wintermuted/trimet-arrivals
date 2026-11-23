@@ -1,6 +1,6 @@
 import { Map as MapboxMap } from "mapbox-gl";
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Select } from "@wintermuted/ui-theme/react";
+import { Button, Select } from "@wintermuted/ui-react";
 import { ROUTE_DISPLAY } from "../../../api/trimet/constants";
 import { VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
 import { createVehicleLayer, VehicleFollowView } from "../util/mapbox/vehicleLayer";

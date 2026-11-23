@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
+import { Card, CardBody, CardHeader } from "@wintermuted/ui-react";
 import { isEmpty } from "lodash";
 import React from "react";
 import { RouteBookmark } from "../../../api/localstorage/routeBookmarks";

@@ -1,4 +1,4 @@
-import { Alert, Button, Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
+import { Alert, Button, Card, CardBody, CardHeader } from "@wintermuted/ui-react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import type { Alert as IAlert } from "@overworld/trimet-client";

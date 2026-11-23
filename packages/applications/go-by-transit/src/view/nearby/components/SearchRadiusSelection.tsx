@@ -1,4 +1,4 @@
-import { Select } from "@wintermuted/ui-theme/react";
+import { Select } from "@wintermuted/ui-react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 

@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
+import { Button, Card, CardBody, CardHeader } from "@wintermuted/ui-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { Link } from "react-router-dom";

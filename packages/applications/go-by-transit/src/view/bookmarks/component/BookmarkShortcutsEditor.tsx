@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, FieldGroup, Select } from "@wintermuted/ui-theme/react";
+import { Card, CardBody, CardHeader, FieldGroup, Select } from "@wintermuted/ui-react";
 import React from "react";
 import { useBookmarkShortcuts } from "@overworld/bookmarks/react";
 import { useSelector } from "react-redux";
