@@ -34,30 +34,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -72,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -126,22 +126,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -163,27 +163,27 @@ import React, { useEffect, useState } from "react";
 &nbsp;
 import { RouteDataResultSet } from "../../../api/trimet/interfaces/routes";
 import { getAllRoutes } from "../../../api/trimet/routeConfig";
-import { createRoutesDictionary } from "../../../store/reducers/data/routeDataReducer";
+import { createRoutesDictionary } from "../routeDictionary";
 import CollapsiblePane from "../../lineDetail/component/CollapsiblePane";
 import { getBusLines, getRoutes } from "./AllLines";
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >BusLines() {</span>
-  const [routes, setRoutes] = <span class="cstat-no" title="statement not covered" >useState({});</span>
+export function BusLines() {
+  const [routes, setRoutes] = useState({});
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    getAllRoutes().<span class="fstat-no" title="function not covered" >then((d</span>ata: RouteDataResultSet) =&gt; {</span>
-      const routesDictionary = <span class="cstat-no" title="statement not covered" >createRoutesDictionary(data.route);</span>
-<span class="cstat-no" title="statement not covered" >      setRoutes(routesDictionary);</span>
+  useEffect(() =&gt; {
+    getAllRoutes().then((data: RouteDataResultSet) =&gt; {
+      const routesDictionary = createRoutesDictionary(data.route);
+      setRoutes(routesDictionary);
     });
   }, []);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (isEmpty(routes)) {</span>
-<span class="cstat-no" title="statement not covered" >    return null;</span>
+  if (isEmpty(routes)) {
+    return null;
   }
 &nbsp;
-  const busLines = <span class="cstat-no" title="statement not covered" >getBusLines(routes);</span>
+  const busLines = getBusLines(routes);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="transit-container"&gt;
       &lt;CollapsiblePane
         title="Schedule"
@@ -207,7 +207,7 @@ export function <span class="fstat-no" title="function not covered" >BusLines() 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T19:08:31.921Z
+                at 2026-11-23T19:29:19.266Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

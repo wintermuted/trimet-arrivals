@@ -34,30 +34,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>3/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
@@ -72,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -145,7 +145,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -153,26 +153,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -198,22 +198,22 @@ interface State {
 }
 &nbsp;
 export default class CollapsiblePane extends React.Component&lt;Props, State&gt; {
-<span class="fstat-no" title="function not covered" >  private static g</span>etPaneContents(className, children) {
-<span class="cstat-no" title="statement not covered" >    return (</span>
+  private static getPaneContents(className, children) {
+    return (
       // &lt;article className={`${className}`}&gt;
       &lt;div&gt;{children}&lt;/div&gt;
       // &lt;/article&gt;
     );
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  constructor(p</span>rops) {
-<span class="cstat-no" title="statement not covered" >    super(props);</span>
+  constructor(props) {
+    super(props);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    this.state = {</span>
-      open: this.props.open || true
+    this.state = {
+      open: this.props.open || <span class="branch-1 cbranch-no" title="branch not covered" >true</span>
     };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    this.handleToggleClick = this.handleToggleClick.bind(this);</span>
+    this.handleToggleClick = this.handleToggleClick.bind(this);
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  public h</span>andleToggleClick() {
@@ -222,11 +222,11 @@ export default class CollapsiblePane extends React.Component&lt;Props, State&gt;
     });
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  public r</span>ender() {
-    const { title, className, children } = <span class="cstat-no" title="statement not covered" >this.props;</span>
-    const { open } = <span class="cstat-no" title="statement not covered" >this.state;</span>
+  public render() {
+    const { title, className, children } = this.props;
+    const { open } = this.state;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return (</span>
+    return (
       &lt;Card&gt;
         &lt;CardHeader&gt;{title}&lt;/CardHeader&gt;
         &lt;CardBody&gt;
@@ -243,7 +243,7 @@ export default class CollapsiblePane extends React.Component&lt;Props, State&gt;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T19:08:31.838Z
+                at 2026-11-23T19:29:19.165Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>
