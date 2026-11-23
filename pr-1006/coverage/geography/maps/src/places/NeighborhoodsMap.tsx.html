@@ -1,0 +1,336 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for geography/maps/src/places/NeighborhoodsMap.tsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../theme.js"></script>
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
+        <h1><a href="../../../../index.html">All files</a> / <a href="index.html">geography/maps/src/places</a> NeighborhoodsMap.tsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">93.33% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>42/45</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">70% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>21/30</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>8/8</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">94.28% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>33/35</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ExpressionSpecification, Map as MapboxMap } from "mapbox-gl";
+import { useEffect, useRef } from "react";
+import { NeighborhoodSnapshot } from "@overworld/places/neighborhoods";
+&nbsp;
+export const NEIGHBORHOOD_SOURCE = "nearby-neighborhoods";
+export const NEIGHBORHOOD_LAYERS = ["fill", "boundary", "labels"].map(suffix =&gt; `${NEIGHBORHOOD_SOURCE}-${suffix}`);
+const areaColor: ExpressionSpecification = ["match", ["%", ["get", "areaId"], 8],
+  0, "#56b4e9", 1, "#e69f00", 2, "#009e73", 3, "#cc79a7",
+  4, "#c6b543", 5, "#647fd2", 6, "#e17c55", "#55b6ae"];
+&nbsp;
+export default function NeighborhoodsMap({ map, snapshot, polygonsShown, onError }: {
+  map?: MapboxMap;
+  snapshot: NeighborhoodSnapshot;
+  polygonsShown: boolean;
+  onError: (error: boolean) =&gt; void;
+}) {
+  const latestPolygons = useRef(polygonsShown);
+  latestPolygons.current = polygonsShown;
+  const update = useRef&lt;() =&gt; void&gt;(undefined);
+  useEffect(() =&gt; {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!map) <span class="cstat-no" title="statement not covered" >return;</span>
+    function updatePolygons() {
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (map.getLayer(NEIGHBORHOOD_LAYERS[0])) {
+        map.setLayoutProperty(NEIGHBORHOOD_LAYERS[0], "visibility", latestPolygons.current ? "visible" : "none");
+      }
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (map.getLayer(NEIGHBORHOOD_LAYERS[1])) {
+        map.setPaintProperty(NEIGHBORHOOD_LAYERS[1], "line-width", latestPolygons.current ? 2 : 1.5);
+        map.setPaintProperty(NEIGHBORHOOD_LAYERS[1], "line-color", latestPolygons.current ? areaColor : "#8294b0");
+      }
+    }
+    update.current = updatePolygons;
+    function install() {
+      try {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!map.getSource(NEIGHBORHOOD_SOURCE)) map.addSource(NEIGHBORHOOD_SOURCE, {
+          type: "geojson", data: snapshot,
+          attribution: "City of Portland, Bureau of Planning and Sustainability"
+        });
+        const before = map.getStyle()?.layers?.find(layer =&gt;
+          layer.id.startsWith("nearby-context-") || layer.id.startsWith("nearby-lines-") ||
+          layer.id === "nearby-trip-corridor" || layer.id.startsWith("nearby-places-"))?.id;
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!map.getLayer(NEIGHBORHOOD_LAYERS[0])) map.addLayer({
+          id: NEIGHBORHOOD_LAYERS[0], type: "fill", source: NEIGHBORHOOD_SOURCE,
+          layout: { visibility: latestPolygons.current ? "visible" : "none" },
+          paint: { "fill-color": areaColor, "fill-opacity": 0.28, "fill-emissive-strength": 1 }
+        }, before);
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!map.getLayer(NEIGHBORHOOD_LAYERS[1])) map.addLayer({
+          id: NEIGHBORHOOD_LAYERS[1], type: "line", source: NEIGHBORHOOD_SOURCE,
+          paint: { "line-color": "#8294b0", "line-width": 1.5, "line-opacity": 0.8,
+            "line-dasharray": [3, 2], "line-emissive-strength": 1 }
+        }, before);
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!map.getLayer(NEIGHBORHOOD_LAYERS[2])) map.addLayer({
+          id: NEIGHBORHOOD_LAYERS[2], type: "symbol", source: NEIGHBORHOOD_SOURCE, minzoom: 11,
+          layout: {
+            "text-field": ["get", "name"], "text-size": 12, "text-max-width": 11,
+            "text-padding": 12, "text-allow-overlap": false
+          },
+          paint: { "text-color": "#ffffff", "text-halo-color": "#30415d",
+            "text-halo-width": 1.5, "text-emissive-strength": 1 }
+        }, before);
+        updatePolygons();
+        onError(false);
+      } catch {
+<span class="cstat-no" title="statement not covered" >        onError(true);</span>
+      }
+    }
+    map.on("style.load", install);
+    install();
+    return () =&gt; {
+      update.current = undefined;
+      map.off("style.load", install);
+      for (const id of [...NEIGHBORHOOD_LAYERS].reverse()) <span class="missing-if-branch" title="else path not taken" >E</span>if (map.getLayer(id)) map.removeLayer(id);
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (map.getSource(NEIGHBORHOOD_SOURCE)) map.removeSource(NEIGHBORHOOD_SOURCE);
+    };
+  }, [map, snapshot, onError]);
+  useEffect(() =&gt; {
+    try { update.current?.(); }
+    catch { <span class="cstat-no" title="statement not covered" >onError(true); }</span>
+  }, [polygonsShown, onError]);
+  return null;
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-11-23T17:16:12.902Z
+            </div>
+        <script src="../../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../../sorter.js"></script>
+        <script src="../../../../block-navigation.js"></script>
+    </body>
+</html>
+    
