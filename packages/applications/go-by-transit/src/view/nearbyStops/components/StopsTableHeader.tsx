@@ -47,7 +47,6 @@ export default function StopsTableHeader(props: Props) {
           stopLocation={stopLocation}
         />
         <ReloadIntervalCoordinator
-          stopLocation={stopLocation}
           refresh={refresh}
           nextRefreshAt={nextRefreshAt}
           now={now}
