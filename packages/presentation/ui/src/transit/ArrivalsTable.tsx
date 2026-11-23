@@ -1,5 +1,4 @@
 import { Table } from "@wintermuted/ui-react";
-import { Moment } from "moment";
 import React from "react";
 import type { Arrival, StopLocation } from "@overworld/trimet-client";
 import type { ArrivalRowProps } from "./ArrivalRow";
@@ -9,7 +8,7 @@ import "./Arrivals.css";
 export interface ArrivalsTableProps {
   arrivals: Arrival[];
   loading: boolean;
-  now: Moment;
+  now: number;
   renderRouteIndicator: ArrivalRowProps["renderRouteIndicator"];
   formatDistance: ArrivalRowProps["formatDistance"];
   stopLocation: StopLocation;

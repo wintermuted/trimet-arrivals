@@ -1,5 +1,4 @@
 import { sortBy } from "lodash";
-import { Moment } from "moment";
 import React from "react";
 import type { Arrival, StopLocation, TrimetRoute } from "@overworld/trimet-client";
 import ArrivalRow, { type ArrivalRowProps } from "./ArrivalRow";
@@ -22,7 +21,7 @@ function getVisibleArrivals(
 
 export interface ArrivalRowsProps {
   arrivals: Arrival[];
-  now: Moment;
+  now: number;
   renderRouteIndicator: ArrivalRowProps["renderRouteIndicator"];
   formatDistance: ArrivalRowProps["formatDistance"];
   stopLocation: StopLocation;
@@ -32,7 +31,7 @@ export interface ArrivalRowsProps {
 export default class ArrivalRows extends React.Component<ArrivalRowsProps> {
   public static getRows(
     arrivals: Arrival[],
-    now: Moment,
+    now: number,
     renderRouteIndicator: ArrivalRowProps["renderRouteIndicator"],
     stopLocation: StopLocation,
     showAllArrivals: boolean,

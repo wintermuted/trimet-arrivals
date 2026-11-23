@@ -1,4 +1,3 @@
-import moment, { Moment } from "moment";
 import React from "react";
 import type { TrimetRoute } from "@overworld/trimet-client";
 import OnTimeIndicator from "../arrivalIndicator/OnTimeIndicator";
@@ -12,7 +11,7 @@ export interface ArrivalRowProps {
   feet: number;
   routeId: number;
   shortSign: string;
-  now: Moment;
+  now: number;
   route?: TrimetRoute;
   renderRouteIndicator: (routeId: number, route?: TrimetRoute) => React.ReactNode;
   formatDistance: (feet: number) => string;
@@ -30,8 +29,6 @@ export default function ArrivalRow({
   formatDistance,
 }: ArrivalRowProps) {
   const { formatTime } = useTimeDisplay();
-  const scheduledMoment = moment(scheduled);
-  const estimatedMoment = moment(estimated);
 
   return (
     <tr>
@@ -40,12 +37,12 @@ export default function ArrivalRow({
       </td>
       <td className="short-sign">{shortSign}</td>
       <td>
-        <TimeToArrivalIndicator estimated={estimatedMoment} now={now} />
+        <TimeToArrivalIndicator estimated={estimated} now={now} />
       </td>
       <td>
         <OnTimeIndicator
-          scheduled={scheduledMoment}
-          estimated={estimatedMoment}
+          scheduled={scheduled}
+          estimated={estimated}
         />
       </td>
       <td className="estimated-scheduled-time">

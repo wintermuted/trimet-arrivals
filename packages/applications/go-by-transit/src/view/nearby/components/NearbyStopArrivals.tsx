@@ -1,6 +1,5 @@
 import { Select, Table } from "@wintermuted/ui-react";
 import { map, sortBy } from "lodash";
-import moment from "moment";
 import React, { useId, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { useParams } from "react-router-dom";
@@ -15,11 +14,7 @@ interface StopArrivalsParams {
 }
 
 function sortArrivalsByEstimated(arrivals: Arrival[]): Arrival[] {
-  return sortBy(arrivals, arrival =>
-    moment(arrival.scheduled)
-      .utc()
-      .valueOf()
-  );
+  return sortBy(arrivals, arrival => arrival.scheduled);
 }
 
 interface ArrivalsTableParams {

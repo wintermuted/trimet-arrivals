@@ -18,7 +18,13 @@ describe("arrival time badge", () => {
     [scheduled + 2 * 60000, scheduled, "12 min | Late"],
     [scheduled - 2 * 60000, scheduled, "8 min | Early"],
     [undefined, scheduled, "10 min | Scheduled"],
-    [scheduled, undefined, "10 min | Estimated"]
+    [scheduled, undefined, "10 min | Estimated"],
+    [now.getTime(), now.getTime(), "Due | On Time"],
+    [now.getTime() - 60000, now.getTime(), "Due | Early"],
+    [undefined, now.getTime() - 60000, "Due | Scheduled"],
+    [NaN, scheduled, "10 min | Scheduled"],
+    [Infinity, scheduled, "10 min | Scheduled"],
+    [undefined, undefined, "Time unavailable | Scheduled"]
   ])("retains prediction and schedule status after extraction", (estimatedArrivalTime, scheduledArrivalTime, label) => {
     render(
       <ThemeProvider>

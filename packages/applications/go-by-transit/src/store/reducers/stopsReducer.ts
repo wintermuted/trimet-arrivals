@@ -1,4 +1,4 @@
-import moment from "moment";
+import { getFormattedLoadTime } from "@overworld/ui";
 import { ArrivalData } from "../../api/trimet/interfaces/arrivals";
 import { Location, StopData } from "../../api/trimet/interfaces/types";
 import {
@@ -44,7 +44,7 @@ function getLoadStopCompleteState(action: Action, state: StopsReducerState) {
     ...state,
     loading: false,
     stopLocations,
-    timeOfLastLoad: moment().format("ddd, h:mm:ss a")
+    timeOfLastLoad: getFormattedLoadTime(Date.now())
   };
 }
 
@@ -66,7 +66,7 @@ function getLoadArrivalsCompleteState(
   return {
     ...state,
     stopLocations,
-    timeOfLastLoad: moment().format("ddd, h:mm:ss a")
+    timeOfLastLoad: getFormattedLoadTime(Date.now())
   };
 }
 

@@ -1,4 +1,3 @@
-import moment from "moment";
 import { connect } from "react-redux";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import { LoadArrivalData } from "../../../store/action/stopActions";
@@ -18,7 +17,7 @@ interface Props {
 
 const mapStateToProps = (state: RootState, props: Props) => {
   const { locationId } = props;
-  const now = moment();
+  const now = Date.now();
 
   return {
     ...props,

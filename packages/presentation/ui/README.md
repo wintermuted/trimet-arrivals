@@ -4,10 +4,19 @@ Shared React time display settings, arrival indicators, and time presentation.
 The package exports `TimeDisplayProvider`, `useTimeDisplay`, and
 `TimeDisplaySettings`, plus `EarlyIndicator`, `LateIndicator`, `OnTimeIndicator`,
 `TimeToArrivalIndicator`, `TimeDiffBadge`, and time-formatting/difference helpers.
-The arrival indicators retain their existing Moment-based behavior and package
-their styles; the badge uses `@wintermuted/ui-react`. Hosts supply the
-`@wintermuted/ui-react` 1.x, React, and `react-select` peers and load
-`@wintermuted/ui-theme/index.css` for shared styles. See the [design system guide](../../../docs/design-system.md)
+Time helpers and component props take epoch-millisecond numbers; callers pass
+`Date.now()` for the current time. Clock formatting uses native `Intl` and the
+shared time-display preferences rather than a date-library wrapper.
+Countdowns display `Due` at or past arrival time. Second-resolution indicators
+show total minutes and remaining seconds without wrapping at an hour; early/late
+indicators show the elapsed difference in the applicable direction.
+Minute-resolution badges truncate toward zero and use rounded hours from
+60 minutes onward. Missing/invalid times retain placeholders or `Time unavailable`;
+countdown helpers fall back to a valid schedule when no valid estimate exists.
+The indicators package their styles; the badge uses `@wintermuted/ui-react`.
+Hosts supply the `@wintermuted/ui-react` 1.x, React, and `react-select` peers and
+load `@wintermuted/ui-theme/index.css` for shared styles.
+See the [design system guide](../../../docs/design-system.md)
 for shared UI conventions.
 Indicator components include their own styles; on-time and early states use the
 theme success color without requiring arrivals-table styles.

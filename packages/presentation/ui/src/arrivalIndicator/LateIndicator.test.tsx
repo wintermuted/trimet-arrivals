@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import moment from "moment";
 import React from "react";
 import { LateIndicator } from "..";
 
@@ -10,8 +9,14 @@ it("shows a placeholder without an arrival estimate", () => {
 
 it.each([
   [1000, 50000, "49s late"],
-  [1000, 5000000, "23m 19s late"]
-])("formats the existing late-arrival estimate", (scheduled, estimated, expected) => {
-  render(<LateIndicator scheduled={moment(scheduled)} estimated={moment(estimated)} />);
+  [1000, 61000, "1m 0s late"],
+  [1000, 5000000, "83m 19s late"]
+])("formats elapsed late-arrival time without wrapping", (scheduled, estimated, expected) => {
+  render(<LateIndicator scheduled={scheduled} estimated={estimated} />);
   expect(screen.getByText(expected)).toBeInTheDocument();
+});
+
+it.each([NaN, Infinity, 0])("shows a placeholder for invalid timestamps (%s)", time => {
+  render(<LateIndicator scheduled={time} estimated={1000} />);
+  expect(screen.getByText("-")).toBeInTheDocument();
 });
