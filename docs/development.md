@@ -18,6 +18,9 @@ compatibility data with `npx update-browserslist-db@latest` and commit the lockf
 
 Use the Node.js version in [`.nvmrc`](../.nvmrc) (26.13.1) and npm.
 The deployment workflows read the same pinned version from `.nvmrc`.
+Volta users automatically select the matching version pinned in `package.json`
+instead of their global Node default. Keep both pins in sync. Node version
+managers are installed separately, not through the deprecated npm `nvm` package.
 Use npm for workspace dependencies and commit changes to `package-lock.json`.
 
 ```powershell
