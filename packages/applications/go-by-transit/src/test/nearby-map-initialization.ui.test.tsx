@@ -19,6 +19,7 @@ import { buildStopCatalog, getStopCatalog } from "../api/trimet/stopCatalog";
 import { planTrip } from "../api/trimet/tripplanner";
 import { getRouteGeometry, NEARBY_ROUTE_LINES } from "../view/nearby/util/mapbox/routeLines";
 import reducers from "../store/reducers";
+import { BookmarksProvider } from "../state/bookmarks/BookmarksProvider";
 import NearbyVehicles from "../view/nearby/components/NearbyVehicles";
 import * as placesApi from "@overworld/places/catalog";
 import { placesPreset, placesViewSearch, readPlacesView } from "@overworld/places/discovery";
@@ -29,7 +30,7 @@ import * as placeIcons from "../view/nearby/util/mapbox/placeIcons";
 
 function StopDetailWithStore() {
   const [store] = React.useState(() => createStore(reducers));
-  return <Provider store={store}><NearbyStopDetailComponent /></Provider>;
+  return <Provider store={store}><BookmarksProvider><NearbyStopDetailComponent /></BookmarksProvider></Provider>;
 }
 
 vi.mock("../view/nearby/components/NearbyVehicles", () => ({ default: vi.fn(() => null) }));
@@ -274,8 +275,8 @@ describe("Nearby map initialization independently of the sidebar", () => {
                 <Route path="places" element={null} />
                 <Route path="places/:placeId" element={null} />
                 <Route path="planner" element={
-                  <Provider store={createStore(reducers)}>
-                    <NearbyTripPlannerComponent />
+                  <Provider store={createStore(reducers)}><BookmarksProvider>
+                    <NearbyTripPlannerComponent /></BookmarksProvider>
                   </Provider>
                 } />
                 <Route path="stops/:id" element={<StopDetailWithStore />} />

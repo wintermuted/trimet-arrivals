@@ -78,6 +78,14 @@ suppression comments, unused declarations, and the automatic JSX runtime remain
 supported. Vitest globals are enabled only in test files;
 React props use TypeScript rather than runtime PropTypes.
 
+Bookmark consumers use `useBookmarks` and `useBookmarkCommands` beneath the
+app-owned `BookmarksProvider`, not Redux selectors or actions. Wrap isolated
+bookmark, navigation, homepage, and connected-planner tests in the provider and
+seed the existing `@overworld/bookmarks` storage keys before rendering. Keep
+shared storage APIs React-free. The focused provider tests exercise persistence,
+independent load failures, write failures, partial group cleanup, shortcuts, and
+cross-consumer/remount behavior. Other Redux domains remain unchanged.
+
 The native-only migration retains 77 enabled rules, including
 `react/require-render-return` from Oxlint's nursery rules. It intentionally drops
 interface naming conventions and `react/no-deprecated`, which have no equivalent

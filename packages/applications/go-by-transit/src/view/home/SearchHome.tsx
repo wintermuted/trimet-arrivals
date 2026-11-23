@@ -1,12 +1,10 @@
 import { Button } from "@wintermuted/ui-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
 import { useBookmarkShortcuts } from "@overworld/bookmarks/react";
 import { readRecentJourneys } from "../../api/localstorage/recentJourneys";
-import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
-import { routeBookmarksSelector } from "../../store/selectors/routeBookmarkSelectors";
+import { useBookmarks } from "../../state/bookmarks/BookmarksProvider";
 import { initializeMap } from "../nearby/util/mapbox/initializeMap";
 import AllAlertsCard from "./AllAlertsCard";
 import { useHomeAlerts } from "./Home";
@@ -48,18 +46,26 @@ function RecentJourneys() {
 }
 
 function BookmarkPreview() {
-  const stops = useSelector(selectBookmarks);
-  const routes = useSelector(routeBookmarksSelector);
+  const { stops, routes } = useBookmarks();
   const { shortcuts, error } = useBookmarkShortcuts(stops, routes);
   const quickLinks = SHORTCUTS.flatMap(({ key, kind, label }) => {
     const id = shortcuts[key];
-    const bookmark = id === undefined ? undefined : (kind === "stop" ? stops : routes)[id];
+    const bookmark =
+      id === undefined ? undefined : (kind === "stop" ? stops : routes)[id];
     return bookmark ? [{ key, kind, id, label, desc: bookmark.desc }] : [];
   });
-  const pinnedStops = new Set(quickLinks.filter(link => link.kind === "stop").map(link => link.id));
-  const pinnedRoutes = new Set(quickLinks.filter(link => link.kind === "route").map(link => link.id));
-  const stopEntries = Object.entries(stops).filter(([id]) => !pinnedStops.has(Number(id))).slice(0, 3);
-  const routeEntries = Object.values(routes).filter(route => !pinnedRoutes.has(route.route)).slice(0, 3);
+  const pinnedStops = new Set(
+    quickLinks.filter((link) => link.kind === "stop").map((link) => link.id),
+  );
+  const pinnedRoutes = new Set(
+    quickLinks.filter((link) => link.kind === "route").map((link) => link.id),
+  );
+  const stopEntries = Object.entries(stops)
+    .filter(([id]) => !pinnedStops.has(Number(id)))
+    .slice(0, 3);
+  const routeEntries = Object.values(routes)
+    .filter((route) => !pinnedRoutes.has(route.route))
+    .slice(0, 3);
   return (
     <section
       className="transit-search-section"
@@ -67,12 +73,15 @@ function BookmarkPreview() {
     >
       <h3 id="homepage-bookmarks">Bookmarks</h3>
       {error && <p role="alert">{error}</p>}
-      {quickLinks.length > 0 || stopEntries.length > 0 || routeEntries.length > 0 ? (
+      {quickLinks.length > 0 ||
+      stopEntries.length > 0 ||
+      routeEntries.length > 0 ? (
         <ul className="transit-search-list">
           {quickLinks.map(({ key, kind, id, label, desc }) => (
             <li key={key}>
               <Link to={kind === "stop" ? `/stop/${id}` : `/lines/${id}`}>
-                <strong>{label}:</strong> {desc || (kind === "stop" ? "Stop" : "Transit route")} ({id})
+                <strong>{label}:</strong>{" "}
+                {desc || (kind === "stop" ? "Stop" : "Transit route")} ({id})
               </Link>
             </li>
           ))}

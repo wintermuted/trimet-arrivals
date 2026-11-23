@@ -1,59 +1,34 @@
-import { connect } from "react-redux";
+import React from "react";
 import {
-  removeBookmarkFromSectionRequest,
-  removeRouteFromBookmarkSectionRequest,
-  removeBookmarkSectionRequest,
-  updateBookmarkSectionNameRequest
-} from "../../../store/action/bookmarkSectionActions";
-import { RootState } from "../../../store/reducers";
-import {
-  bookmarkSectionNameSelector,
-  bookmarksInSectionSelector,
-  routeBookmarksInSectionSelector
-} from "../../../store/selectors/bookmarkSectionSelectors";
+  useBookmarks,
+  useBookmarkCommands,
+} from "../../../state/bookmarks/BookmarksProvider";
 import BookmarkSectionComponent from "../component/bookmarkSections/BookmarkSectionComponent";
 
-const mapStateToProps = (state: RootState, ownProps) => {
-  const id = ownProps.bookmarkSectionId;
-  const bookmarksInSection = bookmarksInSectionSelector(state, id);
-  const routesInSection = routeBookmarksInSectionSelector(state, id);
-  const name = bookmarkSectionNameSelector(state, id);
-
-  return {
-    bookmarksInSection,
-    routesInSection,
-    id,
-    name
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    removeBookmarkSection(bookmarkSectionId: number) {
-      dispatch(removeBookmarkSectionRequest(bookmarkSectionId));
-    },
-    removeBookmarkFromSection(bookmarkSectionId: number, stopId: number) {
-      dispatch(removeBookmarkFromSectionRequest(bookmarkSectionId, stopId));
-    },
-    removeRouteFromSection(bookmarkSectionId: number, routeId: number) {
-      dispatch(
-        removeRouteFromBookmarkSectionRequest(bookmarkSectionId, routeId)
-      );
-    },
-    updateBookmarkSectionName(
-      bookmarkSectionId: number,
-      bookmarkSectionName: string
-    ) {
-      dispatch(
-        updateBookmarkSectionNameRequest(bookmarkSectionId, bookmarkSectionName)
-      );
-    }
-  };
-};
-
-const BookmarkSectionContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(BookmarkSectionComponent);
-
-export default BookmarkSectionContainer;
+export default function BookmarkSectionContainer({
+  bookmarkSectionId: id,
+}: {
+  bookmarkSectionId: number;
+}) {
+  const { stops, routes, sections, routeGroups } = useBookmarks();
+  const commands = useBookmarkCommands();
+  const section = sections[id];
+  if (!section) return null;
+  return (
+    <BookmarkSectionComponent
+      id={id}
+      name={section.name}
+      allBookmarks={Object.values(stops)}
+      bookmarksInSection={section.bookmarkedStops
+        .map((stopId) => stops[stopId])
+        .filter(Boolean)}
+      routesInSection={(routeGroups[id] || [])
+        .map((routeId) => routes[routeId])
+        .filter(Boolean)}
+      removeBookmarkSection={commands.removeSection}
+      removeBookmarkFromSection={commands.removeStopFromSection}
+      removeRouteFromSection={commands.removeRouteFromSection}
+      updateBookmarkSectionName={commands.renameSection}
+    />
+  );
+}

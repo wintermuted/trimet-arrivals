@@ -1,8 +1,6 @@
 import { isEmpty } from "lodash";
 import React from "react";
-import {
-  BookmarkSectionsProps
-} from "../../../../store/reducers/bookmarkSectionReducer";
+import { BookmarkSectionsProps } from "@overworld/bookmarks";
 import BookmarkSectionContainer from "../../container/BookmarkSectionContainer";
 import "./BookmarkSections.css";
 
@@ -21,7 +19,7 @@ export default function BookmarkSections({ bookmarkSections }: Props) {
 
   return (
     <div className="bookmark-section-list">
-      {Object.keys(bookmarkSections).map(id => (
+      {Object.keys(bookmarkSections).map((id) => (
         <BookmarkSectionContainer key={id} bookmarkSectionId={Number(id)} />
       ))}
     </div>

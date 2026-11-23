@@ -1,53 +1,18 @@
 import { takeEvery } from "redux-saga/effects";
 import {
-  BOOKMARK_STOP_REQUEST,
   CHANGE_VIEW_REQUEST,
-  INITIAL_LOAD_REQUEST,
-  LOAD_ALL_ROUTES_COMPLETE,
   LOAD_ALL_ROUTES_DATA_REQUEST,
   LOAD_ARRIVALS_DATA_REQUEST,
   LOAD_ROUTE_ALERT_DATA_REQUEST,
   LOAD_ROUTE_DATA_REQUEST,
   LOAD_STOP_DATA_REQUEST,
-  REMOVE_BOOKMARK_STOP_REQUEST,
-  UPDATE_VIEW_REQUEST
+  UPDATE_VIEW_REQUEST,
 } from "../constants";
-import {
-  BOOKMARK_SECTION_NAME_UPDATE_REQUEST,
-  BOOKMARK_SECTION_SELECT_REQUEST,
-  ADD_ROUTE_TO_BOOKMARK_SECTION_REQUEST,
-  CREATE_BOOKMARK_SECTION_REQUEST,
-  REMOVE_ALL_BOOKMARKS_IN_SECTION_REQUEST,
-  REMOVE_BOOKMARK_FROM_SECTION_REQUEST,
-  REMOVE_ROUTE_FROM_BOOKMARK_SECTION_REQUEST,
-  REMOVE_BOOKMARK_SECTION_REQUEST,
-  UPDATE_BOOKMARK_SECTION_NAME_REQUEST
-} from "../constants/bookmarkSections";
 import { loadRouteAlertData } from "./alertSagas";
 import { loadArrivalData } from "./arrivalSagas";
-import { bookmarkStop, removeStopBookmark } from "./bookmarkSagas";
-import {
-  createBookmarkSection,
-  removeAllBookmarksInSection,
-  removeBookmarkFromSection,
-  removeBookmarkSection,
-  removeRouteBookmarkFromSection,
-  updateBookmarkSectionName,
-  updateSectionInputName,
-  updateSelectedBookmarkSection,
-  updateSelectedRouteBookmarkSection
-} from "./bookmarkSectionSagas";
-import {
-  REMOVE_ROUTE_BOOKMARK_REQUEST,
-  STORE_ROUTE_BOOKMARK_REQUEST
-} from "../constants/routeBookmarks";
-import {
-  removeRouteBookmark,
-  storeRouteBookmark
-} from "./routeBookmarkSagas";
 import { loadAllRouteData, loadRouteDataById } from "./routeSagas";
 import { loadStopData, updateNearbyActiveView } from "./stopSagas";
-import { changeView, initialLoad } from "./viewSagas";
+import { changeView } from "./viewSagas";
 
 export function* rootSaga() {
   // @ts-ignore
@@ -55,39 +20,6 @@ export function* rootSaga() {
   yield takeEvery(LOAD_ARRIVALS_DATA_REQUEST, loadArrivalData);
   // @ts-ignore
   yield takeEvery(CHANGE_VIEW_REQUEST, changeView);
-  yield takeEvery(INITIAL_LOAD_REQUEST, initialLoad);
-  // @ts-ignore
-  yield takeEvery(BOOKMARK_STOP_REQUEST, bookmarkStop);
-  // @ts-ignore
-  yield takeEvery(REMOVE_BOOKMARK_STOP_REQUEST, removeStopBookmark);
-  // @ts-ignore
-  yield takeEvery(BOOKMARK_SECTION_NAME_UPDATE_REQUEST, updateSectionInputName);
-  yield takeEvery(CREATE_BOOKMARK_SECTION_REQUEST, createBookmarkSection);
-  yield takeEvery(REMOVE_BOOKMARK_SECTION_REQUEST, removeBookmarkSection);
-  yield takeEvery(
-    BOOKMARK_SECTION_SELECT_REQUEST,
-    updateSelectedBookmarkSection
-  );
-  yield takeEvery(
-    REMOVE_BOOKMARK_FROM_SECTION_REQUEST,
-    removeBookmarkFromSection
-  );
-  yield takeEvery(
-    ADD_ROUTE_TO_BOOKMARK_SECTION_REQUEST,
-    updateSelectedRouteBookmarkSection
-  );
-  yield takeEvery(
-    REMOVE_ROUTE_FROM_BOOKMARK_SECTION_REQUEST,
-    removeRouteBookmarkFromSection
-  );
-  yield takeEvery(
-    REMOVE_ALL_BOOKMARKS_IN_SECTION_REQUEST,
-    removeAllBookmarksInSection
-  );
-  yield takeEvery(
-    UPDATE_BOOKMARK_SECTION_NAME_REQUEST,
-    updateBookmarkSectionName
-  );
   // @ts-ignore
   yield takeEvery(UPDATE_VIEW_REQUEST, updateNearbyActiveView);
   // @ts-ignore
@@ -95,6 +27,4 @@ export function* rootSaga() {
   // @ts-ignore
   yield takeEvery(LOAD_ROUTE_ALERT_DATA_REQUEST, loadRouteAlertData);
   yield takeEvery(LOAD_ALL_ROUTES_DATA_REQUEST, loadAllRouteData);
-  yield takeEvery(STORE_ROUTE_BOOKMARK_REQUEST, storeRouteBookmark);
-  yield takeEvery(REMOVE_ROUTE_BOOKMARK_REQUEST, removeRouteBookmark);
 }

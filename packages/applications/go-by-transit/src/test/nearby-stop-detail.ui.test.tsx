@@ -14,6 +14,7 @@ import { getWalkingRoute, WalkingRoute } from "../api/mapbox/walking";
 import { NearbyStopsDetail } from "../view/nearby/components/NearbyStopsDetail";
 import reducers from "../store/reducers";
 import { rootSaga } from "../store/sagas";
+import { BookmarksProvider } from "../state/bookmarks/BookmarksProvider";
 
 vi.mock("../api/trimet/arrivals");
 vi.mock("../api/trimet/stops");
@@ -97,7 +98,7 @@ describe("general Nearby stop walking access", () => {
   function render(enabled = false, path = "/nearby/stops/340") {
     return act(async () =>
       root.render(
-        <Provider store={store}>
+        <Provider store={store}><BookmarksProvider>
         <MemoryRouter initialEntries={[path]}>
           <Link to="/nearby/stops/367">Next stop</Link>
           <Routes>
@@ -114,7 +115,7 @@ describe("general Nearby stop walking access", () => {
             />
           </Routes>
         </MemoryRouter>
-        </Provider>
+        </BookmarksProvider></Provider>
       )
     );
   }

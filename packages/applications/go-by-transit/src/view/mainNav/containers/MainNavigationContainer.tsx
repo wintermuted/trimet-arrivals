@@ -1,28 +1,16 @@
-import { connect } from "react-redux";
-import { onInitialLoadRequest } from "../../../store/action/viewActions";
-import { RootState } from "../../../store/reducers";
-import { bookmarkCountSelector } from "../../../store/selectors/bookmarkSelectors";
+import React from "react";
+import { useSelector } from "react-redux";
+import { useBookmarks } from "../../../state/bookmarks/BookmarksProvider";
 import { timeOfLastLoadSelector } from "../../../store/selectors/stopSelectors";
 import MainNavigationComponent from "../components/MainNavigationComponent";
 
-const mapStateToProps = (state: RootState) => {
-  return {
-    numberOfBookmarks: bookmarkCountSelector(state),
-    timeOfLastLoad: timeOfLastLoadSelector(state)
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    onInitialLoad() {
-      dispatch(onInitialLoadRequest());
-    }
-  };
-};
-
-const MainNavigationContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(MainNavigationComponent);
-
-export default MainNavigationContainer;
+export default function MainNavigationContainer() {
+  const { stops } = useBookmarks();
+  const timeOfLastLoad = useSelector(timeOfLastLoadSelector);
+  return (
+    <MainNavigationComponent
+      numberOfBookmarks={Object.keys(stops).length}
+      timeOfLastLoad={timeOfLastLoad}
+    />
+  );
+}
