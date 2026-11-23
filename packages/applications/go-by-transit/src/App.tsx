@@ -11,6 +11,7 @@ import {
   BookmarksProvider,
   BookmarkStorageErrors,
 } from "./state/bookmarks/BookmarksProvider";
+import { ArrivalsProvider } from "./state/arrivals/ArrivalsProvider";
 
 const store = appStore();
 
@@ -20,15 +21,17 @@ export default class App extends React.Component {
       <ThemeProvider>
         <Provider store={store}>
           <BookmarksProvider>
-            <FeatureFlagsProvider>
-              <TimeDisplayProvider>
-                <div className="transit-app-shell">
-                  <BookmarkStorageErrors />
-                  <RootAppRoutes />
-                  <AppFooter />
-                </div>
-              </TimeDisplayProvider>
-            </FeatureFlagsProvider>
+            <ArrivalsProvider>
+              <FeatureFlagsProvider>
+                <TimeDisplayProvider>
+                  <div className="transit-app-shell">
+                    <BookmarkStorageErrors />
+                    <RootAppRoutes />
+                    <AppFooter />
+                  </div>
+                </TimeDisplayProvider>
+              </FeatureFlagsProvider>
+            </ArrivalsProvider>
           </BookmarksProvider>
         </Provider>
       </ThemeProvider>

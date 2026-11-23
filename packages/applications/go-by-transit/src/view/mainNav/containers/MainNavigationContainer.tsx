@@ -1,12 +1,11 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { useBookmarks } from "../../../state/bookmarks/BookmarksProvider";
-import { timeOfLastLoadSelector } from "../../../store/selectors/stopSelectors";
+import { useArrivalRefreshTime } from "../../../state/arrivals/ArrivalsProvider";
 import MainNavigationComponent from "../components/MainNavigationComponent";
 
 export default function MainNavigationContainer() {
   const { stops } = useBookmarks();
-  const timeOfLastLoad = useSelector(timeOfLastLoadSelector);
+  const timeOfLastLoad = useArrivalRefreshTime();
   return (
     <MainNavigationComponent
       numberOfBookmarks={Object.keys(stops).length}

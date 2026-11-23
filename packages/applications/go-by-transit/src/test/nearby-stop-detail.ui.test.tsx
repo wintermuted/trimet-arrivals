@@ -3,8 +3,7 @@ import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Provider } from "react-redux";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
-import { applyMiddleware, createStore } from "redux";
-import createSagaMiddleware, { Task } from "redux-saga";
+import { createStore } from "redux";
 import { BOOKMARKS, fetchStoredBookmarks } from "../api/localstorage/bookmarks.localstorage";
 import { getArrivals } from "../api/trimet/arrivals";
 import { getNearbyStops } from "../api/trimet/stops";
@@ -13,7 +12,6 @@ import { arrival1 } from "../api/trimet/fixture/arrival";
 import { getWalkingRoute, WalkingRoute } from "../api/mapbox/walking";
 import { NearbyStopsDetail } from "../view/nearby/components/NearbyStopsDetail";
 import reducers from "../store/reducers";
-import { rootSaga } from "../store/sagas";
 import { BookmarksProvider } from "../state/bookmarks/BookmarksProvider";
 
 vi.mock("../api/trimet/arrivals");
@@ -60,7 +58,6 @@ describe("general Nearby stop walking access", () => {
   let container: HTMLDivElement;
   let root: Root;
   let store: ReturnType<typeof createStore>;
-  let saga: Task;
   const handleStopOpened = vi.fn();
   const close = vi.fn();
   const onWalkingRouteChanged = vi.fn(() => close);
@@ -84,13 +81,10 @@ describe("general Nearby stop walking access", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     localStorage.removeItem(BOOKMARKS);
-    const middleware = createSagaMiddleware();
-    store = createStore(reducers, applyMiddleware(middleware));
-    saga = middleware.run(rootSaga);
+    store = createStore(reducers);
   });
   afterEach(() => {
     act(() => root.unmount());
-    saga.cancel();
     localStorage.removeItem(BOOKMARKS);
     container.remove();
   });

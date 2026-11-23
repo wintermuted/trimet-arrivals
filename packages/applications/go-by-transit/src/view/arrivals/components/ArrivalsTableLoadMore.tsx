@@ -4,7 +4,7 @@ import type { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import { formatArrivalDistance, renderArrivalRoute } from "./arrivalPresentation";
 
 type Props = Omit<ArrivalsTableLoadMoreProps, "formatDistance" | "renderRouteIndicator"> & {
-  onRouteIndicatorClick: (route: TrimetRoute) => void;
+  onRouteIndicatorClick?: (route: TrimetRoute) => void;
 };
 
 export default function ArrivalsTableLoadMore({ onRouteIndicatorClick, ...props }: Props) {
