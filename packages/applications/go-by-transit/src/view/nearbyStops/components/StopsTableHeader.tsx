@@ -1,19 +1,20 @@
 import cx from "classnames";
 import React from "react";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
-import { LoadArrivalData } from "../../../store/action/stopActions";
-import { StopLocationWithDistance } from "../../../store/reducers/util/formatStopLocations";
+import { StopLocationWithDistance } from "../../../state/arrivals/formatStopLocations";
 import StopBookmarkControlContainer from "../containers/StopBookmarkControlContainer";
 import ReloadIntervalCoordinator from "./ReloadIntervalCoordinator";
 import StopInfo from "./StopInfo";
 import "./StopsTableHeader.css";
 
 interface Props {
-  stopLocation: StopLocationWithDistance;
-  loadArrivalData: LoadArrivalData;
+  stopLocation?: StopLocationWithDistance;
+  refresh: () => void;
+  nextRefreshAt: number | null;
+  now: number;
   loading: boolean;
   showArrivals: boolean;
-  onRouteIndicatorClick: (route: TrimetRoute) => void;
+  onRouteIndicatorClick?: (route: TrimetRoute) => void;
   locationId: number;
 }
 
@@ -22,9 +23,11 @@ export default function StopsTableHeader(props: Props) {
     stopLocation,
     loading,
     showArrivals,
-    loadArrivalData,
+    refresh,
+    nextRefreshAt,
+    now,
     onRouteIndicatorClick,
-    locationId
+    locationId,
   } = props;
 
   if (!stopLocation) {
@@ -32,7 +35,7 @@ export default function StopsTableHeader(props: Props) {
   }
 
   const classNames = cx("nearbyStops-header", {
-    "arrivals-hidden": !showArrivals
+    "arrivals-hidden": !showArrivals,
   });
 
   return (
@@ -45,7 +48,9 @@ export default function StopsTableHeader(props: Props) {
         />
         <ReloadIntervalCoordinator
           stopLocation={stopLocation}
-          loadArrivalData={loadArrivalData}
+          refresh={refresh}
+          nextRefreshAt={nextRefreshAt}
+          now={now}
           loading={loading}
           showArrivals={showArrivals}
         />

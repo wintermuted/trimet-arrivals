@@ -116,12 +116,22 @@ Go By Transit's `BookmarksProvider` owns stop and route bookmarks, collections,
 route membership, and the collection-name draft through React Context and
 `useReducer`. It initializes from `@overworld/bookmarks` once per app mount;
 navigation no longer dispatches bookmark initialization. A separate command
-context provides stable mutation callbacks. Redux retains legacy stop metadata,
-arrival loading/results and refresh timestamps, and the legacy arrival-row route
-cache. Only the arrival request has a registered saga watcher. Dormant location,
-nearby/view, raw-arrival, and alert slices and their unused request watchers have
-been retired. Modern nearby/map coordination and line-detail route/alert fetching
-already use React hooks; line detail no longer has a Redux wrapper.
+context provides stable mutation callbacks. `ArrivalsProvider` owns legacy
+saved-stop metadata, arrival loading/results, and the last successful refresh
+timestamp through domain-scoped React Context and `useReducer`. Per-stop
+subscriptions share in-flight requests and one 30-second polling timer while
+arrivals are visible. Hidden-arrival bookmark cards request metadata once without
+polling. Manual refresh resets the shared countdown; timers stop when their last
+polling consumer leaves. Each stop owns its metadata, so another stop's response
+cannot replace it. Request-generation guards discard results after unsubscribe
+or parameter changes without cancelling another consumer's request. Empty
+successes replace prior arrivals; failures expose retry while retaining data and
+the last successful timestamp.
+
+Redux now retains only the legacy arrival-row route cache. All saga watchers and
+middleware have been retired; dependency removal waits for the final route-cache
+migration. Modern nearby/map coordination and line-detail route/alert fetching
+remain on their existing React hooks.
 
 Bookmark mutations persist through the existing storage APIs before publishing
 state. A failed write leaves the affected domain unchanged and displays an

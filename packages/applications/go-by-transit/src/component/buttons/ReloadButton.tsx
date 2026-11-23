@@ -11,13 +11,6 @@ interface Props {
 }
 
 export default class ReloadButton extends React.PureComponent<Props> {
-  private onClick: (e) => void;
-
-  constructor(props) {
-    super(props);
-
-    this.onClick = e => props.onClick(e);
-  }
   public render() {
     const { disabled, className, children } = this.props;
     const classes = cx("reload-button", className);
@@ -27,7 +20,7 @@ export default class ReloadButton extends React.PureComponent<Props> {
         disabled={disabled}
         title="Reload arrivals for stop"
         className={classes}
-        onClick={this.onClick}
+        onClick={this.props.onClick}
       >
         {disabled && <FontAwesome name="refresh" spin={true} size="2x" />}
         {!disabled && <FontAwesome name="refresh" size="2x" />}

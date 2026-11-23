@@ -1,9 +1,9 @@
 import { getDistance } from "geolib";
 import { map, mapKeys } from "lodash";
-import { Coords, StopLocation } from "../../../api/trimet/interfaces/types";
+import { Coords, StopLocation } from "../../api/trimet/interfaces/types";
 
 export interface StopLocationsDictionary {
-  [locationId: number]: StopLocation;
+  [locationId: number]: StopLocationWithDistance;
 }
 
 export interface StopLocationWithDistance extends StopLocation {
@@ -14,7 +14,7 @@ export interface StopLocationWithDistance extends StopLocation {
 function calculateDistance(
   lng: number,
   lat: number,
-  currentLocation: Coords
+  currentLocation: Coords,
 ): number {
   const stopLocation = { latitude: lat, longitude: lng };
 
@@ -23,24 +23,25 @@ function calculateDistance(
 
 function addDistanceToCurrentLocation(
   stopLocation: StopLocation[],
-  currentLocation: Coords
+  currentLocation: Coords,
 ): StopLocationWithDistance[] {
   return map(stopLocation, (location: StopLocation, index) => {
     return {
       ...location,
+      route: location.route ?? [],
       distance: calculateDistance(location.lng, location.lat, currentLocation),
-      distanceOrder: index
+      distanceOrder: index,
     };
   });
 }
 
 export default function formatStopLocations(
   stopLocation: StopLocation[],
-  currentLocation: Coords
+  currentLocation: Coords,
 ): StopLocationsDictionary {
   const stopLocationsWithDistance = addDistanceToCurrentLocation(
     stopLocation,
-    currentLocation
+    currentLocation,
   );
 
   return mapKeys(stopLocationsWithDistance, (location: StopLocation) => {

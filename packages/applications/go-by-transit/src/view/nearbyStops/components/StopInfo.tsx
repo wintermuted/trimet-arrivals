@@ -2,7 +2,7 @@ import { Card, CardBody, CardHeader } from "@wintermuted/ui-react";
 import React from "react";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
 import StopLocationIndicator from "../../../component/stop/StopLocationIndicator";
-import { StopLocationWithDistance } from "../../../store/reducers/util/formatStopLocations";
+import { StopLocationWithDistance } from "../../../state/arrivals/formatStopLocations";
 import "./StopInfo.css";
 import StopRouteListing from "./StopRouteListing";
 
