@@ -3,16 +3,18 @@ import { map } from "lodash";
 import React from "react";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
-import ArrivalRowContainer from "../container/ArrivalRowContainer";
+import StopLocationArrivalRow from "./StopLocationArrivalRow";
 
 function getArrivals(arrivals: Arrival[]) {
-  return map(arrivals, arrival => {
-    return <ArrivalRowContainer arrival={arrival} />;
+  return map(arrivals, (arrival) => {
+    return <StopLocationArrivalRow key={arrival.id} arrival={arrival} />;
   });
 }
 
 function filterArrivals(arrivals: ArrivalData, id) {
-  return arrivals.arrival.filter(arrival => arrival.route === parseInt(id, 10));
+  return arrivals.arrival.filter(
+    (arrival) => arrival.route === parseInt(id, 10),
+  );
 }
 
 interface Props {

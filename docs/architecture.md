@@ -128,10 +128,15 @@ or parameter changes without cancelling another consumer's request. Empty
 successes replace prior arrivals; failures expose retry while retaining data and
 the last successful timestamp.
 
-Redux now retains only the legacy arrival-row route cache. All saga watchers and
-middleware have been retired; dependency removal waits for the final route-cache
-migration. Modern nearby/map coordination and line-detail route/alert fetching
-remain on their existing React hooks.
+Legacy arrival tables render directly from their parent-owned arrival response.
+Their former Redux route lookup supplied metadata that the app's route indicator
+did not consume; route display and line links use the arrival's route number.
+No replacement route context or request is needed. No production component reads
+Redux state now. The dormant route reducer/store and dependencies remain for the
+final infrastructure-removal batch; line-list dictionary helpers still live in
+that reducer module and must be rehomed before deletion. All saga watchers and
+middleware have been retired. Modern nearby/map coordination and line-detail
+route/alert fetching remain on their existing React hooks.
 
 Bookmark mutations persist through the existing storage APIs before publishing
 state. A failed write leaves the affected domain unchanged and displays an
