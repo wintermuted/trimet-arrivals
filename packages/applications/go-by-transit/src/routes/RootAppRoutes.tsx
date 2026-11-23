@@ -1,10 +1,8 @@
-import { size } from "lodash";
 import React from "react";
 import {
   BrowserRouter as Router,
   Route,
   Routes,
-  useOutletContext,
   useParams
 } from "react-router-dom";
 import BookmarksViewContainer from "../view/bookmarks/container/BookmarksViewContainer";
@@ -38,8 +36,6 @@ function StopLocationViewRouter() {
 }
 
 function NearbyRouteDetails() {
-  const { id } = useParams();
-
   return <div>Nearby Route Details</div>;
 }
 

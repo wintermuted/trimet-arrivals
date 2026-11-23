@@ -48,12 +48,6 @@ export function getStreetCarLines(routes: RouteDataDictionary): TrimetRoute[] {
   });
 }
 
-export function getAerialTram(routes: RouteDataDictionary): TrimetRoute[] {
-  return filter(routes, route => {
-    return route.type === ROUTE_TYPE.RAIL && includes([AREIAL_TRAM], route.id);
-  });
-}
-
 export function getWesCommuterRail(routes: RouteDataDictionary): TrimetRoute[] {
   return filter(routes, route => {
     return route.type === ROUTE_TYPE.RAIL && includes([WES], route.id);

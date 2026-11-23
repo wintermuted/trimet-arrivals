@@ -64,6 +64,13 @@ own `PUBLIC_URL` baked into the `build` output. The original `npm run test:ui`,
 `npm run test:places-data`, and `npm run build` commands remain available.
 Build/type validation stays in CI.
 
+When removing dead code, trace application entry points, registered routes,
+workspace package exports, test/setup files, and script/configuration consumers.
+An unreferenced application wrapper can be retired without removing its shared
+package's public export. Preserve routed legacy screens, dynamically loaded
+assets, import-time side effects, and uncertain or test-only candidates until
+their retirement is explicitly established.
+
 Oxlint checks all workspace TypeScript and TSX files using native rules in
 `.oxlintrc.json`, migrated from the previous ESLint TypeScript/React configuration.
 Oxfmt handles formatting. Existing `any` types, TypeScript
