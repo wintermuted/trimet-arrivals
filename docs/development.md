@@ -90,8 +90,12 @@ arrival actions. Its focused tests cover per-stop request deduplication,
 out-of-order results, stale-response guards, explicit empty/error/retry states,
 30-second polling and countdown reset, and unsubscribe/StrictMode cleanup.
 Requests still use the configured shared client and a 45-minute horizon.
-Redux retains only the legacy arrival-row route cache, pending its own migration;
-no saga middleware remains. Line-detail tests need router and bookmark context
+Legacy arrival tables render from the parent response without a Redux provider
+or cached route metadata. Their focused link tests cover route filtering and
+response updates as well as existing route/stop/direction navigation.
+No production Redux readers or saga middleware remain. The dormant store/route
+reducer, line-list dictionary helpers and dependencies await the separate final
+infrastructure-removal batch. Line-detail tests need router and bookmark context
 when applicable, but no Redux provider.
 
 The native-only migration retains 77 enabled rules, including
