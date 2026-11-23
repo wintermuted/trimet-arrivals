@@ -1,9 +1,7 @@
 import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Provider } from "react-redux";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
-import { createStore } from "redux";
 import { BOOKMARKS, fetchStoredBookmarks } from "../api/localstorage/bookmarks.localstorage";
 import { getArrivals } from "../api/trimet/arrivals";
 import { getNearbyStops } from "../api/trimet/stops";
@@ -11,7 +9,6 @@ import { ArrivalData } from "../api/trimet/interfaces/arrivals";
 import { arrival1 } from "../api/trimet/fixture/arrival";
 import { getWalkingRoute, WalkingRoute } from "../api/mapbox/walking";
 import { NearbyStopsDetail } from "../view/nearby/components/NearbyStopsDetail";
-import reducers from "../store/reducers";
 import { BookmarksProvider } from "../state/bookmarks/BookmarksProvider";
 
 vi.mock("../api/trimet/arrivals");
@@ -57,7 +54,6 @@ const walking: WalkingRoute = {
 describe("general Nearby stop walking access", () => {
   let container: HTMLDivElement;
   let root: Root;
-  let store: ReturnType<typeof createStore>;
   const handleStopOpened = vi.fn();
   const close = vi.fn();
   const onWalkingRouteChanged = vi.fn(() => close);
@@ -81,7 +77,6 @@ describe("general Nearby stop walking access", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     localStorage.removeItem(BOOKMARKS);
-    store = createStore(reducers);
   });
   afterEach(() => {
     act(() => root.unmount());
@@ -92,7 +87,7 @@ describe("general Nearby stop walking access", () => {
   function render(enabled = false, path = "/nearby/stops/340") {
     return act(async () =>
       root.render(
-        <Provider store={store}><BookmarksProvider>
+        <BookmarksProvider>
         <MemoryRouter initialEntries={[path]}>
           <Link to="/nearby/stops/367">Next stop</Link>
           <Routes>
@@ -109,7 +104,7 @@ describe("general Nearby stop walking access", () => {
             />
           </Routes>
         </MemoryRouter>
-        </BookmarksProvider></Provider>
+        </BookmarksProvider>
       )
     );
   }

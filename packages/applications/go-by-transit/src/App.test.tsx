@@ -3,11 +3,6 @@ import { act, render, screen } from "@testing-library/react";
 import React from "react";
 import App from "./App";
 
-vi.mock("./store/store", async () => {
-  const { createStore } = await vi.importActual<typeof import("redux")>("redux");
-  const { default: reducers } = await vi.importActual<typeof import("./store/reducers")>("./store/reducers");
-  return { default: () => createStore(reducers) };
-});
 vi.mock("./view/nearby/util/mapbox/initializeMap", () => ({
   initializeMap: vi.fn(() => { throw new Error("No WebGL in JSDOM"); })
 }));

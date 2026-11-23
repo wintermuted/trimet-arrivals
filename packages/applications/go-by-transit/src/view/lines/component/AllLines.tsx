@@ -10,7 +10,7 @@ import RouteListItem from "../../../component/route/RouteListItem";
 import {
   createRoutesDictionary,
   RouteDataDictionary
-} from "../../../store/reducers/data/routeDataReducer";
+} from "../routeDictionary";
 import Loading from "../../loading/Loading";
 
 const WES = 203;

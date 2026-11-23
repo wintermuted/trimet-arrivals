@@ -2,7 +2,7 @@
 
 Browser storage for stop and route bookmarks, sections, route groups, and shortcuts.
 The package preserves the existing local storage keys and formats and clears
-matching shortcuts when their bookmarks are deleted. Redux and bookmark screens
+matching shortcuts when their bookmarks are deleted. Bookmark state and screens
 live in the app.
 
 The React-free main entry exports `subscribeBookmarkShortcuts(listener)`, which
@@ -16,6 +16,6 @@ The optional `@overworld/bookmarks/react` entry exports
 assignments; omitting an ID clears the shortcut. The hook manages subscriptions,
 refreshes when registries change, and reports read/save failures while retaining
 the previous shortcuts after a failed save. React is an optional peer; the main
-entry does not load it. Redux selection and navigation stay in the app.
+entry does not load it. Bookmark context and navigation stay in the app.
 
 From the repository root: `npx nx run @overworld/bookmarks:test:package`.

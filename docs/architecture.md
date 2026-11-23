@@ -29,7 +29,7 @@ browser storage. There is no Go By Transit application server.
 
 ```mermaid
 flowchart LR
-    pages["GitHub Pages"] -->|Serves the Vite build| app["Browser: React app and Redux"]
+    pages["GitHub Pages"] -->|Serves the Vite build| app["Browser: React app"]
     app -->|Via trimet-client| trimet["TriMet API"]
     app -->|Opt-in walking requests via routing| mapbox["Mapbox walking API"]
     app -->|Via places| snapshots["Static place snapshots"]
@@ -91,7 +91,7 @@ flowchart TD
 
 | Package | Description |
 | --- | --- |
-| [`@overworld/go-by-transit`](../packages/applications/go-by-transit/README.md) | The Go By Transit web app: screens, navigation, Redux state, and map rendering. |
+| [`@overworld/go-by-transit`](../packages/applications/go-by-transit/README.md) | The Go By Transit web app: screens, navigation, React state, and map rendering. |
 | [`@overworld/bookmarks`](../packages/util/bookmarks/README.md) | Browser storage for stop and route bookmarks, sections, route groups, and shortcuts, plus optional React shortcut subscriptions. |
 | [`@overworld/geolocation`](../packages/api/geolocation/README.md) | Browser device-location requests and shared React location subscription. |
 | [`@overworld/journeys`](../packages/util/journeys/README.md) | Recent journey storage, planner endpoint model, parsing, labels, and query serialization. |
@@ -104,7 +104,7 @@ flowchart TD
 ## App and library boundaries
 
 Import from public package entry points rather than reaching into `src/`.
-Shared packages do not import app code. The app owns Redux, navigation and URL
+Shared packages do not import app code. The app owns React state, navigation and URL
 state, bookmark screens, planner colors, configured catalog requests and caching,
 configured requests, viewport event adapters, and map/screen coordination.
 
@@ -129,14 +129,11 @@ successes replace prior arrivals; failures expose retry while retaining data and
 the last successful timestamp.
 
 Legacy arrival tables render directly from their parent-owned arrival response.
-Their former Redux route lookup supplied metadata that the app's route indicator
-did not consume; route display and line links use the arrival's route number.
-No replacement route context or request is needed. No production component reads
-Redux state now. The dormant route reducer/store and dependencies remain for the
-final infrastructure-removal batch; line-list dictionary helpers still live in
-that reducer module and must be rehomed before deletion. All saga watchers and
-middleware have been retired. Modern nearby/map coordination and line-detail
-route/alert fetching remain on their existing React hooks.
+Route display and line links use the arrival's route number without a route
+cache context or request. The app has no Redux store, provider, reducers,
+middleware, or dependencies. Line lists use a local route dictionary helper;
+modern nearby/map coordination and line-detail route/alert fetching remain on
+their existing React hooks.
 
 Bookmark mutations persist through the existing storage APIs before publishing
 state. A failed write leaves the affected domain unchanged and displays an
