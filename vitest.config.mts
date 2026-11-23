@@ -15,7 +15,7 @@ export default defineConfig(env => mergeConfig(viteConfig(env), {
       provider: "v8",
       reporter: ["text-summary", "html", "lcov", "json-summary", "cobertura"],
       include: [
-        `${appSource}/{api,component,state,store,view}/**/*.{ts,tsx}`,
+        `${appSource}/{api,component,state,view}/**/*.{ts,tsx}`,
         "packages/{api,util,geography,presentation}/*/src/**/*.{ts,tsx}",
         `${appSource}/App.tsx`
       ],

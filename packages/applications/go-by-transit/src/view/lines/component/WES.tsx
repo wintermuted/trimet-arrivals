@@ -2,7 +2,7 @@ import { isEmpty } from "lodash";
 import React, { useEffect, useState } from "react";
 import { RouteDataResultSet } from "../../../api/trimet/interfaces/routes";
 import { getAllRoutes } from "../../../api/trimet/routeConfig";
-import { createRoutesDictionary } from "../../../store/reducers/data/routeDataReducer";
+import { createRoutesDictionary } from "../routeDictionary";
 import Loading from "../../loading/Loading";
 import { getRoutes, getWesCommuterRail } from "./AllLines";
 

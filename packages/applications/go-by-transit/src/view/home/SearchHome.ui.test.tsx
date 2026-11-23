@@ -2,14 +2,11 @@ import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";
-import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes, Link } from "react-router-dom";
-import { createStore } from "redux";
 import { readRecentJourneys } from "../../api/localstorage/recentJourneys";
 import { getSystemAlerts } from "../../api/trimet/alerts";
 import { getStopCatalog, StopCatalog } from "../../api/trimet/stopCatalog";
 import { planTrip } from "../../api/trimet/tripplanner";
-import reducers from "../../store/reducers";
 import { BookmarksProvider } from "../../state/bookmarks/BookmarksProvider";
 import { ConnectedTripPlannerView } from "../tripPlanner/TripPlannerView";
 import { BOOKMARK_SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
@@ -79,27 +76,25 @@ describe("Search homepage", () => {
     localStorage.clear();
   });
 
-  async function render(store = createStore(reducers)) {
+  async function render() {
     await act(async () =>
       root.render(
-        <Provider store={store}>
-          <BookmarksProvider>
-            <MemoryRouter>
-              <Routes>
-                <Route path="/" element={<SearchHome />} />
-                <Route
-                  path="/planner"
-                  element={
-                    <>
-                      <ConnectedTripPlannerView />
-                      <Link to="/">Return home</Link>
-                    </>
-                  }
-                />
-              </Routes>
-            </MemoryRouter>
-          </BookmarksProvider>
-        </Provider>,
+        <BookmarksProvider>
+          <MemoryRouter>
+            <Routes>
+              <Route path="/" element={<SearchHome />} />
+              <Route
+                path="/planner"
+                element={
+                  <>
+                    <ConnectedTripPlannerView />
+                    <Link to="/">Return home</Link>
+                  </>
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        </BookmarksProvider>,
       ),
     );
   }

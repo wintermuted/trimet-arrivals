@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 
 import { RouteDataResultSet } from "../../../api/trimet/interfaces/routes";
 import { getAllRoutes } from "../../../api/trimet/routeConfig";
-import { createRoutesDictionary } from "../../../store/reducers/data/routeDataReducer";
+import { createRoutesDictionary } from "../routeDictionary";
 import CollapsiblePane from "../../lineDetail/component/CollapsiblePane";
 import { getBusLines, getRoutes } from "./AllLines";
 

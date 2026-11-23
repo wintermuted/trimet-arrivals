@@ -9,7 +9,7 @@ serve Go By Transit only; they are not a multi-tenant launcher or deployment sys
 See [architecture](architecture.md#repository-and-application-tenants) before
 adding another application tenant.
 
-Go By Transit uses TypeScript, React, and Redux. Vite 8 serves local development and
+Go By Transit uses TypeScript and React. Vite 8 serves local development and
 builds the production site with the compatible `@vitejs/plugin-react` 6 plugin.
 Use Sass `@use` rather than deprecated `@import` rules. Refresh stale browser
 compatibility data with `npx update-browserslist-db@latest` and commit the lockfile.
@@ -93,10 +93,10 @@ Requests still use the configured shared client and a 45-minute horizon.
 Legacy arrival tables render from the parent response without a Redux provider
 or cached route metadata. Their focused link tests cover route filtering and
 response updates as well as existing route/stop/direction navigation.
-No production Redux readers or saga middleware remain. The dormant store/route
-reducer, line-list dictionary helpers and dependencies await the separate final
-infrastructure-removal batch. Line-detail tests need router and bookmark context
-when applicable, but no Redux provider.
+The Redux store, provider, reducers, middleware, and dependencies have been
+removed. Line-list dictionary helpers live alongside the line views.
+Line-detail tests need router and bookmark context when applicable, but no
+Redux provider.
 
 The native-only migration retains 77 enabled rules, including
 `react/require-render-return` from Oxlint's nursery rules. It intentionally drops

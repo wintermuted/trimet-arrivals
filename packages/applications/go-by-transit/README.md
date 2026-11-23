@@ -3,7 +3,7 @@
 Go By Transit (`@overworld/go-by-transit`) is one application tenant of
 [Overworld](../../../README.md). Explore Portland by transit: find TriMet stops
 and arrivals, plan trips, follow reported bus and train positions, and discover
-places along the way. Built with TypeScript, React, Redux, and Mapbox.
+places along the way. Built with TypeScript, React, and Mapbox.
 
 **[Open Go By Transit](https://wintermuted.github.io/overworld/)** ·
 **[User guides](../../../docs/README.md#using-go-by-transit)** ·
@@ -43,7 +43,7 @@ npm ci
 npm run watch
 ```
 
-This tenant owns screens, navigation, Redux state, map/screen coordination, and
+This tenant owns screens, navigation, React state, map/screen coordination, and
 service configuration. It consumes reusable `@overworld/*` libraries through
 their public entry points; those libraries do not depend on this tenant.
 Vite's HTML entry and `public/` assets currently live at the repository root,

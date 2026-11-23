@@ -2,8 +2,6 @@ import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { fireEvent } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { createStore } from "redux";
 import { MemoryRouter, Route, Routes, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import getCurrentPosition from "../api/geolocation/getCurrentPosition";
 import { getNearbyStops } from "../api/trimet/stops";
@@ -18,7 +16,6 @@ import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
 import { buildStopCatalog, getStopCatalog } from "../api/trimet/stopCatalog";
 import { planTrip } from "../api/trimet/tripplanner";
 import { getRouteGeometry, NEARBY_ROUTE_LINES } from "../view/nearby/util/mapbox/routeLines";
-import reducers from "../store/reducers";
 import { BookmarksProvider } from "../state/bookmarks/BookmarksProvider";
 import NearbyVehicles from "../view/nearby/components/NearbyVehicles";
 import * as placesApi from "@overworld/places/catalog";
@@ -28,9 +25,8 @@ import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
 import NearbyPlacesMap from "../view/nearby/components/NearbyPlacesMap";
 import * as placeIcons from "../view/nearby/util/mapbox/placeIcons";
 
-function StopDetailWithStore() {
-  const [store] = React.useState(() => createStore(reducers));
-  return <Provider store={store}><BookmarksProvider><NearbyStopDetailComponent /></BookmarksProvider></Provider>;
+function StopDetailWithBookmarks() {
+  return <BookmarksProvider><NearbyStopDetailComponent /></BookmarksProvider>;
 }
 
 vi.mock("../view/nearby/components/NearbyVehicles", () => ({ default: vi.fn(() => null) }));
@@ -275,11 +271,10 @@ describe("Nearby map initialization independently of the sidebar", () => {
                 <Route path="places" element={null} />
                 <Route path="places/:placeId" element={null} />
                 <Route path="planner" element={
-                  <Provider store={createStore(reducers)}><BookmarksProvider>
+                  <BookmarksProvider>
                     <NearbyTripPlannerComponent /></BookmarksProvider>
-                  </Provider>
                 } />
-                <Route path="stops/:id" element={<StopDetailWithStore />} />
+                <Route path="stops/:id" element={<StopDetailWithBookmarks />} />
                 {withExplore && <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />}
                 <Route path="*" element={<p>Sidebar ready</p>} />
               </Route>
@@ -1379,7 +1374,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
           <Routes>
             <Route path="/" element={<p>Home</p>} />
             <Route path="/nearby" element={<NearbyViewComponent />}>
-              <Route path="stops/:id" element={<StopDetailWithStore />} />
+              <Route path="stops/:id" element={<StopDetailWithBookmarks />} />
             </Route>
           </Routes>
         </MemoryRouter>
@@ -1408,7 +1403,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
     await act(async () => root.render(
       <FeatureFlagsProvider><MemoryRouter initialEntries={["/nearby/stops/8455"]}><Routes>
         <Route path="/nearby" element={<NearbyViewComponent />}>
-          <Route path="stops/:id" element={<StopDetailWithStore />} />
+          <Route path="stops/:id" element={<StopDetailWithBookmarks />} />
         </Route>
       </Routes></MemoryRouter></FeatureFlagsProvider>
     ));
@@ -1439,7 +1434,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
         <MemoryRouter initialEntries={["/nearby/stops/8455"]}>
           <Routes>
             <Route path="/nearby" element={<NearbyViewComponent />}>
-              <Route path="stops/:id" element={<StopDetailWithStore />} />
+              <Route path="stops/:id" element={<StopDetailWithBookmarks />} />
             </Route>
           </Routes>
         </MemoryRouter>
@@ -1460,7 +1455,7 @@ describe("Nearby map initialization independently of the sidebar", () => {
           <Routes>
             <Route path="/nearby" element={<NearbyViewComponent />}>
               <Route path="simple-routes" element={<NearbySimpleRoutesComp />} />
-              <Route path="stops/:id" element={<StopDetailWithStore />} />
+              <Route path="stops/:id" element={<StopDetailWithBookmarks />} />
             </Route>
           </Routes>
         </MemoryRouter>
