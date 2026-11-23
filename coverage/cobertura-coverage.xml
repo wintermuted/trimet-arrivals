@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage lines-valid="5555" lines-covered="4935" line-rate="0.8883" branches-valid="5647" branches-covered="4801" branch-rate="0.8501000000000001" timestamp="1795458457324" complexity="0" version="0.1">
+<coverage lines-valid="5547" lines-covered="4941" line-rate="0.8906999999999999" branches-valid="5647" branches-covered="4804" branch-rate="0.8506999999999999" timestamp="1795460912009" complexity="0" version="0.1">
   <sources>
     <source>/home/runner/work/overworld/overworld</source>
   </sources>
@@ -3196,17 +3196,17 @@
         </class>
         <class name="RouteIndicator.tsx" filename="packages/applications/go-by-transit/src/component/route/RouteIndicator.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="RouteIndicator" hits="92" signature="()V">
+            <method name="RouteIndicator" hits="98" signature="()V">
               <lines>
-                <line number="16" hits="92"/>
+                <line number="16" hits="98"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="21" hits="92" branch="false"/>
-            <line number="22" hits="92" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="21" hits="98" branch="false"/>
+            <line number="22" hits="98" branch="true" condition-coverage="100% (2/2)"/>
             <line number="23" hits="7" branch="false"/>
-            <line number="25" hits="85" branch="false"/>
+            <line number="25" hits="91" branch="false"/>
           </lines>
         </class>
         <class name="RouteListItem.tsx" filename="packages/applications/go-by-transit/src/component/route/RouteListItem.tsx" line-rate="0.23800000000000002" branch-rate="0.07139999999999999">
@@ -4040,42 +4040,18 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.store.selectors.data" line-rate="0.5" branch-rate="1">
+    <package name="applications.go-by-transit.src.view.arrivals.components" line-rate="1" branch-rate="1">
       <classes>
-        <class name="routeDataSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/data/routeDataSelectors.ts" line-rate="0.5" branch-rate="1">
+        <class name="ArrivalRow.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalRow.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
+            <method name="ArrivalRow" hits="6" signature="()V">
               <lines>
-                <line number="5" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="9" hits="0"/>
+                <line number="10" hits="6"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="5" hits="1" branch="false"/>
-            <line number="6" hits="0" branch="false"/>
-            <line number="8" hits="1" branch="false"/>
-            <line number="10" hits="0" branch="false"/>
-          </lines>
-        </class>
-      </classes>
-    </package>
-    <package name="applications.go-by-transit.src.view.arrivals.components" line-rate="0.8332999999999999" branch-rate="1">
-      <classes>
-        <class name="ArrivalRow.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalRow.tsx" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="ArrivalRow" hits="0" signature="()V">
-              <lines>
-                <line number="10" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="11" hits="0" branch="false"/>
+            <line number="11" hits="6" branch="false"/>
           </lines>
         </class>
         <class name="ArrivalsComponent.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalsComponent.tsx" line-rate="1" branch-rate="1">
@@ -4105,20 +4081,20 @@
         </class>
         <class name="arrivalPresentation.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/arrivalPresentation.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="(anonymous_0)" hits="17" signature="()V">
+            <method name="(anonymous_0)" hits="23" signature="()V">
               <lines>
-                <line number="6" hits="17"/>
+                <line number="6" hits="23"/>
               </lines>
             </method>
-            <method name="renderArrivalRoute" hits="17" signature="()V">
+            <method name="renderArrivalRoute" hits="23" signature="()V">
               <lines>
-                <line number="8" hits="17"/>
+                <line number="8" hits="23"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="6" hits="17" branch="false"/>
-            <line number="9" hits="17" branch="false"/>
+            <line number="6" hits="23" branch="false"/>
+            <line number="9" hits="23" branch="false"/>
           </lines>
         </class>
       </classes>
@@ -4127,15 +4103,15 @@
       <classes>
         <class name="index.ts" filename="packages/applications/go-by-transit/src/view/arrivals/util/index.ts" line-rate="1" branch-rate="0.5">
           <methods>
-            <method name="getDistanceUntilArrival" hits="17" signature="()V">
+            <method name="getDistanceUntilArrival" hits="23" signature="()V">
               <lines>
-                <line number="1" hits="17"/>
+                <line number="1" hits="23"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="2" hits="17" branch="false"/>
-            <line number="4" hits="17" branch="true" condition-coverage="50% (3/6)"/>
+            <line number="2" hits="23" branch="false"/>
+            <line number="4" hits="23" branch="true" condition-coverage="50% (3/6)"/>
           </lines>
         </class>
       </classes>
@@ -11173,21 +11149,21 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.view.stop.component" line-rate="0" branch-rate="0">
+    <package name="applications.go-by-transit.src.view.stop.component" line-rate="0.204" branch-rate="0.1363">
       <classes>
-        <class name="StopLocationArrivalRow.tsx" filename="packages/applications/go-by-transit/src/view/stop/component/StopLocationArrivalRow.tsx" line-rate="0" branch-rate="0">
+        <class name="StopLocationArrivalRow.tsx" filename="packages/applications/go-by-transit/src/view/stop/component/StopLocationArrivalRow.tsx" line-rate="0.75" branch-rate="0.5">
           <methods>
-            <method name="render" hits="0" signature="()V">
+            <method name="render" hits="6" signature="()V">
               <lines>
-                <line number="14" hits="0"/>
+                <line number="12" hits="6"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="15" hits="0" branch="false"/>
-            <line number="17" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="18" hits="0" branch="false"/>
-            <line number="21" hits="0" branch="false"/>
+            <line number="13" hits="6" branch="false"/>
+            <line number="15" hits="6" branch="true" condition-coverage="50% (1/2)"/>
+            <line number="16" hits="0" branch="false"/>
+            <line number="19" hits="6" branch="false"/>
           </lines>
         </class>
         <class name="StopLocationArrivals.tsx" filename="packages/applications/go-by-transit/src/view/stop/component/StopLocationArrivals.tsx" line-rate="0" branch-rate="1">
@@ -11202,41 +11178,42 @@
             <line number="11" hits="0" branch="false"/>
           </lines>
         </class>
-        <class name="StopLocationArrivalsTable.tsx" filename="packages/applications/go-by-transit/src/view/stop/component/StopLocationArrivalsTable.tsx" line-rate="0" branch-rate="0">
+        <class name="StopLocationArrivalsTable.tsx" filename="packages/applications/go-by-transit/src/view/stop/component/StopLocationArrivalsTable.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="getArrivals" hits="0" signature="()V">
+            <method name="getArrivals" hits="4" signature="()V">
               <lines>
-                <line number="8" hits="0"/>
+                <line number="8" hits="4"/>
               </lines>
             </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
+            <method name="(anonymous_1)" hits="6" signature="()V">
               <lines>
-                <line number="9" hits="0"/>
+                <line number="9" hits="6"/>
               </lines>
             </method>
-            <method name="filterArrivals" hits="0" signature="()V">
+            <method name="filterArrivals" hits="1" signature="()V">
               <lines>
-                <line number="14" hits="0"/>
+                <line number="14" hits="1"/>
               </lines>
             </method>
-            <method name="(anonymous_3)" hits="0" signature="()V">
+            <method name="(anonymous_3)" hits="2" signature="()V">
               <lines>
-                <line number="15" hits="0"/>
+                <line number="15" hits="2"/>
               </lines>
             </method>
-            <method name="StopLocationArrivalsTable" hits="0" signature="()V">
+            <method name="StopLocationArrivalsTable" hits="4" signature="()V">
               <lines>
-                <line number="22" hits="0"/>
+                <line number="24" hits="4"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="9" hits="0" branch="false"/>
-            <line number="10" hits="0" branch="false"/>
-            <line number="15" hits="0" branch="false"/>
-            <line number="23" hits="0" branch="false"/>
-            <line number="25" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="29" hits="0" branch="false"/>
+            <line number="9" hits="4" branch="false"/>
+            <line number="10" hits="6" branch="false"/>
+            <line number="15" hits="1" branch="false"/>
+            <line number="16" hits="2" branch="false"/>
+            <line number="25" hits="4" branch="false"/>
+            <line number="27" hits="4" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="31" hits="4" branch="false"/>
           </lines>
         </class>
         <class name="StopLocationArrivalsTableNav.tsx" filename="packages/applications/go-by-transit/src/view/stop/component/StopLocationArrivalsTableNav.tsx" line-rate="0" branch-rate="1">
@@ -11397,29 +11374,8 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.view.stop.container" line-rate="0.3333" branch-rate="0">
+    <package name="applications.go-by-transit.src.view.stop.container" line-rate="0" branch-rate="0">
       <classes>
-        <class name="ArrivalRowContainer.tsx" filename="packages/applications/go-by-transit/src/view/stop/container/ArrivalRowContainer.tsx" line-rate="0.6" branch-rate="1">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="11" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="18" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="11" hits="1" branch="false"/>
-            <line number="12" hits="0" branch="false"/>
-            <line number="18" hits="1" branch="false"/>
-            <line number="19" hits="0" branch="false"/>
-            <line number="22" hits="1" branch="false"/>
-          </lines>
-        </class>
         <class name="StopLocationViewContainer.tsx" filename="packages/applications/go-by-transit/src/view/stop/container/StopLocationViewContainer.tsx" line-rate="0" branch-rate="0">
           <methods>
             <method name="StopLocationViewContainer" hits="0" signature="()V">
@@ -14623,9 +14579,9 @@
         </class>
         <class name="TimeDisplay.tsx" filename="packages/presentation/ui/src/TimeDisplay.tsx" line-rate="0.8723000000000001" branch-rate="0.9142">
           <methods>
-            <method name="formatDisplayTime" hits="584" signature="()V">
+            <method name="formatDisplayTime" hits="596" signature="()V">
               <lines>
-                <line number="11" hits="584"/>
+                <line number="11" hits="596"/>
               </lines>
             </method>
             <method name="formatDisplayDay" hits="211" signature="()V">
@@ -14648,9 +14604,9 @@
                 <line number="99" hits="0"/>
               </lines>
             </method>
-            <method name="(anonymous_5)" hits="530" signature="()V">
+            <method name="(anonymous_5)" hits="542" signature="()V">
               <lines>
-                <line number="100" hits="530"/>
+                <line number="100" hits="542"/>
               </lines>
             </method>
             <method name="(anonymous_6)" hits="209" signature="()V">
@@ -14698,23 +14654,23 @@
                 <line number="136" hits="0"/>
               </lines>
             </method>
-            <method name="useTimeDisplay" hits="1908" signature="()V">
+            <method name="useTimeDisplay" hits="1914" signature="()V">
               <lines>
-                <line number="149" hits="1908"/>
+                <line number="149" hits="1914"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="18" hits="584" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="18" hits="596" branch="true" condition-coverage="100% (4/4)"/>
             <line number="19" hits="6" branch="false"/>
-            <line number="21" hits="578" branch="false"/>
-            <line number="26" hits="584" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="27" hits="93" branch="false"/>
-            <line number="29" hits="578" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="21" hits="590" branch="false"/>
+            <line number="26" hits="596" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="27" hits="105" branch="false"/>
+            <line number="29" hits="590" branch="true" condition-coverage="100% (2/2)"/>
             <line number="30" hits="34" branch="false"/>
-            <line number="31" hits="544" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="31" hits="556" branch="true" condition-coverage="100% (4/4)"/>
             <line number="32" hits="239" branch="false"/>
-            <line number="34" hits="578" branch="false"/>
+            <line number="34" hits="590" branch="false"/>
             <line number="42" hits="211" branch="true" condition-coverage="75% (3/4)"/>
             <line number="43" hits="0" branch="false"/>
             <line number="45" hits="211" branch="false"/>
@@ -14734,7 +14690,7 @@
             <line number="94" hits="40" branch="false"/>
             <line number="98" hits="0" branch="false"/>
             <line number="99" hits="0" branch="false"/>
-            <line number="101" hits="530" branch="false"/>
+            <line number="101" hits="542" branch="false"/>
             <line number="103" hits="209" branch="false"/>
             <line number="105" hits="5" branch="false"/>
             <line number="108" hits="40" branch="false"/>
@@ -14751,7 +14707,7 @@
             <line number="135" hits="0" branch="false"/>
             <line number="137" hits="0" branch="false"/>
             <line number="142" hits="5" branch="false"/>
-            <line number="150" hits="1908" branch="false"/>
+            <line number="150" hits="1914" branch="false"/>
           </lines>
         </class>
         <class name="TimeDisplaySettings.tsx" filename="packages/presentation/ui/src/TimeDisplaySettings.tsx" line-rate="1" branch-rate="0.7272">
@@ -14861,9 +14817,9 @@
         </class>
         <class name="timeUtils.ts" filename="packages/presentation/ui/src/timeUtils.ts" line-rate="1" branch-rate="1">
           <methods>
-            <method name="isValidTimestamp" hits="965" signature="()V">
+            <method name="isValidTimestamp" hits="1023" signature="()V">
               <lines>
-                <line number="4" hits="965"/>
+                <line number="4" hits="1023"/>
               </lines>
             </method>
             <method name="getFormattedTime" hits="6" signature="()V">
@@ -14893,7 +14849,7 @@
             </method>
           </methods>
           <lines>
-            <line number="5" hits="965" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="5" hits="1023" branch="true" condition-coverage="100% (2/2)"/>
             <line number="9" hits="6" branch="false"/>
             <line number="10" hits="6" branch="true" condition-coverage="100% (2/2)"/>
             <line number="16" hits="13" branch="true" condition-coverage="100% (2/2)"/>
@@ -15127,85 +15083,85 @@
         </class>
         <class name="LateIndicator.tsx" filename="packages/presentation/ui/src/arrivalIndicator/LateIndicator.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="render" hits="8" signature="()V">
+            <method name="render" hits="13" signature="()V">
               <lines>
-                <line number="12" hits="8"/>
+                <line number="12" hits="13"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="13" hits="8" branch="false"/>
-            <line number="15" hits="8" branch="true" condition-coverage="100% (4/4)"/>
-            <line number="16" hits="4" branch="false"/>
-            <line number="18" hits="4" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="13" hits="13" branch="false"/>
+            <line number="15" hits="13" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="16" hits="9" branch="false"/>
+            <line number="18" hits="9" branch="true" condition-coverage="100% (2/2)"/>
             <line number="19" hits="2" branch="false"/>
-            <line number="24" hits="2" branch="false"/>
+            <line number="24" hits="7" branch="false"/>
             <line number="31" hits="4" branch="false"/>
           </lines>
         </class>
         <class name="OnTimeIndicator.tsx" filename="packages/presentation/ui/src/arrivalIndicator/OnTimeIndicator.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="isEstimatedEarly" hits="2" signature="()V">
+            <method name="isEstimatedEarly" hits="8" signature="()V">
               <lines>
-                <line number="12" hits="2"/>
+                <line number="12" hits="8"/>
               </lines>
             </method>
-            <method name="estimatedToArriveAtSameTime" hits="37" signature="()V">
+            <method name="estimatedToArriveAtSameTime" hits="43" signature="()V">
               <lines>
-                <line number="16" hits="37"/>
+                <line number="16" hits="43"/>
               </lines>
             </method>
-            <method name="OnTimeIndicator" hits="41" signature="()V">
+            <method name="OnTimeIndicator" hits="47" signature="()V">
               <lines>
-                <line number="23" hits="41"/>
+                <line number="23" hits="47"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="13" hits="2" branch="true" condition-coverage="100% (3/3)"/>
-            <line number="20" hits="37" branch="true" condition-coverage="100% (3/3)"/>
-            <line number="24" hits="41" branch="true" condition-coverage="100% (4/4)"/>
-            <line number="25" hits="37" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="13" hits="8" branch="true" condition-coverage="100% (3/3)"/>
+            <line number="20" hits="43" branch="true" condition-coverage="100% (3/3)"/>
+            <line number="24" hits="47" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="25" hits="43" branch="true" condition-coverage="100% (2/2)"/>
             <line number="26" hits="35" branch="false"/>
-            <line number="28" hits="2" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="28" hits="8" branch="true" condition-coverage="100% (2/2)"/>
             <line number="29" hits="1" branch="false"/>
-            <line number="31" hits="1" branch="false"/>
+            <line number="31" hits="7" branch="false"/>
             <line number="36" hits="4" branch="false"/>
           </lines>
         </class>
         <class name="TimeToArrivalIndicator.tsx" filename="packages/presentation/ui/src/arrivalIndicator/TimeToArrivalIndicator.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="render" hits="24" signature="()V">
+            <method name="render" hits="30" signature="()V">
               <lines>
-                <line number="12" hits="24"/>
+                <line number="12" hits="30"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="13" hits="24" branch="false"/>
-            <line number="15" hits="24" branch="true" condition-coverage="100% (4/4)"/>
-            <line number="16" hits="20" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="13" hits="30" branch="false"/>
+            <line number="15" hits="30" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="16" hits="26" branch="true" condition-coverage="100% (2/2)"/>
             <line number="17" hits="9" branch="false"/>
-            <line number="19" hits="11" branch="false"/>
-            <line number="21" hits="11" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="19" hits="17" branch="false"/>
+            <line number="21" hits="17" branch="true" condition-coverage="100% (2/2)"/>
             <line number="22" hits="2" branch="false"/>
-            <line number="25" hits="9" branch="false"/>
+            <line number="25" hits="15" branch="false"/>
             <line number="28" hits="4" branch="false"/>
           </lines>
         </class>
         <class name="util.ts" filename="packages/presentation/ui/src/arrivalIndicator/util.ts" line-rate="1" branch-rate="1">
           <methods>
-            <method name="timeDiff" hits="19" signature="()V">
+            <method name="timeDiff" hits="30" signature="()V">
               <lines>
-                <line number="1" hits="19"/>
+                <line number="1" hits="30"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="2" hits="19" branch="false"/>
-            <line number="3" hits="19" branch="false"/>
-            <line number="4" hits="19" branch="false"/>
-            <line number="5" hits="19" branch="false"/>
+            <line number="2" hits="30" branch="false"/>
+            <line number="3" hits="30" branch="false"/>
+            <line number="4" hits="30" branch="false"/>
+            <line number="5" hits="30" branch="false"/>
           </lines>
         </class>
       </classes>
@@ -15461,15 +15417,15 @@
       <classes>
         <class name="ArrivalRow.tsx" filename="packages/presentation/ui/src/transit/ArrivalRow.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="ArrivalRow" hits="33" signature="()V">
+            <method name="ArrivalRow" hits="39" signature="()V">
               <lines>
-                <line number="20" hits="33"/>
+                <line number="20" hits="39"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="31" hits="33" branch="false"/>
-            <line number="33" hits="33" branch="false"/>
+            <line number="31" hits="39" branch="false"/>
+            <line number="33" hits="39" branch="false"/>
           </lines>
         </class>
         <class name="ArrivalRows.tsx" filename="packages/presentation/ui/src/transit/ArrivalRows.tsx" line-rate="1" branch-rate="1">
@@ -15852,17 +15808,17 @@
         </class>
         <class name="RouteIndicator.tsx" filename="packages/presentation/ui/src/transit/RouteIndicator.tsx" line-rate="1" branch-rate="1">
           <methods>
-            <method name="RouteIndicator" hits="95" signature="()V">
+            <method name="RouteIndicator" hits="101" signature="()V">
               <lines>
-                <line number="10" hits="95"/>
+                <line number="10" hits="101"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="11" hits="95" branch="true" condition-coverage="100% (2/2)"/>
-            <line number="12" hits="1" branch="false"/>
-            <line number="19" hits="94" branch="true" condition-coverage="100% (4/4)"/>
-            <line number="20" hits="93" branch="false"/>
+            <line number="11" hits="101" branch="true" condition-coverage="100% (2/2)"/>
+            <line number="12" hits="4" branch="false"/>
+            <line number="19" hits="97" branch="true" condition-coverage="100% (4/4)"/>
+            <line number="20" hits="96" branch="false"/>
           </lines>
         </class>
         <class name="StopLocationIndicator.tsx" filename="packages/presentation/ui/src/transit/StopLocationIndicator.tsx" line-rate="1" branch-rate="1">

@@ -34,30 +34,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -72,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -120,7 +120,9 @@
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -128,13 +130,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -142,13 +145,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -171,30 +175,32 @@ import { map } from "lodash";
 import React from "react";
 import { useParams } from "react-router-dom";
 import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
-import ArrivalRowContainer from "../container/ArrivalRowContainer";
+import StopLocationArrivalRow from "./StopLocationArrivalRow";
 &nbsp;
-function <span class="fstat-no" title="function not covered" >getArrivals(a</span>rrivals: Arrival[]) {
-<span class="cstat-no" title="statement not covered" >  return map(<span class="fstat-no" title="function not covered" >arrivals, a</span>rrival =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return &lt;ArrivalRowContainer arrival={arrival} /&gt;;</span>
+function getArrivals(arrivals: Arrival[]) {
+  return map(arrivals, (arrival) =&gt; {
+    return &lt;StopLocationArrivalRow key={arrival.id} arrival={arrival} /&gt;;
   });
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >filterArrivals(a</span>rrivals: ArrivalData, id) {
-<span class="cstat-no" title="statement not covered" >  return arrivals.arrival.<span class="fstat-no" title="function not covered" >filter(a</span>rrival =&gt; <span class="cstat-no" title="statement not covered" >arrival.route === parseInt(id, 10))</span>;</span>
+function filterArrivals(arrivals: ArrivalData, id) {
+  return arrivals.arrival.filter(
+    (arrival) =&gt; arrival.route === parseInt(id, 10),
+  );
 }
 &nbsp;
 interface Props {
   arrivalData: ArrivalData;
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >StopLocationArrivalsTable({</span> arrivalData }: Props) {
-  const { routeId } = <span class="cstat-no" title="statement not covered" >useParams()</span>;
+function StopLocationArrivalsTable({ arrivalData }: Props) {
+  const { routeId } = useParams();
 &nbsp;
-  const filteredArrivals = <span class="cstat-no" title="statement not covered" >routeId</span>
+  const filteredArrivals = routeId
     ? filterArrivals(arrivalData, routeId)
     : arrivalData.arrival;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;Table responsive={true}&gt;
       &lt;thead&gt;
         &lt;tr&gt;
@@ -219,7 +225,7 @@ export default StopLocationArrivalsTable;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T18:27:37.156Z
+                at 2026-11-23T19:08:31.838Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>
