@@ -34,9 +34,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -48,16 +48,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -72,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -101,10 +101,7 @@
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -116,17 +113,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -134,36 +126,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { connect } from "react-redux";
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from "react";
+import type { TrimetRoute } from "../../../api/trimet/interfaces/routes";
 import {
-  removeRouteBookmarkRequest,
-  storeRouteBookmarkRequest
-} from "../../../store/action/routeBookmarkActions";
-import { RootState } from "../../../store/reducers";
-import {
-  routeBookmarkErrorSelector,
-  routeIsBookmarkedSelector
-} from "../../../store/selectors/routeBookmarkSelectors";
+  useBookmarks,
+  useBookmarkCommands,
+  useBookmarkError,
+} from "../../../state/bookmarks/BookmarksProvider";
 import RouteBookmarkButton from "../component/RouteBookmarkButton";
 &nbsp;
-const <span class="fstat-no" title="function not covered" >mapStateToProps = (s</span>tate: RootState, ownProps) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
-  error: routeBookmarkErrorSelector(state),
-  isBookmarked: routeIsBookmarkedSelector(state, ownProps.route.route)
-});
-&nbsp;
-const <span class="fstat-no" title="function not covered" >mapDispatchToProps = d</span>ispatch =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
-<span class="fstat-no" title="function not covered" >  onBookmark(r</span>oute) {
-<span class="cstat-no" title="statement not covered" >    dispatch(storeRouteBookmarkRequest(route));</span>
-  },
-<span class="fstat-no" title="function not covered" >  onRemove(r</span>outeId: number) {
-<span class="cstat-no" title="statement not covered" >    dispatch(removeRouteBookmarkRequest(routeId));</span>
-  }
-});
-&nbsp;
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(RouteBookmarkButton);
+export default function RouteBookmarkButtonContainer({
+  route,
+}: {
+  route: TrimetRoute;
+}) {
+  const { routes } = useBookmarks();
+  const commands = useBookmarkCommands();
+  const error = useBookmarkError("routes", "routeGroups");
+  return (
+    &lt;RouteBookmarkButton
+      route={route}
+      error={error}
+      isBookmarked={Boolean(routes[route.route])}
+      onBookmark={commands.bookmarkRoute}
+      onRemove={commands.removeRoute}
+    /&gt;
+  );
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -171,7 +162,7 @@ export default connect(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T15:24:59.515Z
+                at 2026-11-23T16:46:53.843Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

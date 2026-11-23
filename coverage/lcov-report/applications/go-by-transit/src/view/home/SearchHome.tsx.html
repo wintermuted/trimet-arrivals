@@ -34,9 +34,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.1% </span>
+                <span class="strong">84.78% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>40/47</span>
+                <span class='fraction'>39/46</span>
             </div>
         
             
@@ -55,9 +55,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">86.84% </span>
+                <span class="strong">87.8% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>33/38</span>
+                <span class='fraction'>36/41</span>
             </div>
         
             
@@ -271,9 +271,16 @@
 <a name='L195'></a><a href='#L195'>195</a>
 <a name='L196'></a><a href='#L196'>196</a>
 <a name='L197'></a><a href='#L197'>197</a>
-<a name='L198'></a><a href='#L198'>198</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -324,16 +331,26 @@
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">56x</span>
 <span class="cline-any cline-yes">56x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -344,6 +361,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -470,13 +488,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Button } from "@wintermuted/ui-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { SHORTCUTS } from "../../api/localstorage/bookmarkShortcuts";
 import { useBookmarkShortcuts } from "@overworld/bookmarks/react";
 import { readRecentJourneys } from "../../api/localstorage/recentJourneys";
-import { selectBookmarks } from "../../store/selectors/bookmarkSelectors";
-import { routeBookmarksSelector } from "../../store/selectors/routeBookmarkSelectors";
+import { useBookmarks } from "../../state/bookmarks/BookmarksProvider";
 import { initializeMap } from "../nearby/util/mapbox/initializeMap";
 import AllAlertsCard from "./AllAlertsCard";
 import { useHomeAlerts } from "./Home";
@@ -518,18 +534,26 @@ function RecentJourneys() {
 }
 &nbsp;
 function BookmarkPreview() {
-  const stops = useSelector(selectBookmarks);
-  const routes = useSelector(routeBookmarksSelector);
+  const { stops, routes } = useBookmarks();
   const { shortcuts, error } = useBookmarkShortcuts(stops, routes);
   const quickLinks = SHORTCUTS.flatMap(({ key, kind, label }) =&gt; {
     const id = shortcuts[key];
-    const bookmark = id === undefined ? undefined : (kind === "stop" ? stops : routes)[id];
+    const bookmark =
+      id === undefined ? undefined : (kind === "stop" ? stops : routes)[id];
     return bookmark ? [{ key, kind, id, label, desc: bookmark.desc }] : [];
   });
-  const pinnedStops = new Set(quickLinks.filter(link =&gt; link.kind === "stop").map(link =&gt; link.id));
-  const pinnedRoutes = new Set(quickLinks.filter(link =&gt; link.kind === "route").map(link =&gt; link.id));
-  const stopEntries = Object.entries(stops).filter(([id]) =&gt; !pinnedStops.has(Number(id))).slice(0, 3);
-  const routeEntries = Object.values(routes).filter(route =&gt; !pinnedRoutes.has(route.route)).slice(0, 3);
+  const pinnedStops = new Set(
+    quickLinks.filter((link) =&gt; link.kind === "stop").map((link) =&gt; link.id),
+  );
+  const pinnedRoutes = new Set(
+    quickLinks.filter((link) =&gt; link.kind === "route").map((link) =&gt; link.id),
+  );
+  const stopEntries = Object.entries(stops)
+    .filter(([id]) =&gt; !pinnedStops.has(Number(id)))
+    .slice(0, 3);
+  const routeEntries = Object.values(routes)
+    .filter((route) =&gt; !pinnedRoutes.has(route.route))
+    .slice(0, 3);
   return (
     &lt;section
       className="transit-search-section"
@@ -537,12 +561,15 @@ function BookmarkPreview() {
     &gt;
       &lt;h3 id="homepage-bookmarks"&gt;Bookmarks&lt;/h3&gt;
       {error &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;p role="alert"&gt;{error}&lt;/p&gt;}</span>
-      {quickLinks.length &gt; 0 || stopEntries.length &gt; 0 || routeEntries.length &gt; 0 ? (
+      {quickLinks.length &gt; 0 ||
+      stopEntries.length &gt; 0 ||
+      routeEntries.length &gt; 0 ? (
         &lt;ul className="transit-search-list"&gt;
           {quickLinks.map(({ key, kind, id, label, desc }) =&gt; (
             &lt;li key={key}&gt;
               &lt;Link to={kind === "stop" ? `/stop/${id}` : `/lines/${id}`}&gt;
-                &lt;strong&gt;{label}:&lt;/strong&gt; {desc || (<span class="branch-1 cbranch-no" title="branch not covered" >kind === "stop" ? "Stop" : "Transit route")} </span>({id})
+                &lt;strong&gt;{label}:&lt;/strong&gt;{" "}
+                {desc || (<span class="branch-1 cbranch-no" title="branch not covered" >kind === "stop" ? "Stop" : "Transit route")} </span>({id})
               &lt;/Link&gt;
             &lt;/li&gt;
           ))}
@@ -672,7 +699,7 @@ export default function SearchHome() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-23T15:24:59.600Z
+                at 2026-11-23T16:46:53.923Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>
