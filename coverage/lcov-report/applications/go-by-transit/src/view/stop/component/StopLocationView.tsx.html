@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/stop/component</a> StopLocationView.tsx</h1>
         <div class='clearfix'>
             
@@ -418,7 +429,7 @@ interface StopAlertsState {
   error: boolean;
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >MapCard(</span>{ coordinates }: MapCardParams) {
+function <span class="fstat-no" title="function not covered" >MapCard({</span> coordinates }: MapCardParams) {
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;Card&gt;
       &lt;CardHeader as="h5"&gt;Map&lt;/CardHeader&gt;
@@ -431,7 +442,7 @@ function <span class="fstat-no" title="function not covered" >MapCard(</span>{ c
   );
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >StopLocationView(</span>props: Props) {
+export default function <span class="fstat-no" title="function not covered" >StopLocationView(p</span>rops: Props) {
   const { onBookmarkClick, stopIsBookmarked, locationId } = <span class="cstat-no" title="statement not covered" >props;</span>
   const [arrivalData, setArrivalData] = <span class="cstat-no" title="statement not covered" >useState&lt;ArrivalData&gt;(undefined);</span>
   const [alertsState, setAlertsState] = <span class="cstat-no" title="statement not covered" >useState&lt;StopAlertsState&gt;({</span>
@@ -442,23 +453,23 @@ export default function <span class="fstat-no" title="function not covered" >Sto
   });
   const [alertRefresh, setAlertRefresh] = <span class="cstat-no" title="statement not covered" >useState(0);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
     const locIDs = <span class="cstat-no" title="statement not covered" >locationId.toString(10);</span>
-<span class="cstat-no" title="statement not covered" >    getArrivals(locIDs, 45).then(<span class="fstat-no" title="function not covered" >re</span>sults =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    getArrivals(locIDs, 45).<span class="fstat-no" title="function not covered" >then(r</span>esults =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      setArrivalData(results);</span>
     });
   }, [locationId]);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
     let active = <span class="cstat-no" title="statement not covered" >true;</span>
-<span class="cstat-no" title="statement not covered" >    setAlertsState(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    setAlertsState(p</span>revious =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
       locationId,
       alerts: previous.locationId === locationId ? previous.alerts : undefined,
       loading: true,
       error: false
     }));
 <span class="cstat-no" title="statement not covered" >    getAlertsByLocationId(locationId)</span>
-      .then(<span class="fstat-no" title="function not covered" >(r</span>esult: AlertsData) =&gt; {
+      .<span class="fstat-no" title="function not covered" >then((r</span>esult: AlertsData) =&gt; {
 <span class="cstat-no" title="statement not covered" >        if (!result || !Array.isArray(result.alert)) {</span>
 <span class="cstat-no" title="statement not covered" >          throw new Error("Invalid stop alerts response");</span>
         }
@@ -466,9 +477,9 @@ export default function <span class="fstat-no" title="function not covered" >Sto
 <span class="cstat-no" title="statement not covered" >          setAlertsState({ locationId, alerts: result.alert, loading: false, error: false });</span>
         }
       })
-      .catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+      .<span class="fstat-no" title="function not covered" >catch(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        if (active) {</span>
-<span class="cstat-no" title="statement not covered" >          setAlertsState(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >          setAlertsState(p</span>revious =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
             locationId,
             alerts: previous.locationId === locationId ? previous.alerts : undefined,
             loading: false,
@@ -476,7 +487,7 @@ export default function <span class="fstat-no" title="function not covered" >Sto
           }));
         }
       });
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >      active = false;</span>
     };
   }, [locationId, alertRefresh]);
@@ -490,7 +501,7 @@ export default function <span class="fstat-no" title="function not covered" >Sto
 &nbsp;
   const location = <span class="cstat-no" title="statement not covered" >arrivalData.location[0];</span>
   const routes = <span class="cstat-no" title="statement not covered" >sortBy(</span>
-    uniq(arrivalData.arrival.map(<span class="fstat-no" title="function not covered" >ar</span>rival =&gt; <span class="cstat-no" title="statement not covered" >arrival.route)</span>)
+    uniq(arrivalData.arrival.<span class="fstat-no" title="function not covered" >map(a</span>rrival =&gt; <span class="cstat-no" title="statement not covered" >arrival.route)</span>)
   );
 &nbsp;
   const coordinates: LatLngCoords = <span class="cstat-no" title="statement not covered" >[location.lng, location.lat];</span>
@@ -514,7 +525,7 @@ export default function <span class="fstat-no" title="function not covered" >Sto
             stopId={locationId}
             loading={currentAlertsState.loading}
             error={currentAlertsState.error}
-            onRefresh={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setAlertRefresh(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>
+<span class="fstat-no" title="function not covered" >            onRefresh={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etAlertRefresh(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>
           /&gt;
         &lt;/div&gt;
         &lt;div className="transit-column transit-column-9"&gt;
@@ -538,7 +549,7 @@ export default function <span class="fstat-no" title="function not covered" >Sto
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

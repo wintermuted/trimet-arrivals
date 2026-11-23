@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/store/action</a> bookmarkSectionActions.ts</h1>
         <div class='clearfix'>
             
@@ -244,21 +255,21 @@ import {
   UPDATE_BOOKMARK_SECTION_NAME_REQUEST
 } from "../constants/bookmarkSections";
 &nbsp;
-export const sectionNameUpdateRequest = <span class="fstat-no" title="function not covered" >(n</span>ame: string) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
+export const <span class="fstat-no" title="function not covered" >sectionNameUpdateRequest = (n</span>ame: string) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
   payload: { name },
   type: BOOKMARK_SECTION_NAME_UPDATE_REQUEST
 });
 &nbsp;
-export const createBookmarkSectionRequest = <span class="fstat-no" title="function not covered" >()</span> =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
+export const <span class="fstat-no" title="function not covered" >createBookmarkSectionRequest = () =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
   type: CREATE_BOOKMARK_SECTION_REQUEST
 });
 &nbsp;
-export const removeBookmarkSectionRequest = <span class="fstat-no" title="function not covered" >(b</span>ookmarkSectionId: number) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
+export const <span class="fstat-no" title="function not covered" >removeBookmarkSectionRequest = (b</span>ookmarkSectionId: number) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
   payload: { bookmarkSectionId },
   type: REMOVE_BOOKMARK_SECTION_REQUEST
 });
 &nbsp;
-export const removeBookmarkFromSectionRequest = <span class="fstat-no" title="function not covered" >(</span>
+export const <span class="fstat-no" title="function not covered" >removeBookmarkFromSectionRequest = (</span>
   bookmarkSectionId: number,
   stopId: number
 ) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
@@ -266,7 +277,7 @@ export const removeBookmarkFromSectionRequest = <span class="fstat-no" title="fu
   type: REMOVE_BOOKMARK_FROM_SECTION_REQUEST
 });
 &nbsp;
-export const bookmarkSectionSelectRequest = <span class="fstat-no" title="function not covered" >(</span>
+export const <span class="fstat-no" title="function not covered" >bookmarkSectionSelectRequest = (</span>
   selectedBookmarkSection: number,
   stopLocation: StopLocation
 ) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
@@ -274,7 +285,7 @@ export const bookmarkSectionSelectRequest = <span class="fstat-no" title="functi
   type: BOOKMARK_SECTION_SELECT_REQUEST
 });
 &nbsp;
-export const addBookmarkToBookmarkSectionRequest = <span class="fstat-no" title="function not covered" >(</span>
+export const <span class="fstat-no" title="function not covered" >addBookmarkToBookmarkSectionRequest = (</span>
   selectedBookmarkSection: number,
   stopId: StopLocation
 ) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
@@ -282,7 +293,7 @@ export const addBookmarkToBookmarkSectionRequest = <span class="fstat-no" title=
   type: BOOKMARK_SECTION_SELECT_REQUEST
 });
 &nbsp;
-export const addRouteToBookmarkSectionRequest = <span class="fstat-no" title="function not covered" >(</span>
+export const <span class="fstat-no" title="function not covered" >addRouteToBookmarkSectionRequest = (</span>
   bookmarkSectionId: number,
   routeId: number
 ) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
@@ -290,7 +301,7 @@ export const addRouteToBookmarkSectionRequest = <span class="fstat-no" title="fu
   type: ADD_ROUTE_TO_BOOKMARK_SECTION_REQUEST
 });
 &nbsp;
-export const removeRouteFromBookmarkSectionRequest = <span class="fstat-no" title="function not covered" >(</span>
+export const <span class="fstat-no" title="function not covered" >removeRouteFromBookmarkSectionRequest = (</span>
   bookmarkSectionId: number,
   routeId: number
 ) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
@@ -298,14 +309,14 @@ export const removeRouteFromBookmarkSectionRequest = <span class="fstat-no" titl
   type: REMOVE_ROUTE_FROM_BOOKMARK_SECTION_REQUEST
 });
 &nbsp;
-export const removeAllBookmarksInSectionRequest = <span class="fstat-no" title="function not covered" >(</span>
+export const <span class="fstat-no" title="function not covered" >removeAllBookmarksInSectionRequest = (</span>
   bookmarkSectionId: number
 ) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
   payload: { bookmarkSectionId },
   type: REMOVE_ALL_BOOKMARKS_IN_SECTION_REQUEST
 });
 &nbsp;
-export const updateBookmarkSectionNameRequest = <span class="fstat-no" title="function not covered" >(</span>
+export const <span class="fstat-no" title="function not covered" >updateBookmarkSectionNameRequest = (</span>
   bookmarkSectionId: number,
   bookmarkSectionName: string
 ) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
@@ -322,7 +333,7 @@ export const updateBookmarkSectionNameRequest = <span class="fstat-no" title="fu
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

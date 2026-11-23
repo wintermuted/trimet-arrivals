@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearbyStops/components</a> ReloadIntervalCoordinator.tsx</h1>
         <div class='clearfix'>
             
@@ -30,9 +41,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">30.76% </span>
+                <span class="strong">38.46% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/13</span>
+                <span class='fraction'>5/13</span>
             </div>
         
             
@@ -321,7 +332,7 @@ export default class ReloadIntervalCoordinator extends React.Component&lt;
       interval: 30
     };
 &nbsp;
-    this.onClick = <span class="fstat-no" title="function not covered" >(e</span>: Event) =&gt; <span class="cstat-no" title="statement not covered" >this.onReloadClick(e);</span>
+    this.<span class="fstat-no" title="function not covered" >onClick = (e</span>: Event) =&gt; <span class="cstat-no" title="statement not covered" >this.onReloadClick(e);</span>
   }
 &nbsp;
   public componentDidMount() {
@@ -340,7 +351,7 @@ export default class ReloadIntervalCoordinator extends React.Component&lt;
     }
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  pu</span>blic onInterval() {
+<span class="fstat-no" title="function not covered" >  public o</span>nInterval() {
     const { interval } = <span class="cstat-no" title="statement not covered" >this.state;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (interval === 0) {</span>
@@ -350,22 +361,22 @@ export default class ReloadIntervalCoordinator extends React.Component&lt;
     }
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  pu</span>blic setNewInterval() {
-<span class="cstat-no" title="statement not covered" >    this.refreshInterval = window.setInterval(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >this.onInterval(),</span> ONE_SECOND);</span>
+<span class="fstat-no" title="function not covered" >  public s</span>etNewInterval() {
+<span class="cstat-no" title="statement not covered" >    this.refreshInterval = window.<span class="fstat-no" title="function not covered" >setInterval(() =&gt; <span class="cstat-no" title="statement not covered" >t</span>his.onInterval(), O</span>NE_SECOND);</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  pu</span>blic clearIntervalListener() {
+<span class="fstat-no" title="function not covered" >  public c</span>learIntervalListener() {
 <span class="cstat-no" title="statement not covered" >    if (this.refreshInterval) {</span>
 <span class="cstat-no" title="statement not covered" >      window.clearInterval(this.refreshInterval);</span>
     }
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  pu</span>blic resetLoadCounter() {
+<span class="fstat-no" title="function not covered" >  public r</span>esetLoadCounter() {
 <span class="cstat-no" title="statement not covered" >    this.clearIntervalListener();</span>
 <span class="cstat-no" title="statement not covered" >    this.setState({ interval: THIRTY });</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  pu</span>blic loadData() {
+<span class="fstat-no" title="function not covered" >  public l</span>oadData() {
     const { loadArrivalData, stopLocation } = <span class="cstat-no" title="statement not covered" >this.props;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    this.resetLoadCounter();</span>
@@ -373,13 +384,13 @@ export default class ReloadIntervalCoordinator extends React.Component&lt;
 <span class="cstat-no" title="statement not covered" >    loadArrivalData(stopLocation.locid);</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  pu</span>blic onReloadClick(e: Event): void {
+<span class="fstat-no" title="function not covered" >  public o</span>nReloadClick(e: Event): void {
 <span class="cstat-no" title="statement not covered" >    e.preventDefault();</span>
 <span class="cstat-no" title="statement not covered" >    this.loadData();</span>
   }
 &nbsp;
   public render() {
-    const { stopLocation, loading, showArrivals = <span class="branch-0 cbranch-no" title="branch not covered" >true </span>} = this.props;
+    const { stopLocation, loading, showArrivals = true } = this.props;
 &nbsp;
     <span class="missing-if-branch" title="if path not taken" >I</span>if (!stopLocation) {
 <span class="cstat-no" title="statement not covered" >      return null;</span>
@@ -403,7 +414,7 @@ export default class ReloadIntervalCoordinator extends React.Component&lt;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

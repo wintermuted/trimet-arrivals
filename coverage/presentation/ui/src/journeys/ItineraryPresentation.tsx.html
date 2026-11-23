@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../index.html">All files</a> / <a href="index.html">presentation/ui/src/journeys</a> ItineraryPresentation.tsx</h1>
         <div class='clearfix'>
             
@@ -30,9 +41,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.84% </span>
+                <span class="strong">90.14% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>129/142</span>
+                <span class='fraction'>128/142</span>
             </div>
         
             
@@ -397,7 +408,7 @@
 <span class="cline-any cline-yes">57x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">92x</span>
-<span class="cline-any cline-yes">92x</span>
+<span class="cline-any cline-yes">149x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -613,7 +624,7 @@
 <span class="cline-any cline-yes">505x</span>
 <span class="cline-any cline-yes">505x</span>
 <span class="cline-any cline-yes">296x</span>
-<span class="cline-any cline-yes">296x</span>
+<span class="cline-any cline-yes">505x</span>
 <span class="cline-any cline-yes">264x</span>
 <span class="cline-any cline-yes">232x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -672,7 +683,7 @@ export type TransitLegColor = (leg: TripPlannerLeg) =&gt; string;
 &nbsp;
 function formatStop(location?: TripPlannerLeg["from"]): string {
   if (!location?.description) {
-    return location?.stopId ? <span class="branch-0 cbranch-no" title="branch not covered" >`Stop ${location.stopId}` </span>: "Stop information unavailable";
+    return location?.stopId ? <span class="branch-0 cbranch-no" title="branch not covered" >`Stop ${location.stopId}` : "</span>Stop information unavailable";
   }
   return location.stopId
     ? `${location.description} (${location.stopId})`
@@ -750,7 +761,7 @@ export function JourneyDirections({ itinerary, headingRef, transitColor }: {
                 &lt;h3&gt;&lt;LegIcon leg={leg} transitColor={transitColor} /&gt;{legTitle(leg)}&lt;/h3&gt;
                 {!walking &amp;&amp; direction &amp;&amp; &lt;p className="transit-planner-leg-time"&gt;Direction: {direction}&lt;/p&gt;}
                 &lt;dl&gt;
-                  &lt;dt&gt;{walking ? "Start walking" : hasRoute ? "Board at" : <span class="branch-1 cbranch-no" title="branch not covered" >"Start at"}</span>&lt;/dt&gt;
+                  &lt;dt&gt;{walking ? "Start walking" : hasRoute ? "Board at" : <span class="branch-1 cbranch-no" title="branch not covered" >"Start at"}&lt;/dt&gt;</span>
                   &lt;dd&gt;{formatStop(leg.from)}&lt;span&gt;{leg.startTime ?? "Time unavailable"}&lt;/span&gt;&lt;/dd&gt;
                   &lt;dt&gt;{hasRoute ? "Get off at" : "Arrive at"}&lt;/dt&gt;
                   &lt;dd&gt;{formatStop(leg.to)}&lt;span&gt;{leg.endTime ?? "Time unavailable"}&lt;/span&gt;&lt;/dd&gt;
@@ -867,7 +878,7 @@ export function ItineraryDetails({
                 onPointerEnter={highlight ? event =&gt; {
                   <span class="missing-if-branch" title="if path not taken" >I</span>if (event.pointerType !== "touch") <span class="cstat-no" title="statement not covered" >highlight.onHover(legIndex);</span>
                 } : undefined}
-                onPointerLeave={highlight ? <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >highlight.onHover() </span>: undefined}
+                onPointerLeave={<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >highlight ? () =&gt; <span class="cstat-no" title="statement not covered" >h</span>ighlight.onHover() : u</span></span>ndefined}
                 onFocus={highlight ? () =&gt; highlight.onFocus(legIndex) : undefined}
                 onBlur={highlight ? () =&gt; highlight.onFocus() : undefined}
               &gt;
@@ -916,7 +927,7 @@ function optionLegLabel(leg: TripPlannerLeg) {
   if (mode?.toLowerCase() === "bus" &amp;&amp; number &amp;&amp; /^\d+$/.test(number) &amp;&amp; !/^FX\b/i.test(name || "")) {
     return `Bus ${number}`;
   }
-  return name || <span class="branch-1 cbranch-no" title="branch not covered" >[mode, number].filter(Boolean).join(" ") </span>|| <span class="branch-2 cbranch-no" title="branch not covered" >"Leg details unavailable";</span>
+  return name || <span class="branch-1 cbranch-no" title="branch not covered" >[mode, number].filter(Boolean).join(" ") || <span class="branch-2 cbranch-no" title="branch not covered" >"</span>Leg details unavailable";</span>
 }
 &nbsp;
 export function TripOptionSummary({ itinerary, index, current, transitColor }: {
@@ -927,7 +938,7 @@ export function TripOptionSummary({ itinerary, index, current, transitColor }: {
 }) {
   const { startTime, endTime, duration, numberOfTransfers, legs } = itinerary;
   const schedule = startTime &amp;&amp; endTime ? `${startTime} to ${endTime}`
-    : startTime ? <span class="branch-0 cbranch-no" title="branch not covered" >`Departs ${startTime}` </span>: endTime ? `Arrives ${endTime}` : "Times unavailable";
+    : startTime ? <span class="branch-0 cbranch-no" title="branch not covered" >`Departs ${startTime}` : e</span>ndTime ? `Arrives ${endTime}` : "Times unavailable";
   return (
     &lt;&gt;
       &lt;span className="transit-planner-option-timing"&gt;
@@ -967,7 +978,7 @@ export function TripOptionSummary({ itinerary, index, current, transitColor }: {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

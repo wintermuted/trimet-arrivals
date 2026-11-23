@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../sort-arrow-sprite.png);
@@ -19,20 +20,30 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/tripPlanner</a> TripPlannerView.tsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">89.75% </span>
+                <span class="strong">90.36% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>298/332</span>
+                <span class='fraction'>300/332</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.02% </span>
+                <span class="strong">90.49% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>379/421</span>
+                <span class='fraction'>381/421</span>
             </div>
         
             
@@ -44,9 +55,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.75% </span>
+                <span class="strong">91.41% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>275/303</span>
+                <span class='fraction'>277/303</span>
             </div>
         
             
@@ -1078,12 +1089,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">55x</span>
-<span class="cline-any cline-yes">55x</span>
-<span class="cline-any cline-yes">55x</span>
+<span class="cline-any cline-yes">99x</span>
+<span class="cline-any cline-yes">99x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">55x</span>
+<span class="cline-any cline-yes">99x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">55x</span>
+<span class="cline-any cline-yes">99x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1139,7 +1150,7 @@
 <span class="cline-any cline-yes">22x</span>
 <span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1154,7 +1165,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-yes">99x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1273,8 +1284,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1808,9 +1819,9 @@ export function ConnectedTripPlannerView(props: TripPlannerProps) {
   const { shortcuts, error } = useBookmarkShortcuts(bookmarks);
   const savedStops = SHORTCUTS.flatMap(({ key, kind, label }) =&gt; {
     const id = shortcuts[key];
-    return kind === "stop" &amp;&amp; id !== undefined &amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >bookmarks[id] </span>? <span class="branch-0 cbranch-no" title="branch not covered" >[{ id, label }] </span>: [];
+    return kind === "stop" &amp;&amp; id !== undefined &amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >bookmarks[id] ? <span class="branch-0 cbranch-no" title="branch not covered" >[</span>{ id, label }] : [</span>];
   });
-  return &lt;&gt;{error &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;p role="alert"&gt;{error}&lt;/p&gt;}</span>&lt;TripPlannerView {...props} savedStops={savedStops} /&gt;&lt;/&gt;;
+  return &lt;&gt;{error &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;p role="alert"&gt;{error}&lt;/p&gt;}&lt;T</span>ripPlannerView {...props} savedStops={savedStops} /&gt;&lt;/&gt;;
 }
 &nbsp;
 export default function TripPlannerView({ inSidebar = false, directionsFooter, renderMapStatus, renderPlaceDestination, savedStops }: TripPlannerProps) {
@@ -2071,7 +2082,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
 &nbsp;
     focusStopSummary.current = true;
     const params = { ...endpointParams(from, "from"), ...endpointParams(to, "to"),
-      ...(searchParams.get("placesView") ? <span class="branch-0 cbranch-no" title="branch not covered" >{ placesView: searchParams.get("placesView") } </span>: {}) };
+      ...(searchParams.get("placesView") ? <span class="branch-0 cbranch-no" title="branch not covered" >{ placesView: searchParams.get("placesView") } : {</span>}) };
     if (new URLSearchParams(params).toString() === searchParams.toString()) {
       setTripRetry(value =&gt; value + 1);
     } else {
@@ -2100,17 +2111,17 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
     focusStopSummary.current = true;
     const { from, to } = journey;
     const params = { from: String(from.locid), to: String(to.locid) };
-    <span class="missing-if-branch" title="else path not taken" >E</span>if (params.from !== fromParam || <span class="branch-1 cbranch-no" title="branch not covered" >params.to !== toParam </span>|| <span class="branch-2 cbranch-no" title="branch not covered" >fromLinkedLocation !== null </span>|| <span class="branch-3 cbranch-no" title="branch not covered" >toLinkedLocation !== null)</span> {
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (params.from !== fromParam || <span class="branch-1 cbranch-no" title="branch not covered" >params.to !== toParam || <span class="branch-2 cbranch-no" title="branch not covered" >f</span>romLinkedLocation !== null || <span class="branch-3 cbranch-no" title="branch not covered" >t</span>oLinkedLocation !== null) {</span>
       setSearchParams(params);
       return;
     }
-    const origin = <span class="cstat-no" title="statement not covered" >catalog?.stops.find(<span class="fstat-no" title="function not covered" >st</span>op =&gt; <span class="cstat-no" title="statement not covered" >stop.locid === from.locid)</span>;</span>
-    const destination = <span class="cstat-no" title="statement not covered" >catalog?.stops.find(<span class="fstat-no" title="function not covered" >st</span>op =&gt; <span class="cstat-no" title="statement not covered" >stop.locid === to.locid)</span>;</span>
-<span class="cstat-no" title="statement not covered" >    if (origin &amp;&amp; destination) {</span>
+    const origin = <span class="cstat-no" title="statement not covered" >catalog?.stops.<span class="fstat-no" title="function not covered" >find(s</span>top =&gt; <span class="cstat-no" title="statement not covered" >stop.locid === from.locid)</span>;</span>
+    const destination = catalog?.stops.<span class="fstat-no" title="function not covered" >find(s</span>top =&gt; <span class="cstat-no" title="statement not covered" >stop.locid === to.locid)</span>;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (origin &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >destination) {</span>
 <span class="cstat-no" title="statement not covered" >      chooseStop(origin, "from");</span>
 <span class="cstat-no" title="statement not covered" >      chooseStop(destination, "to");</span>
     }
-<span class="cstat-no" title="statement not covered" >    setTripRetry(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>;</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    setTripRetry(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>;</span>
   }
 &nbsp;
   function renderStopField(field: "from" | "to") {
@@ -2172,7 +2183,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
             &lt;p className="transit-planner-select-hint" id={`${id}-hint`}&gt;
               Try a street address without city or state, a place name, or longitude, latitude.
             &lt;/p&gt;
-            &lt;Button type="button" size="sm" variant="secondary" className="transit-planner-mode-button" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+            &lt;Button type="button" size="sm" variant="secondary" className="transit-planner-mode-button" <span class="fstat-no" title="function not covered" >onClick={() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >              cancelLocationLookup();</span>
 <span class="cstat-no" title="statement not covered" >              pendingEndpointFocus.current = field;</span>
 <span class="cstat-no" title="statement not covered" >              setLocation(undefined);</span>
@@ -2182,7 +2193,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
           &lt;/div&gt;
         ) : &lt;&gt;
         &lt;Button type="button" size="sm" variant="secondary" className="transit-planner-mode-button transit-planner-location-toggle"
-          onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+<span class="fstat-no" title="function not covered" >          onClick={() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            cancelLocationLookup();</span>
 <span class="cstat-no" title="statement not covered" >            pendingEndpointFocus.current = field;</span>
 <span class="cstat-no" title="statement not covered" >            setLocation("");</span>
@@ -2304,8 +2315,8 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
         {confirmPlace &amp;&amp; (fromNamedPlace || toNamedPlace) &amp;&amp; &lt;p role="status" className="transit-planner-message"&gt;
           Confirm the approximate arrival point below, or enter a public entrance address. Finding trips does not verify public access.
           {searchParams.get("fromOrigin") === "device" ? " Origin uses your previously selected device location, not live tracking." :
-            searchParams.get("fromOrigin") === "area" ? <span class="branch-0 cbranch-no" title="branch not covered" >" Origin uses your previously selected map search center." </span>:
-              searchParams.get("fromOrigin") === "pin" ? <span class="branch-0 cbranch-no" title="branch not covered" >" Origin uses your previously dropped pin." </span>: ""}
+            searchParams.get("fromOrigin") === "area" ? <span class="branch-0 cbranch-no" title="branch not covered" >" Origin uses your previously selected map search center." :</span>
+              searchParams.get("fromOrigin") === "pin" ? <span class="branch-0 cbranch-no" title="branch not covered" >" Origin uses your previously dropped pin." : "</span>"}
         &lt;/p&gt;}
 &nbsp;
         {recentTrips?.unavailable ? (
@@ -2338,7 +2349,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
 &nbsp;
         {catalogState.loading &amp;&amp; (
           &lt;p role="status"&gt;
-            {catalog ? <span class="branch-0 cbranch-no" title="branch not covered" >"Refreshing stops…" </span>: "Loading TriMet stops…"}
+            {catalog ? <span class="branch-0 cbranch-no" title="branch not covered" >"Refreshing stops…" : "</span>Loading TriMet stops…"}
           &lt;/p&gt;
         )}
         {catalogState.error &amp;&amp; (
@@ -2404,7 +2415,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
       {(fromPlaceId || toPlaceId) &amp;&amp; PLACE_CATEGORIES.map(category =&gt; placeCatalog.sources[category].error &amp;&amp; (
         &lt;p role="alert" key={category}&gt;
           Could not load {categoryName(category).toLowerCase()}.{" "}
-          &lt;Button size="sm" variant="secondary" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >placeCatalog.retry(category)}</span>&gt;Retry loading places&lt;/Button&gt;
+          &lt;Button size="sm" variant="secondary" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >p</span>laceCatalog.retry(category)}&gt;R</span>etry loading places&lt;/Button&gt;
         &lt;/p&gt;
       ))}
 &nbsp;
@@ -2566,7 +2577,7 @@ export default function TripPlannerView({ inSidebar = false, directionsFooter, r
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

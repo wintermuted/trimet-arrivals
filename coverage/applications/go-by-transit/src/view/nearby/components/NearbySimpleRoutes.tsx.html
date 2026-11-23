@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearby/components</a> NearbySimpleRoutes.tsx</h1>
         <div class='clearfix'>
             
@@ -868,7 +879,7 @@
 <span class="cline-any cline-yes">292x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">304x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -919,8 +930,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">152x</span>
@@ -1028,8 +1039,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">82x</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">100x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1502,9 +1513,9 @@ function ExploreRouteBadge({ route }: { route: TrimetRoute }) {
     &lt;Badge className="transit-explore-route-badge" style={color ? {
       borderColor: color,
       backgroundColor: `color-mix(in srgb, ${color} 12%, var(--wm-color-surface-solid))`
-    } : <span class="branch-1 cbranch-no" title="branch not covered" >undefined}</span>&gt;
+    } : <span class="branch-1 cbranch-no" title="branch not covered" >undefined}&gt;</span>
       {mode &amp;&amp; &lt;FontAwesomeIcon icon={SERVICE_ICONS[mode]} aria-hidden="true" /&gt;}
-      &lt;span className="wm-sr-only"&gt;{isFx ? <span class="branch-0 cbranch-no" title="branch not covered" >"FX bus" </span>: mode ? `${mode} route` : <span class="branch-1 cbranch-no" title="branch not covered" >"Route"}</span> &lt;/span&gt;
+      &lt;span className="wm-sr-only"&gt;{isFx ? <span class="branch-0 cbranch-no" title="branch not covered" >"FX bus" : m</span>ode ? `${mode} route` : <span class="branch-1 cbranch-no" title="branch not covered" >"Route"} </span>&lt;/span&gt;
       &lt;strong&gt;{route.route}&lt;/strong&gt;
     &lt;/Badge&gt;
   );
@@ -1578,7 +1589,7 @@ export function getRouteArrivals(
   currentLocation: number[],
   walkingEstimates?: ReadonlyMap&lt;number, WalkingEstimate&gt;
 ): RouteStructure[] {
-  const arrivalsByLocation = groupBy(arrivalData?.arrival || <span class="branch-1 cbranch-no" title="branch not covered" >[],</span> "locid");
+  const arrivalsByLocation = groupBy(arrivalData?.arrival || <span class="branch-1 cbranch-no" title="branch not covered" >[], "</span>locid");
   const routeDirections = new Map&lt;
     string,
     {
@@ -1589,13 +1600,13 @@ export function getRouteArrivals(
   &gt;();
   const locationIsAvailable = hasCurrentLocation(currentLocation);
 &nbsp;
-  each(nearbyStops?.location || <span class="branch-1 cbranch-no" title="branch not covered" >[],</span> (stop: StopLocation) =&gt; {
+  each(nearbyStops?.location || <span class="branch-1 cbranch-no" title="branch not covered" >[], (s</span>top: StopLocation) =&gt; {
     <span class="missing-if-branch" title="if path not taken" >I</span>if (stop.locid == null) {
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
 &nbsp;
-    each(stop.route || <span class="branch-1 cbranch-no" title="branch not covered" >[],</span> (route: TrimetRoute) =&gt; {
-      each(route.dir || <span class="branch-1 cbranch-no" title="branch not covered" >[],</span> (direction: Direction) =&gt; {
+    each(stop.route || <span class="branch-1 cbranch-no" title="branch not covered" >[], (r</span>oute: TrimetRoute) =&gt; {
+      each(route.dir || <span class="branch-1 cbranch-no" title="branch not covered" >[], (d</span>irection: Direction) =&gt; {
         const key = `${route.route}-${direction.dir}`;
         let routeDirection = routeDirections.get(key);
         if (!routeDirection) {
@@ -1611,9 +1622,9 @@ export function getRouteArrivals(
           arrivalsByLocation[stop.locid],
           (arrival: Arrival) =&gt;
             arrival.route === route.route &amp;&amp; arrival.dir === direction.dir
-        ).sort(
-<span class="fstat-no" title="function not covered" >          (a</span>, b) =&gt;
-<span class="cstat-no" title="statement not covered" >            (getArrivalTime(a) ?? Infinity) - (getArrivalTime(b) ?? Infinity)</span>
+        ).<span class="fstat-no" title="function not covered" >sort(</span>
+          (a, <span class="cstat-no" title="statement not covered" >b) =&gt;</span>
+            (getArrivalTime(a) ?? Infinity) - (getArrivalTime(b) ?? Infinity)
         );
         const stopHasCoordinates =
           Number.isFinite(stop.lng) &amp;&amp; Number.isFinite(stop.lat);
@@ -1714,7 +1725,7 @@ export default function NearbySimpleRoutes({
     "arrival"
   );
   const { clearHighlight, focusStop, hoverStop } = useStopHighlight(onStopHighlightChanged);
-  const walking = useWalkingEstimates(currentLocation, nearbyStops?.location ?? <span class="branch-1 cbranch-no" title="branch not covered" >[],</span> walkingEnabled);
+  const walking = useWalkingEstimates(currentLocation, nearbyStops?.location ?? <span class="branch-1 cbranch-no" title="branch not covered" >[], w</span>alkingEnabled);
 &nbsp;
   useEffect(() =&gt; {
     clearHighlight();
@@ -1809,7 +1820,7 @@ export default function NearbySimpleRoutes({
       group.options.map((option) =&gt; option.value)
     )
   );
-  const activeFilterValues = selectedFilterValues.filter(<span class="fstat-no" title="function not covered" >(v</span>alue) =&gt;
+  const activeFilterValues = selectedFilterValues.<span class="fstat-no" title="function not covered" >filter((v</span>alue) =&gt;
 <span class="cstat-no" title="statement not covered" >    availableFilterValues.has(value)</span>
   );
   const filteredRoutes = filterRouteStructures(
@@ -1856,13 +1867,13 @@ export default function NearbySimpleRoutes({
       );
     });
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >handleFilterChange(</span>selected: readonly FilterOption[]) {
-<span class="cstat-no" title="statement not covered" >    setSelectedFilterValues(selected.map(<span class="fstat-no" title="function not covered" >(o</span>ption) =&gt; <span class="cstat-no" title="statement not covered" >option.value)</span>);</span>
+  function <span class="fstat-no" title="function not covered" >handleFilterChange(s</span>elected: readonly FilterOption[]) {
+<span class="cstat-no" title="statement not covered" >    setSelectedFilterValues(selected.<span class="fstat-no" title="function not covered" >map((o</span>ption) =&gt; <span class="cstat-no" title="statement not covered" >option.value)</span>);</span>
   }
 &nbsp;
   function handleSortChange(event: React.ChangeEvent&lt;HTMLSelectElement&gt;) {
     const value = event.currentTarget.value;
-    <span class="missing-if-branch" title="else path not taken" >E</span>if (value === "arrival" || value === "distance" || <span class="branch-2 cbranch-no" title="branch not covered" >value === "route")</span> {
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (value === "arrival" || value === "distance" || <span class="branch-2 cbranch-no" title="branch not covered" >value === "route") {</span>
       setSortBy(value);
     }
   }
@@ -1871,7 +1882,7 @@ export default function NearbySimpleRoutes({
     setRetryCount((count) =&gt; count + 1);
   }
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >handleClearFilters(</span>) {
+  function <span class="fstat-no" title="function not covered" >handleClearFilters() {</span>
 <span class="cstat-no" title="statement not covered" >    setSelectedFilterValues([]);</span>
   }
 &nbsp;
@@ -1900,7 +1911,7 @@ export default function NearbySimpleRoutes({
       /&gt;
     )}
     {invalidRoute &amp;&amp; (
-      &lt;section className="transit-destination-panel" aria-label="Route details" onKeyDown={<span class="fstat-no" title="function not covered" >(e</span>vent) =&gt; {
+      &lt;section className="transit-destination-panel" aria-label="Route details" <span class="fstat-no" title="function not covered" >onKeyDown={(e</span>vent) =&gt; {
 <span class="cstat-no" title="statement not covered" >        if (event.key === "Escape") {</span>
 <span class="cstat-no" title="statement not covered" >          event.preventDefault();</span>
 <span class="cstat-no" title="statement not covered" >          event.stopPropagation();</span>
@@ -1979,7 +1990,7 @@ export default function NearbySimpleRoutes({
                 sortBy === "arrival"
                   ? "Soonest arrival"
                   : sortBy === "distance"
-                    ? `Nearest stop (${walkingEnabled ? <span class="branch-0 cbranch-no" title="branch not covered" >"walking" </span>: "straight-line"})`
+                    ? `Nearest stop (${walkingEnabled ? <span class="branch-0 cbranch-no" title="branch not covered" >"walking" : "</span>straight-line"})`
                     : <span class="branch-1 cbranch-no" title="branch not covered" >"Route number"</span>
               }`}
               label="Route sorting"
@@ -2149,7 +2160,7 @@ export default function NearbySimpleRoutes({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

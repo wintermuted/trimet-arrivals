@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../index.html">All files</a> / <a href="index.html">geography/maps/src/places</a> LineOverlayMap.tsx</h1>
         <div class='clearfix'>
             
@@ -30,9 +41,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">67.74% </span>
+                <span class="strong">70.96% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>21/31</span>
+                <span class='fraction'>22/31</span>
             </div>
         
             
@@ -157,7 +168,7 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -208,10 +219,10 @@ export default function LineOverlayMap({ map, snapshot, onError }: {
     const category = snapshot.category;
     const source = lineOverlaySource(category);
     const layerIds = [source + "-halo", source + "-line",
-      ...(category === "recommended-bike-routes" ? [source + "-caution"] : <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>];
+      ...(category === "recommended-bike-routes" ? [source + "-caution"] : <span class="branch-1 cbranch-no" title="branch not covered" >[])]</span>;
     const width = (padding = 0): ExpressionSpecification =&gt; ["interpolate", ["linear"], ["zoom"],
-      9, 1 + padding, 14, (category === "bicycle-network" ? <span class="branch-0 cbranch-no" title="branch not covered" >4 </span>: 2.5) + padding,
-      18, (category === "bicycle-network" ? <span class="branch-0 cbranch-no" title="branch not covered" >7 </span>: 5) + padding];
+      9, 1 + padding, 14, (category === "bicycle-network" ? <span class="branch-0 cbranch-no" title="branch not covered" >4 : 2</span>.5) + padding,
+      18, (category === "bicycle-network" ? <span class="branch-0 cbranch-no" title="branch not covered" >7 : 5</span>) + padding];
     function install() {
       try {
         <span class="missing-if-branch" title="else path not taken" >E</span>if (!map.getSource(source)) map.addSource(source, {
@@ -219,10 +230,10 @@ export default function LineOverlayMap({ map, snapshot, onError }: {
           attribution: snapshot.source
         });
         const order: LineOverlayCategory[] = ["bicycle-network", "park-trails", "recommended-bike-routes"];
-        const next = order.slice(order.indexOf(category) + 1).map(<span class="fstat-no" title="function not covered" >it</span>em =&gt; <span class="cstat-no" title="statement not covered" >lineOverlaySource(item) + "-halo")</span>
-          .find(<span class="fstat-no" title="function not covered" >id</span> =&gt; <span class="cstat-no" title="statement not covered" >map.getLayer(id))</span>;
+        const next = order.slice(order.indexOf(category) + 1).<span class="fstat-no" title="function not covered" >map(i</span>tem =&gt; <span class="cstat-no" title="statement not covered" >lineOverlaySource(item) + "-halo")</span>
+          .<span class="fstat-no" title="function not covered" >find(i</span>d =&gt; <span class="cstat-no" title="statement not covered" >map.getLayer(id))</span>;
         const before = next || map.getStyle()?.layers?.find(layer =&gt; layer.id === "nearby-trip-corridor" || layer.id.startsWith("nearby-places-"))?.id;
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (!map.getLayer(layerIds[0])) map.addLayer({
+        if (!map.getLayer(layerIds[0])) map.addLayer({
           id: layerIds[0], type: "line", source,
           paint: { "line-color": "#ffffff", "line-opacity": 0.75,
             "line-width": width(2), "line-emissive-strength": 1 }
@@ -231,7 +242,7 @@ export default function LineOverlayMap({ map, snapshot, onError }: {
           id: layerIds[1], type: "line", source, filter: ["==", ["get", "kind"], "standard"],
           paint: { "line-color": LINE_OVERLAY_INFO[category].color,
             "line-width": width(), "line-emissive-strength": 1,
-            ...(category === "park-trails" ? <span class="branch-0 cbranch-no" title="branch not covered" >{ "line-dasharray": [2, 1.5] } </span>: {}) }
+            ...(category === "park-trails" ? <span class="branch-0 cbranch-no" title="branch not covered" >{ "line-dasharray": [2, 1.5] } : {</span>}) }
         }, before);
         <span class="missing-if-branch" title="else path not taken" >E</span>if (category === "recommended-bike-routes" &amp;&amp; !map.getLayer(layerIds[2])) map.addLayer({
           id: layerIds[2], type: "line", source, filter: ["==", ["get", "kind"], "caution"],
@@ -265,7 +276,7 @@ export default function LineOverlayMap({ map, snapshot, onError }: {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

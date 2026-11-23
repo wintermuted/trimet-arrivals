@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearby/components</a> NearbyDiscoveryControls.tsx</h1>
         <div class='clearfix'>
             
@@ -266,11 +277,11 @@ export default function NearbyDiscoveryControls({ view, onPreset, shareHref, vie
     &lt;/label&gt;
     &lt;div className="transit-places-discovery-actions"&gt;
       &lt;Button size="sm" variant="secondary" onClick={() =&gt; void copy()}&gt;Copy view link&lt;/Button&gt;
-      &lt;Button size="sm" variant="ghost" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >onPreset("default")}</span>&gt;Reset filters&lt;/Button&gt;
+      &lt;Button size="sm" variant="ghost" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nPreset("default")}&gt;R</span>eset filters&lt;/Button&gt;
     &lt;/div&gt;
     {share &amp;&amp; &lt;div&gt;
       &lt;p role="status"&gt;{share.copied ? "View link copied." : "The link could not be copied. Select and copy it below."}&lt;/p&gt;
-      {!share.copied &amp;&amp; &lt;label&gt;View link&lt;input className="wm-input" readOnly value={share.href} onFocus={<span class="fstat-no" title="function not covered" >ev</span>ent =&gt; <span class="cstat-no" title="statement not covered" >event.target.select()}</span> /&gt;&lt;/label&gt;}
+      {!share.copied &amp;&amp; &lt;label&gt;View link&lt;input className="wm-input" readOnly value={share.href} <span class="fstat-no" title="function not covered" >onFocus={e</span>vent =&gt; <span class="cstat-no" title="statement not covered" >event.target.select()} /&gt;</span>&lt;/label&gt;}
       &lt;p&gt;Links include categories, layers, search and map position, not saved places or your current trip.&lt;/p&gt;
     &lt;/div&gt;}
     &lt;label className="transit-places-category"&gt;
@@ -280,13 +291,13 @@ export default function NearbyDiscoveryControls({ view, onPreset, shareHref, vie
     {savedOnly &amp;&amp; &lt;p&gt;Saved on this device. Shows matching saved places across Portland, not just this map area. Category and search filters still apply.&lt;/p&gt;}
     {savedOnly &amp;&amp; unavailable.length &gt; 0 &amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >&lt;section aria-label="Unavailable saved places"&gt;</span>
       &lt;p&gt;These saved places are no longer in the current catalog:&lt;/p&gt;
-      &lt;ul&gt;{unavailable.map(<span class="fstat-no" title="function not covered" >([</span>id, name]) =&gt; <span class="cstat-no" title="statement not covered" >&lt;li key={id}&gt;{name}{" "}</span>
-        &lt;Button size="sm" variant="ghost" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >savedPlaces.remove(id)}</span>&gt;Remove {name}&lt;/Button&gt;
+      &lt;ul&gt;{unavailable.<span class="fstat-no" title="function not covered" >map(([</span>id, name]) =&gt; <span class="cstat-no" title="statement not covered" >&lt;li key={id}&gt;{name}{" "}</span>
+        &lt;Button size="sm" variant="ghost" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>avedPlaces.remove(id)}&gt;R</span>emove {name}&lt;/Button&gt;
       &lt;/li&gt;)}&lt;/ul&gt;
     &lt;/section&gt;}
     {trip ? &lt;div className="transit-places-trip-filter"&gt;
       &lt;label className="transit-places-category"&gt;
-        &lt;input type="checkbox" checked={alongTrip} onChange={<span class="fstat-no" title="function not covered" >ev</span>ent =&gt; <span class="cstat-no" title="statement not covered" >onAlongTrip(event.target.checked)}</span> /&gt;
+        &lt;input type="checkbox" checked={alongTrip} <span class="fstat-no" title="function not covered" >onChange={e</span>vent =&gt; <span class="cstat-no" title="statement not covered" >onAlongTrip(event.target.checked)} /&gt;</span>
         Places along my trip
       &lt;/label&gt;
       {alongTrip &amp;&amp; &lt;label&gt;Distance from mapped trip
@@ -307,7 +318,7 @@ export default function NearbyDiscoveryControls({ view, onPreset, shareHref, vie
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

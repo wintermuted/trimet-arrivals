@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/lines/component</a> AllLines.tsx</h1>
         <div class='clearfix'>
             
@@ -306,12 +317,12 @@ enum ROUTE_TYPE {
   RAIL = "R"
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getBusLines(</span>routes: RouteDataDictionary): TrimetRoute[] {
-<span class="cstat-no" title="statement not covered" >  return filter(routes, <span class="fstat-no" title="function not covered" >ro</span>ute =&gt; <span class="cstat-no" title="statement not covered" >route.type === ROUTE_TYPE.BUS)</span>;</span>
+export function <span class="fstat-no" title="function not covered" >getBusLines(r</span>outes: RouteDataDictionary): TrimetRoute[] {
+<span class="cstat-no" title="statement not covered" >  return filter(<span class="fstat-no" title="function not covered" >routes, r</span>oute =&gt; <span class="cstat-no" title="statement not covered" >route.type === ROUTE_TYPE.BUS)</span>;</span>
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getMaxLines(</span>routes: RouteDataDictionary): TrimetRoute[] {
-<span class="cstat-no" title="statement not covered" >  return filter(routes, <span class="fstat-no" title="function not covered" >ro</span>ute =&gt; {</span>
+export function <span class="fstat-no" title="function not covered" >getMaxLines(r</span>outes: RouteDataDictionary): TrimetRoute[] {
+<span class="cstat-no" title="statement not covered" >  return filter(<span class="fstat-no" title="function not covered" >routes, r</span>oute =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return (</span>
       route.type === ROUTE_TYPE.RAIL &amp;&amp;
       !includes(
@@ -322,8 +333,8 @@ export function <span class="fstat-no" title="function not covered" >getMaxLines
   });
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getStreetCarLines(</span>routes: RouteDataDictionary): TrimetRoute[] {
-<span class="cstat-no" title="statement not covered" >  return filter(routes, <span class="fstat-no" title="function not covered" >ro</span>ute =&gt; {</span>
+export function <span class="fstat-no" title="function not covered" >getStreetCarLines(r</span>outes: RouteDataDictionary): TrimetRoute[] {
+<span class="cstat-no" title="statement not covered" >  return filter(<span class="fstat-no" title="function not covered" >routes, r</span>oute =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return (</span>
       route.type === ROUTE_TYPE.RAIL &amp;&amp;
       includes([STREET_CAR_ONE, STREET_CAR_TWO, STREET_CAR_THREE], route.id)
@@ -331,29 +342,29 @@ export function <span class="fstat-no" title="function not covered" >getStreetCa
   });
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getAerialTram(</span>routes: RouteDataDictionary): TrimetRoute[] {
-<span class="cstat-no" title="statement not covered" >  return filter(routes, <span class="fstat-no" title="function not covered" >ro</span>ute =&gt; {</span>
+export function <span class="fstat-no" title="function not covered" >getAerialTram(r</span>outes: RouteDataDictionary): TrimetRoute[] {
+<span class="cstat-no" title="statement not covered" >  return filter(<span class="fstat-no" title="function not covered" >routes, r</span>oute =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return route.type === ROUTE_TYPE.RAIL &amp;&amp; includes([AREIAL_TRAM], route.id);</span>
   });
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getWesCommuterRail(</span>routes: RouteDataDictionary): TrimetRoute[] {
-<span class="cstat-no" title="statement not covered" >  return filter(routes, <span class="fstat-no" title="function not covered" >ro</span>ute =&gt; {</span>
+export function <span class="fstat-no" title="function not covered" >getWesCommuterRail(r</span>outes: RouteDataDictionary): TrimetRoute[] {
+<span class="cstat-no" title="statement not covered" >  return filter(<span class="fstat-no" title="function not covered" >routes, r</span>oute =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return route.type === ROUTE_TYPE.RAIL &amp;&amp; includes([WES], route.id);</span>
   });
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >getRoutes(</span>routes: TrimetRoute[]) {
-<span class="cstat-no" title="statement not covered" >  return map(routes, <span class="fstat-no" title="function not covered" >(r</span>oute: TrimetRoute) =&gt; {</span>
+export function <span class="fstat-no" title="function not covered" >getRoutes(r</span>outes: TrimetRoute[]) {
+<span class="cstat-no" title="statement not covered" >  return map(<span class="fstat-no" title="function not covered" >routes, (r</span>oute: TrimetRoute) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return &lt;RouteListItem route={route} /&gt;;</span>
   });
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >AllLines(</span>) {
+export function <span class="fstat-no" title="function not covered" >AllLines() {</span>
   const [routes, setRoutes] = <span class="cstat-no" title="statement not covered" >useState({});</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    getAllRoutes().then(<span class="fstat-no" title="function not covered" >(d</span>ata: RouteDataResultSet) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
+<span class="cstat-no" title="statement not covered" >    getAllRoutes().<span class="fstat-no" title="function not covered" >then((d</span>ata: RouteDataResultSet) =&gt; {</span>
       const routesDictionary = <span class="cstat-no" title="statement not covered" >createRoutesDictionary(data.route);</span>
 <span class="cstat-no" title="statement not covered" >      setRoutes(routesDictionary);</span>
     });
@@ -397,7 +408,7 @@ export function <span class="fstat-no" title="function not covered" >AllLines(</
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

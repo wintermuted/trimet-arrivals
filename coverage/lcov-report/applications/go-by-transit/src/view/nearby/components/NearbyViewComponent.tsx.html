@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearby/components</a> NearbyViewComponent.tsx</h1>
         <div class='clearfix'>
             
@@ -30,16 +41,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.51% </span>
+                <span class="strong">90.24% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>334/369</span>
+                <span class='fraction'>333/369</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.22% </span>
+                <span class="strong">67.92% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>73/107</span>
+                <span class='fraction'>72/106</span>
             </div>
         
             
@@ -1508,9 +1519,9 @@
 <span class="cline-any cline-yes">31x</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-yes">30x</span>
-<span class="cline-any cline-yes">30x</span>
-<span class="cline-any cline-yes">30x</span>
-<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">31x</span>
+<span class="cline-any cline-yes">31x</span>
+<span class="cline-any cline-yes">31x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1999,9 +2010,9 @@ export function NearbyTripPlannerComponent() {
           highlightedLeg={highlightedLeg}
           onMapLeg={onMapLeg}
           routeColors={routeColors}
-          onDiscoverPlaces={discoverPlacesAlongTrip ? <span class="fstat-no" title="function not covered" >tr</span>ip =&gt; <span class="cstat-no" title="statement not covered" >discoverPlacesAlongTrip({</span>
+          onDiscoverPlaces={<span class="fstat-no" title="function not covered" >discoverPlacesAlongTrip ? t</span>rip =&gt; <span class="cstat-no" title="statement not covered" >discoverPlacesAlongTrip({</span>
             ...trip, returnTo: `${location.pathname}${location.search}`
-          }) : <span class="branch-1 cbranch-no" title="branch not covered" >undefined}</span>
+          }) : undefined}
         /&gt;
       )}
     /&gt;
@@ -2027,7 +2038,7 @@ export function NearbyStopDetailComponent() {
   );
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >NearbyStopsComponent(</span>) {
+export function <span class="fstat-no" title="function not covered" >NearbyStopsComponent() {</span>
   const {
     currentLocation,
     nearbyRoutes,
@@ -2036,7 +2047,7 @@ export function <span class="fstat-no" title="function not covered" >NearbyStops
     handleRadiusSelectionChange,
     handleNearbyStopHighlighted,
     walkingEnabled
-  } = <span class="cstat-no" title="statement not covered" >useOutletContext&lt;NearbyViewComponentOutletContextProps&gt;();</span>
+  } = <span class="cstat-no" title="statement not covered" >useOutletContext&lt;NearbyViewComponentOutletContextProps&gt;()</span>;
 &nbsp;
   const stopCount = <span class="cstat-no" title="statement not covered" >nearbyStops?.location?.length;</span>
   const routeCount = <span class="cstat-no" title="statement not covered" >size(nearbyRoutes);</span>
@@ -2094,7 +2105,7 @@ export function NearbySimpleRoutesComp() {
   );
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >NearbySimpleRouteArrivalsComp(</span>) {
+export function <span class="fstat-no" title="function not covered" >NearbySimpleRouteArrivalsComp() {</span>
   const {
     handleDirectionsSelection, currentLocation, walkingEnabled,
     handleWalkingRouteChanged, handleRouteInfoChanged, handleRouteInfoStopHighlighted
@@ -2114,8 +2125,8 @@ export function <span class="fstat-no" title="function not covered" >NearbySimpl
   );
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >NearbyDirectionsComp(</span>{
-  showTripTimes = <span class="branch-0 cbranch-no" title="branch not covered" >false,</span> showTrip = <span class="branch-0 cbranch-no" title="branch not covered" >false</span>
+export function <span class="fstat-no" title="function not covered" >NearbyDirectionsComp({</span>
+  showTripTimes = <span class="branch-0 cbranch-no" title="branch not covered" >false, s</span>howTrip = <span class="branch-0 cbranch-no" title="branch not covered" >false</span>
 }: { showTripTimes?: boolean; showTrip?: boolean }) {
   const { handleDirectionsSelection, handleDirectionsStopHighlighted } = <span class="cstat-no" title="statement not covered" >useOutletContext&lt;</span>
     NearbyViewComponentOutletContextProps
@@ -2131,14 +2142,14 @@ export function <span class="fstat-no" title="function not covered" >NearbyDirec
   );
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >NearbyRoutesComponent(</span>) {
+export function <span class="fstat-no" title="function not covered" >NearbyRoutesComponent() {</span>
   const {
     currentLocation,
     nearbyRoutes,
     nearbyStops,
     radiusSize,
     handleRadiusSelectionChange
-  } = <span class="cstat-no" title="statement not covered" >useOutletContext&lt;NearbyViewComponentOutletContextProps&gt;();</span>
+  } = <span class="cstat-no" title="statement not covered" >useOutletContext&lt;NearbyViewComponentOutletContextProps&gt;()</span>;
 &nbsp;
   const stopCount = <span class="cstat-no" title="statement not covered" >nearbyStops?.location?.length;</span>
   const routeCount = <span class="cstat-no" title="statement not covered" >size(nearbyRoutes);</span>
@@ -2177,7 +2188,7 @@ export default function NearbyViewComponent() {
   const isRouteInfo = routeInfoValues.length === 1 &amp;&amp; /^\d+$/.test(routeInfoId) &amp;&amp;
     Number.isSafeInteger(Number(routeInfoId)) &amp;&amp; Number(routeInfoId) &gt; 0 &amp;&amp;
     (isExplore ||
-      (<span class="branch-5 cbranch-no" title="branch not covered" >routeDetail?.params.id === routeInfoId </span>&amp;&amp; <span class="branch-6 cbranch-no" title="branch not covered" >/^[01]$/.test(searchParams.get("direction") ?? ""))</span>);
+      (<span class="branch-5 cbranch-no" title="branch not covered" >routeDetail?.params.id === routeInfoId &amp;&amp; <span class="branch-6 cbranch-no" title="branch not covered" >/</span>^[01]$/.test(searchParams.get("direction") ?? "")));</span>
   const isStopDetail = Boolean(matchPath("/nearby/stops/:id", location.pathname));
   const fromHome = isStopDetail &amp;&amp;
     searchParams.getAll("referrer").length === 1 &amp;&amp; searchParams.get("referrer") === "/";
@@ -2249,8 +2260,8 @@ export default function NearbyViewComponent() {
     "bicycle-network": useLineOverlay("bicycle-network", isPlaces &amp;&amp; lineOverlaysShown["bicycle-network"]),
     "recommended-bike-routes": useLineOverlay("recommended-bike-routes", isPlaces &amp;&amp; lineOverlaysShown["recommended-bike-routes"])
   };
-  const handleLineOverlayError = useCallback(<span class="fstat-no" title="function not covered" >(c</span>ategory: LineOverlayCategory, error: boolean) =&gt;
-<span class="cstat-no" title="statement not covered" >    setLineOverlayErrors(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; <span class="cstat-no" title="statement not covered" >previous[category] === error ? previous : { ...previous, [category]: error })</span>,</span> []);
+  const handleLineOverlayError = <span class="fstat-no" title="function not covered" >useCallback((c</span>ategory: LineOverlayCategory, error: boolean) =&gt;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    setLineOverlayErrors(p</span>revious =&gt; <span class="cstat-no" title="statement not covered" >previous[category] === error ? previous : { ...previous, [category]: error })</span>, [</span>]);
   const [contextShown, setContextShown] = useState(sharedPlacesView.view?.context ?? DEFAULT_CONTEXT_OVERLAYS);
   const [contextErrors, setContextErrors] = useState(DEFAULT_CONTEXT_OVERLAYS);
   const [contextRevisions, setContextRevisions] = useState({
@@ -2262,8 +2273,8 @@ export default function NearbyViewComponent() {
     crossings: useContextOverlay("crossings", isPlaces &amp;&amp; contextShown.crossings, placeBounds, placeZoom),
     "crossing-deficiencies": useContextOverlay("crossing-deficiencies", isPlaces &amp;&amp; contextShown["crossing-deficiencies"], placeBounds, placeZoom)
   };
-  const handleContextError = useCallback(<span class="fstat-no" title="function not covered" >(c</span>ategory: ContextCategory, error: boolean) =&gt;
-<span class="cstat-no" title="statement not covered" >    setContextErrors(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; <span class="cstat-no" title="statement not covered" >previous[category] === error ? previous : { ...previous, [category]: error })</span>,</span> []);
+  const handleContextError = <span class="fstat-no" title="function not covered" >useCallback((c</span>ategory: ContextCategory, error: boolean) =&gt;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    setContextErrors(p</span>revious =&gt; <span class="cstat-no" title="statement not covered" >previous[category] === error ? previous : { ...previous, [category]: error })</span>, [</span>]);
   const [coincidentIds, setCoincidentIds] = useState&lt;string[]&gt;([]);
   const placeViewport = useRef&lt;PlacesViewport&gt;(sharedPlacesView.viewport);
   const nearTrip = useMemo(() =&gt; tripCorridor &amp;&amp; alongTrip
@@ -2280,8 +2291,8 @@ export default function NearbyViewComponent() {
   const retainedViewSearch = sharedPlacesView.view ? shareSearch : "";
   const unavailableSaved = useMemo(() =&gt; {
     <span class="missing-if-branch" title="else path not taken" >E</span>if (!Object.values(placeCatalog.sources).every(source =&gt; source.snapshot &amp;&amp; !source.error)) return [];
-    const ids = <span class="cstat-no" title="statement not covered" >new Set(placeCatalog.places.map(<span class="fstat-no" title="function not covered" >pl</span>ace =&gt; <span class="cstat-no" title="statement not covered" >place.id)</span>);</span>
-<span class="cstat-no" title="statement not covered" >    return Object.entries(savedPlaces.saved).filter(<span class="fstat-no" title="function not covered" >([</span>id]) =&gt; <span class="cstat-no" title="statement not covered" >!ids.has(id))</span>;</span>
+    const ids = <span class="cstat-no" title="statement not covered" >new Set(placeCatalog.places.<span class="fstat-no" title="function not covered" >map(p</span>lace =&gt; <span class="cstat-no" title="statement not covered" >place.id)</span>);</span>
+<span class="cstat-no" title="statement not covered" >    return Object.entries(savedPlaces.saved).<span class="fstat-no" title="function not covered" >filter(([</span>id]) =&gt; <span class="cstat-no" title="statement not covered" >!ids.has(id))</span>;</span>
   }, [placeCatalog.sources, savedPlaces.saved]);
   function applyPlacesView(view: PlacesView) {
     setPlaceFilters(view.filters);
@@ -2413,7 +2424,7 @@ export default function NearbyViewComponent() {
       .then((stopData: StopData) =&gt; {
         if (!active) return;
         <span class="missing-if-branch" title="if path not taken" >I</span>if (!stopData || "error" in stopData) <span class="cstat-no" title="statement not covered" >throw new Error("Nearby stop lookup failed.");</span>
-        const normalized = { ...stopData, location: stopData.location ?? <span class="branch-1 cbranch-no" title="branch not covered" >[] </span>};
+        const normalized = { ...stopData, location: stopData.location ?? <span class="branch-1 cbranch-no" title="branch not covered" >[] }</span>;
         setNearbyStopData(normalized);
         setNearbyRoutesData(processRoutes(normalized));
         setIsNearbyDataLoading(false);
@@ -2496,7 +2507,7 @@ export default function NearbyViewComponent() {
     setUserLocation({ coords: { longitude: center.lng, latitude: center.lat } });
   }
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >handleStopMarkerClick(</span>data: any) {
+  function <span class="fstat-no" title="function not covered" >handleStopMarkerClick(d</span>ata: any) {
 <span class="cstat-no" title="statement not covered" >    console.log("handle stop marker click", data);</span>
 <span class="cstat-no" title="statement not covered" >    navigate(`/nearby/stops/${data.properties.locid}`);</span>
   }
@@ -2517,16 +2528,16 @@ export default function NearbyViewComponent() {
     return cleanup;
   }, [flyToCenter, isMapLoaded]);
 &nbsp;
-  const handleDirectionsSelection = useCallback(<span class="fstat-no" title="function not covered" >(</span>
+  const handleDirectionsSelection = <span class="fstat-no" title="function not covered" >useCallback((</span>
     selection: DirectionsSelection,
     onError: () =&gt; void
-  ) =&gt; <span class="cstat-no" title="statement not covered" >showDirectionsSelection(mapRef.current, selection, onError),</span> []);
-  const handleDirectionsStopHighlighted = useCallback(<span class="fstat-no" title="function not covered" >(s</span>topId?: number) =&gt;
-<span class="cstat-no" title="statement not covered" >    highlightDirectionsStop(mapRef.current, stopId),</span> []);
+  ) =&gt; <span class="cstat-no" title="statement not covered" >showDirectionsSelection(mapRef.current, selection, onError), [</span>]);
+  const handleDirectionsStopHighlighted = <span class="fstat-no" title="function not covered" >useCallback((s</span>topId?: number) =&gt;
+<span class="cstat-no" title="statement not covered" >    highlightDirectionsStop(mapRef.current, stopId), [</span>]);
   const handleNearbyStopHighlighted = useCallback((stopId?: number) =&gt;
     highlightNearbyStop(mapRef.current, stopId), []);
-  const handleWalkingRouteChanged = useCallback(<span class="fstat-no" title="function not covered" >(f</span>eature: Feature&lt;LineString&gt;) =&gt;
-<span class="cstat-no" title="statement not covered" >    showWalkingRoute(mapRef.current, feature),</span> []);
+  const handleWalkingRouteChanged = <span class="fstat-no" title="function not covered" >useCallback((f</span>eature: Feature&lt;LineString&gt;) =&gt;
+<span class="cstat-no" title="statement not covered" >    showWalkingRoute(mapRef.current, feature), [</span>]);
   const handleRouteInfoChanged = useCallback((route: DetailedRoute, onError: () =&gt; void) =&gt; {
     const epoch = followCameraEpoch.current;
     const isActive = () =&gt; !followActive.current;
@@ -2602,7 +2613,7 @@ export default function NearbyViewComponent() {
             {locationError &amp;&amp; !isLanding &amp;&amp; !isPlanner &amp;&amp; !isPlaces &amp;&amp; !following &amp;&amp; (
               &lt;div role="alert" className="transit-route-list-message"&gt;
                 &lt;p&gt;Location unavailable. Check your browser permissions and try again, or search the map.&lt;/p&gt;
-                &lt;Button type="button" size="sm" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >void locate()}</span>&gt;Try my location again&lt;/Button&gt;
+                &lt;Button type="button" size="sm" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid locate()}&gt;T</span>ry my location again&lt;/Button&gt;
               &lt;/div&gt;
             )}
             {isPlanner &amp;&amp; &lt;div hidden={Boolean(following)}&gt;&lt;Outlet context={context} /&gt;&lt;/div&gt;}
@@ -2633,9 +2644,9 @@ export default function NearbyViewComponent() {
               &lt;&gt;
                 {coincidentIds.length &gt; 1 &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;section aria-label="Locations at this point"&gt;</span>
                   &lt;h3&gt;Locations at this point&lt;/h3&gt;
-                  {mappedPlaces.filter(<span class="fstat-no" title="function not covered" >pl</span>ace =&gt; <span class="cstat-no" title="statement not covered" >coincidentIds.includes(place.id))</span>.map(<span class="fstat-no" title="function not covered" >pl</span>ace =&gt;
+                  {mappedPlaces.<span class="fstat-no" title="function not covered" >filter(p</span>lace =&gt; <span class="cstat-no" title="statement not covered" >coincidentIds.includes(place.id))</span>.<span class="fstat-no" title="function not covered" >map(p</span>lace =&gt;
 <span class="cstat-no" title="statement not covered" >                    &lt;Link key={place.id} className="wm-btn wm-btn-secondary" to={placeDetailLink(place.id, retainedViewSearch)}&gt;{place.name}&lt;/Link&gt;)</span>}
-                  &lt;Button variant="ghost" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setCoincidentIds([])}</span>&gt;Dismiss locations&lt;/Button&gt;
+                  &lt;Button variant="ghost" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etCoincidentIds([])}&gt;D</span>ismiss locations&lt;/Button&gt;
                 &lt;/section&gt;}
                 {selectedPlaceId &amp;&amp; !selectedPlace ? &lt;section className="transit-places" aria-label="Place details"&gt;
                   {selectedSource &amp;&amp; !selectedSource.snapshot &amp;&amp; !selectedSource.error ? (
@@ -2651,9 +2662,9 @@ export default function NearbyViewComponent() {
                   savedPlaces={savedPlaces} viewSearch={retainedViewSearch}
                   areaLabel={placesScope}
                   discovery={&lt;&gt;
-                    &lt;NearbyDiscoveryControls view={currentPlacesView} onPreset={<span class="fstat-no" title="function not covered" >pr</span>eset =&gt; {
+                    &lt;NearbyDiscoveryControls view={currentPlacesView} <span class="fstat-no" title="function not covered" >onPreset={p</span>reset =&gt; {
 <span class="cstat-no" title="statement not covered" >                      applyPlacesView(placesPreset(preset));</span>
-<span class="cstat-no" title="statement not covered" >                      if (preset === "default") { <span class="cstat-no" title="statement not covered" >setSavedOnly(false); <span class="cstat-no" title="statement not covered" ></span>setAlongTrip(false); </span>}</span>
+<span class="cstat-no" title="statement not covered" >                      if (preset === "default") { <span class="cstat-no" title="statement not covered" >setSavedOnly(false); <span class="cstat-no" title="statement not covered" >s</span>etAlongTrip(false); }</span></span>
 <span class="cstat-no" title="statement not covered" >                      if (sharedPlacesView.error) <span class="cstat-no" title="statement not covered" >navigate(location.pathname, { replace: true });</span></span>
                     }} viewError={sharedPlacesView.error} shareHref={`/nearby/places${shareSearch}`}
                       savedPlaces={savedPlaces} savedOnly={savedOnly} onSavedOnly={setSavedOnly}
@@ -2661,26 +2672,26 @@ export default function NearbyViewComponent() {
                       trip={tripCorridor} alongTrip={alongTrip} onAlongTrip={setAlongTrip}
                       distance={tripDistance} onDistance={setTripDistance} /&gt;
                     {alongTrip &amp;&amp; tripMapError &amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >&lt;p role="alert"&gt;The mapped trip could not be drawn. Distance filtering still uses its geometry.{" "}</span>
-                      &lt;Button size="sm" variant="secondary" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setTripMapRevision(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>&gt;Retry trip line&lt;/Button&gt;
+                      &lt;Button size="sm" variant="secondary" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etTripMapRevision(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}&gt;R</span>etry trip line&lt;/Button&gt;
                     &lt;/p&gt;}
                   &lt;/&gt;}
                   contextOverlays={{ shown: contextShown, sources: contextSources, mapErrors: contextErrors,
-                    onShown: <span class="fstat-no" title="function not covered" >(c</span>ategory, shown) =&gt; <span class="cstat-no" title="statement not covered" >setContextShown(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: shown })</span>),</span>
-                    onRetry: <span class="fstat-no" title="function not covered" >ca</span>tegory =&gt; {
+<span class="fstat-no" title="function not covered" >                    onShown: (c</span>ategory, shown) =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >setContextShown(p</span>revious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: shown }))</span>,</span>
+<span class="fstat-no" title="function not covered" >                    onRetry: c</span>ategory =&gt; {
 <span class="cstat-no" title="statement not covered" >                      contextSources[category].retry();</span>
-<span class="cstat-no" title="statement not covered" >                      setContextRevisions(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: previous[category] + 1 })</span>);</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >                      setContextRevisions(p</span>revious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: previous[category] + 1 }))</span>;</span>
                     } }}
                   lineOverlays={{ shown: lineOverlaysShown, sources: lineOverlaySources, mapErrors: lineOverlayErrors,
-                    onShown: <span class="fstat-no" title="function not covered" >(c</span>ategory, shown) =&gt; <span class="cstat-no" title="statement not covered" >setLineOverlaysShown(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: shown })</span>),</span>
-                    onRetry: <span class="fstat-no" title="function not covered" >ca</span>tegory =&gt; {
+<span class="fstat-no" title="function not covered" >                    onShown: (c</span>ategory, shown) =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >setLineOverlaysShown(p</span>revious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: shown }))</span>,</span>
+<span class="fstat-no" title="function not covered" >                    onRetry: c</span>ategory =&gt; {
 <span class="cstat-no" title="statement not covered" >                      lineOverlaySources[category].retry();</span>
-<span class="cstat-no" title="statement not covered" >                      setLineOverlayRevisions(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: previous[category] + 1 })</span>);</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >                      setLineOverlayRevisions(p</span>revious =&gt; (<span class="cstat-no" title="statement not covered" >{ ...previous, [category]: previous[category] + 1 }))</span>;</span>
                     } }}
                   neighborhoods={{ ...neighborhoods, shown: neighborhoodsShown, onShown: setNeighborhoodsShown,
                     polygonsShown: neighborhoodPolygonsShown, onPolygonsShown: setNeighborhoodPolygonsShown,
-                    mapError: neighborhoodMapError, onRetry: <span class="fstat-no" title="function not covered" >()</span> =&gt; {
+                    mapError: neighborhoodMapError, <span class="fstat-no" title="function not covered" >onRetry: () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >                      neighborhoods.retry();</span>
-<span class="cstat-no" title="statement not covered" >                      setNeighborhoodLayerRevision(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>;</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >                      setNeighborhoodLayerRevision(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>;</span>
                     } }}
                   origin={currentLocation} originMode={searchMode} onRetry={placeCatalog.retry} mapError={placeMapError}
                   onRetryMap={() =&gt; setPlaceMapRevision(value =&gt; value + 1)} mapReady={Boolean(placeBounds)} /&gt;}
@@ -2759,8 +2770,8 @@ export default function NearbyViewComponent() {
             }}
             vehicleFeed={vehicleFeed}
             vehicleMapError={vehicleMapError}
-            onVehiclesRetry={<span class="fstat-no" title="function not covered" >()</span> =&gt; {
-<span class="cstat-no" title="statement not covered" >              setVehicleLayerAttempt(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>;</span>
+<span class="fstat-no" title="function not covered" >            onVehiclesRetry={() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >              setVehicleLayerAttempt(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>;</span>
 <span class="cstat-no" title="statement not covered" >              vehicleFeed.retry();</span>
             }}
           &gt;
@@ -2788,7 +2799,7 @@ export default function NearbyViewComponent() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

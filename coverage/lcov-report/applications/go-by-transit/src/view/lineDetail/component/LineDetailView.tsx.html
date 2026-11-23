@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,13 +20,23 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/lineDetail/component</a> LineDetailView.tsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78.57% </span>
+                <span class="strong">80.48% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>33/42</span>
+                <span class='fraction'>33/41</span>
             </div>
         
             
@@ -44,9 +55,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">81.08% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>30/37</span>
+                <span class='fraction'>30/36</span>
             </div>
         
             
@@ -61,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -319,7 +330,7 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -438,9 +449,9 @@ export default function LinesViewComponent(props: Props) {
           });
         }
       })
-      .catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+      .<span class="fstat-no" title="function not covered" >catch(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        if (active) {</span>
-<span class="cstat-no" title="statement not covered" >          setRouteAlertsState(<span class="fstat-no" title="function not covered" >pr</span>evious =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >          setRouteAlertsState(p</span>revious =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
             routeId: id,
             alerts: previous.routeId === id ? previous.alerts : undefined,
             loading: false,
@@ -463,7 +474,7 @@ export default function LinesViewComponent(props: Props) {
     return &lt;Loading /&gt;;
   }
 &nbsp;
-  const routeSchedule = <span class="cstat-no" title="statement not covered" >maxLightRail[id];</span>
+  const routeSchedule = maxLightRail[id];
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;div className="transit-container"&gt;
@@ -485,7 +496,7 @@ export default function LinesViewComponent(props: Props) {
             alerts={currentRouteAlerts.alerts}
             loading={currentRouteAlerts.loading}
             error={currentRouteAlerts.error}
-            onRetry={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setAlertRefresh(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>
+<span class="fstat-no" title="function not covered" >            onRetry={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etAlertRefresh(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>
           /&gt;
         &lt;/div&gt;
         &lt;div className="transit-column transit-column-9"&gt;
@@ -502,7 +513,7 @@ export default function LinesViewComponent(props: Props) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../index.html">All files</a> / <a href="index.html">util/routing/src</a> plannerPaths.ts</h1>
         <div class='clearfix'>
             
@@ -44,9 +55,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.97% </span>
+                <span class="strong">97.95% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>97/99</span>
+                <span class='fraction'>96/98</span>
             </div>
         
             
@@ -243,7 +254,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">18x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">107x</span>
@@ -342,7 +353,7 @@
 <span class="cline-any cline-yes">32x</span>
 <span class="cline-any cline-yes">32x</span>
 <span class="cline-any cline-yes">32x</span>
-<span class="cline-any cline-yes">32x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-yes">33x</span>
@@ -350,15 +361,15 @@
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">32x</span>
+<span class="cline-any cline-yes">57x</span>
 <span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-yes">24x</span>
-<span class="cline-any cline-yes">24x</span>
-<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">57x</span>
+<span class="cline-any cline-yes">57x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">4x</span>
@@ -448,7 +459,7 @@ function connectedShape(lines: Position[][], origin: Position, destination: Posi
   while (open.size) {
     let current: string | undefined;
     open.forEach(key =&gt; {
-      <span class="missing-if-branch" title="else path not taken" >E</span>if (!current || <span class="branch-1 cbranch-no" title="branch not covered" >distances.get(key) &lt; distances.get(current))</span> current = key;
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (!current || <span class="branch-1 cbranch-no" title="branch not covered" >distances.get(key) &lt; distances.get(current)) c</span>urrent = key;
     });
     if (current === end) {
       const path: Position[] = [];
@@ -484,7 +495,7 @@ export async function loadPlannerPaths(
         if (!walkingEnabled || ![from?.lon, from?.lat, to?.lon, to?.lat].every(Number.isFinite)) return;
         const origin = [from.lon, from.lat];
         const destination = [to.lon, to.lat];
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (origin[0] === destination[0] &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >origin[1] === destination[1])</span> <span class="cstat-no" title="statement not covered" >return;</span>
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (origin[0] === destination[0] &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >origin[1] === destination[1]) <span class="cstat-no" title="statement not covered" >r</span>eturn;</span>
         const key = JSON.stringify([origin, destination]);
         try {
           if (!walks.has(key)) walks.set(key, getWalkingPath(origin, destination, signal));
@@ -518,8 +529,8 @@ export async function loadPlannerPaths(
         const key = `${id}/${direction}`;
         if (!shapes.has(key)) shapes.set(key, getRouteGeometry(String(id), direction, signal));
         const shape = await shapes.get(key);
-        const originPoint = [from.lon ?? <span class="branch-1 cbranch-no" title="branch not covered" >origin.lng,</span> from.lat ?? <span class="branch-1 cbranch-no" title="branch not covered" >origin.lat]</span>;
-        const destinationPoint = [to.lon ?? <span class="branch-1 cbranch-no" title="branch not covered" >destination.lng,</span> to.lat ?? <span class="branch-1 cbranch-no" title="branch not covered" >destination.lat]</span>;
+        const originPoint = [from.lon ?? <span class="branch-1 cbranch-no" title="branch not covered" >origin.lng, f</span>rom.lat ?? <span class="branch-1 cbranch-no" title="branch not covered" >origin.lat]</span>;
+        const destinationPoint = [to.lon ?? <span class="branch-1 cbranch-no" title="branch not covered" >destination.lng, t</span>o.lat ?? <span class="branch-1 cbranch-no" title="branch not covered" >destination.lat]</span>;
         if (shape.geometry.type === "MultiLineString") {
           const coordinates = connectedShape(shape.geometry.coordinates, originPoint, destinationPoint);
           if (!coordinates) return;
@@ -533,7 +544,7 @@ export async function loadPlannerPaths(
         const matchesEndpoints = (a: Position, b: Position) =&gt;
           getDistance(a, originPoint) &lt;= MAX_SNAP_MILES &amp;&amp;
           getDistance(b, destinationPoint) &lt;= MAX_SNAP_MILES;
-        <span class="missing-if-branch" title="if path not taken" >I</span>if ((!matchesEndpoints(start, end) &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >!matchesEndpoints(end, start))</span> ||
+        <span class="missing-if-branch" title="if path not taken" >I</span>if ((!matchesEndpoints(start, end) &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >!matchesEndpoints(end, start)) ||</span>
             getDistance(start, end) === 0) <span class="cstat-no" title="statement not covered" >return;</span>
         return { type: "Feature", geometry, properties };
       } catch (error) {
@@ -556,7 +567,7 @@ export async function loadPlannerPaths(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

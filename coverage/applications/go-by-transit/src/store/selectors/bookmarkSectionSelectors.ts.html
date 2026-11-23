@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/store/selectors</a> bookmarkSectionSelectors.ts</h1>
         <div class='clearfix'>
             
@@ -44,9 +55,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">45% </span>
+                <span class="strong">42.85% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/20</span>
+                <span class='fraction'>9/21</span>
             </div>
         
             
@@ -176,7 +187,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { map } from "lodash";
@@ -189,40 +200,40 @@ import {
 import { selectBookmarks } from "./bookmarkSelectors";
 import { routeBookmarksSelector } from "./routeBookmarkSelectors";
 &nbsp;
-const selectSectionName = <span class="fstat-no" title="function not covered" >(s</span>tate: RootState) =&gt; {
+const <span class="fstat-no" title="function not covered" >selectSectionName = (s</span>tate: RootState) =&gt; {
 <span class="cstat-no" title="statement not covered" >  return state.bookmarkSectionReducer.bookmarkInputSectionName;</span>
 };
 &nbsp;
-const selectSections = <span class="fstat-no" title="function not covered" >(s</span>tate: RootState) =&gt; {
+const <span class="fstat-no" title="function not covered" >selectSections = (s</span>tate: RootState) =&gt; {
 <span class="cstat-no" title="statement not covered" >  return state.bookmarkSectionReducer.bookmarkSections;</span>
 };
 &nbsp;
-const selectRouteBookmarkGroups = <span class="fstat-no" title="function not covered" >(s</span>tate: RootState) =&gt;
+const <span class="fstat-no" title="function not covered" >selectRouteBookmarkGroups = (s</span>tate: RootState) =&gt;
 <span class="cstat-no" title="statement not covered" >  state.bookmarkSectionReducer.routeBookmarkGroups;</span>
 &nbsp;
-const selectSectionById = <span class="fstat-no" title="function not covered" >(s</span>tate: RootState, id: number) =&gt; {
+const <span class="fstat-no" title="function not covered" >selectSectionById = (s</span>tate: RootState, id: number) =&gt; {
 <span class="cstat-no" title="statement not covered" >  return state.bookmarkSectionReducer.bookmarkSections[id];</span>
 };
 &nbsp;
 export const sectionNameInputSelector = createSelector(
-  selectSectionName,
-<span class="fstat-no" title="function not covered" >  (b</span>ookmarkSectionInputName: string) =&gt; <span class="cstat-no" title="statement not covered" >bookmarkSectionInputName</span>
+<span class="fstat-no" title="function not covered" >  selectSectionName,</span>
+  (bookmarkSectionInputName: string) =&gt; <span class="cstat-no" title="statement not covered" >bookmarkSectionInputName</span>
 );
 &nbsp;
 export const bookmarkSectionSelectors = createSelector(
-  selectSections,
-<span class="fstat-no" title="function not covered" >  (b</span>ookmarkSections: BookmarkSectionsProps) =&gt; <span class="cstat-no" title="statement not covered" >bookmarkSections</span>
+<span class="fstat-no" title="function not covered" >  selectSections,</span>
+  (bookmarkSections: BookmarkSectionsProps) =&gt; <span class="cstat-no" title="statement not covered" >bookmarkSections</span>
 );
 &nbsp;
 export const bookmarkSectionNameSelector = createSelector(
-  selectSectionById,
-<span class="fstat-no" title="function not covered" >  (s</span>ection: BookmarkSectionProps) =&gt; <span class="cstat-no" title="statement not covered" >section.name</span>
+<span class="fstat-no" title="function not covered" >  selectSectionById,</span>
+  (section: BookmarkSectionProps) =&gt; <span class="cstat-no" title="statement not covered" >section.name</span>
 );
 &nbsp;
 export const bookmarksInSectionSelector = createSelector(
-  [selectSectionById, selectBookmarks],
-<span class="fstat-no" title="function not covered" >  (s</span>ection: BookmarkSectionProps, bookmarks) =&gt; {
-<span class="cstat-no" title="statement not covered" >    return map(section.bookmarkedStops, <span class="fstat-no" title="function not covered" >st</span>opId =&gt; {</span>
+  [selectSectionById, selectBookmarks<span class="fstat-no" title="function not covered" >],</span>
+  (section: BookmarkSectionProps, bookmarks) =&gt; {
+<span class="cstat-no" title="statement not covered" >    return map(section.<span class="fstat-no" title="function not covered" >bookmarkedStops, s</span>topId =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      return bookmarks[stopId];</span>
     });
   }
@@ -232,10 +243,10 @@ export const routeBookmarksInSectionSelector = createSelector(
   [
     selectRouteBookmarkGroups,
     routeBookmarksSelector,
-<span class="fstat-no" title="function not covered" >    (_</span>state: RootState, id: number) =&gt; <span class="cstat-no" title="statement not covered" >id</span>
-  ],
-<span class="fstat-no" title="function not covered" >  (g</span>roups, bookmarks, id) =&gt;
-<span class="cstat-no" title="statement not covered" >    (groups[id] || []).map(<span class="fstat-no" title="function not covered" >ro</span>uteId =&gt; <span class="cstat-no" title="statement not covered" >bookmarks[routeId])</span>.filter(Boolean)</span>
+    (<span class="fstat-no" title="function not covered" >_state: RootState, i</span>d: number) =&gt; <span class="cstat-no" title="statement not covered" >id</span>
+<span class="fstat-no" title="function not covered" >  ],</span>
+  (groups, bookmarks, <span class="cstat-no" title="statement not covered" >id) =&gt;</span>
+    (groups[id] || []).<span class="fstat-no" title="function not covered" >map(r</span>outeId =&gt; <span class="cstat-no" title="statement not covered" >bookmarks[routeId])</span>.filter(Boolean)
 );
 &nbsp;</pre></td></tr></table></pre>
 
@@ -244,7 +255,7 @@ export const routeBookmarksInSectionSelector = createSelector(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

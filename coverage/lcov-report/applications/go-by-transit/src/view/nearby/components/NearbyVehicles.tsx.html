@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearby/components</a> NearbyVehicles.tsx</h1>
         <div class='clearfix'>
             
@@ -156,7 +167,7 @@ import { ROUTE_DISPLAY } from "../../../api/trimet/constants";
 import { VehiclePosition } from "../../../api/trimet/interfaces/vehicles";
 import { createVehicleLayer, VehicleFollowView } from "../util/mapbox/vehicleLayer";
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >NearbyVehicles(</span>{ map, vehicles, onError, onFollow, following, followView }: {
+export default function <span class="fstat-no" title="function not covered" >NearbyVehicles({</span> map, vehicles, onError, onFollow, following, followView }: {
   map: MapboxMap;
   vehicles: VehiclePosition[];
   onError: (failed: boolean) =&gt; void;
@@ -166,19 +177,19 @@ export default function <span class="fstat-no" title="function not covered" >Nea
 }) {
   const layer = <span class="cstat-no" title="statement not covered" >useRef&lt;ReturnType&lt;typeof createVehicleLayer&gt;&gt;(undefined);</span>
   const [selectedId, setSelectedId] = <span class="cstat-no" title="statement not covered" >useState("");</span>
-  const selectedIsAvailable = <span class="cstat-no" title="statement not covered" >vehicles.some(<span class="fstat-no" title="function not covered" >ve</span>hicle =&gt; <span class="cstat-no" title="statement not covered" >vehicle.id === selectedId)</span>;</span>
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+  const selectedIsAvailable = <span class="cstat-no" title="statement not covered" >vehicles.<span class="fstat-no" title="function not covered" >some(v</span>ehicle =&gt; <span class="cstat-no" title="statement not covered" >vehicle.id === selectedId)</span>;</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
 <span class="cstat-no" title="statement not covered" >    layer.current = createVehicleLayer(map, onError, onFollow);</span>
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; { <span class="cstat-no" title="statement not covered" >layer.current?.dispose(); <span class="cstat-no" title="statement not covered" ></span>layer.current = undefined; </span>};</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span> <span class="cstat-no" title="statement not covered" >layer.current?.dispose(); <span class="cstat-no" title="statement not covered" >l</span>ayer.current = undefined; }</span>;</span>
   }, [map, onError, onFollow]);
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; { <span class="cstat-no" title="statement not covered" >layer.current?.update(vehicles); </span>}, [vehicles]);</span>
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; { <span class="cstat-no" title="statement not covered" >layer.current?.follow(following, followView); </span>}, [following, followView]);</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span> <span class="cstat-no" title="statement not covered" >layer.current?.update(vehicles); }</span>, [vehicles]);</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span> <span class="cstat-no" title="statement not covered" >layer.current?.follow(following, followView); }</span>, [following, followView]);</span>
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;div className="transit-vehicle-picker"&gt;
       &lt;Select aria-label="Vehicle" value={selectedIsAvailable ? selectedId : ""}
-        onChange={<span class="fstat-no" title="function not covered" >ev</span>ent =&gt; <span class="cstat-no" title="statement not covered" >setSelectedId(event.target.value)}</span> disabled={!vehicles.length}&gt;
+<span class="fstat-no" title="function not covered" >        onChange={e</span>vent =&gt; <span class="cstat-no" title="statement not covered" >setSelectedId(event.target.value)} d</span>isabled={!vehicles.length}&gt;
         &lt;option value=""&gt;Choose a vehicle&lt;/option&gt;
-        {vehicles.map(<span class="fstat-no" title="function not covered" >ve</span>hicle =&gt; {
+        {vehicles.<span class="fstat-no" title="function not covered" >map(v</span>ehicle =&gt; {
           const route = <span class="cstat-no" title="statement not covered" >vehicle.routeNumber &amp;&amp; (ROUTE_DISPLAY[vehicle.routeNumber] || `Route ${vehicle.routeNumber}`);</span>
 <span class="cstat-no" title="statement not covered" >          return &lt;option key={vehicle.id} value={vehicle.id}&gt;</span>
             {[route, `${vehicle.type === "bus" ? "Bus" : "Train"} ${vehicle.id}`, vehicle.destination].filter(Boolean).join(" — ")}
@@ -186,7 +197,7 @@ export default function <span class="fstat-no" title="function not covered" >Nea
         })}
       &lt;/Select&gt;
       &lt;Button type="button" variant="secondary" size="sm" disabled={!selectedIsAvailable}
-        onClick={<span class="fstat-no" title="function not covered" >ev</span>ent =&gt; <span class="cstat-no" title="statement not covered" >layer.current?.openDetails(selectedId, event.currentTarget)}</span>&gt;
+<span class="fstat-no" title="function not covered" >        onClick={e</span>vent =&gt; <span class="cstat-no" title="statement not covered" >layer.current?.openDetails(selectedId, event.currentTarget)}&gt;</span>
         Vehicle details
       &lt;/Button&gt;
     &lt;/div&gt;
@@ -199,7 +210,7 @@ export default function <span class="fstat-no" title="function not covered" >Nea
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/store/sagas</a> bookmarkSectionSagas.ts</h1>
         <div class='clearfix'>
             
@@ -485,7 +496,7 @@ interface UpdateSectionInputAction {
   };
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >updateSectionInputName(</span>action: UpdateSectionInputAction) {
+export function* <span class="fstat-no" title="function not covered" >updateSectionInputName(a</span>ction: UpdateSectionInputAction) {
   const name = <span class="cstat-no" title="statement not covered" >action.payload.name;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  yield put({</span>
@@ -494,7 +505,7 @@ export function* <span class="fstat-no" title="function not covered" >updateSect
   });
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >createBookmarkSection(</span>) {
+export function* <span class="fstat-no" title="function not covered" >createBookmarkSection() {</span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
     const nextId = <span class="cstat-no" title="statement not covered" >yield select(getNextId);</span>
     const bookmarkName = <span class="cstat-no" title="statement not covered" >yield select(getBookmarkName);</span>
@@ -511,7 +522,7 @@ export function* <span class="fstat-no" title="function not covered" >createBook
   }
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >removeBookmarkSection(</span>action) {
+export function* <span class="fstat-no" title="function not covered" >removeBookmarkSection(a</span>ction) {
   const bookmarkSectionId = <span class="cstat-no" title="statement not covered" >action.payload.bookmarkSectionId;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -538,7 +549,7 @@ export function* <span class="fstat-no" title="function not covered" >removeBook
   }
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >updateSelectedBookmarkSection(</span>action) {
+export function* <span class="fstat-no" title="function not covered" >updateSelectedBookmarkSection(a</span>ction) {
   const { selectedBookmarkSection, stopId } = <span class="cstat-no" title="statement not covered" >action.payload;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -553,7 +564,7 @@ export function* <span class="fstat-no" title="function not covered" >updateSele
   }
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >removeBookmarkFromSection(</span>action) {
+export function* <span class="fstat-no" title="function not covered" >removeBookmarkFromSection(a</span>ction) {
   const { bookmarkSectionId, stopId } = <span class="cstat-no" title="statement not covered" >action.payload;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -568,7 +579,7 @@ export function* <span class="fstat-no" title="function not covered" >removeBook
   }
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >updateSelectedRouteBookmarkSection(</span>action) {
+export function* <span class="fstat-no" title="function not covered" >updateSelectedRouteBookmarkSection(a</span>ction) {
   const { bookmarkSectionId, routeId } = <span class="cstat-no" title="statement not covered" >action.payload;</span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
     const routeBookmarkGroups = <span class="cstat-no" title="statement not covered" >yield call(</span>
@@ -590,7 +601,7 @@ export function* <span class="fstat-no" title="function not covered" >updateSele
   }
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >removeRouteBookmarkFromSection(</span>action) {
+export function* <span class="fstat-no" title="function not covered" >removeRouteBookmarkFromSection(a</span>ction) {
   const { bookmarkSectionId, routeId } = <span class="cstat-no" title="statement not covered" >action.payload;</span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
     const routeBookmarkGroups = <span class="cstat-no" title="statement not covered" >yield call(</span>
@@ -612,7 +623,7 @@ export function* <span class="fstat-no" title="function not covered" >removeRout
   }
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >removeAllBookmarksInSection(</span>action) {
+export function* <span class="fstat-no" title="function not covered" >removeAllBookmarksInSection(a</span>ction) {
   const { bookmarkSectionId } = <span class="cstat-no" title="statement not covered" >action.payload;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -627,7 +638,7 @@ export function* <span class="fstat-no" title="function not covered" >removeAllB
   }
 }
 &nbsp;
-export function* <span class="fstat-no" title="function not covered" >updateBookmarkSectionName(</span>action) {
+export function* <span class="fstat-no" title="function not covered" >updateBookmarkSectionName(a</span>ction) {
   const { bookmarkSectionId, bookmarkSectionName } = <span class="cstat-no" title="statement not covered" >action.payload;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -652,7 +663,7 @@ export function* <span class="fstat-no" title="function not covered" >updateBook
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../index.html">All files</a> / <a href="index.html">geography/maps/src</a> vehicleLayer.ts</h1>
         <div class='clearfix'>
             
@@ -493,8 +504,8 @@
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19x</span>
-<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -551,7 +562,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">48x</span>
 <span class="cline-any cline-yes">48x</span>
-<span class="cline-any cline-yes">47x</span>
+<span class="cline-any cline-yes">48x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -707,9 +718,9 @@
 <span class="cline-any cline-yes">39x</span>
 <span class="cline-any cline-yes">39x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">41x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">41x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">31x</span>
 <span class="cline-any cline-yes">31x</span>
@@ -785,7 +796,7 @@ function vehicleImage(kind: "bus" | "rail" | "arrow", dark = false) {
     const scale = 36 / Math.max(width, height);
     context.translate((64 - width * scale) / 2, (64 - height * scale) / 2);
     context.scale(scale, scale);
-    for (const path of typeof paths === "string" ? [paths] : <span class="branch-1 cbranch-no" title="branch not covered" >paths)</span> context.fill(new Path2D(path));
+    for (const path of typeof paths === "string" ? [paths] : <span class="branch-1 cbranch-no" title="branch not covered" >paths) c</span>ontext.fill(new Path2D(path));
   }
   return context.getImageData(0, 0, 64, 64);
 }
@@ -793,7 +804,7 @@ function vehicleImage(kind: "bus" | "rail" | "arrow", dark = false) {
 function glyphTone(color: string) {
   const channels = [1, 3, 5].map(offset =&gt; {
     const channel = parseInt(color.slice(offset, offset + 2), 16) / 255;
-    return channel &lt;= 0.04045 ? <span class="branch-0 cbranch-no" title="branch not covered" >channel / 12.92 </span>: ((channel + 0.055) / 1.055) ** 2.4;
+    return channel &lt;= 0.04045 ? <span class="branch-0 cbranch-no" title="branch not covered" >channel / 12.92 : ((c</span>hannel + 0.055) / 1.055) ** 2.4;
   });
   return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722 &gt; 0.179 ? "dark" : "light";
 }
@@ -848,7 +859,7 @@ export function createVehicleLayer(
     savedCamera = undefined;
     lastHeading = undefined;
     <span class="missing-if-branch" title="else path not taken" >E</span>if (!removed) {
-      try { map.stop(); map.jumpTo(camera); } catch { <span class="cstat-no" title="statement not covered" >onError(true); </span>}
+      try { map.stop(); map.jumpTo(camera); } catch { <span class="cstat-no" title="statement not covered" >onError(true); }</span>
     }
   }
 &nbsp;
@@ -913,7 +924,7 @@ export function createVehicleLayer(
     stop();
     positions.forEach(moving =&gt; { moving.from = moving.to; });
     <span class="missing-if-branch" title="else path not taken" >E</span>if (!removed &amp;&amp; !disposed) {
-      try { draw(performance.now()); } catch { <span class="cstat-no" title="statement not covered" >onError(true); </span>}
+      try { draw(performance.now()); } catch { <span class="cstat-no" title="statement not covered" >onError(true); }</span>
       trackCamera();
     }
   }
@@ -1000,10 +1011,10 @@ export function createVehicleLayer(
     northUpZoom = map.getZoom();
   }
 &nbsp;
-  const tooltip = createTooltips(map, LAYERS[0], <span class="fstat-no" title="function not covered" >id</span> =&gt; {
+  const tooltip = createTooltips(map, LAYERS[<span class="fstat-no" title="function not covered" >0], i</span>d =&gt; {
     const moving = <span class="cstat-no" title="statement not covered" >positions.get(id);</span>
 <span class="cstat-no" title="statement not covered" >    return moving &amp;&amp; { vehicle: moving.vehicle, point: vehiclePoint(moving, performance.now(), DURATION_MS) };</span>
-  }, <span class="fstat-no" title="function not covered" >ve</span>hicle =&gt; {
+<span class="fstat-no" title="function not covered" >  }, v</span>ehicle =&gt; {
 <span class="cstat-no" title="statement not covered" >    captureCamera();</span>
 <span class="cstat-no" title="statement not covered" >    onFollow(vehicle);</span>
   });
@@ -1072,7 +1083,7 @@ export function createVehicleLayer(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

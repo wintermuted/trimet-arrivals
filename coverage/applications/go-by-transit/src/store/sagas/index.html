@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../sort-arrow-sprite.png);
@@ -19,13 +20,23 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../index.html">All files</a> applications/go-by-transit/src/store/sagas</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">32.4% </span>
+                <span class="strong">45.75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>70/216</span>
+                <span class='fraction'>70/153</span>
             </div>
         
             
@@ -37,16 +48,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">19.64% </span>
+                <span class="strong">42.3% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>11/56</span>
+                <span class='fraction'>11/26</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">32.4% </span>
+                <span class="strong">45.75% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>70/216</span>
+                <span class='fraction'>70/153</span>
             </div>
         
             
@@ -79,21 +90,6 @@
 </tr>
 </thead>
 <tbody><tr>
-	<td class="file low" data-value="alertSagas.test.ts"><a href="alertSagas.test.ts.html">alertSagas.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="6" class="abs low">0/6</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="2" class="abs low">0/2</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="6" class="abs low">0/6</td>
-	</tr>
-
-<tr>
 	<td class="file medium" data-value="alertSagas.ts"><a href="alertSagas.ts.html">alertSagas.ts</a></td>
 	<td data-value="62.5" class="pic medium">
 	<div class="chart"><div class="cover-fill" style="width: 62%"></div><div class="cover-empty" style="width: 38%"></div></div>
@@ -106,21 +102,6 @@
 	<td data-value="1" class="abs high">1/1</td>
 	<td data-value="62.5" class="pct medium">62.5%</td>
 	<td data-value="8" class="abs medium">5/8</td>
-	</tr>
-
-<tr>
-	<td class="file low" data-value="arrivalSagas.test.ts"><a href="arrivalSagas.test.ts.html">arrivalSagas.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="9" class="abs low">0/9</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="5" class="abs low">0/5</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="9" class="abs low">0/9</td>
 	</tr>
 
 <tr>
@@ -214,21 +195,6 @@
 	</tr>
 
 <tr>
-	<td class="file low" data-value="stopSagas.test.ts"><a href="stopSagas.test.ts.html">stopSagas.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="6" class="abs low">0/6</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="3" class="abs low">0/3</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="6" class="abs low">0/6</td>
-	</tr>
-
-<tr>
 	<td class="file low" data-value="stopSagas.ts"><a href="stopSagas.ts.html">stopSagas.ts</a></td>
 	<td data-value="30" class="pic low">
 	<div class="chart"><div class="cover-fill" style="width: 30%"></div><div class="cover-empty" style="width: 70%"></div></div>
@@ -244,21 +210,6 @@
 	</tr>
 
 <tr>
-	<td class="file low" data-value="util.test.ts"><a href="util.test.ts.html">util.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="21" class="abs low">0/21</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="10" class="abs low">0/10</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="21" class="abs low">0/21</td>
-	</tr>
-
-<tr>
 	<td class="file high" data-value="util.ts"><a href="util.ts.html">util.ts</a></td>
 	<td data-value="100" class="pic high">
 	<div class="chart"><div class="cover-fill cover-full" style="width: 100%"></div><div class="cover-empty" style="width: 0%"></div></div>
@@ -271,21 +222,6 @@
 	<td data-value="3" class="abs high">3/3</td>
 	<td data-value="100" class="pct high">100%</td>
 	<td data-value="7" class="abs high">7/7</td>
-	</tr>
-
-<tr>
-	<td class="file low" data-value="viewSagas.test.ts"><a href="viewSagas.test.ts.html">viewSagas.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="21" class="abs low">0/21</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="10" class="abs low">0/10</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="21" class="abs low">0/21</td>
 	</tr>
 
 <tr>
@@ -311,7 +247,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

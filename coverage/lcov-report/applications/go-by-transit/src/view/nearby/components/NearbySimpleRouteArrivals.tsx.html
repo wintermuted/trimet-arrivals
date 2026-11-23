@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearby/components</a> NearbySimpleRouteArrivals.tsx</h1>
         <div class='clearfix'>
             
@@ -494,10 +505,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">97x</span>
-<span class="cline-any cline-yes">97x</span>
+<span class="cline-any cline-yes">121x</span>
 <span class="cline-any cline-yes">288x</span>
 <span class="cline-any cline-yes">288x</span>
-<span class="cline-any cline-yes">97x</span>
+<span class="cline-any cline-yes">121x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -646,7 +657,7 @@ export default function NearbySimpleRouteArrivals({
         directionName: selectedDirection.desc,
         stops: [...selectedDirection.stop].sort((a, b) =&gt; a.seq - b.seq)
       });
-    }).catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+    }).<span class="fstat-no" title="function not covered" >catch(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      if (!cancelled) <span class="cstat-no" title="statement not covered" >setRoute({ status: "error", key: routeKey });</span></span>
     });
     return () =&gt; { cancelled = true; };
@@ -708,8 +719,8 @@ export default function NearbySimpleRouteArrivals({
     setMapError(false);
     if (origin &amp;&amp; validRoute &amp;&amp; !routeInfoOpen) {
       return onSelectionChanged(
-        { routeId: Number(id), direction: Number(direction), origin },
-<span class="fstat-no" title="function not covered" >        ()</span> =&gt; <span class="cstat-no" title="statement not covered" >setMapError(true)</span>
+        { routeId: Number(id), direction: Number(direction), origin <span class="fstat-no" title="function not covered" >},</span>
+        () =&gt; <span class="cstat-no" title="statement not covered" >setMapError(true)</span>
       );
     }
   }, [origin, id, direction, validRoute, routeInfoOpen, onSelectionChanged, mapRetry]);
@@ -721,7 +732,7 @@ export default function NearbySimpleRouteArrivals({
     return &lt;&gt;&lt;TopNavBar id={id} /&gt;&lt;p role="status"&gt;Loading route stops...&lt;/p&gt;&lt;/&gt;;
   }
   <span class="missing-if-branch" title="if path not taken" >I</span>if (route.status === "error") {
-<span class="cstat-no" title="statement not covered" >    return &lt;&gt;&lt;TopNavBar id={id} /&gt;&lt;p role="alert"&gt;Could not load route stops.&lt;/p&gt;&lt;Button onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setRouteRetry(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>&gt;Try again&lt;/Button&gt;&lt;/&gt;;</span>
+<span class="cstat-no" title="statement not covered" >    return &lt;&gt;&lt;TopNavBar id={id} /&gt;&lt;p role="alert"&gt;Could not load route stops.&lt;/p&gt;&lt;Button <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etRouteRetry(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}&gt;T</span>ry again&lt;/Button&gt;&lt;/&gt;;</span>
   }
 &nbsp;
   function changeStop(value: string) {
@@ -746,7 +757,7 @@ export default function NearbySimpleRouteArrivals({
   const stopLocation = origin &amp;&amp; { ...origin, id: origin.locid };
   const stopCounts = new Map&lt;number, number&gt;();
   route.stops.forEach(item =&gt; stopCounts.set(item.locid, (stopCounts.get(item.locid) ?? 0) + 1));
-  const repeatedStopIds = Array.from(stopCounts).filter(([, count]) =&gt; count &gt; 1).map(<span class="fstat-no" title="function not covered" >([</span>locid]) =&gt; <span class="cstat-no" title="statement not covered" >locid)</span>;
+  const repeatedStopIds = Array.from(stopCounts).filter(([, count]) =&gt; count &gt; 1).<span class="fstat-no" title="function not covered" >map(([</span>locid]) =&gt; <span class="cstat-no" title="statement not covered" >locid)</span>;
   return (
     &lt;&gt;
     {routeInfoOpen &amp;&amp; (
@@ -774,15 +785,15 @@ export default function NearbySimpleRouteArrivals({
           &lt;/Link&gt;
         }
       /&gt;
-      {mapError &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;div&gt;&lt;p role="alert"&gt;Could not load the route line.&lt;/p&gt;&lt;Button onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setMapRetry(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>&gt;Retry map&lt;/Button&gt;&lt;/div&gt;}</span>
+      {mapError &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;div&gt;&lt;p role="alert"&gt;Could not load the route line.&lt;/p&gt;&lt;Button <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etMapRetry(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}&gt;R</span>etry map&lt;/Button&gt;&lt;/div&gt;}</span>
       &lt;br /&gt;
       &lt;FieldGroup label="From" htmlFor="route-origin"&gt;
-        &lt;Select id="route-origin" value={origin ? String(origin.locid) : <span class="branch-1 cbranch-no" title="branch not covered" >""}</span> onChange={event =&gt; changeStop(event.target.value)}&gt;
+        &lt;Select id="route-origin" value={origin ? String(origin.locid) : <span class="branch-1 cbranch-no" title="branch not covered" >""} o</span>nChange={event =&gt; changeStop(event.target.value)}&gt;
           &lt;option value="" disabled&gt;Choose a stop on this route&lt;/option&gt;
           {route.stops.map(item =&gt; &lt;option key={`${item.locid}-${item.seq}`} value={item.locid}&gt;{item.desc} ({item.locid})&lt;/option&gt;)}
         &lt;/Select&gt;
       &lt;/FieldGroup&gt;
-      {!origin ? <span class="branch-0 cbranch-no" title="branch not covered" >&lt;p role="alert"&gt;Choose a stop on this route and direction.&lt;/p&gt; </span>: (
+      {!origin ? <span class="branch-0 cbranch-no" title="branch not covered" >&lt;p role="alert"&gt;Choose a stop on this route and direction.&lt;/p&gt; : (</span>
         &lt;&gt;
           &lt;RouteStopInfo shortSign={route.directionName} stopLocation={stopLocation} routeId={Number(id)} direction={Number(direction)} showFromLabel={false} /&gt;
           {onWalkingRouteChanged &amp;&amp; (
@@ -794,11 +805,11 @@ export default function NearbySimpleRouteArrivals({
             /&gt;
           )}
           &lt;br /&gt;
-          {arrivals.key !== arrivalsKey || arrivals.status === "loading" ? &lt;div&gt;&lt;p role="status"&gt;Loading departures...&lt;/p&gt;&lt;Button onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setArrivalsRetry(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>&gt;Retry departures&lt;/Button&gt;&lt;/div&gt; :
+          {arrivals.key !== arrivalsKey || arrivals.status === "loading" ? &lt;div&gt;&lt;p role="status"&gt;Loading departures...&lt;/p&gt;&lt;Button <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etArrivalsRetry(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}&gt;R</span>etry departures&lt;/Button&gt;&lt;/div&gt; :
             arrivals.status === "error" ? &lt;div&gt;&lt;p role="alert"&gt;Could not load departures for this stop.&lt;/p&gt;&lt;Button onClick={() =&gt; setArrivalsRetry(value =&gt; value + 1)}&gt;Try again&lt;/Button&gt;&lt;/div&gt; :
               &lt;&gt;
-                {arrivals.refreshError &amp;&amp; &lt;div&gt;&lt;p role="alert"&gt;Could not refresh departures. Showing the last received departures.&lt;/p&gt;&lt;Button onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setArrivalsRetry(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>&gt;Try again&lt;/Button&gt;&lt;/div&gt;}
-                {arrivals.refreshing &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;div&gt;&lt;p role="status"&gt;Refreshing departures...&lt;/p&gt;&lt;Button onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setArrivalsRetry(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}</span>&gt;Retry departures&lt;/Button&gt;&lt;/div&gt;}</span>
+                {arrivals.refreshError &amp;&amp; &lt;div&gt;&lt;p role="alert"&gt;Could not refresh departures. Showing the last received departures.&lt;/p&gt;&lt;Button <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etArrivalsRetry(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}&gt;T</span>ry again&lt;/Button&gt;&lt;/div&gt;}
+                {arrivals.refreshing &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;div&gt;&lt;p role="status"&gt;Refreshing departures...&lt;/p&gt;&lt;Button <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etArrivalsRetry(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 1)</span>}&gt;R</span>etry departures&lt;/Button&gt;&lt;/div&gt;}</span>
                 {arrivals.arrivals.length
                   ? &lt;DeparturesCard filteredArrivals={arrivals.arrivals} selectedArrival={selectedArrival} onSelect={arrival =&gt; setSelection({ key: arrivalsKey, id: arrival.id })} /&gt;
                   : &lt;p role="status"&gt;No upcoming departures for this route at this stop.&lt;/p&gt;}
@@ -820,7 +831,7 @@ export default function NearbySimpleRouteArrivals({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

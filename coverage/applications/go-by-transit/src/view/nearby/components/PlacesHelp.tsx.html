@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearby/components</a> PlacesHelp.tsx</h1>
         <div class='clearfix'>
             
@@ -37,9 +48,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">73.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>12/16</span>
+                <span class='fraction'>11/15</span>
             </div>
         
             
@@ -280,13 +291,13 @@ export default function PlacesHelp({ label, text, icon = "info-circle", triggerL
   const [position, setPosition] = useState&lt;{ left: number; top: number }&gt;();
   const visible = (hovered || focused) &amp;&amp; !dismissed;
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >enter(</span>) {
+  function <span class="fstat-no" title="function not covered" >enter() {</span>
 <span class="cstat-no" title="statement not covered" >    clearTimeout(leaveTimer.current);</span>
 <span class="cstat-no" title="statement not covered" >    setHovered(true);</span>
 <span class="cstat-no" title="statement not covered" >    setDismissed(false);</span>
   }
-  function <span class="fstat-no" title="function not covered" >leave(</span>) {
-<span class="cstat-no" title="statement not covered" >    leaveTimer.current = setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setHovered(false),</span> 120);</span>
+  function <span class="fstat-no" title="function not covered" >leave() {</span>
+<span class="cstat-no" title="statement not covered" >    leaveTimer.current = <span class="fstat-no" title="function not covered" >setTimeout(() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etHovered(false), 1</span>20);</span>
   }
   useEffect(() =&gt; () =&gt; clearTimeout(leaveTimer.current), []);
 &nbsp;
@@ -298,7 +309,7 @@ export default function PlacesHelp({ label, text, icon = "info-circle", triggerL
       const anchor = trigger.getBoundingClientRect();
       const panel = content.getBoundingClientRect();
       const sidebar = trigger.closest(".transit-nearby-results")?.getBoundingClientRect();
-      <span class="missing-if-branch" title="if path not taken" >I</span>if (sidebar &amp;&amp; sidebar.height &gt; 0 &amp;&amp; (<span class="branch-2 cbranch-no" title="branch not covered" >anchor.bottom &lt;= sidebar.top </span>|| <span class="branch-3 cbranch-no" title="branch not covered" >anchor.top &gt;= sidebar.bottom)</span>) {
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (sidebar &amp;&amp; sidebar.height &gt; 0 &amp;&amp; (<span class="branch-2 cbranch-no" title="branch not covered" >anchor.bottom &lt;= sidebar.top || <span class="branch-3 cbranch-no" title="branch not covered" >a</span>nchor.top &gt;= sidebar.bottom)) {</span>
 <span class="cstat-no" title="statement not covered" >        setDismissed(true);</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
       }
@@ -345,7 +356,7 @@ export default function PlacesHelp({ label, text, icon = "info-circle", triggerL
       aria-describedby={visible ? id : undefined}
       onMouseEnter={enter} onMouseLeave={leave}
       onFocus={() =&gt; { setFocused(true); setDismissed(false); }}
-      onBlur={() =&gt; setFocused(false)} onClick={<span class="fstat-no" title="function not covered" >ev</span>ent =&gt; {
+      onBlur={() =&gt; setFocused(false)} <span class="fstat-no" title="function not covered" >onClick={e</span>vent =&gt; {
 <span class="cstat-no" title="statement not covered" >        event.preventDefault();</span>
 <span class="cstat-no" title="statement not covered" >        event.stopPropagation();</span>
 <span class="cstat-no" title="statement not covered" >        setDismissed(false);</span>
@@ -367,7 +378,7 @@ export default function PlacesHelp({ label, text, icon = "info-circle", triggerL
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

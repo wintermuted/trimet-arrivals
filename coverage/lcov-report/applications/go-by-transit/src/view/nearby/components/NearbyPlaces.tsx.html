@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/nearby/components</a> NearbyPlaces.tsx</h1>
         <div class='clearfix'>
             
@@ -1030,15 +1041,15 @@ export default function NearbyPlaces({
   }] : [];
   const neighborhoodIssues: LoadIssue[] = neighborhoods?.shown &amp;&amp; (neighborhoods.error || neighborhoods.mapError) ? [{
     label: "Portland neighborhoods",
-    message: `Neighborhood boundaries could not be ${neighborhoods.error ? "loaded" : <span class="branch-1 cbranch-no" title="branch not covered" >"drawn"}</span>. Other places remain usable.${
-      neighborhoods.error &amp;&amp; neighborhoods.snapshot ? <span class="branch-0 cbranch-no" title="branch not covered" >" The previously loaded boundaries are still shown." </span>: ""}`,
+    message: `Neighborhood boundaries could not be ${neighborhoods.error ? "loaded" : <span class="branch-1 cbranch-no" title="branch not covered" >"drawn"}.</span> Other places remain usable.${
+      neighborhoods.error &amp;&amp; neighborhoods.snapshot ? <span class="branch-0 cbranch-no" title="branch not covered" >" The previously loaded boundaries are still shown." : "</span>"}`,
     retry: neighborhoods.onRetry
   }] : [];
   const lineIssues: LoadIssue[] = lineOverlays ? LINE_OVERLAY_CATEGORIES
     .filter(category =&gt; lineOverlays.shown[category] &amp;&amp; (lineOverlays.sources[category].error || lineOverlays.mapErrors[category]))
     .map(category =&gt; ({
       label: LINE_OVERLAY_INFO[category].label,
-      message: `${LINE_OVERLAY_INFO[category].label} could not be ${lineOverlays.sources[category].error ? "loaded" : <span class="branch-1 cbranch-no" title="branch not covered" >"drawn"}</span>. Other map layers and places remain usable.${
+      message: `${LINE_OVERLAY_INFO[category].label} could not be ${lineOverlays.sources[category].error ? "loaded" : <span class="branch-1 cbranch-no" title="branch not covered" >"drawn"}.</span> Other map layers and places remain usable.${
         lineOverlays.sources[category].error &amp;&amp; lineOverlays.sources[category].snapshot ? " The previously loaded snapshot is still shown." : ""}`,
       retry: () =&gt; lineOverlays.onRetry(category)
     })) : [];
@@ -1046,8 +1057,8 @@ export default function NearbyPlaces({
     .filter(category =&gt; contextOverlays.shown[category] &amp;&amp; (contextOverlays.sources[category].error || contextOverlays.mapErrors[category]))
     .map(category =&gt; ({
       label: CONTEXT_OVERLAY_INFO[category].label,
-      message: `${CONTEXT_OVERLAY_INFO[category].label} could not be ${contextOverlays.sources[category].error ? "loaded" : <span class="branch-1 cbranch-no" title="branch not covered" >"drawn"}</span>. Other places and layers remain usable.${
-        contextOverlays.sources[category].snapshot ? <span class="branch-0 cbranch-no" title="branch not covered" >" A previously loaded area may still be shown." </span>: ""}`,
+      message: `${CONTEXT_OVERLAY_INFO[category].label} could not be ${contextOverlays.sources[category].error ? "loaded" : <span class="branch-1 cbranch-no" title="branch not covered" >"drawn"}.</span> Other places and layers remain usable.${
+        contextOverlays.sources[category].snapshot ? <span class="branch-0 cbranch-no" title="branch not covered" >" A previously loaded area may still be shown." : "</span>"}`,
       retry: () =&gt; contextOverlays.onRetry(category)
     })) : [];
   const layerIssues = [...neighborhoodIssues, ...lineIssues, ...contextIssues];
@@ -1066,7 +1077,7 @@ export default function NearbyPlaces({
       {!selected &amp;&amp; &lt;&gt;
       &lt;h2 id="nearby-places-heading" className="wm-sr-only" ref={browseHeading} tabIndex={-1}&gt;Places nearby&lt;/h2&gt;
       {discovery &amp;&amp; &lt;details className="transit-places-section" open={sections.discovery}
-        onToggle={<span class="fstat-no" title="function not covered" >ev</span>ent =&gt; <span class="cstat-no" title="statement not covered" >toggleSection("discovery", event.currentTarget.open)}</span>&gt;
+<span class="fstat-no" title="function not covered" >        onToggle={e</span>vent =&gt; <span class="cstat-no" title="statement not covered" >toggleSection("discovery", event.currentTarget.open)}&gt;</span>
         &lt;summary&gt;Discovery tools&lt;LoadStatus label="Saved places" issues={savedIssues} /&gt;&lt;/summary&gt;
         {discovery}
       &lt;/details&gt;}
@@ -1184,7 +1195,7 @@ export default function NearbyPlaces({
       &lt;label className="transit-places-search"&gt;
         Search places in this {areaLabel}
         &lt;input type="search" className="wm-input" value={filters.search} maxLength={200}
-          onChange={<span class="fstat-no" title="function not covered" >ev</span>ent =&gt; <span class="cstat-no" title="statement not covered" >onFilters({ ...filters, search: event.target.value })}</span> /&gt;
+<span class="fstat-no" title="function not covered" >          onChange={e</span>vent =&gt; <span class="cstat-no" title="statement not covered" >onFilters({ ...filters, search: event.target.value })} /&gt;</span>
       &lt;/label&gt;
       &lt;/&gt;}
       {selected &amp;&amp; (
@@ -1200,9 +1211,9 @@ export default function NearbyPlaces({
           &lt;p&gt;&lt;FontAwesomeIcon icon={placeIconDefinition(selected.category)} aria-hidden="true" /&gt;{" "}
             {PLACE_INFO[selected.category].singular}&lt;/p&gt;
           {savedPlaces &amp;&amp; &lt;Button size="sm" variant="secondary" aria-pressed={Boolean(savedPlaces.saved[selected.id])}
-            onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >savedPlaces.toggle(selected)}</span>&gt;
-            &lt;FontAwesome name={savedPlaces.saved[selected.id] ? <span class="branch-0 cbranch-no" title="branch not covered" >"bookmark" </span>: "bookmark-o"} aria-hidden="true" /&gt;{" "}
-            {savedPlaces.saved[selected.id] ? <span class="branch-0 cbranch-no" title="branch not covered" >"Remove saved place" </span>: "Save place"}
+<span class="fstat-no" title="function not covered" >            onClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>avedPlaces.toggle(selected)}&gt;</span>
+            &lt;FontAwesome name={savedPlaces.saved[selected.id] ? <span class="branch-0 cbranch-no" title="branch not covered" >"bookmark" : "</span>bookmark-o"} aria-hidden="true" /&gt;{" "}
+            {savedPlaces.saved[selected.id] ? <span class="branch-0 cbranch-no" title="branch not covered" >"Remove saved place" : "</span>Save place"}
           &lt;/Button&gt;}
           {selected.address &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;p&gt;{selected.address}&lt;/p&gt;}</span>
           {["drinking-fountain", "picnic-seating", "park-artwork"].includes(selected.category) &amp;&amp; &lt;section aria-label="Park amenity information"&gt;
@@ -1230,13 +1241,13 @@ export default function NearbyPlaces({
           {selected.category === "bicycle-parking" &amp;&amp; &lt;section aria-label="Bicycle rack information"&gt;
             &lt;h3&gt;Source-listed rack&lt;/h3&gt;
             &lt;p&gt;&lt;strong&gt;Capacity:&lt;/strong&gt; {selected.bikeSpaces === undefined ? "Unknown" : `${selected.bikeSpaces} spaces`}&lt;/p&gt;
-            &lt;p&gt;&lt;strong&gt;Covered:&lt;/strong&gt; {selected.bikeCovered === "yes" ? "Yes" : selected.bikeCovered === "no" ? <span class="branch-0 cbranch-no" title="branch not covered" >"No" </span>: "Unknown"}&lt;/p&gt;
+            &lt;p&gt;&lt;strong&gt;Covered:&lt;/strong&gt; {selected.bikeCovered === "yes" ? "Yes" : selected.bikeCovered === "no" ? <span class="branch-0 cbranch-no" title="branch not covered" >"No" : "</span>Unknown"}&lt;/p&gt;
             &lt;p&gt;Markers and cluster counts represent racks, not spaces. This is not live availability or a guarantee of condition, security, or access. Check the rack and local signs before parking. Trip planning does not reserve parking or select a cycling route.&lt;/p&gt;
           &lt;/section&gt;}
           {selected.category === "public-restroom" &amp;&amp; &lt;section aria-label="Restroom access"&gt;
             &lt;h3&gt;Source-listed access&lt;/h3&gt;
             &lt;p&gt;&lt;strong&gt;Status:&lt;/strong&gt; {selected.restroomStatus === "listed-24-7" ? "Listed 24/7 in the source; not verified." : "Opening status unknown."}&lt;/p&gt;
-            &lt;p&gt;&lt;strong&gt;ADA designation:&lt;/strong&gt; {selected.restroomAda === "yes" ? <span class="branch-0 cbranch-no" title="branch not covered" >"Yes (source-listed)" </span>: selected.restroomAda === "no" ? <span class="branch-0 cbranch-no" title="branch not covered" >"No (source-listed)" </span>: "Unknown"}&lt;/p&gt;
+            &lt;p&gt;&lt;strong&gt;ADA designation:&lt;/strong&gt; {selected.restroomAda === "yes" ? <span class="branch-0 cbranch-no" title="branch not covered" >"Yes (source-listed)" : s</span>elected.restroomAda === "no" ? <span class="branch-0 cbranch-no" title="branch not covered" >"No (source-listed)" : "</span>Unknown"}&lt;/p&gt;
             &lt;p&gt;Not live availability or a verified accessible route. Seasonal closures, fees, or building access restrictions may apply. Check with Portland Parks before relying on this stop.&lt;/p&gt;
           &lt;/section&gt;}
           {selected.category === "heritage-tree" &amp;&amp; &lt;section aria-label="Heritage tree access"&gt;
@@ -1306,7 +1317,7 @@ export default function NearbyPlaces({
           &lt;/li&gt;
         ))}
       &lt;/ul&gt;
-      {sorted.length &gt; limit &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;Button variant="secondary" onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setLimit(<span class="fstat-no" title="function not covered" >va</span>lue =&gt; <span class="cstat-no" title="statement not covered" >value + 40)</span>}</span>&gt;Show more places ({sorted.length - limit} remaining)&lt;/Button&gt;}</span>
+      {sorted.length &gt; limit &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;Button variant="secondary" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >s</span>etLimit(v</span>alue =&gt; <span class="cstat-no" title="statement not covered" >value + 40)</span>}&gt;S</span>how more places ({sorted.length - limit} remaining)&lt;/Button&gt;}</span>
       &lt;/&gt;}
       &lt;details className="transit-places-notices"&gt;
         &lt;summary&gt;Data sources and coverage&lt;/summary&gt;
@@ -1360,7 +1371,7 @@ export default function NearbyPlaces({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

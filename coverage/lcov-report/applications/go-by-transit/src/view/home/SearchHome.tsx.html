@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../../../sort-arrow-sprite.png);
@@ -19,13 +20,23 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">applications/go-by-transit/src/view/home</a> SearchHome.tsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.85% </span>
+                <span class="strong">85.1% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>38/47</span>
+                <span class='fraction'>40/47</span>
             </div>
         
             
@@ -44,9 +55,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">81.57% </span>
+                <span class="strong">86.84% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>31/38</span>
+                <span class='fraction'>33/38</span>
             </div>
         
             
@@ -371,10 +382,10 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -531,18 +542,18 @@ function BookmarkPreview() {
           {quickLinks.map(({ key, kind, id, label, desc }) =&gt; (
             &lt;li key={key}&gt;
               &lt;Link to={kind === "stop" ? `/stop/${id}` : `/lines/${id}`}&gt;
-                &lt;strong&gt;{label}:&lt;/strong&gt; {desc || (<span class="branch-1 cbranch-no" title="branch not covered" >kind === "stop" ? "Stop" : "Transit route")</span>} ({id})
+                &lt;strong&gt;{label}:&lt;/strong&gt; {desc || (<span class="branch-1 cbranch-no" title="branch not covered" >kind === "stop" ? "Stop" : "Transit route")} </span>({id})
               &lt;/Link&gt;
             &lt;/li&gt;
           ))}
-          {stopEntries.map(<span class="fstat-no" title="function not covered" >([</span>id, stop]) =&gt; (
+          {stopEntries.<span class="fstat-no" title="function not covered" >map(([</span>id, stop]) =&gt; (
 <span class="cstat-no" title="statement not covered" >            &lt;li key={`stop-${id}`}&gt;</span>
               &lt;Link to={`/stop/${id}`}&gt;
                 {stop.desc || "Stop"} ({id})
               &lt;/Link&gt;
             &lt;/li&gt;
           ))}
-          {routeEntries.map(<span class="fstat-no" title="function not covered" >(r</span>oute) =&gt; (
+          {routeEntries.<span class="fstat-no" title="function not covered" >map((r</span>oute) =&gt; (
 <span class="cstat-no" title="statement not covered" >            &lt;li key={`route-${route.route}`}&gt;</span>
               &lt;Link to={`/lines/${route.route}`}&gt;
                 Route {route.route}: {route.desc || "Transit route"}
@@ -567,11 +578,11 @@ function MapPreview() {
   useEffect(() =&gt; {
     try {
       const map = initializeMap(-122.6784, 45.5152, container, 10, false);
-      map.once("load", <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setStatus("ready"))</span>;
-<span class="cstat-no" title="statement not covered" >      map.on("error", <span class="fstat-no" title="function not covered" >()</span> =&gt;</span>
-<span class="cstat-no" title="statement not covered" >        setStatus(<span class="fstat-no" title="function not covered" >(p</span>revious) =&gt; (<span class="cstat-no" title="statement not covered" >previous === "ready" ? previous : "error")</span>),</span>
+      map.once(<span class="fstat-no" title="function not covered" >"load", () =&gt; <span class="cstat-no" title="statement not covered" >s</span>etStatus("ready"))</span>;
+      map.on(<span class="fstat-no" title="function not covered" >"error", () =&gt;</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >        setStatus((p</span>revious) =&gt; (<span class="cstat-no" title="statement not covered" >previous === "ready" ? previous : "error"))</span>,</span>
       );
-<span class="cstat-no" title="statement not covered" >      return <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="fstat-no" title="function not covered" >      return () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        map.remove();</span>
       };
     } catch {
@@ -661,7 +672,7 @@ export default function SearchHome() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.871Z
+                at 2026-11-23T00:18:21.934Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

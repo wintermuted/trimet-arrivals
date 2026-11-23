@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../sort-arrow-sprite.png);
@@ -19,34 +20,44 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../index.html">All files</a> api/trimet-client/src</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.05% </span>
+                <span class="strong">94.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>448/895</span>
+                <span class='fraction'>450/477</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.76% </span>
+                <span class="strong">86.72% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>476/555</span>
+                <span class='fraction'>477/550</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">49.21% </span>
+                <span class="strong">96.92% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>126/256</span>
+                <span class='fraction'>126/130</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">51.43% </span>
+                <span class="strong">96.8% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>393/764</span>
+                <span class='fraction'>394/407</span>
             </div>
         
             
@@ -61,7 +72,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <div class="pad1">
 <table class="coverage-summary">
 <thead>
@@ -79,21 +90,6 @@
 </tr>
 </thead>
 <tbody><tr>
-	<td class="file low" data-value="alertScopes.test.ts"><a href="alertScopes.test.ts.html">alertScopes.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="15" class="abs low">0/15</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="8" class="abs low">0/8</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="10" class="abs low">0/10</td>
-	</tr>
-
-<tr>
 	<td class="file high" data-value="alertScopes.ts"><a href="alertScopes.ts.html">alertScopes.ts</a></td>
 	<td data-value="100" class="pic high">
 	<div class="chart"><div class="cover-fill cover-full" style="width: 100%"></div><div class="cover-empty" style="width: 0%"></div></div>
@@ -136,21 +132,6 @@
 	<td data-value="1" class="abs high">1/1</td>
 	<td data-value="100" class="pct high">100%</td>
 	<td data-value="4" class="abs high">4/4</td>
-	</tr>
-
-<tr>
-	<td class="file low" data-value="client.test.ts"><a href="client.test.ts.html">client.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="57" class="abs low">0/57</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="20" class="abs low">0/20</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="51" class="abs low">0/51</td>
 	</tr>
 
 <tr>
@@ -289,21 +270,6 @@
 	</tr>
 
 <tr>
-	<td class="file low" data-value="tripplanner.test.ts"><a href="tripplanner.test.ts.html">tripplanner.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="42" class="abs low">0/42</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="8" class="abs low">0/8</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="40" class="abs low">0/40</td>
-	</tr>
-
-<tr>
 	<td class="file high" data-value="tripplanner.ts"><a href="tripplanner.ts.html">tripplanner.ts</a></td>
 	<td data-value="95.08" class="pic high">
 	<div class="chart"><div class="cover-fill" style="width: 95%"></div><div class="cover-empty" style="width: 5%"></div></div>
@@ -316,21 +282,6 @@
 	<td data-value="17" class="abs high">17/17</td>
 	<td data-value="98.11" class="pct high">98.11%</td>
 	<td data-value="53" class="abs high">52/53</td>
-	</tr>
-
-<tr>
-	<td class="file low" data-value="useStopCatalog.test.tsx"><a href="useStopCatalog.test.tsx.html">useStopCatalog.test.tsx</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="62" class="abs low">0/62</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="24" class="abs low">0/24</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="44" class="abs low">0/44</td>
 	</tr>
 
 <tr>
@@ -394,21 +345,6 @@
 	</tr>
 
 <tr>
-	<td class="file low" data-value="vehicleFreshness.test.ts"><a href="vehicleFreshness.test.ts.html">vehicleFreshness.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="10" class="abs low">0/10</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="2" class="abs low">0/2</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="10" class="abs low">0/10</td>
-	</tr>
-
-<tr>
 	<td class="file high" data-value="vehicleFreshness.ts"><a href="vehicleFreshness.ts.html">vehicleFreshness.ts</a></td>
 	<td data-value="100" class="pic high">
 	<div class="chart"><div class="cover-fill cover-full" style="width: 100%"></div><div class="cover-empty" style="width: 0%"></div></div>
@@ -421,36 +357,6 @@
 	<td data-value="2" class="abs high">2/2</td>
 	<td data-value="100" class="pct high">100%</td>
 	<td data-value="3" class="abs high">3/3</td>
-	</tr>
-
-<tr>
-	<td class="file low" data-value="vehicleHooks.test.tsx"><a href="vehicleHooks.test.tsx.html">vehicleHooks.test.tsx</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="121" class="abs low">0/121</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="3" class="abs low">0/3</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="35" class="abs low">0/35</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="102" class="abs low">0/102</td>
-	</tr>
-
-<tr>
-	<td class="file low" data-value="vehicleTrip.test.ts"><a href="vehicleTrip.test.ts.html">vehicleTrip.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="45" class="abs low">0/45</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="11" class="abs low">0/11</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="39" class="abs low">0/39</td>
 	</tr>
 
 <tr>
@@ -469,21 +375,6 @@
 	</tr>
 
 <tr>
-	<td class="file low" data-value="vehicleTripLegs.test.ts"><a href="vehicleTripLegs.test.ts.html">vehicleTripLegs.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="15" class="abs low">0/15</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="2" class="abs low">0/2</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="7" class="abs low">0/7</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="11" class="abs low">0/11</td>
-	</tr>
-
-<tr>
 	<td class="file high" data-value="vehicleTripLegs.ts"><a href="vehicleTripLegs.ts.html">vehicleTripLegs.ts</a></td>
 	<td data-value="100" class="pic high">
 	<div class="chart"><div class="cover-fill cover-full" style="width: 100%"></div><div class="cover-empty" style="width: 0%"></div></div>
@@ -499,33 +390,18 @@
 	</tr>
 
 <tr>
-	<td class="file low" data-value="vehicles.test.ts"><a href="vehicles.test.ts.html">vehicles.test.ts</a></td>
-	<td data-value="0" class="pic low">
-	<div class="chart"><div class="cover-fill" style="width: 0%"></div><div class="cover-empty" style="width: 100%"></div></div>
-	</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="53" class="abs low">0/53</td>
-	<td data-value="100" class="pct high">100%</td>
-	<td data-value="0" class="abs high">0/0</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="11" class="abs low">0/11</td>
-	<td data-value="0" class="pct low">0%</td>
-	<td data-value="51" class="abs low">0/51</td>
-	</tr>
-
-<tr>
 	<td class="file high" data-value="vehicles.ts"><a href="vehicles.ts.html">vehicles.ts</a></td>
-	<td data-value="93.75" class="pic high">
-	<div class="chart"><div class="cover-fill" style="width: 93%"></div><div class="cover-empty" style="width: 7%"></div></div>
+	<td data-value="94" class="pic high">
+	<div class="chart"><div class="cover-fill" style="width: 94%"></div><div class="cover-empty" style="width: 6%"></div></div>
 	</td>
-	<td data-value="93.75" class="pct high">93.75%</td>
-	<td data-value="48" class="abs high">45/48</td>
-	<td data-value="85.71" class="pct high">85.71%</td>
-	<td data-value="112" class="abs high">96/112</td>
+	<td data-value="94" class="pct high">94%</td>
+	<td data-value="50" class="abs high">47/50</td>
+	<td data-value="86.6" class="pct high">86.6%</td>
+	<td data-value="112" class="abs high">97/112</td>
 	<td data-value="85.71" class="pct high">85.71%</td>
 	<td data-value="7" class="abs high">6/7</td>
-	<td data-value="95.34" class="pct high">95.34%</td>
-	<td data-value="43" class="abs high">41/43</td>
+	<td data-value="95.45" class="pct high">95.45%</td>
+	<td data-value="44" class="abs high">42/44</td>
 	</tr>
 
 </tbody>
@@ -536,7 +412,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

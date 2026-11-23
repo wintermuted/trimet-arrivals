@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../../base.css" />
     <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../../theme.js"></script>
     <style type='text/css'>
         .coverage-summary .sorter {
             background-image: url(../../../sort-arrow-sprite.png);
@@ -19,6 +20,16 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
+        
+        <label class="theme-select quiet">
+            Theme
+            <select id="themeSelect" autocomplete="off">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </label>
+
         <h1><a href="../../../index.html">All files</a> / <a href="index.html">api/places/src</a> contextOverlays.ts</h1>
         <div class='clearfix'>
             
@@ -30,9 +41,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.69% </span>
+                <span class="strong">90.43% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>102/115</span>
+                <span class='fraction'>104/115</span>
             </div>
         
             
@@ -288,7 +299,7 @@
 <span class="cline-any cline-yes">493x</span>
 <span class="cline-any cline-yes">489x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">489x</span>
+<span class="cline-any cline-yes">493x</span>
 <span class="cline-any cline-yes">1193x</span>
 <span class="cline-any cline-yes">489x</span>
 <span class="cline-any cline-yes">4x</span>
@@ -330,7 +341,7 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -401,8 +412,8 @@ function validGeometry(value: unknown, category: ContextCategory): value is Poin
   <span class="missing-if-branch" title="if path not taken" >I</span>if (!record(value)) <span class="cstat-no" title="statement not covered" >return false;</span>
   return category === "sidewalks" ?
     (value.type === "Polygon" ? validPolygon(value.coordinates) :
-      value.type === "MultiPolygon" &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >Array.isArray(value.coordinates) </span>&amp;&amp;
-<span class="branch-2 cbranch-no" title="branch not covered" >      value.coordinates.length &gt; 0 </span>&amp;&amp; <span class="branch-3 cbranch-no" title="branch not covered" >value.coordinates.every(validPolygon))</span> :
+      value.type === "MultiPolygon" &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >Array.isArray(value.coordinates) &amp;&amp;</span>
+<span class="branch-2 cbranch-no" title="branch not covered" >      value.coordinates.length &gt; 0 &amp;&amp; <span class="branch-3 cbranch-no" title="branch not covered" >v</span>alue.coordinates.every(validPolygon)) :</span>
     value.type === "Point" &amp;&amp; validPlacePoint(value.coordinates);
 }
 export function parseContextIndex(value: unknown, category: ContextCategory): ContextIndex {
@@ -451,7 +462,7 @@ async function loadJson(file: string, signal: AbortSignal, refresh: boolean): Pr
   <span class="missing-if-branch" title="if path not taken" >I</span>if (!response.ok) <span class="cstat-no" title="statement not covered" >throw new Error(`Could not load ${file}`);</span>
   return response.json();
 }
-export function useContextOverlay(category: ContextCategory, enabled: boolean, bounds?: MapBounds, zoom = <span class="branch-0 cbranch-no" title="branch not covered" >0)</span>: ContextState {
+export function useContextOverlay(category: ContextCategory, enabled: boolean, bounds?: MapBounds, zoom = 0): ContextState {
   const [state, setState] = useState&lt;Omit&lt;ContextState, "retry" | "zoomRequired"&gt;&gt;({ loading: false, error: false });
   const [attempt, setAttempt] = useState(0);
   const lastAttempt = useRef(0);
@@ -474,11 +485,11 @@ export function useContextOverlay(category: ContextCategory, enabled: boolean, b
       const loaded = await Promise.all(wanted.map(async tile =&gt; {
         const cached = !refresh &amp;&amp; tiles.get(tile.file);
         const data = cached || parseContextTile(await loadJson(tile.file, controller.signal, refresh), category, tile);
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (!controller.signal.aborted) {
+        if (!controller.signal.aborted) {
           tiles.delete(tile.file);
           tiles.set(tile.file, data);
           const oldest = tiles.keys().next().value;
-          <span class="missing-if-branch" title="if path not taken" >I</span>if (tiles.size &gt; 32 &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >oldest !== undefined)</span> <span class="cstat-no" title="statement not covered" >tiles.delete(oldest);</span>
+          <span class="missing-if-branch" title="if path not taken" >I</span>if (tiles.size &gt; 32 &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >oldest !== undefined) <span class="cstat-no" title="statement not covered" >t</span>iles.delete(oldest);</span>
         }
         return data.features;
       }));
@@ -502,7 +513,7 @@ export function useContextOverlay(category: ContextCategory, enabled: boolean, b
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-22T17:34:37.782Z
+                at 2026-11-23T00:18:21.871Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
