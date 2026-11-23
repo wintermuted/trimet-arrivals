@@ -1,5 +1,4 @@
 import { Badge } from "@wintermuted/ui-react";
-import moment from "moment";
 import React from "react";
 import {
   getTimeDifferenceInMinutes,
@@ -22,7 +21,7 @@ function TimeDiffBadge({
   const hasEstimate = Number.isFinite(estimatedArrivalTime) && estimatedArrivalTime > 0;
   const hasSchedule = Number.isFinite(scheduledArrivalTime) && scheduledArrivalTime > 0;
   const difference = hasEstimate && hasSchedule
-    ? getTimeDifferenceInMinutes(scheduledArrivalTime, moment(estimatedArrivalTime))
+    ? getTimeDifferenceInMinutes(scheduledArrivalTime, estimatedArrivalTime)
     : null;
   const status = !hasEstimate ? "Scheduled" : !hasSchedule ? "Estimated" :
     difference === 0 ? "On Time" : difference < 0 ? "Late" : "Early";

@@ -1,4 +1,3 @@
-import moment from "moment";
 import React from "react";
 import { Arrival } from "../../../api/trimet/interfaces/arrivals";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";
@@ -26,7 +25,7 @@ export default class StopLocationView extends React.Component<Props> {
         feet={arrival.feet}
         routeId={arrival.route}
         shortSign={arrival.shortSign}
-        now={moment()}
+        now={Date.now()}
         onRouteIndicatorClick={undefined}
         route={route}
       />

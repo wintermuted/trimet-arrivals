@@ -1,30 +1,29 @@
-import type { Moment } from "moment";
 import React from "react";
 import "./Indicator.css";
-import { remainingTime, timeDiff } from "./util";
+import { timeDiff } from "./util";
+import { isValidTimestamp } from "../timeUtils";
 
 interface Props {
-  scheduled: Moment;
-  estimated: Moment;
+  scheduled: number;
+  estimated: number;
 }
 
 export default class LateIndicator extends React.PureComponent<Props> {
   public render() {
     const { scheduled, estimated } = this.props;
 
-    if (scheduled && estimated) {
-      const { seconds, minutes } = timeDiff(scheduled, estimated);
-      const { secondsDiff, minutesDiff } = remainingTime(minutes, seconds);
+    if (isValidTimestamp(scheduled) && isValidTimestamp(estimated)) {
+      const { seconds, minutes } = timeDiff(estimated, scheduled);
 
-      if (minutesDiff === 0) {
+      if (minutes === 0) {
         return (
-          <span className="arrival-estimated-late">{secondsDiff}s late</span>
+          <span className="arrival-estimated-late">{seconds}s late</span>
         );
       }
 
       return (
         <span className="arrival-estimated-late">
-          {minutesDiff}m {secondsDiff}s late
+          {minutes}m {seconds}s late
         </span>
       );
     }

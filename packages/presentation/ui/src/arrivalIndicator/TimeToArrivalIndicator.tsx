@@ -1,18 +1,21 @@
-import type { Moment } from "moment";
 import React from "react";
 import "./Indicator.css";
 import { timeDiff } from "./util";
+import { isValidTimestamp } from "../timeUtils";
 
 interface Props {
-  estimated: Moment;
-  now: Moment;
+  estimated: number;
+  now: number;
 }
 
 export default class TimeToArrivalIndicator extends React.PureComponent<Props> {
   public render() {
     const { estimated, now } = this.props;
 
-    if (estimated && now) {
+    if (isValidTimestamp(estimated) && isValidTimestamp(now)) {
+      if (estimated <= now) {
+        return "Due";
+      }
       const { seconds, minutes } = timeDiff(estimated, now);
 
       if (minutes === 0) {

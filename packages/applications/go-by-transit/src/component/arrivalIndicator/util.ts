@@ -1,1 +1,1 @@
-export { timeDiff, remainingTime } from "@overworld/ui";
+export { timeDiff } from "@overworld/ui";

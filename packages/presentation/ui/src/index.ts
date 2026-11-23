@@ -8,10 +8,11 @@ export {
   estimatedToArriveAtSameTime
 } from "./arrivalIndicator/OnTimeIndicator";
 export { default as TimeToArrivalIndicator } from "./arrivalIndicator/TimeToArrivalIndicator";
-export { timeDiff, remainingTime } from "./arrivalIndicator/util";
+export { timeDiff } from "./arrivalIndicator/util";
 export { default as TimeDiffBadge } from "./TimeDiffBadge";
 export {
   getFormattedTime,
+  getFormattedLoadTime,
   getNormalizedTimeDifference,
   getTimeDifferenceInMinutes,
   getTimeUntilArrival

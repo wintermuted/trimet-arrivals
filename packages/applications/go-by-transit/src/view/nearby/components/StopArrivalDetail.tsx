@@ -8,7 +8,6 @@ import {
   ListItem
 } from "@wintermuted/ui-react";
 import { find, isEmpty } from "lodash";
-import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
@@ -57,7 +56,7 @@ export function StopArrivalDetail() {
 
   const estimatedTime = formatTime(foundArrival.estimated);
   const scheduledTime = formatTime(foundArrival.scheduled);
-  const now = moment();
+  const now = Date.now();
   const timeDiff = getNormalizedTimeDifference(foundArrival.estimated, now);
 
   return (

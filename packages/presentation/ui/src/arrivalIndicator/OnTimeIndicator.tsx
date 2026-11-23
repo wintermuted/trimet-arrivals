@@ -1,27 +1,27 @@
-import type { Moment } from "moment";
 import React from "react";
 import "./Indicator.css";
 import EarlyIndicator from "./EarlyIndicator";
 import LateIndicator from "./LateIndicator";
+import { isValidTimestamp } from "../timeUtils";
 
 interface Props {
-  scheduled: Moment;
-  estimated: Moment;
+  scheduled: number;
+  estimated: number;
 }
 
-export function isEstimatedEarly(scheduled: Moment, estimated: Moment) {
-  return estimated.isBefore(scheduled);
+export function isEstimatedEarly(scheduled: number, estimated: number) {
+  return isValidTimestamp(scheduled) && isValidTimestamp(estimated) && estimated < scheduled;
 }
 
 export function estimatedToArriveAtSameTime(
-  scheduled: Moment,
-  estimated: Moment
+  scheduled: number,
+  estimated: number
 ) {
-  return scheduled.isSame(estimated);
+  return isValidTimestamp(scheduled) && isValidTimestamp(estimated) && scheduled === estimated;
 }
 
 export default function OnTimeIndicator({ scheduled, estimated }: Props) {
-  if (scheduled && estimated) {
+  if (isValidTimestamp(scheduled) && isValidTimestamp(estimated)) {
     if (estimatedToArriveAtSameTime(scheduled, estimated)) {
       return <span className="arrival-on-time"> On time</span>;
     } else {
