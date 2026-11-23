@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import { PlannerPaths, type PlannerPathRequest, type PlannerPathsProps } from "@overworld/maps/planner";
 import type { TripCorridor } from "@overworld/places/discovery";
 import type { PlannerRouteColors } from "../../../api/trimet/plannerRouteColors";

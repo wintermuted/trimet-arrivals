@@ -1,4 +1,4 @@
-import { Button, Input } from "@wintermuted/ui-theme/react";
+import { Button, Input } from "@wintermuted/ui-react";
 import { isEmpty } from "lodash";
 import React, { Component } from "react";
 import "./AddBookmarkSectionControl.css";

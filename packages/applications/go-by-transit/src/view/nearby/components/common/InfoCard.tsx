@@ -3,7 +3,7 @@ import {
   CardBody,
   CardText,
   CardTitle
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React from "react";
 interface InfoCardParams {
   id: string;

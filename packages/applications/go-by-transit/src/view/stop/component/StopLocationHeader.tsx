@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import React from "react";
 import { TrimetLocation } from "../../../store/reducers/data/arrivalsDataReducer";
 import { OnBookmarkClick } from "./StopLocationView";

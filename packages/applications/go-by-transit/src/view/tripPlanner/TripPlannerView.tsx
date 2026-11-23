@@ -5,9 +5,9 @@ import {
 } from "@overworld/journeys";
 import type { PlannerEndpoint, EndpointField } from "@overworld/journeys";
 import { useStopCatalog } from "@overworld/trimet-client/react";
-import { Button, FieldGroup, Input } from "@wintermuted/ui-theme/react";
+import { Button, FieldGroup, Input } from "@wintermuted/ui-react";
 import distance from "@turf/distance";
-import { MultiSelect } from "@wintermuted/ui-theme/react/select";
+import { MultiSelect } from "@wintermuted/ui-react/select";
 import React, { FormEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import FontAwesome from "react-fontawesome";

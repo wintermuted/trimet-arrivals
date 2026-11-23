@@ -1,4 +1,4 @@
-import { Table } from "@wintermuted/ui-theme/react";
+import { Table } from "@wintermuted/ui-react";
 import { filter, flatten, includes, isEmpty, map, mapKeys } from "lodash";
 import React from "react";
 import FontAwesome from "react-fontawesome";

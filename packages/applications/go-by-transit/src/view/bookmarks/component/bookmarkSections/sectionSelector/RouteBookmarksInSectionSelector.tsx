@@ -1,4 +1,4 @@
-import { MultiSelect } from "@wintermuted/ui-theme/react/select";
+import { MultiSelect } from "@wintermuted/ui-react/select";
 import React from "react";
 import { RouteBookmark } from "../../../../../api/localstorage/routeBookmarks";
 

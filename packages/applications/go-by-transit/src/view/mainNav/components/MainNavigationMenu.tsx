@@ -1,4 +1,4 @@
-import { Button, Nav } from "@wintermuted/ui-theme/react";
+import { Button, Nav } from "@wintermuted/ui-react";
 import React, { useEffect, useId, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { Link, useLocation } from "react-router-dom";

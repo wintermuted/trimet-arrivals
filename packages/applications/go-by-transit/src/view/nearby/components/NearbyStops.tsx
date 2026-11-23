@@ -6,7 +6,7 @@ import {
   CardHeader,
   ListGroup,
   ListItem
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {

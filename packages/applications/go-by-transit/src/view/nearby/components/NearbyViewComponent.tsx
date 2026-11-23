@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import PlacesHelp from "./PlacesHelp";
 import mapboxgl, { LngLatBounds, Map } from "mapbox-gl";
 import { Feature, LineString } from "geojson";

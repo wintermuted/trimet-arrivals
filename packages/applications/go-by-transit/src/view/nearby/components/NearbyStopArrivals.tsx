@@ -1,4 +1,4 @@
-import { Select, Table } from "@wintermuted/ui-theme/react";
+import { Select, Table } from "@wintermuted/ui-react";
 import { map, sortBy } from "lodash";
 import moment from "moment";
 import React, { useId, useState } from "react";

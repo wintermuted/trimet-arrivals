@@ -1,4 +1,4 @@
-import { ThemeProvider } from "@wintermuted/ui-theme/react";
+import { ThemeProvider } from "@wintermuted/ui-react";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";

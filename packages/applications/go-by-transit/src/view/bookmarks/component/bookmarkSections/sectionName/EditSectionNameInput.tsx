@@ -1,4 +1,4 @@
-import { Input } from "@wintermuted/ui-theme/react";
+import { Input } from "@wintermuted/ui-react";
 import React, { Component } from "react";
 interface Props {
   sectionName: string;

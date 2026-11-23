@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import _ from "lodash";
 import React from "react";
 import {

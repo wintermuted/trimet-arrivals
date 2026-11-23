@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import React, { useMemo, useState } from "react";
 import { useStopCatalog } from "@overworld/trimet-client/react";
 import { Link } from "react-router-dom";

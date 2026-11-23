@@ -1,4 +1,4 @@
-import { Table } from "@wintermuted/ui-theme/react";
+import { Table } from "@wintermuted/ui-react";
 import { Moment } from "moment";
 import React from "react";
 import type { Arrival, StopLocation } from "@overworld/trimet-client";

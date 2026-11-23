@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import cx from "classnames";
 import React from "react";
 import FontAwesome from "react-fontawesome";

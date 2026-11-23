@@ -4,11 +4,10 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 import { runInNewContext } from "vm";
 
-// Jest 27 cannot resolve the package's conditional theme export.
 const libraryBootstrap = execFileSync(process.execPath, [
   "--input-type=module",
   "-e",
-  'import { getThemeScript } from "@wintermuted/ui-theme/theme"; process.stdout.write(getThemeScript());',
+  'import { getThemeScript } from "@wintermuted/ui-react/theme"; process.stdout.write(getThemeScript());',
 ], { encoding: "utf8" });
 
 describe("Vite HTML theme bootstrap", () => {

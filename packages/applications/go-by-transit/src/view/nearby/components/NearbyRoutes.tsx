@@ -4,8 +4,8 @@ import {
   CardHeader,
   ListGroup,
   ListItem,
-} from "@wintermuted/ui-theme/react";
-import { MultiSelect } from "@wintermuted/ui-theme/react/select";
+} from "@wintermuted/ui-react";
+import { MultiSelect } from "@wintermuted/ui-react/select";
 import { Dictionary } from "lodash";
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";

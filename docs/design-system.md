@@ -9,17 +9,18 @@ for every application.
 
 ## Shared theme and components
 
-The app uses `@wintermuted/ui-theme` for its CSS, React components, and theme
-preferences. `packages/applications/go-by-transit/src/index.tsx` imports `@wintermuted/ui-theme/index.css` and calls
-`initTheme` from `@wintermuted/ui-theme/theme` before rendering. Both HTML
-templates run the library's `getThemeScript()` bootstrap before styles to apply
+The app uses `@wintermuted/ui-theme` for CSS and design tokens, and
+`@wintermuted/ui-react` for React components and theme preferences.
+`packages/applications/go-by-transit/src/index.tsx` imports `@wintermuted/ui-theme/index.css` and calls
+`initTheme` from `@wintermuted/ui-react/theme` before rendering. The HTML
+template runs the library's `getThemeScript()` bootstrap before styles to apply
 the saved or system theme on first paint. `ThemeProvider`
 wraps the app; the footer's sun/moon button switches between Light and Dark,
 with the preference saved under `wintermuted:theme`. Without an explicit saved
 choice, the app follows the system theme.
 
-Import shared controls from `@wintermuted/ui-theme/react`. The bookmark section
-picker uses `MultiSelect` from `@wintermuted/ui-theme/react/select`, with
+Import shared controls from `@wintermuted/ui-react`. The bookmark section
+picker uses `MultiSelect` from `@wintermuted/ui-react/select`, with
 `react-select` retained as its peer dependency. Keep router links as children of
 shared navigation/list components rather than wrapping controls in link bridges.
 Bootstrap styles, components, and router adapters are no longer used.
@@ -27,7 +28,7 @@ Bootstrap styles, components, and router adapters are no longer used.
 Reusable React presentation components live in the shared `@overworld/ui` library. Use its
 public API for `TimeDisplayProvider`, `useTimeDisplay`, and `TimeDisplaySettings`.
 Navigation wrappers stay in the app; `@wintermuted/ui-theme` remains the source
-for shared design tokens and primitives.
+for shared design tokens and styles, while `@wintermuted/ui-react` supplies controls.
 
 ## Layout and theme tokens
 
@@ -37,9 +38,22 @@ surfaces and status colors. Transit route colors remain in
 `packages/applications/go-by-transit/src/styles/routes.scss`; map and transit data behavior remain separate from
 presentation changes.
 
-The app pins `@wintermuted/ui-theme@0.21.5`, the first published release with
-these React/theme/select entries. Both lockfiles resolve this package to the
-public npm registry; no local integration tarball is required.
+The 1.0 migration pins both `@wintermuted/ui-theme` and `@wintermuted/ui-react`
+to `1.0.0` in the app. The shared `@overworld/ui` library declares
+`@wintermuted/ui-react@^1.0.0` as a peer; the app supplies the styles.
+Keep every CSS import on `ui-theme`; its legacy React/theme/select exports
+have been removed. React and `react-select` versions and component APIs stay unchanged.
+
+Both packages are published: upstream [registry verification](https://github.com/wintermuted/wintermuted-ui/actions/runs/45098351672)
+confirmed `ui-react@1.0.0` matches its reviewed tarball integrity and
+`ui-theme@1.0.0` is unchanged. Local dependency resolution remains blocked:
+public npm requests fail TLS negotiation, and the machine's Microsoft npm
+mirror does not yet serve either 1.0.0 package.
+The source and manifest migration is prepared, but the single root
+`package-lock.json` still resolves theme `0.21.5`.
+Do not merge or deploy this preparation until published dependencies can be
+installed, the lockfile is regenerated, and migrated tests pass.
+Do not substitute local tarballs or links for published dependencies.
 
 ## Navigation and page shell
 
@@ -92,7 +106,7 @@ The theme toggle matches Game of Life: its icon and label name the theme that
 clicking will activate. Existing System preferences remain respected until the
 user chooses Light or Dark. The footer remains always visible.
 
-Restart a running Vite development server after upgrading `@wintermuted/ui-theme` to clear
+Restart a running Vite development server after upgrading either Wintermuted package to clear
 cached package exports.
 
 See [development](development.md) for setup and [Nearby](nearby.md) for user-facing map behavior.

@@ -1,4 +1,4 @@
-import { Button, CardHeader } from "@wintermuted/ui-theme/react";
+import { Button, CardHeader } from "@wintermuted/ui-react";
 import cx from "classnames";
 import React from "react";
 import FontAwesome from "react-fontawesome";

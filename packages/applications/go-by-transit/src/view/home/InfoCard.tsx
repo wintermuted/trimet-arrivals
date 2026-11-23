@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@wintermuted/ui-theme/react";
+import { Card, CardBody, CardHeader } from "@wintermuted/ui-react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 

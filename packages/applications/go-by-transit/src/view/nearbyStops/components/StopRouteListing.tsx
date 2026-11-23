@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import { map, split } from "lodash";
 import React, { Component } from "react";
 import { TrimetRoute } from "../../../api/trimet/interfaces/types";

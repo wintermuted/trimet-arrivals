@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

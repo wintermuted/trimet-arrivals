@@ -1,4 +1,4 @@
-import { Badge } from "@wintermuted/ui-theme/react";
+import { Badge } from "@wintermuted/ui-react";
 import moment from "moment";
 import React from "react";
 import {

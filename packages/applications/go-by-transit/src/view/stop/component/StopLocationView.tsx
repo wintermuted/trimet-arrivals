@@ -3,7 +3,7 @@ import {
   CardBody,
   CardHeader,
   CardText
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import { sortBy, uniq } from "lodash";
 import React, { useEffect, useState } from "react";
 import { getAlertsByLocationId } from "../../../api/trimet/alerts";

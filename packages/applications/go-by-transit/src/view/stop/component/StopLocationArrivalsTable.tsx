@@ -1,4 +1,4 @@
-import { Table } from "@wintermuted/ui-theme/react";
+import { Table } from "@wintermuted/ui-react";
 import { map } from "lodash";
 import React from "react";
 import { useParams } from "react-router-dom";

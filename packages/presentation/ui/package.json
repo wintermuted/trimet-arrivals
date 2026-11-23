@@ -40,7 +40,7 @@
     "react-fontawesome": "^1.7.1"
   },
   "peerDependencies": {
-    "@wintermuted/ui-theme": "^0.21.5",
+    "@wintermuted/ui-react": "^1.0.0",
     "react": "^18.3.1 || ^19.0.0",
     "react-select": "^5.10.2"
   },

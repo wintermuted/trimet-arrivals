@@ -1,4 +1,4 @@
-import { Button, FieldGroup, Select } from "@wintermuted/ui-theme/react";
+import { Button, FieldGroup, Select } from "@wintermuted/ui-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";

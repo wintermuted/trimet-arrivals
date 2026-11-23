@@ -1,4 +1,4 @@
-import { Button, FieldGroup } from "@wintermuted/ui-theme/react";
+import { Button, FieldGroup } from "@wintermuted/ui-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getRouteByIdAndDirection } from "../../../api/trimet/routeConfig";

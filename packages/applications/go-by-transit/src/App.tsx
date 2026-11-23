@@ -1,5 +1,5 @@
 import React from "react";
-import { ThemeProvider } from "@wintermuted/ui-theme/react";
+import { ThemeProvider } from "@wintermuted/ui-react";
 import { Provider } from "react-redux";
 import "./App.css";
 import AppFooter from "./component/footer/AppFooter";

@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { ThemeProvider } from "@wintermuted/ui-theme/react";
+import { ThemeProvider } from "@wintermuted/ui-react";
 import type { StopCatalogStop } from "@overworld/trimet-client";
 import { PlannerStopSelect } from "../transit";
 

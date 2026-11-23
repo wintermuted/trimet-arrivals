@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-theme/react";
+import { Button } from "@wintermuted/ui-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import { RouteBookmark } from "../../../api/localstorage/routeBookmarks";

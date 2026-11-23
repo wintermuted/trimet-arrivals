@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { ThemeProvider } from "@wintermuted/ui-theme/react";
+import { ThemeProvider } from "@wintermuted/ui-react";
 import { TimeDiffBadge } from ".";
 
 describe("arrival time badge", () => {

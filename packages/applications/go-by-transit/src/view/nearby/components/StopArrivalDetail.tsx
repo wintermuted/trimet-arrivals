@@ -6,7 +6,7 @@ import {
   CardText,
   ListGroup,
   ListItem
-} from "@wintermuted/ui-theme/react";
+} from "@wintermuted/ui-react";
 import { find, isEmpty } from "lodash";
 import moment from "moment";
 import React, { useEffect, useState } from "react";

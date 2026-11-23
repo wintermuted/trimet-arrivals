@@ -1,4 +1,4 @@
-import { Dialog, useTheme } from "@wintermuted/ui-theme/react";
+import { Dialog, useTheme } from "@wintermuted/ui-react";
 import React, { useState } from "react";
 import FontAwesome from "react-fontawesome";
 import { useFeatureFlags } from "../feature-flags/FeatureFlags";
