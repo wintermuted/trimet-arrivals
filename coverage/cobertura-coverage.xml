@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage lines-valid="6035" lines-covered="5020" line-rate="0.8318000000000001" branches-valid="5671" branches-covered="4726" branch-rate="0.8332999999999999" timestamp="1795413876721" complexity="0" version="0.1">
+<coverage lines-valid="5944" lines-covered="5018" line-rate="0.8442000000000001" branches-valid="5653" branches-covered="4726" branch-rate="0.836" timestamp="1795447499708" complexity="0" version="0.1">
   <sources>
     <source>/home/runner/work/overworld/overworld</source>
   </sources>
@@ -2637,28 +2637,6 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.api.localstorage.util" line-rate="0" branch-rate="0">
-      <classes>
-        <class name="index.ts" filename="packages/applications/go-by-transit/src/api/localstorage/util/index.ts" line-rate="0" branch-rate="0">
-          <methods>
-            <method name="fetchLocalStorageItemByKey" hits="0" signature="()V">
-              <lines>
-                <line number="1" hits="0"/>
-              </lines>
-            </method>
-            <method name="updateStoredItemByKey" hits="0" signature="()V">
-              <lines>
-                <line number="5" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="2" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="6" hits="0" branch="false"/>
-          </lines>
-        </class>
-      </classes>
-    </package>
     <package name="applications.go-by-transit.src.api.mapbox" line-rate="1" branch-rate="1">
       <classes>
         <class name="walking.ts" filename="packages/applications/go-by-transit/src/api/mapbox/walking.ts" line-rate="0" branch-rate="0">
@@ -2855,12 +2833,6 @@
             <line number="16" hits="0" branch="false"/>
           </lines>
         </class>
-        <class name="util.ts" filename="packages/applications/go-by-transit/src/api/trimet/util.ts" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
-          </lines>
-        </class>
         <class name="vehicleTrip.ts" filename="packages/applications/go-by-transit/src/api/trimet/vehicleTrip.ts" line-rate="0" branch-rate="1">
           <methods>
             <method name="getVehicleTrip" hits="0" signature="()V">
@@ -2949,40 +2921,6 @@
           <lines>
             <line number="2" hits="0" branch="false"/>
             <line number="9" hits="0" branch="false"/>
-          </lines>
-        </class>
-      </classes>
-    </package>
-    <package name="applications.go-by-transit.src.component.arrivalIndicator" line-rate="1" branch-rate="1">
-      <classes>
-        <class name="EarlyIndicator.tsx" filename="packages/applications/go-by-transit/src/component/arrivalIndicator/EarlyIndicator.tsx" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
-          </lines>
-        </class>
-        <class name="LateIndicator.tsx" filename="packages/applications/go-by-transit/src/component/arrivalIndicator/LateIndicator.tsx" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
-          </lines>
-        </class>
-        <class name="OnTimeIndicator.tsx" filename="packages/applications/go-by-transit/src/component/arrivalIndicator/OnTimeIndicator.tsx" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
-          </lines>
-        </class>
-        <class name="TimeToArrivalIndicator.tsx" filename="packages/applications/go-by-transit/src/component/arrivalIndicator/TimeToArrivalIndicator.tsx" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
-          </lines>
-        </class>
-        <class name="util.ts" filename="packages/applications/go-by-transit/src/component/arrivalIndicator/util.ts" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
           </lines>
         </class>
       </classes>
@@ -3268,12 +3206,6 @@
           <lines>
           </lines>
         </class>
-        <class name="RouteDescription.tsx" filename="packages/applications/go-by-transit/src/component/route/RouteDescription.tsx" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
-          </lines>
-        </class>
         <class name="RouteIndicator.tsx" filename="packages/applications/go-by-transit/src/component/route/RouteIndicator.tsx" line-rate="1" branch-rate="1">
           <methods>
             <method name="RouteIndicator" hits="75" signature="()V">
@@ -3453,20 +3385,8 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.store.action" line-rate="0.6296" branch-rate="1">
+    <package name="applications.go-by-transit.src.store.action" line-rate="0.7082999999999999" branch-rate="1">
       <classes>
-        <class name="alertActions.ts" filename="packages/applications/go-by-transit/src/store/action/alertActions.ts" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="3" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="3" hits="0" branch="false"/>
-          </lines>
-        </class>
         <class name="bookmarkActions.ts" filename="packages/applications/go-by-transit/src/store/action/bookmarkActions.ts" line-rate="1" branch-rate="1">
           <methods>
             <method name="(anonymous_0)" hits="1" signature="()V">
@@ -3556,24 +3476,6 @@
             <line number="70" hits="0" branch="false"/>
             <line number="75" hits="2" branch="false"/>
             <line number="78" hits="0" branch="false"/>
-          </lines>
-        </class>
-        <class name="routeActions.ts" filename="packages/applications/go-by-transit/src/store/action/routeActions.ts" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="6" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="11" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="6" hits="0" branch="false"/>
-            <line number="11" hits="0" branch="false"/>
           </lines>
         </class>
         <class name="routeBookmarkActions.ts" filename="packages/applications/go-by-transit/src/store/action/routeBookmarkActions.ts" line-rate="1" branch-rate="1">
@@ -4678,35 +4580,8 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.store.selectors" line-rate="0.5411" branch-rate="0.25">
+    <package name="applications.go-by-transit.src.store.selectors" line-rate="0.6865000000000001" branch-rate="0.3333">
       <classes>
-        <class name="alertSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/alertSelectors.ts" line-rate="0" branch-rate="0">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="6" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="10" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_2)" hits="0" signature="()V">
-              <lines>
-                <line number="14" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="6" hits="0" branch="false"/>
-            <line number="7" hits="0" branch="false"/>
-            <line number="9" hits="0" branch="false"/>
-            <line number="11" hits="0" branch="false"/>
-            <line number="14" hits="0" branch="false"/>
-            <line number="17" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-          </lines>
-        </class>
         <class name="arrivalSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/arrivalSelectors.ts" line-rate="0.75" branch-rate="1">
           <methods>
             <method name="(anonymous_0)" hits="2" signature="()V">
@@ -4881,65 +4756,6 @@
             <line number="33" hits="5" branch="false"/>
           </lines>
         </class>
-        <class name="locationSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/locationSelectors.ts" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="4" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="9" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="4" hits="0" branch="false"/>
-            <line number="5" hits="0" branch="false"/>
-            <line number="8" hits="0" branch="false"/>
-            <line number="10" hits="0" branch="false"/>
-          </lines>
-        </class>
-        <class name="nearbyRoutesSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/nearbyRoutesSelectors.ts" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="7" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="9" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_2)" hits="0" signature="()V">
-              <lines>
-                <line number="14" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_3)" hits="0" signature="()V">
-              <lines>
-                <line number="16" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_4)" hits="0" signature="()V">
-              <lines>
-                <line number="23" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="7" hits="0" branch="false"/>
-            <line number="9" hits="0" branch="false"/>
-            <line number="10" hits="0" branch="false"/>
-            <line number="12" hits="0" branch="false"/>
-            <line number="16" hits="0" branch="false"/>
-            <line number="17" hits="0" branch="false"/>
-            <line number="22" hits="0" branch="false"/>
-            <line number="24" hits="0" branch="false"/>
-          </lines>
-        </class>
         <class name="routeBookmarkSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/routeBookmarkSelectors.ts" line-rate="0.6666" branch-rate="1">
           <methods>
             <method name="(anonymous_0)" hits="5" signature="()V">
@@ -5061,9 +4877,9 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.store.selectors.data" line-rate="0.3636" branch-rate="1">
+    <package name="applications.go-by-transit.src.store.selectors.data" line-rate="0.5" branch-rate="1">
       <classes>
-        <class name="arrivalsDataSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/data/arrivalsDataSelectors.ts" line-rate="0" branch-rate="1">
+        <class name="routeDataSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/data/routeDataSelectors.ts" line-rate="0.5" branch-rate="1">
           <methods>
             <method name="(anonymous_0)" hits="0" signature="()V">
               <lines>
@@ -5077,48 +4893,15 @@
             </method>
           </methods>
           <lines>
-            <line number="5" hits="0" branch="false"/>
-            <line number="6" hits="0" branch="false"/>
-            <line number="8" hits="0" branch="false"/>
-            <line number="10" hits="0" branch="false"/>
-          </lines>
-        </class>
-        <class name="routeDataSelectors.ts" filename="packages/applications/go-by-transit/src/store/selectors/data/routeDataSelectors.ts" line-rate="0.5714" branch-rate="1">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="5" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="8" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_2)" hits="0" signature="()V">
-              <lines>
-                <line number="11" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_3)" hits="0" signature="()V">
-              <lines>
-                <line number="16" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
             <line number="5" hits="1" branch="false"/>
             <line number="6" hits="0" branch="false"/>
             <line number="8" hits="1" branch="false"/>
-            <line number="10" hits="1" branch="false"/>
-            <line number="12" hits="0" branch="false"/>
-            <line number="15" hits="1" branch="false"/>
-            <line number="17" hits="0" branch="false"/>
+            <line number="10" hits="0" branch="false"/>
           </lines>
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.view.arrivals.components" line-rate="0.07690000000000001" branch-rate="0">
+    <package name="applications.go-by-transit.src.view.arrivals.components" line-rate="0.11109999999999999" branch-rate="0">
       <classes>
         <class name="ArrivalRow.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalRow.tsx" line-rate="0" branch-rate="1">
           <methods>
@@ -5130,25 +4913,6 @@
           </methods>
           <lines>
             <line number="11" hits="0" branch="false"/>
-          </lines>
-        </class>
-        <class name="ArrivalRows.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalRows.tsx" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="getRows" hits="0" signature="()V">
-              <lines>
-                <line number="12" hits="0"/>
-              </lines>
-            </method>
-            <method name="render" hits="0" signature="()V">
-              <lines>
-                <line number="16" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="13" hits="0" branch="false"/>
-            <line number="17" hits="0" branch="false"/>
-            <line number="18" hits="0" branch="false"/>
           </lines>
         </class>
         <class name="ArrivalsComponent.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalsComponent.tsx" line-rate="0" branch-rate="0">
@@ -5170,18 +4934,6 @@
             <line number="27" hits="0" branch="false"/>
             <line number="38" hits="0" branch="false"/>
             <line number="40" hits="0" branch="false"/>
-          </lines>
-        </class>
-        <class name="ArrivalsTable.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalsTable.tsx" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="ArrivalsTable" hits="0" signature="()V">
-              <lines>
-                <line number="10" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="11" hits="0" branch="false"/>
           </lines>
         </class>
         <class name="ArrivalsTableLoadMore.tsx" filename="packages/applications/go-by-transit/src/view/arrivals/components/ArrivalsTableLoadMore.tsx" line-rate="0" branch-rate="1">
@@ -6671,41 +6423,28 @@
           <methods>
             <method name="(anonymous_0)" hits="0" signature="()V">
               <lines>
-                <line number="7" hits="0"/>
+                <line number="5" hits="0"/>
               </lines>
             </method>
             <method name="(anonymous_1)" hits="0" signature="()V">
               <lines>
-                <line number="13" hits="0"/>
+                <line number="11" hits="0"/>
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="7" hits="1" branch="false"/>
-            <line number="8" hits="0" branch="false"/>
-            <line number="13" hits="1" branch="false"/>
-            <line number="14" hits="0" branch="false"/>
-            <line number="17" hits="1" branch="false"/>
+            <line number="5" hits="1" branch="false"/>
+            <line number="6" hits="0" branch="false"/>
+            <line number="11" hits="1" branch="false"/>
+            <line number="12" hits="0" branch="false"/>
+            <line number="15" hits="1" branch="false"/>
           </lines>
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.view.lines.component" line-rate="0.18420000000000003" branch-rate="0.2692">
+    <package name="applications.go-by-transit.src.view.lines.component" line-rate="0.19440000000000002" branch-rate="0.2916">
       <classes>
-        <class name="AerialTram.tsx" filename="packages/applications/go-by-transit/src/view/lines/component/AerialTram.tsx" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="AerialTram" hits="0" signature="()V">
-              <lines>
-                <line number="6" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="7" hits="0" branch="false"/>
-            <line number="9" hits="0" branch="false"/>
-          </lines>
-        </class>
-        <class name="AllLines.tsx" filename="packages/applications/go-by-transit/src/view/lines/component/AllLines.tsx" line-rate="0.17850000000000002" branch-rate="0">
+        <class name="AllLines.tsx" filename="packages/applications/go-by-transit/src/view/lines/component/AllLines.tsx" line-rate="0.1923" branch-rate="0">
           <methods>
             <method name="getBusLines" hits="0" signature="()V">
               <lines>
@@ -6737,7 +6476,7 @@
                 <line number="43" hits="0"/>
               </lines>
             </method>
-            <method name="getAerialTram" hits="0" signature="()V">
+            <method name="getWesCommuterRail" hits="0" signature="()V">
               <lines>
                 <line number="51" hits="0"/>
               </lines>
@@ -6747,7 +6486,7 @@
                 <line number="52" hits="0"/>
               </lines>
             </method>
-            <method name="getWesCommuterRail" hits="0" signature="()V">
+            <method name="getRoutes" hits="0" signature="()V">
               <lines>
                 <line number="57" hits="0"/>
               </lines>
@@ -6757,29 +6496,19 @@
                 <line number="58" hits="0"/>
               </lines>
             </method>
-            <method name="getRoutes" hits="0" signature="()V">
+            <method name="AllLines" hits="0" signature="()V">
               <lines>
                 <line number="63" hits="0"/>
               </lines>
             </method>
             <method name="(anonymous_11)" hits="0" signature="()V">
               <lines>
-                <line number="64" hits="0"/>
+                <line number="66" hits="0"/>
               </lines>
             </method>
-            <method name="AllLines" hits="0" signature="()V">
+            <method name="(anonymous_12)" hits="0" signature="()V">
               <lines>
-                <line number="69" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_13)" hits="0" signature="()V">
-              <lines>
-                <line number="72" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_14)" hits="0" signature="()V">
-              <lines>
-                <line number="73" hits="0"/>
+                <line number="67" hits="0"/>
               </lines>
             </method>
           </methods>
@@ -6797,21 +6526,19 @@
             <line number="52" hits="0" branch="false"/>
             <line number="53" hits="0" branch="true" condition-coverage="0% (0/2)"/>
             <line number="58" hits="0" branch="false"/>
-            <line number="59" hits="0" branch="true" condition-coverage="0% (0/2)"/>
+            <line number="59" hits="0" branch="false"/>
             <line number="64" hits="0" branch="false"/>
-            <line number="65" hits="0" branch="false"/>
-            <line number="70" hits="0" branch="false"/>
-            <line number="72" hits="0" branch="false"/>
-            <line number="73" hits="0" branch="false"/>
+            <line number="66" hits="0" branch="false"/>
+            <line number="67" hits="0" branch="false"/>
+            <line number="68" hits="0" branch="false"/>
+            <line number="69" hits="0" branch="false"/>
+            <line number="73" hits="0" branch="true" condition-coverage="0% (0/2)"/>
             <line number="74" hits="0" branch="false"/>
-            <line number="75" hits="0" branch="false"/>
-            <line number="79" hits="0" branch="true" condition-coverage="0% (0/2)"/>
+            <line number="77" hits="0" branch="false"/>
+            <line number="78" hits="0" branch="false"/>
+            <line number="79" hits="0" branch="false"/>
             <line number="80" hits="0" branch="false"/>
-            <line number="83" hits="0" branch="false"/>
-            <line number="84" hits="0" branch="false"/>
-            <line number="85" hits="0" branch="false"/>
-            <line number="86" hits="0" branch="false"/>
-            <line number="88" hits="0" branch="false"/>
+            <line number="82" hits="0" branch="false"/>
           </lines>
         </class>
         <class name="BusLines.tsx" filename="packages/applications/go-by-transit/src/view/lines/component/BusLines.tsx" line-rate="0" branch-rate="0">
@@ -7280,7 +7007,7 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.view.nearby.components" line-rate="0.8961" branch-rate="0.8767">
+    <package name="applications.go-by-transit.src.view.nearby.components" line-rate="0.9095" branch-rate="0.879">
       <classes>
         <class name="FollowedVehicleTrip.tsx" filename="packages/applications/go-by-transit/src/view/nearby/components/FollowedVehicleTrip.tsx" line-rate="1" branch-rate="0.8332999999999999">
           <methods>
@@ -11247,56 +10974,6 @@
             <line number="29" hits="1744" branch="false"/>
           </lines>
         </class>
-        <class name="StopArrivalDetail.tsx" filename="packages/applications/go-by-transit/src/view/nearby/components/StopArrivalDetail.tsx" line-rate="0" branch-rate="0">
-          <methods>
-            <method name="BooleanBadge" hits="0" signature="()V">
-              <lines>
-                <line number="26" hits="0"/>
-              </lines>
-            </method>
-            <method name="StopArrivalDetail" hits="0" signature="()V">
-              <lines>
-                <line number="34" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_2)" hits="0" signature="()V">
-              <lines>
-                <line number="39" hits="0"/>
-              </lines>
-            </method>
-            <method name="fetchData" hits="0" signature="()V">
-              <lines>
-                <line number="40" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_4)" hits="0" signature="()V">
-              <lines>
-                <line number="53" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="27" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="28" hits="0" branch="false"/>
-            <line number="30" hits="0" branch="false"/>
-            <line number="35" hits="0" branch="false"/>
-            <line number="36" hits="0" branch="false"/>
-            <line number="37" hits="0" branch="false"/>
-            <line number="39" hits="0" branch="false"/>
-            <line number="41" hits="0" branch="false"/>
-            <line number="42" hits="0" branch="false"/>
-            <line number="45" hits="0" branch="false"/>
-            <line number="48" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="49" hits="0" branch="false"/>
-            <line number="52" hits="0" branch="false"/>
-            <line number="54" hits="0" branch="false"/>
-            <line number="57" hits="0" branch="false"/>
-            <line number="58" hits="0" branch="false"/>
-            <line number="59" hits="0" branch="false"/>
-            <line number="60" hits="0" branch="false"/>
-            <line number="62" hits="0" branch="false"/>
-          </lines>
-        </class>
         <class name="WalkingAccess.tsx" filename="packages/applications/go-by-transit/src/view/nearby/components/WalkingAccess.tsx" line-rate="1" branch-rate="0.9354">
           <methods>
             <method name="WalkingAccess" hits="94" signature="()V">
@@ -12083,12 +11760,6 @@
     </package>
     <package name="applications.go-by-transit.src.view.nearby.util.mapbox" line-rate="0.8529000000000001" branch-rate="0.8571">
       <classes>
-        <class name="consts.ts" filename="packages/applications/go-by-transit/src/view/nearby/util/mapbox/consts.ts" line-rate="0" branch-rate="0">
-          <methods>
-          </methods>
-          <lines>
-          </lines>
-        </class>
         <class name="currentLocation.ts" filename="packages/applications/go-by-transit/src/view/nearby/util/mapbox/currentLocation.ts" line-rate="0" branch-rate="0">
           <methods>
           </methods>
@@ -12330,45 +12001,8 @@
         </class>
       </classes>
     </package>
-    <package name="applications.go-by-transit.src.view.nearbyRouteDetail.components" line-rate="0.1612" branch-rate="0.6">
+    <package name="applications.go-by-transit.src.view.nearbyRouteDetail.components" line-rate="0.8332999999999999" branch-rate="0.8181">
       <classes>
-        <class name="NearbyRouteDetail.tsx" filename="packages/applications/go-by-transit/src/view/nearbyRouteDetail/components/NearbyRouteDetail.tsx" line-rate="0" branch-rate="0">
-          <methods>
-            <method name="componentDidMount" hits="0" signature="()V">
-              <lines>
-                <line number="22" hits="0"/>
-              </lines>
-            </method>
-            <method name="componentDidUpdate" hits="0" signature="()V">
-              <lines>
-                <line number="29" hits="0"/>
-              </lines>
-            </method>
-            <method name="render" hits="0" signature="()V">
-              <lines>
-                <line number="36" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_3)" hits="0" signature="()V">
-              <lines>
-                <line number="61" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="23" hits="0" branch="false"/>
-            <line number="25" hits="0" branch="false"/>
-            <line number="26" hits="0" branch="false"/>
-            <line number="30" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="31" hits="0" branch="false"/>
-            <line number="32" hits="0" branch="false"/>
-            <line number="37" hits="0" branch="false"/>
-            <line number="39" hits="0" branch="true" condition-coverage="0% (0/2)"/>
-            <line number="40" hits="0" branch="false"/>
-            <line number="43" hits="0" branch="false"/>
-            <line number="61" hits="0" branch="false"/>
-          </lines>
-        </class>
         <class name="RouteAlerts.tsx" filename="packages/applications/go-by-transit/src/view/nearbyRouteDetail/components/RouteAlerts.tsx" line-rate="0.8332999999999999" branch-rate="0.8181">
           <methods>
             <method name="render" hits="3" signature="()V">
@@ -12389,116 +12023,6 @@
             <line number="22" hits="0" branch="false"/>
             <line number="25" hits="3" branch="false"/>
             <line number="41" hits="1" branch="true" condition-coverage="50% (1/2)"/>
-          </lines>
-        </class>
-        <class name="RouteDirection.tsx" filename="packages/applications/go-by-transit/src/view/nearbyRouteDetail/components/RouteDirection.tsx" line-rate="0" branch-rate="0">
-          <methods>
-            <method name="constructor" hits="0" signature="()V">
-              <lines>
-                <line number="19" hits="0"/>
-              </lines>
-            </method>
-            <method name="toggleOpenState" hits="0" signature="()V">
-              <lines>
-                <line number="29" hits="0"/>
-              </lines>
-            </method>
-            <method name="render" hits="0" signature="()V">
-              <lines>
-                <line number="34" hits="0"/>
-              </lines>
-            </method>
-            <method name="getRouteDirectionStops" hits="0" signature="()V">
-              <lines>
-                <line number="51" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_4)" hits="0" signature="()V">
-              <lines>
-                <line number="52" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="20" hits="0" branch="false"/>
-            <line number="22" hits="0" branch="false"/>
-            <line number="26" hits="0" branch="false"/>
-            <line number="30" hits="0" branch="false"/>
-            <line number="31" hits="0" branch="false"/>
-            <line number="35" hits="0" branch="false"/>
-            <line number="36" hits="0" branch="false"/>
-            <line number="38" hits="0" branch="false"/>
-            <line number="52" hits="0" branch="false"/>
-            <line number="53" hits="0" branch="false"/>
-          </lines>
-        </class>
-        <class name="RouteDirections.tsx" filename="packages/applications/go-by-transit/src/view/nearbyRouteDetail/components/RouteDirections.tsx" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="getRouteDirections" hits="0" signature="()V">
-              <lines>
-                <line number="15" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="16" hits="0"/>
-              </lines>
-            </method>
-            <method name="render" hits="0" signature="()V">
-              <lines>
-                <line number="21" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="16" hits="0" branch="false"/>
-            <line number="17" hits="0" branch="false"/>
-            <line number="22" hits="0" branch="false"/>
-            <line number="24" hits="0" branch="false"/>
-          </lines>
-        </class>
-      </classes>
-    </package>
-    <package name="applications.go-by-transit.src.view.nearbyRouteDetail.containers" line-rate="0" branch-rate="1">
-      <classes>
-        <class name="NearbyRouteDetailContainer.tsx" filename="packages/applications/go-by-transit/src/view/nearbyRouteDetail/containers/NearbyRouteDetailContainer.tsx" line-rate="0" branch-rate="1">
-          <methods>
-            <method name="(anonymous_0)" hits="0" signature="()V">
-              <lines>
-                <line number="16" hits="0"/>
-              </lines>
-            </method>
-            <method name="(anonymous_1)" hits="0" signature="()V">
-              <lines>
-                <line number="27" hits="0"/>
-              </lines>
-            </method>
-            <method name="loadRouteData" hits="0" signature="()V">
-              <lines>
-                <line number="29" hits="0"/>
-              </lines>
-            </method>
-            <method name="loadAlertData" hits="0" signature="()V">
-              <lines>
-                <line number="32" hits="0"/>
-              </lines>
-            </method>
-            <method name="retryAlertData" hits="0" signature="()V">
-              <lines>
-                <line number="35" hits="0"/>
-              </lines>
-            </method>
-          </methods>
-          <lines>
-            <line number="16" hits="0" branch="false"/>
-            <line number="17" hits="0" branch="false"/>
-            <line number="19" hits="0" branch="false"/>
-            <line number="27" hits="0" branch="false"/>
-            <line number="28" hits="0" branch="false"/>
-            <line number="30" hits="0" branch="false"/>
-            <line number="33" hits="0" branch="false"/>
-            <line number="36" hits="0" branch="false"/>
-            <line number="41" hits="0" branch="false"/>
           </lines>
         </class>
       </classes>

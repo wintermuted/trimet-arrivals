@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="157" height="20" role="img" aria-label="line coverage: 83.18%">
-  <title>line coverage: 83.18%</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="157" height="20" role="img" aria-label="line coverage: 84.42%">
+  <title>line coverage: 84.42%</title>
   <rect width="95" height="20" fill="#555"/>
   <rect x="95" width="62" height="20" fill="#007ec6"/>
   <g fill="#fff" text-anchor="middle" font-family="Verdana, sans-serif" font-size="11">
     <text x="47.5" y="14">line coverage</text>
-    <text x="126" y="14">83.18%</text>
+    <text x="126" y="14">84.42%</text>
   </g>
 </svg>
