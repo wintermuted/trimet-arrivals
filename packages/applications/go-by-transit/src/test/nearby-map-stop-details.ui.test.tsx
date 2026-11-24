@@ -7,7 +7,7 @@ import { FeatureFlagsProvider } from "../component/feature-flags/FeatureFlags";
 import NearbyViewComponent, { NearbySimpleRoutesComp } from "../view/nearby/components/NearbyViewComponent";
 import { setNearbyStops } from "../view/nearby/util/mapbox/stopLocationMarker.util";
 import { showRouteInfo } from "../view/nearby/util/mapbox/routeInfo";
-import { setupNearbyMapTest, stops } from "./nearby-map-test.fixture";
+import { setupNearbyMapTest, stops, StopDetailWithBookmarks } from "./nearby-map-test.fixture";
 
 vi.mock("../view/nearby/components/NearbyVehicles", () => ({ default: vi.fn(() => null) }));
 vi.mock("../view/nearby/util/useVehiclePositions", () => ({
