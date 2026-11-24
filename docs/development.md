@@ -132,7 +132,9 @@ in `nearbyRouteArrivals`, separate from `SimpleRouteGroups` rendering.
 Trip planning separates request/selection state (`useTripPlannerState`),
 endpoint fields, the search form, and itinerary/journey results.
 Related tests are grouped by scenario, with test-only fixtures under
-`src/test` rather than production modules.
+`src/test` rather than production modules. Mock-heavy `.fixture.tsx` helpers
+share the production TypeScript configuration's existing test exclusions;
+Vitest still loads and exercises them through their importing test suites.
 
 Husky 9 installs hooks through `npm install`/`npm ci` via the `prepare` script.
 The pre-commit hook runs Oxfmt checks followed by Oxlint on staged TypeScript/TSX
