@@ -1,63 +1,24 @@
-import {
-  Badge,
-  Button,
-  ListGroup,
-  ListItem,
-  Select,
-} from "@wintermuted/ui-react";
-import { faBus, faCableCar, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Button, Select } from "@wintermuted/ui-react";
 import { MultiSelect } from "@wintermuted/ui-react/select";
-import { each, filter, groupBy, join, map } from "lodash";
+import { join, map } from "lodash";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import FontAwesome from "react-fontawesome";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
-import { PLANNER_BUS_COLOR } from "../../../api/trimet/plannerRouteColors";
-import { stopMode } from "../../../api/trimet/stopCatalog";
-import { WalkingEstimate } from "../../../api/mapbox/walking";
-import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
-import {
-  Direction,
-  StopData,
-  StopLocation,
-  TrimetRoute,
-} from "../../../api/trimet/interfaces/types";
+import { ArrivalData } from "../../../api/trimet/interfaces/arrivals";
+import { StopData } from "../../../api/trimet/interfaces/types";
 import Loading from "../../loading/Loading";
-import { getNormalizedDistanceString, getDistance } from "../util/turfUtils";
-import { getTimeUntilArrival } from "../util/timeUtils";
 import useStopHighlight from "../util/useStopHighlight";
 import useWalkingEstimates from "../util/useWalkingEstimates";
-import { WalkingDistance } from "./common/WalkingDistance";
 import NearbyRouteControlPopover from "./NearbyRouteControlPopover";
 import NearbySubNav from "./common/NearbySubNav";
 import "./NearbyRoutes.scss";
+import SimpleRouteGroups from "./SimpleRouteGroups";
+import { filterRouteStructures, getRouteArrivals, getDisplayRoutes } from "./nearbyRouteArrivals";
 import NearbyRouteInfo from "./NearbyRouteInfo";
 import { TrimetRoute as DetailedRoute } from "../../../api/trimet/interfaces/routes";
 
-const SERVICE_ICONS = {
-  Bus: faBus,
-  Rail: faTrain,
-  Streetcar: faTrainTram,
-  "Aerial tram": faCableCar
-};
-
-function ExploreRouteBadge({ route }: { route: TrimetRoute }) {
-  const mode = stopMode(route);
-  const isFx = /^\s*FX\s*\d+\b/i.test(route.desc);
-  const color = mode === "Bus" && !isFx ? PLANNER_BUS_COLOR : undefined;
-
-  return (
-    <Badge className="transit-explore-route-badge" style={color ? {
-      borderColor: color,
-      backgroundColor: `color-mix(in srgb, ${color} 12%, var(--wm-color-surface-solid))`
-    } : undefined}>
-      {mode && <FontAwesomeIcon icon={SERVICE_ICONS[mode]} aria-hidden="true" />}
-      <span className="wm-sr-only">{isFx ? "FX bus" : mode ? `${mode} route` : "Route"} </span>
-      <strong>{route.route}</strong>
-    </Badge>
-  );
-}
+export { filterRouteStructures, getRouteArrivals } from "./nearbyRouteArrivals";
+export type { RouteStructure } from "./nearbyRouteArrivals";
 
 interface Props {
   nearbyStops: StopData;
@@ -73,162 +34,9 @@ interface Props {
   onRouteInfoStopHighlighted?: (stopId?: number) => void;
 }
 
-interface RouteStop {
-  stop: StopLocation;
-  arrivals: Arrival[];
-  distanceMiles?: number;
-  walkingEstimate?: WalkingEstimate;
-}
-
-function stopDistance(stop: RouteStop, walking: boolean) {
-  return walking
-    ? stop.walkingEstimate?.status === "ready" ? stop.walkingEstimate.meters : Infinity
-    : stop.distanceMiles ?? Infinity;
-}
-
-function getRouteName(route: TrimetRoute): string {
-  const prefix = `${route.route}-`;
-  return route.desc.startsWith(prefix)
-    ? route.desc.slice(prefix.length).trimStart()
-    : route.desc;
-}
-
-export interface RouteStructure {
-  key: string;
-  route: TrimetRoute;
-  direction: Direction;
-  stops: RouteStop[];
-}
-
 interface FilterOption {
   label: string;
   value: string;
-}
-
-function getArrivalTime(arrival?: Arrival): number | undefined {
-  if (!arrival) {
-    return undefined;
-  }
-  const timestamp = arrival.estimated || arrival.scheduled;
-  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : undefined;
-}
-
-function hasCurrentLocation(currentLocation: number[]): boolean {
-  return Boolean(
-    currentLocation?.length >= 2 &&
-    Number.isFinite(currentLocation[0]) &&
-    Number.isFinite(currentLocation[1])
-  );
-}
-
-export function getRouteArrivals(
-  arrivalData: ArrivalData,
-  nearbyStops: StopData,
-  currentLocation: number[],
-  walkingEstimates?: ReadonlyMap<number, WalkingEstimate>
-): RouteStructure[] {
-  const arrivalsByLocation = groupBy(arrivalData?.arrival || [], "locid");
-  const routeDirections = new Map<
-    string,
-    {
-      route: TrimetRoute;
-      direction: Direction;
-      stops: Map<number, RouteStop>;
-    }
-  >();
-  const locationIsAvailable = hasCurrentLocation(currentLocation);
-
-  each(nearbyStops?.location || [], (stop: StopLocation) => {
-    if (stop.locid == null) {
-      return;
-    }
-
-    each(stop.route || [], (route: TrimetRoute) => {
-      each(route.dir || [], (direction: Direction) => {
-        const key = `${route.route}-${direction.dir}`;
-        let routeDirection = routeDirections.get(key);
-        if (!routeDirection) {
-          routeDirection = {
-            direction,
-            route,
-            stops: new Map<number, RouteStop>(),
-          };
-          routeDirections.set(key, routeDirection);
-        }
-
-        const stopArrivals = filter(
-          arrivalsByLocation[stop.locid],
-          (arrival: Arrival) =>
-            arrival.route === route.route && arrival.dir === direction.dir
-        ).sort(
-          (a, b) =>
-            (getArrivalTime(a) ?? Infinity) - (getArrivalTime(b) ?? Infinity)
-        );
-        const stopHasCoordinates =
-          Number.isFinite(stop.lng) && Number.isFinite(stop.lat);
-
-        routeDirection.stops.set(stop.locid, {
-          arrivals: stopArrivals,
-          distanceMiles:
-            locationIsAvailable && stopHasCoordinates
-              ? getDistance(currentLocation, [stop.lng, stop.lat])
-              : undefined,
-          stop,
-          walkingEstimate: walkingEstimates?.get(stop.locid),
-        });
-      });
-    });
-  });
-
-  return Array.from(routeDirections, ([key, routeDirection]) => ({
-    direction: routeDirection.direction,
-    key,
-    route: routeDirection.route,
-    stops: Array.from(routeDirection.stops.values()).sort((a, b) => {
-      if (walkingEstimates) {
-        return stopDistance(a, true) - stopDistance(b, true) ||
-          Number(a.stop.locid) - Number(b.stop.locid);
-      }
-      if (a.distanceMiles != null && b.distanceMiles != null) {
-        return (
-          a.distanceMiles - b.distanceMiles ||
-          Number(a.stop.locid) - Number(b.stop.locid)
-        );
-      }
-      return Number(a.stop.locid) - Number(b.stop.locid);
-    }),
-  })).sort(
-    (a, b) =>
-      a.route.route - b.route.route ||
-      a.direction.desc.localeCompare(b.direction.desc) ||
-      a.direction.dir - b.direction.dir
-  );
-}
-
-export function filterRouteStructures(
-  routes: RouteStructure[],
-  selectedValues: string[]
-): RouteStructure[] {
-  if (selectedValues.length === 0) {
-    return routes;
-  }
-
-  const selectedRoutes = new Set(
-    selectedValues
-      .filter((value) => value.startsWith("route:"))
-      .map((value) => value.slice("route:".length))
-  );
-  const selectedDirections = new Set(
-    selectedValues
-      .filter((value) => value.startsWith("direction:"))
-      .map((value) => value.slice("direction:".length))
-  );
-
-  return routes.filter(
-    (route) =>
-      selectedRoutes.has(String(route.route.route)) ||
-      selectedDirections.has(route.key)
-  );
 }
 
 export default function NearbySimpleRoutes({
@@ -366,44 +174,7 @@ export default function NearbySimpleRoutes({
     activeFilterValues
   );
 
-  const groupedRoutes = new Map<number, RouteStructure[]>();
-  filteredRoutes.forEach((route) => {
-    const directions = groupedRoutes.get(route.route.route) || [];
-    directions.push(route);
-    groupedRoutes.set(route.route.route, directions);
-  });
-  const displayRoutes = Array.from(groupedRoutes.values())
-    .map((directions) => ({
-      directions,
-      distance: Math.min(
-        ...directions.flatMap((direction) =>
-          direction.stops.map((stop) => stopDistance(stop, walkingEnabled))
-        )
-      ),
-      nextArrival: Math.min(
-        ...directions.flatMap((direction) =>
-          direction.stops.map(
-            (stop) => getArrivalTime(stop.arrivals[0]) ?? Infinity
-          )
-        )
-      ),
-      route: directions[0].route,
-      routeName: getRouteName(directions[0].route),
-    }))
-    .sort((a, b) => {
-      if (sortBy === "route") {
-        return a.route.route - b.route.route;
-      }
-      if (sortBy === "distance") {
-        return a.distance - b.distance || a.route.route - b.route.route;
-      }
-
-      return (
-        a.nextArrival - b.nextArrival ||
-        a.distance - b.distance ||
-        a.route.route - b.route.route
-      );
-    });
+  const displayRoutes = getDisplayRoutes(filteredRoutes, sortBy, walkingEnabled);
 
   function handleFilterChange(selected: readonly FilterOption[]) {
     setSelectedFilterValues(selected.map((option) => option.value));
@@ -572,117 +343,18 @@ export default function NearbySimpleRoutes({
               </Button>
             </div>
           ) : (
-            <div
-              className="transit-route-groups"
-              role="group"
-              aria-label="Nearby route arrivals"
-            >
-              {displayRoutes.map(({ route, routeName, directions }) => (
-                <div key={route.route} className="transit-simple-route">
-                  <details
-                    className="transit-simple-route-group"
-                    onToggle={handleDisclosureToggle}
-                    aria-labelledby={`nearby-route-${route.route}`}
-                    open
-                  >
-                    <summary
-                      id={`nearby-route-${route.route}`}
-                      className="transit-simple-route-heading"
-                    >
-                      <FontAwesome name="caret-right" aria-hidden="true" />
-                      <ExploreRouteBadge route={route} />
-                      <span title={routeName}>{routeName}</span>
-                    </summary>
-                    {directions.map((direction) => (
-                      <details
-                        key={direction.key}
-                        className="transit-simple-route-direction"
-                        onToggle={handleDisclosureToggle}
-                        aria-labelledby={`nearby-direction-${direction.key}`}
-                        open
-                      >
-                        <summary id={`nearby-direction-${direction.key}`}>
-                          <FontAwesome name="caret-right" aria-hidden="true" />
-                          {direction.direction.desc}
-                        </summary>
-                        <ListGroup
-                          aria-label={`Route ${route.route}, ${direction.direction.desc} stops`}
-                        >
-                          {direction.stops.map(
-                            ({ stop, arrivals, distanceMiles, walkingEstimate }) => {
-                              const arrival = arrivals[0];
-                              const arrivalTime = getArrivalTime(arrival);
-                              const arrivalLabel = !arrival
-                                ? "No arrivals reported"
-                                : arrivalTime == null
-                                  ? "Time unavailable"
-                                  : getTimeUntilArrival(
-                                      arrival.estimated,
-                                      arrival.scheduled
-                                    );
-                              const distanceLabel =
-                                distanceMiles == null
-                                  ? "Distance unavailable"
-                                  : getNormalizedDistanceString(
-                                      currentLocation,
-                                      [stop.lng, stop.lat]
-                                    );
-
-                              return (
-                                <ListItem
-                                  key={stop.locid}
-                                  className="transit-simple-route-item"
-                                >
-                                  <Link
-                                    className="transit-simple-route-stop"
-                                    data-stop-id={stop.locid}
-                                    onBlur={() => focusStop()}
-                                    onFocus={() => focusStop(stop.locid)}
-                                    onMouseEnter={() => hoverStop(stop.locid)}
-                                    onMouseLeave={() => hoverStop()}
-                                    to={`/nearby/simple-routes/${route.route}?stop=${stop.locid}&direction=${direction.direction.dir}`}
-                                  >
-                                    <span className="transit-simple-route-stop-name">
-                                      {stop.desc}
-                                      <small className="transit-simple-route-stop-id">Stop {stop.locid}</small>
-                                    </span>
-                                    <span className="transit-simple-route-arrivals">
-                                      <strong>{arrivalLabel}</strong>
-                                      <WalkingDistance
-                                        enabled={walkingEnabled}
-                                        loading={walking.status === "loading"}
-                                        estimate={walkingEstimate}
-                                        straightLine={distanceLabel}
-                                      />
-                                    </span>
-                                    <span className="transit-simple-route-action">
-                                      View arrivals{" "}
-                                      <span aria-hidden="true">›</span>
-                                    </span>
-                                  </Link>
-                                </ListItem>
-                              );
-                            }
-                          )}
-                        </ListGroup>
-                      </details>
-                    ))}
-                  </details>
-                  <Link
-                    className="transit-simple-route-details-link"
-                    to={{ search: routeInfoSearch(route.route) }}
-                    aria-label={`View Route ${route.route} details`}
-                    title={`Route ${route.route} details`}
-                    onClick={(event) => {
-                      infoButton.current = event.currentTarget;
-                      clearHighlight();
-                    }}
-                  >
-                    <FontAwesome name="info-circle" aria-hidden="true" />
-                  </Link>
-                </div>
-              ))}
-            </div>
+            <SimpleRouteGroups
+              displayRoutes={displayRoutes}
+              currentLocation={currentLocation}
+              walkingEnabled={walkingEnabled}
+              walkingLoading={walking.status === "loading"}
+              focusStop={focusStop}
+              hoverStop={hoverStop}
+              clearHighlight={clearHighlight}
+              handleDisclosureToggle={handleDisclosureToggle}
+              infoButton={infoButton}
+              routeInfoSearch={routeInfoSearch}
+            />
           )}
         </>
       )}

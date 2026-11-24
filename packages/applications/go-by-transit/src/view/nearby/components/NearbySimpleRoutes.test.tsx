@@ -1,96 +1,19 @@
 import { vi } from "vitest";
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import { getArrivals } from "../../../api/trimet/arrivals";
 import { getRouteById } from "../../../api/trimet/routeConfig";
-import { Arrival, ArrivalData } from "../../../api/trimet/interfaces/arrivals";
-import {
-  StopData,
-  StopLocation,
-  TrimetRoute,
-} from "../../../api/trimet/interfaces/types";
-import { arrival1 } from "../../../api/trimet/fixture/arrival";
+import { StopData, TrimetRoute } from "../../../api/trimet/interfaces/types";
 import { getWalkingEstimates, WalkingEstimate } from "../../../api/mapbox/walking";
-import NearbySimpleRoutes, {
-  filterRouteStructures,
-  getRouteArrivals,
-} from "./NearbySimpleRoutes";
+import NearbySimpleRoutes from "./NearbySimpleRoutes";
+import {
+  now, minute, route, stop, nearbyStops, arrival, response, CurrentLocation, BrowserHistory
+} from "../../../test/fixtures/nearbySimpleRoutes";
 
 vi.mock("../../../api/trimet/arrivals");
 vi.mock("../../../api/trimet/routeConfig");
 vi.mock("../../../api/mapbox/walking");
-
-const now = Date.parse("2026-11-15T10:00:00Z");
-const minute = 60 * 1000;
-const route: TrimetRoute = {
-  desc: "Beaverton",
-  dir: [
-    { desc: "Northbound", dir: 0 },
-    { desc: "Southbound", dir: 1 },
-  ],
-  route: 54,
-  type: "bus",
-};
-
-function stop(locid: number, distance: number): StopLocation {
-  return {
-    desc: `Stop ${locid}`,
-    dir: "N",
-    lat: 0,
-    lng: distance,
-    locid,
-    route: [route],
-  };
-}
-
-const nearbyStops: StopData = {
-  location: [stop(101, 0.01), stop(102, 0.02)],
-  queryTime: "",
-};
-
-function arrival(overrides: Partial<Arrival> = {}): Arrival {
-  return {
-    ...arrival1,
-    dir: 0,
-    estimated: now + 10 * minute,
-    id: "arrival",
-    locid: 101,
-    route: 54,
-    scheduled: now + 8 * minute,
-    ...overrides,
-  };
-}
-
-function response(arrivals: Arrival[]): ArrivalData {
-  return {
-    arrival: arrivals,
-    detour: [],
-    location: [],
-    queryTime: String(now),
-  };
-}
-
-function CurrentLocation() {
-  const location = useLocation();
-  return (
-    <output>
-      {location.pathname}
-      {location.search}
-    </output>
-  );
-}
-
-function BrowserHistory() {
-  const navigate = useNavigate();
-  return (
-    <>
-      <button onClick={() => navigate(-1)}>Browser back</button>
-      <button onClick={() => navigate(1)}>Browser forward</button>
-      <button onClick={() => navigate("?route=12")}>Open route 12</button>
-    </>
-  );
-}
 
 describe("NearbySimpleRoutes", () => {
   let container: HTMLDivElement;
@@ -108,44 +31,6 @@ describe("NearbySimpleRoutes", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
-  });
-
-  it("only requests walking distances after consent and ranks by walking connections, not radial proximity", async () => {
-    vi.mocked(getArrivals).mockResolvedValue(response([]));
-    const walking = new Map<number, WalkingEstimate>([
-      [101, { meters: 900, seconds: 600, status: "ready" }],
-      [102, { meters: 100, seconds: 60, status: "ready" }],
-      [103, { meters: 50, seconds: 40, status: "ready" }]
-    ]);
-    vi.mocked(getWalkingEstimates).mockResolvedValue(walking);
-    const candidates = {
-      ...nearbyStops,
-      location: [...nearbyStops.location, { ...stop(103, 0.03), route: [{ ...route, route: 12 }] }]
-    };
-    function WalkingRoutes({ enabled }: { enabled: boolean }) {
-      return (
-        <NearbySimpleRoutes
-          nearbyStops={candidates} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
-          routeCount={2} stopCount={3} walkingEnabled={enabled}
-        />
-      );
-    }
-    await act(async () => root.render(<MemoryRouter><WalkingRoutes enabled={false} /></MemoryRouter>));
-    expect(getWalkingEstimates).not.toHaveBeenCalled();
-    expect(container.textContent).not.toContain("Enable walking estimates");
-    expect(container.textContent).toContain("(straight-line)");
-    expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("54");
-    await act(async () => root.render(<MemoryRouter><WalkingRoutes enabled /></MemoryRouter>));
-    expect(getWalkingEstimates).toHaveBeenCalledTimes(1);
-    expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("12");
-    const north = container.querySelector('[aria-labelledby="nearby-direction-54-0"]');
-    expect(Array.from(north.querySelectorAll("[data-stop-id]")).map(link => link.getAttribute("data-stop-id"))).toEqual(["102", "101"]);
-    expect(north.textContent).toContain("328 ft walk");
-    await act(async () => root.render(<MemoryRouter><WalkingRoutes enabled={false} /></MemoryRouter>));
-    expect(vi.mocked(getWalkingEstimates).mock.calls[0][2].aborted).toBe(true);
-    expect(north.textContent).not.toContain("ft walk");
-    expect(container.querySelector(".transit-simple-route-heading strong").textContent).toBe("54");
   });
 
   it("omits a route number prefix from the route name", async () => {
@@ -179,56 +64,6 @@ describe("NearbySimpleRoutes", () => {
     expect(heading.querySelector("span[title]")?.textContent).toBe(
       "Beaverton"
     );
-  });
-
-  it("labels walking failures and retries without silently treating straight-line distances as walking", async () => {
-    vi.mocked(getArrivals).mockResolvedValue(response([]));
-    vi.mocked(getWalkingEstimates)
-      .mockRejectedValueOnce(new Error("Mapbox walking request limit reached."))
-      .mockResolvedValueOnce(new Map<number, WalkingEstimate>([
-        [101, { status: "unreachable" }],
-        [102, { meters: 100, seconds: 60, status: "ready" }]
-      ]));
-    await act(async () => root.render(
-      <MemoryRouter>
-        <NearbySimpleRoutes
-          nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
-          routeCount={1} stopCount={2} walkingEnabled
-        />
-      </MemoryRouter>
-    ));
-    expect(container.querySelector('[role="alert"]').textContent).toContain("limit reached");
-    expect(container.textContent).toContain("Walking distance unavailable");
-    expect(container.textContent).toContain("(straight-line)");
-    const retry = Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Retry walking estimates");
-    await act(async () => retry.click());
-    expect(container.querySelector('[role="alert"]')).toBeNull();
-    expect(container.textContent).toContain("No walking route found");
-    expect(container.textContent).toContain("328 ft walk");
-  });
-
-  it("groups both directions, keeps multiple stops, and orders stops by distance", () => {
-    const routes = getRouteArrivals(
-      response([
-        arrival({ id: "north", dir: 0 }),
-        arrival({ id: "south", dir: 1, locid: 102 }),
-        arrival({ id: "other-route", route: 12, dir: 0 }),
-      ]),
-      nearbyStops,
-      [0, 0]
-    );
-
-    expect(routes.map((item) => item.key)).toEqual(["54-0", "54-1"]);
-    expect(routes[0].stops.map((item) => item.stop.locid)).toEqual([101, 102]);
-    expect(routes[0].stops[0].arrivals.map((item) => item.id)).toEqual([
-      "north",
-    ]);
-    expect(routes[1].stops[0].arrivals).toEqual([]);
-    expect(filterRouteStructures(routes, ["direction:54-1"])).toEqual([
-      routes[1],
-    ]);
-    expect(filterRouteStructures(routes, ["route:54"])).toEqual(routes);
   });
 
   it("groups a route's stops beneath their corresponding directions and opens the clicked stop", async () => {
@@ -352,68 +187,6 @@ describe("NearbySimpleRoutes", () => {
     );
   });
 
-  it("opens route info in the URL and follows browser back and forward", async () => {
-    vi.mocked(getArrivals).mockResolvedValue(response([]));
-    vi.mocked(getRouteById).mockResolvedValue({
-      route: [{
-        route: 54, id: 54, desc: "Beaverton", type: "bus",
-        routeColor: "", routeSortOrder: 54,
-        dir: [{ dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
-      }]
-    });
-    const cleanupMap = vi.fn();
-    const showMap = vi.fn(() => cleanupMap);
-    await act(async () => root.render(
-      <MemoryRouter initialEntries={["/nearby/simple-routes?keep=yes"]}>
-        <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
-          routeCount={1} stopCount={2} onRouteInfoChanged={showMap} />
-        <CurrentLocation /><BrowserHistory />
-      </MemoryRouter>
-    ));
-    const info = container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link");
-    expect(info.getAttribute("href")).toBe("/nearby/simple-routes?keep=yes&route=54");
-    await act(async () => info.click());
-    expect(container.querySelector("output")?.textContent).toBe("/nearby/simple-routes?keep=yes&route=54");
-    expect(container.querySelector('[aria-label="Route 54 details"]')).not.toBeNull();
-    const buttons = Array.from(container.querySelectorAll("button"));
-    await act(async () => buttons.find((button) => button.textContent === "Browser back").click());
-    expect(container.querySelector("output")?.textContent).toBe("/nearby/simple-routes?keep=yes");
-    expect(container.querySelector('[aria-label="Route 54 details"]')).toBeNull();
-    expect(cleanupMap).toHaveBeenCalledTimes(1);
-    await act(async () => buttons.find((button) => button.textContent === "Browser forward").click());
-    expect(container.querySelector('[aria-label="Route 54 details"]')).not.toBeNull();
-    expect(showMap).toHaveBeenCalledTimes(2);
-    await act(async () => Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Close").click());
-    expect(container.querySelector("output")?.textContent).toBe("/nearby/simple-routes?keep=yes");
-    expect(cleanupMap).toHaveBeenCalledTimes(2);
-  });
-
-  it("loads a deep-linked route even when it is not in the nearby stops", async () => {
-    vi.mocked(getRouteById).mockResolvedValue({
-      route: [{
-        route: 12, id: 12, desc: "Sandy", type: "bus",
-        routeColor: "", routeSortOrder: 12,
-        dir: [{ dir: 0, desc: "Eastbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
-      }]
-    });
-    const showMap = vi.fn(() => vi.fn());
-    await act(async () => root.render(
-      <MemoryRouter initialEntries={["/nearby/simple-routes?route=12&keep=yes"]}>
-        <NearbySimpleRoutes nearbyStops={{ location: [], queryTime: "" }}
-          currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={vi.fn()}
-          handleRadiusSelectionChange={vi.fn()} routeCount={0} stopCount={0}
-          onRouteInfoChanged={showMap} />
-        <CurrentLocation />
-      </MemoryRouter>
-    ));
-    expect(getRouteById).toHaveBeenCalledWith(12);
-    expect(container.querySelector('[aria-label="Route 12 details"]')?.textContent).toContain("Route 12: Sandy");
-    expect(showMap).toHaveBeenCalledTimes(1);
-    await act(async () => Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Close").click());
-    expect(container.querySelector("output")?.textContent).toBe("/nearby/simple-routes?keep=yes");
-  });
-
   it.each(["", "abc", "-1", "0", "999999999999999999999", "54&route=12"])(
     "reports an invalid route query %s without requesting it", async (query) => {
       await act(async () => root.render(
@@ -430,141 +203,6 @@ describe("NearbySimpleRoutes", () => {
       expect(container.querySelector("output")?.textContent).toBe("/nearby/simple-routes?keep=yes");
     }
   );
-
-  it("ignores an earlier route response after the query changes", async () => {
-    let resolveFirst: (value: any) => void;
-    vi.mocked(getRouteById)
-      .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
-      .mockResolvedValueOnce({
-        route: [{
-          route: 12, id: 12, desc: "Sandy", type: "bus",
-          routeColor: "", routeSortOrder: 12,
-          dir: [{ dir: 0, desc: "Eastbound", stop: [{ ...stop(102, 0.02), seq: 1, tp: false }] }]
-        }]
-      });
-    const showMap = vi.fn(() => vi.fn());
-    await act(async () => root.render(
-      <MemoryRouter initialEntries={["/nearby/simple-routes?route=54"]}>
-        <NearbySimpleRoutes nearbyStops={{ location: [], queryTime: "" }}
-          currentLocation={[0, 0]} radiusSize={1000} handleSimpleRoutesOpened={vi.fn()}
-          handleRadiusSelectionChange={vi.fn()} routeCount={0} stopCount={0}
-          onRouteInfoChanged={showMap} />
-        <BrowserHistory />
-      </MemoryRouter>
-    ));
-    await act(async () => Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Open route 12").click());
-    await act(async () => resolveFirst({
-      route: [{
-        route: 54, id: 54, desc: "Beaverton", type: "bus", routeColor: "", routeSortOrder: 54,
-        dir: [{ dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
-      }]
-    }));
-    expect(container.querySelector('[aria-label="Route 12 details"]')?.textContent).toContain("Sandy");
-    expect(container.querySelector('[aria-label="Route 54 details"]')).toBeNull();
-    expect(showMap).toHaveBeenCalledTimes(1);
-    expect(showMap.mock.calls[0][0].route).toBe(12);
-  });
-
-  it("collapses route directions independently and highlights hovered or focused stops", async () => {
-    vi.mocked(getArrivals).mockResolvedValue(response([]));
-    vi.mocked(getRouteById).mockResolvedValue({
-      route: [{
-        route: 54, id: 54, desc: "Beaverton", type: "bus",
-        routeColor: "", routeSortOrder: 54,
-        dir: [
-          { dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] },
-          { dir: 1, desc: "Southbound", stop: [{ ...stop(102, 0.02), seq: 1, tp: false }] }
-        ]
-      }]
-    });
-    const highlight = vi.fn();
-    await act(async () => root.render(
-      <MemoryRouter>
-        <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
-          routeCount={1} stopCount={2} onRouteInfoStopHighlighted={highlight} />
-      </MemoryRouter>
-    ));
-    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link").click());
-    const panel = container.querySelector('[aria-label="Route 54 details"]');
-    const directions = Array.from(panel.querySelectorAll<HTMLDetailsElement>("details"));
-    const first = directions[0].querySelector<HTMLElement>('[data-stop-id="101"]');
-    const second = directions[1].querySelector<HTMLElement>('[data-stop-id="102"]');
-    expect(directions.map((direction) => direction.open)).toEqual([true, true]);
-    highlight.mockClear();
-    await act(async () => first.focus());
-    expect(highlight).toHaveBeenLastCalledWith(101);
-    await act(async () => second.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
-    expect(highlight).toHaveBeenLastCalledWith(102);
-    await act(async () => second.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-    expect(highlight).toHaveBeenLastCalledWith(101);
-    await act(async () => {
-      directions[0].open = false;
-      directions[0].dispatchEvent(new Event("toggle"));
-    });
-    expect(directions[1].open).toBe(true);
-    expect(highlight).toHaveBeenLastCalledWith();
-    await act(async () => {
-      const close = Array.from(panel.querySelectorAll("button")).find((button) => button.textContent === "Close");
-      close.click();
-    });
-    expect(highlight).toHaveBeenLastCalledWith();
-  });
-
-  it("opens the selected route stop from the details list", async () => {
-    vi.mocked(getArrivals).mockResolvedValue(response([]));
-    vi.mocked(getRouteById).mockResolvedValue({
-      route: [{
-        route: 54, id: 54, desc: "Beaverton", type: "bus",
-        routeColor: "", routeSortOrder: 54,
-        dir: [{ dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
-      }]
-    });
-    await act(async () => root.render(
-      <MemoryRouter initialEntries={["/nearby/simple-routes?route=54&keep=yes#directions"]}>
-        <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
-          routeCount={1} stopCount={2} />
-        <CurrentLocation />
-      </MemoryRouter>
-    ));
-    const stopLink = container.querySelector<HTMLAnchorElement>('[aria-label="Route 54 details"] a[data-stop-id="101"]');
-    const referrer = "/nearby/simple-routes?route=54&keep=yes#directions";
-    expect(stopLink.getAttribute("href")).toBe(`/nearby/stops/101?${new URLSearchParams({ referrer })}`);
-    await act(async () => stopLink.click());
-    expect(container.querySelector("output")?.textContent).toBe(`/nearby/stops/101?${new URLSearchParams({ referrer })}`);
-  });
-
-  it("reports route detail failures and retries without leaving the nearby list", async () => {
-    vi.mocked(getArrivals).mockResolvedValue(response([]));
-    vi.mocked(getRouteById)
-      .mockRejectedValueOnce(new Error("Unavailable"))
-      .mockResolvedValueOnce({
-        route: [{
-          route: 54, id: 54, desc: "Beaverton", type: "bus",
-          routeColor: "", routeSortOrder: 54,
-          dir: [{ dir: 0, desc: "Northbound", stop: [{ ...stop(101, 0.01), seq: 1, tp: false }] }]
-        }]
-      });
-    await act(async () => root.render(
-      <MemoryRouter>
-        <NearbySimpleRoutes nearbyStops={nearbyStops} currentLocation={[0, 0]} radiusSize={1000}
-          handleSimpleRoutesOpened={vi.fn()} handleRadiusSelectionChange={vi.fn()}
-          routeCount={1} stopCount={2} />
-      </MemoryRouter>
-    ));
-    await act(async () => container.querySelector<HTMLAnchorElement>(".transit-simple-route-details-link").click());
-    expect(container.querySelector('[role="alert"]')?.textContent).toContain("Route details could not be loaded");
-    const retry = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Retry");
-    await act(async () => retry.click());
-    expect(container.querySelector('[aria-label="Route 54 details"]')?.textContent).toContain("Stop 101");
-    expect(getRouteById).toHaveBeenCalledTimes(2);
-    await act(async () => container.querySelector('[aria-label="Route 54 details"]').dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
-    ));
-    expect(container.querySelector('[aria-label="Route 54 details"]')).toBeNull();
-    expect(container.querySelector(".transit-simple-route-group")).not.toBeNull();
-  });
 
   it("highlights the exact stop on hover and focus and clears hidden or removed rows", async () => {
     vi.mocked(getArrivals).mockResolvedValue(response([]));
