@@ -17,7 +17,7 @@ import { SAVED_PLACES_KEY } from "@overworld/places/savedPlaces";
 import GlobalPlacesSearch from "../view/mainNav/components/GlobalPlacesSearch";
 import NearbyPlacesMap from "../view/nearby/components/NearbyPlacesMap";
 
-function StopDetailWithBookmarks() {
+export function StopDetailWithBookmarks() {
   return <BookmarksProvider><NearbyStopDetailComponent /></BookmarksProvider>;
 }
 
