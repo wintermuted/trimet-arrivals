@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test tarball bootstrap safety
+        run: npm run test:bootstrap-ui
+
       - name: Lint app and workspace packages
         run: npm run lint
 

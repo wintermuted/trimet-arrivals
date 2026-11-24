@@ -38,17 +38,36 @@ surfaces and status colors. Transit route colors remain in
 `packages/applications/go-by-transit/src/styles/routes.scss`; map and transit data behavior remain separate from
 presentation changes.
 
-The 1.0 migration pins both `@wintermuted/ui-theme` and `@wintermuted/ui-react`
-to `1.0.0` in the app. The shared `@overworld/ui` library declares
+The app pins both `@wintermuted/ui-theme` and `@wintermuted/ui-react`
+to npm version `1.0.0`. The shared `@overworld/ui` library declares
 `@wintermuted/ui-react@^1.0.0` as a peer; the app supplies the styles.
 Keep every CSS import on `ui-theme`; its legacy React/theme/select exports
 have been removed. React and `react-select` versions and component APIs stay unchanged.
 
-Both packages are published. The single root `package-lock.json` resolves their
-1.0.0 tarballs from the public npm registry with verified integrity; no local
-tarballs or links are required. If a configured npm mirror lags behind a release,
-use public npm for dependency resolution rather than substituting unpublished
-dependencies. Keep the package manifests and root lockfile updated together.
+Both packages are published to npm and distributed as installable GitHub Release
+assets in `wintermuted/wintermuted-ui`. The single root `package-lock.json`
+retains npm URLs and SHA-512 integrity hashes so regular users can run `npm ci`
+without special setup. The React package's theme dependency shares the app's
+locked theme installation.
+
+Where GitHub Release dependencies are approved and the registry cannot serve
+the locked UI packages, run `npm run install:tarballs` before `npm ci`. The bootstrap
+needs only Node and npm, not installed dependencies. It downloads the separate
+release assets matching the locked versions, verifies their exact SHA-512
+integrity, and adds the bytes to npm's content cache without running package
+scripts. A mismatch or download/cache failure stops with an explicit error.
+Temporary downloads are removed. It does not edit manifests, lockfiles, registry
+settings, or install-script approvals. Use the same npm cache for both commands;
+rerun bootstrap after clearing that cache or upgrading the UI packages.
+
+For future upgrades, attach the reviewed `npm pack` outputs to the matching
+package releases and verify their integrity against the published packages.
+Do not replace an existing asset with different bytes. Update the normal npm
+version pins and root lockfile together, then verify bootstrap followed by a
+clean `npm ci` and focused consumer tests. Release-asset uploads are a
+producer-side step; Overworld does not build or publish UI packages.
+This opt-in route does not waive organizational quarantine, scanning, or
+provenance requirements. Other dependencies still use the configured registry.
 
 ## Navigation and page shell
 

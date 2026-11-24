@@ -22,6 +22,24 @@ Volta users automatically select the matching version pinned in `package.json`
 instead of their global Node default. Keep both pins in sync. Node version
 managers are installed separately, not through the deprecated npm `nvm` package.
 Use npm for workspace dependencies and commit changes to `package-lock.json`.
+All package manifests and the lockfile use normal npm dependencies. If your
+registry cannot serve the locked Wintermuted UI packages and GitHub Release
+dependencies are approved for your environment, bootstrap npm's cache first:
+
+```powershell
+npm run install:tarballs
+npm ci
+```
+
+The opt-in bootstrap requires GitHub release-download access and verifies the
+tarballs against the unchanged lockfile. It needs no installed dependencies and
+does not switch registries or create an alternate lockfile. Regular npm users
+can skip it. See [design-system package distribution](design-system.md#layout-and-theme-tokens)
+for the approved-source requirements and upgrade procedure.
+Repository agent guidance lives in `.github/copilot-instructions.md`; the
+`npm-mirror-install` skill covers diagnosis, approval boundaries, cache reuse,
+and verification. Both deployment workflows run the bootstrap's focused tests
+without activating alternate-source downloads.
 
 ```powershell
 npm ci

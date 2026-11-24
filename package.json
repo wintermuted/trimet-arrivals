@@ -16,6 +16,8 @@
   },
   "scripts": {
     "prepare": "husky",
+    "install:tarballs": "node scripts/bootstrap-ui.mjs",
+    "test:bootstrap-ui": "node --test scripts/bootstrap-ui.test.mjs",
     "places:refresh": "node scripts/refresh-places.mjs",
     "test:places-data": "node --test scripts/refresh-places.test.mjs",
     "watch": "vite",
