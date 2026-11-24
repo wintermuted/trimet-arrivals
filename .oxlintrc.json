@@ -29,6 +29,7 @@
         "packages/**/*.{ts,tsx}"
       ],
       "rules": {
+        "max-lines": ["error", { "max": 500, "skipBlankLines": false, "skipComments": false }],
         "constructor-super": "off",
         "for-direction": "error",
         "getter-return": "off",

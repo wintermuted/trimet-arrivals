@@ -101,7 +101,7 @@ removed. Line-list dictionary helpers live alongside the line views.
 Line-detail tests need router and bookmark context when applicable, but no
 Redux provider.
 
-The native-only migration retains 77 enabled rules, including
+The native-only configuration enables 78 rules, including
 `react/require-render-return` from Oxlint's nursery rules. It intentionally drops
 interface naming conventions and `react/no-deprecated`, which have no equivalent
 in this non-type-aware configuration. No JavaScript plugin bridge or additional
@@ -110,6 +110,29 @@ type-aware backend is enabled.
 Use `npm run lint` (or the Nx `lint` target) for checks and `npm run lint:fix`
 for fixes. Both Pages workflows run lint before tests. Agent-run local
 lint/typecheck/build validation remains CI-owned.
+
+### File length
+
+Workspace TypeScript and TSX files must stay at or below **500 total lines**.
+Oxlint's `max-lines` rule counts comments and blank lines and is enforced by
+the existing CI lint target and staged-file hook.
+
+All workspace source and test files meet this limit; there are no per-file
+exceptions. Do not raise the limit or add broad exceptions.
+Split code by responsibility into focused components, hooks, helpers, or test
+suites rather than compressing formatting or removing useful comments.
+The rule covers application and library source and tests under `packages/`;
+JavaScript maintenance scripts, generated assets, and documentation remain
+outside the current workspace lint scope.
+
+Nearby map ownership stays in `NearbyViewComponent`, with routed views in
+`NearbyOutletViews`, place discovery state in `useNearbyPlacesDiscovery`, and
+place sidebar/layers in `NearbyPlacesDiscovery`. Route grouping/sorting lives
+in `nearbyRouteArrivals`, separate from `SimpleRouteGroups` rendering.
+Trip planning separates request/selection state (`useTripPlannerState`),
+endpoint fields, the search form, and itinerary/journey results.
+Related tests are grouped by scenario, with test-only fixtures under
+`src/test` rather than production modules.
 
 Husky 9 installs hooks through `npm install`/`npm ci` via the `prepare` script.
 The pre-commit hook runs Oxfmt checks followed by Oxlint on staged TypeScript/TSX
