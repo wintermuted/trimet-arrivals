@@ -11,6 +11,12 @@ The package reuses Wintermuted's Button and theme tokens rather than duplicating
 base controls. Internal `.js` imports are compatible with the eventual
 TypeScript-to-JavaScript transfer.
 
+Each CSS import has a matching `.d.css.ts` declaration. The package enables
+`allowArbitraryExtensions` for its bundler-loaded styles without importing app
+or Vite ambient types. Boundary tests verify both the actual stylesheet and its
+declaration; no wildcard stylesheet declarations or disabled import checks are
+needed.
+
 ## Contracts and adapters
 
 | Component | Staged responsibility | Consumer responsibility |
