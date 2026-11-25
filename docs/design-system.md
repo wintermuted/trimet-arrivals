@@ -30,6 +30,21 @@ public API for `TimeDisplayProvider`, `useTimeDisplay`, and `TimeDisplaySettings
 Navigation wrappers stay in the app; `@wintermuted/ui-theme` remains the source
 for shared design tokens and styles, while `@wintermuted/ui-react` supplies controls.
 
+## Generic component staging
+
+The private `@overworld/ui-staging` workspace at `packages/components` stages
+`LoadStatus`, `RefreshAction`, and `ActionDisclosure` for a later transfer to
+`wintermuted/wintermuted-ui`. It owns context-free React interactions and scoped
+styles using Wintermuted primitives/tokens. Hosts provide all messages, callbacks,
+and state; source policy, navigation, persistence, and map-aware help remain in
+Go By Transit or `@overworld/ui` adapters.
+
+Existing `PlacesLoadStatus` and `PlannerDisclosure` APIs wrap the staged
+components to preserve their consumers. Transit presentation remains in
+`@overworld/ui`; canonical Wintermuted Accordion and Tooltip remain unchanged.
+The staging package is private, and no destination publication or automatic
+transfer is implied. See its [contracts and transfer gates](../packages/components/README.md).
+
 ## Layout and theme tokens
 
 Responsive page layouts use app-owned `.transit-container`, `.transit-columns`,

@@ -1,19 +1,26 @@
 import {
   Accordion,
   Badge,
-  Button,
   Card,
   CardBody,
   CardHeader,
-  Table
+  Table,
 } from "@wintermuted/ui-react";
+import { RefreshAction } from "@overworld/ui-staging";
 import React from "react";
-import type { Alert, AlertLocation, RouteConfigRoute } from "@overworld/trimet-client";
+import type {
+  Alert,
+  AlertLocation,
+  RouteConfigRoute,
+} from "@overworld/trimet-client";
 import { useTimeDisplay } from "../TimeDisplay";
 import type { AlertFeedState } from "./types";
 import "./Alerts.scss";
 
-function getStopClosureTable(locations: AlertLocation[], renderLink: AllAlertsCardProps["renderStopLink"]) {
+function getStopClosureTable(
+  locations: AlertLocation[],
+  renderLink: AllAlertsCardProps["renderStopLink"],
+) {
   return (
     <Table responsive={true}>
       <thead>
@@ -24,12 +31,10 @@ function getStopClosureTable(locations: AlertLocation[], renderLink: AllAlertsCa
         </tr>
       </thead>
       <tbody>
-        {locations.map(loc => {
+        {locations.map((loc) => {
           return (
             <tr key={loc.id}>
-              <td>
-                {renderLink(loc.id)}
-              </td>
+              <td>{renderLink(loc.id)}</td>
               <td>{loc.desc}</td>
               <td>{loc.dir}</td>
             </tr>
@@ -40,7 +45,10 @@ function getStopClosureTable(locations: AlertLocation[], renderLink: AllAlertsCa
   );
 }
 
-function getRouteAlertTable(routes: RouteConfigRoute[], renderLink: AllAlertsCardProps["renderRouteLink"]) {
+function getRouteAlertTable(
+  routes: RouteConfigRoute[],
+  renderLink: AllAlertsCardProps["renderRouteLink"],
+) {
   return (
     <Table responsive={true}>
       <thead>
@@ -50,12 +58,10 @@ function getRouteAlertTable(routes: RouteConfigRoute[], renderLink: AllAlertsCar
         </tr>
       </thead>
       <tbody>
-        {routes.map(route => {
+        {routes.map((route) => {
           return (
             <tr key={route.id}>
-              <td>
-                {renderLink(route.id)}
-              </td>
+              <td>{renderLink(route.id)}</td>
               <td>{route.desc}</td>
             </tr>
           );
@@ -66,7 +72,7 @@ function getRouteAlertTable(routes: RouteConfigRoute[], renderLink: AllAlertsCar
 }
 
 function getImpactedRoutes(routes: RouteConfigRoute[]) {
-  return routes.map(route => {
+  return routes.map((route) => {
     return (
       <Badge tone="info" key={route.id}>
         {route.id}
@@ -93,8 +99,16 @@ export interface AllAlertsCardProps extends AlertFeedState {
 }
 
 function getAlertsAccordion(
-  { alertsData, loading, error, onRefresh, loadingContent, renderStopLink, renderRouteLink }: AllAlertsCardProps,
-  formatDate: (timestamp: number) => string
+  {
+    alertsData,
+    loading,
+    error,
+    onRefresh,
+    loadingContent,
+    renderStopLink,
+    renderRouteLink,
+  }: AllAlertsCardProps,
+  formatDate: (timestamp: number) => string,
 ) {
   if (loading && !alertsData) {
     return loadingContent;
@@ -110,9 +124,17 @@ function getAlertsAccordion(
           </p>
         )}
         {!error && <p role="status">No route or stop alerts right now.</p>}
-        <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
-          {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
-        </Button>
+        <RefreshAction
+          size="sm"
+          onRefresh={onRefresh}
+          loading={loading}
+          error={error}
+          labels={{
+            idle: "Refresh",
+            loading: "Refreshing...",
+            retry: "Try again",
+          }}
+        />
       </>
     );
   }
@@ -124,11 +146,19 @@ function getAlertsAccordion(
           Could not refresh alerts. Showing the last received alerts.
         </p>
       )}
-      <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
-        {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
-      </Button>
+      <RefreshAction
+        size="sm"
+        onRefresh={onRefresh}
+        loading={loading}
+        error={error}
+        labels={{
+          idle: "Refresh",
+          loading: "Refreshing...",
+          retry: "Try again",
+        }}
+      />
       {alertsData &&
-        alertsData.map(alert => {
+        alertsData.map((alert) => {
           return (
             <Accordion
               key={alert.id}
@@ -146,7 +176,8 @@ function getAlertsAccordion(
             >
               {alert.desc}
               <br />
-              {alert.location && getStopClosureTable(alert.location, renderStopLink)}
+              {alert.location &&
+                getStopClosureTable(alert.location, renderStopLink)}
               {alert.route && getRouteAlertTable(alert.route, renderRouteLink)}
             </Accordion>
           );

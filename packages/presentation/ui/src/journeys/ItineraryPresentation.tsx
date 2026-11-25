@@ -1,6 +1,16 @@
-import { faBus, faPersonWalking, faRoute, faTrain, faTrainTram } from "@fortawesome/free-solid-svg-icons";
-import type { TripPlannerItinerary, TripPlannerLeg } from "@overworld/trimet-client";
-import React, { useId, useState } from "react";
+import {
+  faBus,
+  faPersonWalking,
+  faRoute,
+  faTrain,
+  faTrainTram,
+} from "@fortawesome/free-solid-svg-icons";
+import type {
+  TripPlannerItinerary,
+  TripPlannerLeg,
+} from "@overworld/trimet-client";
+import React from "react";
+import { ActionDisclosure } from "@overworld/ui-staging";
 import FontAwesome from "react-fontawesome";
 import { DirectionsStopPair } from "./DirectionsStopPair";
 import "./ItineraryPresentation.scss";
@@ -9,7 +19,9 @@ export type TransitLegColor = (leg: TripPlannerLeg) => string;
 
 function formatStop(location?: TripPlannerLeg["from"]): string {
   if (!location?.description) {
-    return location?.stopId ? `Stop ${location.stopId}` : "Stop information unavailable";
+    return location?.stopId
+      ? `Stop ${location.stopId}`
+      : "Stop information unavailable";
   }
   return location.stopId
     ? `${location.description} (${location.stopId})`
@@ -45,8 +57,17 @@ function legIcon(mode?: string) {
   return faRoute;
 }
 
-function LegIcon({ leg, transitColor }: { leg: TripPlannerLeg; transitColor?: TransitLegColor }) {
-  const { iconName, icon: [width, height, , , paths] } = legIcon(leg.mode);
+function LegIcon({
+  leg,
+  transitColor,
+}: {
+  leg: TripPlannerLeg;
+  transitColor?: TransitLegColor;
+}) {
+  const {
+    iconName,
+    icon: [width, height, , , paths],
+  } = legIcon(leg.mode);
   const walking = iconName === "person-walking";
   return (
     <svg
@@ -57,12 +78,18 @@ function LegIcon({ leg, transitColor }: { leg: TripPlannerLeg; transitColor?: Tr
       aria-hidden="true"
       focusable="false"
     >
-      {[paths].flat().map(path => <path key={path} d={path} />)}
+      {[paths].flat().map((path) => (
+        <path key={path} d={path} />
+      ))}
     </svg>
   );
 }
 
-export function JourneyDirections({ itinerary, headingRef, transitColor }: {
+export function JourneyDirections({
+  itinerary,
+  headingRef,
+  transitColor,
+}: {
   itinerary: TripPlannerItinerary;
   headingRef: React.Ref<HTMLHeadingElement>;
   transitColor?: TransitLegColor;
@@ -70,38 +97,70 @@ export function JourneyDirections({ itinerary, headingRef, transitColor }: {
   return (
     <>
       <header className="transit-journey-header">
-        <h2 tabIndex={-1} ref={headingRef}>Journey directions</h2>
+        <h2 tabIndex={-1} ref={headingRef}>
+          Journey directions
+        </h2>
         <p>Planned times from TriMet, not live updates.</p>
         {itinerary.startTime && itinerary.endTime && (
-          <p>Planned trip: {itinerary.startTime} to {itinerary.endTime}</p>
+          <p>
+            Planned trip: {itinerary.startTime} to {itinerary.endTime}
+          </p>
         )}
       </header>
       {itinerary.legs.length ? (
         <ol className="transit-journey-steps" aria-label="Journey steps">
           {itinerary.legs.map((leg, index) => {
             const walking = /^walk(?:ing)?$/i.test(leg.mode?.trim() ?? "");
-            const hasRoute = !walking && Boolean(leg.route?.name || leg.route?.number);
+            const hasRoute =
+              !walking && Boolean(leg.route?.name || leg.route?.number);
             const direction = leg.direction || leg.route?.direction;
             return (
               <li className="transit-planner-leg" key={index}>
-                <h3><LegIcon leg={leg} transitColor={transitColor} />{legTitle(leg)}</h3>
-                {!walking && direction && <p className="transit-planner-leg-time">Direction: {direction}</p>}
+                <h3>
+                  <LegIcon leg={leg} transitColor={transitColor} />
+                  {legTitle(leg)}
+                </h3>
+                {!walking && direction && (
+                  <p className="transit-planner-leg-time">
+                    Direction: {direction}
+                  </p>
+                )}
                 <dl>
-                  <dt>{walking ? "Start walking" : hasRoute ? "Board at" : "Start at"}</dt>
-                  <dd>{formatStop(leg.from)}<span>{leg.startTime ?? "Time unavailable"}</span></dd>
+                  <dt>
+                    {walking
+                      ? "Start walking"
+                      : hasRoute
+                        ? "Board at"
+                        : "Start at"}
+                  </dt>
+                  <dd>
+                    {formatStop(leg.from)}
+                    <span>{leg.startTime ?? "Time unavailable"}</span>
+                  </dd>
                   <dt>{hasRoute ? "Get off at" : "Arrive at"}</dt>
-                  <dd>{formatStop(leg.to)}<span>{leg.endTime ?? "Time unavailable"}</span></dd>
+                  <dd>
+                    {formatStop(leg.to)}
+                    <span>{leg.endTime ?? "Time unavailable"}</span>
+                  </dd>
                 </dl>
               </li>
             );
           })}
         </ol>
-      ) : <p>TriMet did not provide steps for this trip.</p>}
+      ) : (
+        <p>TriMet did not provide steps for this trip.</p>
+      )}
     </>
   );
 }
 
-export function PlannerDisclosure({ title, children, onCollapse, headingId, edit }: {
+export function PlannerDisclosure({
+  title,
+  children,
+  onCollapse,
+  headingId,
+  edit,
+}: {
   title: string;
   children: React.ReactNode;
   onCollapse?: () => void;
@@ -112,47 +171,27 @@ export function PlannerDisclosure({ title, children, onCollapse, headingId, edit
     onClick: () => void;
   };
 }) {
-  const [expanded, setExpanded] = useState(true);
-  const panelId = useId();
-  const Heading = headingId ? "h2" : "h3";
-
   return (
-    <div>
-      <header className="transit-planner-disclosure-header">
-        <Heading id={headingId} className="transit-planner-disclosure-heading">
-          <button
-            type="button"
-            aria-controls={panelId}
-            aria-expanded={expanded}
-            onClick={() => {
-              if (expanded) onCollapse?.();
-              setExpanded(!expanded);
-            }}
-          >
-            <FontAwesome name="caret-right" aria-hidden="true" />
-            {title}
-          </button>
-        </Heading>
-        {edit && (
-          <button
-            type="button"
-            className="transit-planner-edit"
-            ref={edit.buttonRef}
-            aria-label={edit.label}
-            title={edit.label}
-            onClick={() => {
-              setExpanded(true);
-              edit.onClick();
-            }}
-          >
-            <FontAwesome name="pencil" aria-hidden="true" />
-          </button>
-        )}
-      </header>
-      <div id={panelId} hidden={!expanded}>
-        {children}
-      </div>
-    </div>
+    <ActionDisclosure
+      title={title}
+      headingId={headingId}
+      headingLevel={headingId ? 2 : 3}
+      onCollapse={onCollapse}
+      indicator={<FontAwesome name="caret-right" aria-hidden="true" />}
+      classNames={{
+        header: "transit-planner-disclosure-header",
+        heading: "transit-planner-disclosure-heading",
+        action: "transit-planner-edit",
+      }}
+      action={
+        edit && {
+          ...edit,
+          icon: <FontAwesome name="pencil" aria-hidden="true" />,
+        }
+      }
+    >
+      {children}
+    </ActionDisclosure>
   );
 }
 
@@ -201,11 +240,20 @@ export function ItineraryDetails({
                 className={`transit-planner-leg${highlight?.leg === legIndex ? " transit-planner-leg--highlighted" : ""}`}
                 key={leg.id || `${index}-${legIndex}`}
                 tabIndex={highlight ? 0 : undefined}
-                onPointerEnter={highlight ? event => {
-                  if (event.pointerType !== "touch") highlight.onHover(legIndex);
-                } : undefined}
-                onPointerLeave={highlight ? () => highlight.onHover() : undefined}
-                onFocus={highlight ? () => highlight.onFocus(legIndex) : undefined}
+                onPointerEnter={
+                  highlight
+                    ? (event) => {
+                        if (event.pointerType !== "touch")
+                          highlight.onHover(legIndex);
+                      }
+                    : undefined
+                }
+                onPointerLeave={
+                  highlight ? () => highlight.onHover() : undefined
+                }
+                onFocus={
+                  highlight ? () => highlight.onFocus(legIndex) : undefined
+                }
                 onBlur={highlight ? () => highlight.onFocus() : undefined}
               >
                 {showTransfer && (
@@ -216,15 +264,17 @@ export function ItineraryDetails({
                   <strong>{legTitle(leg)}</strong>
                   {leg.direction && <span> · {leg.direction}</span>}
                 </div>
-                <DirectionsStopPair from={formatStop(leg.from)} to={formatStop(leg.to)} />
+                <DirectionsStopPair
+                  from={formatStop(leg.from)}
+                  to={formatStop(leg.to)}
+                />
                 {(leg.startTime || leg.endTime) && (
                   <p className="transit-planner-leg-time">
                     {leg.startTime || "Time unavailable"}
                     {leg.endTime ? `–${leg.endTime}` : ""}
                   </p>
                 )}
-                {(leg.duration !== undefined ||
-                  leg.distance !== undefined) && (
+                {(leg.duration !== undefined || leg.distance !== undefined) && (
                   <p className="transit-planner-leg-distance">
                     {leg.duration !== undefined && `${leg.duration} min`}
                     {leg.duration !== undefined &&
@@ -250,21 +300,41 @@ function optionLegLabel(leg: TripPlannerLeg) {
   if (legIcon(mode) === faPersonWalking) return "Walk";
   const maxLine = name?.match(/^(MAX \w+ Line)(?: to |$)/i);
   if (maxLine) return maxLine[1];
-  if (mode?.toLowerCase() === "bus" && number && /^\d+$/.test(number) && !/^FX\b/i.test(name || "")) {
+  if (
+    mode?.toLowerCase() === "bus" &&
+    number &&
+    /^\d+$/.test(number) &&
+    !/^FX\b/i.test(name || "")
+  ) {
     return `Bus ${number}`;
   }
-  return name || [mode, number].filter(Boolean).join(" ") || "Leg details unavailable";
+  return (
+    name ||
+    [mode, number].filter(Boolean).join(" ") ||
+    "Leg details unavailable"
+  );
 }
 
-export function TripOptionSummary({ itinerary, index, current, transitColor }: {
+export function TripOptionSummary({
+  itinerary,
+  index,
+  current,
+  transitColor,
+}: {
   itinerary: TripPlannerItinerary;
   index: number;
   current: boolean;
   transitColor?: TransitLegColor;
 }) {
   const { startTime, endTime, duration, numberOfTransfers, legs } = itinerary;
-  const schedule = startTime && endTime ? `${startTime} to ${endTime}`
-    : startTime ? `Departs ${startTime}` : endTime ? `Arrives ${endTime}` : "Times unavailable";
+  const schedule =
+    startTime && endTime
+      ? `${startTime} to ${endTime}`
+      : startTime
+        ? `Departs ${startTime}`
+        : endTime
+          ? `Arrives ${endTime}`
+          : "Times unavailable";
   return (
     <>
       <span className="transit-planner-option-timing">
@@ -277,10 +347,17 @@ export function TripOptionSummary({ itinerary, index, current, transitColor }: {
         <span className="transit-planner-option-route">
           {legs.map((leg, legIndex) => (
             <span className="transit-planner-option-step" key={legIndex}>
-              {legIndex > 0 && <>
-                <span className="wm-sr-only">Then </span>
-                <span className="transit-planner-option-chevron" aria-hidden="true">›</span>
-              </>}
+              {legIndex > 0 && (
+                <>
+                  <span className="wm-sr-only">Then </span>
+                  <span
+                    className="transit-planner-option-chevron"
+                    aria-hidden="true"
+                  >
+                    ›
+                  </span>
+                </>
+              )}
               <span className="transit-planner-option-leg">
                 <LegIcon leg={leg} transitColor={transitColor} />
                 <span>{optionLegLabel(leg)}</span>
@@ -288,10 +365,15 @@ export function TripOptionSummary({ itinerary, index, current, transitColor }: {
             </span>
           ))}
         </span>
-      ) : <span className="transit-planner-option-meta">Route details unavailable</span>}
+      ) : (
+        <span className="transit-planner-option-meta">
+          Route details unavailable
+        </span>
+      )}
       <span className="transit-planner-option-meta">
         Option {index + 1}
-        {numberOfTransfers !== undefined && ` · ${numberOfTransfers} ${numberOfTransfers === 1 ? "transfer" : "transfers"}`}
+        {numberOfTransfers !== undefined &&
+          ` · ${numberOfTransfers} ${numberOfTransfers === 1 ? "transfer" : "transfers"}`}
         {current && " · Current trip"}
       </span>
     </>

@@ -15,6 +15,7 @@
     "@overworld/routing": "0.0.0",
     "@overworld/trimet-client": "0.0.0",
     "@overworld/ui": "0.0.0",
+    "@overworld/ui-staging": "0.0.0",
     "@turf/distance": "^7.4.0",
     "@wintermuted/ui-react": "1.0.0",
     "@wintermuted/ui-theme": "1.0.0",

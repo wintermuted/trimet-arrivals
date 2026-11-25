@@ -1,4 +1,5 @@
-import { Alert, Button, Card, CardBody, CardHeader } from "@wintermuted/ui-react";
+import { Alert, Card, CardBody, CardHeader } from "@wintermuted/ui-react";
+import { RefreshAction } from "@overworld/ui-staging";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import type { Alert as IAlert } from "@overworld/trimet-client";
@@ -8,7 +9,13 @@ export interface SystemAlertsCardProps extends AlertFeedState {
   systemAlertsData: IAlert[] | undefined;
 }
 
-function getSystemAlerts({ systemAlertsData, loading, error, onRefresh, loadingContent }: SystemAlertsCardProps) {
+function getSystemAlerts({
+  systemAlertsData,
+  loading,
+  error,
+  onRefresh,
+  loadingContent,
+}: SystemAlertsCardProps) {
   if (loading && !systemAlertsData) {
     return loadingContent;
   }
@@ -22,20 +29,32 @@ function getSystemAlerts({ systemAlertsData, loading, error, onRefresh, loadingC
             : "Could not load system alerts. Try again."}
         </p>
       )}
-      {systemAlertsData?.length ? systemAlertsData.map(alert => (
-        <Alert key={alert.id} tone="warning">
-          <h3>{alert.header_text}</h3>
-          {alert.desc && <p>{alert.desc}</p>}
-          {alert.info_link_url && (
-            <p style={{ marginBottom: 0 }}>
-              <a href={alert.info_link_url}>More Info</a>
-            </p>
-          )}
-        </Alert>
-      )) : !error ? <p role="status">No system alerts right now.</p> : null}
-      <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
-        {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
-      </Button>
+      {systemAlertsData?.length ? (
+        systemAlertsData.map((alert) => (
+          <Alert key={alert.id} tone="warning">
+            <h3>{alert.header_text}</h3>
+            {alert.desc && <p>{alert.desc}</p>}
+            {alert.info_link_url && (
+              <p style={{ marginBottom: 0 }}>
+                <a href={alert.info_link_url}>More Info</a>
+              </p>
+            )}
+          </Alert>
+        ))
+      ) : !error ? (
+        <p role="status">No system alerts right now.</p>
+      ) : null}
+      <RefreshAction
+        size="sm"
+        onRefresh={onRefresh}
+        loading={loading}
+        error={error}
+        labels={{
+          idle: "Refresh",
+          loading: "Refreshing...",
+          retry: "Try again",
+        }}
+      />
     </>
   );
 }

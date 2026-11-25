@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-react";
+import { RefreshAction } from "@overworld/ui-staging";
 import _ from "lodash";
 import React from "react";
 import { getAlertsForRoute } from "../../../api/trimet/alertScopes";
@@ -25,9 +25,17 @@ export default class RouteAlerts extends React.Component<Props> {
     return (
       <div className="route-alerts-wrapper">
         <h3>Route {id} alerts</h3>
-        <Button type="button" size="sm" onClick={onRetry} disabled={loading}>
-          {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
-        </Button>
+        <RefreshAction
+          size="sm"
+          onRefresh={onRetry}
+          loading={loading}
+          error={error}
+          labels={{
+            idle: "Refresh",
+            loading: "Refreshing...",
+            retry: "Try again",
+          }}
+        />
         {error && (
           <p role="alert">
             {alerts
@@ -37,7 +45,7 @@ export default class RouteAlerts extends React.Component<Props> {
         )}
         {scopedAlerts.length ? (
           <ul>
-            {_.map(scopedAlerts, alert => (
+            {_.map(scopedAlerts, (alert) => (
               <li key={alert.id}>{alert.desc || alert.header_text}</li>
             ))}
           </ul>

@@ -17,12 +17,22 @@ export default defineConfig(env => mergeConfig(viteConfig(env), {
       include: [
         `${appSource}/{api,component,state,view}/**/*.{ts,tsx}`,
         "packages/{api,util,geography,presentation}/*/src/**/*.{ts,tsx}",
+        "packages/components/src/**/*.{ts,tsx}",
         `${appSource}/App.tsx`
       ],
       exclude: ["**/*.{test,spec}.{ts,tsx}", "**/*.d.ts"],
       reportOnFailure: true
     },
     projects: [
+      {
+        extends: true,
+        test: {
+          name: "ui-staging-package",
+          environment: "jsdom",
+          include: ["packages/components/test/**/*.test.{ts,tsx}"],
+          setupFiles: ["packages/components/test/setup.ts"]
+        }
+      },
       {
         extends: true,
         test: {
