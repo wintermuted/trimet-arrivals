@@ -10,7 +10,7 @@ import type {
   TripPlannerLeg,
 } from "@overworld/trimet-client";
 import React from "react";
-import { ActionDisclosure } from "@overworld/ui-staging";
+import { ActionDisclosure } from "@wintermuted/ui-react";
 import FontAwesome from "react-fontawesome";
 import { DirectionsStopPair } from "./DirectionsStopPair";
 import "./ItineraryPresentation.scss";

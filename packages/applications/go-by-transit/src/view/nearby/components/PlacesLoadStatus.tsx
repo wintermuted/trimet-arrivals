@@ -1,7 +1,7 @@
 import {
   LoadStatus,
   type LoadIssue as GenericLoadIssue,
-} from "@overworld/ui-staging";
+} from "@wintermuted/ui-react";
 import React from "react";
 import FontAwesome from "react-fontawesome";
 import {

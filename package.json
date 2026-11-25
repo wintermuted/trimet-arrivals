@@ -2,8 +2,7 @@
   "name": "overworld",
   "private": true,
   "workspaces": [
-    "packages/*/*",
-    "packages/components"
+    "packages/*/*"
   ],
   "nx": {
     "implicitDependencies": [

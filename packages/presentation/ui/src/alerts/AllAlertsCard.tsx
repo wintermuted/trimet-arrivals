@@ -4,9 +4,9 @@ import {
   Card,
   CardBody,
   CardHeader,
+  RefreshAction,
   Table,
 } from "@wintermuted/ui-react";
-import { RefreshAction } from "@overworld/ui-staging";
 import React from "react";
 import type {
   Alert,

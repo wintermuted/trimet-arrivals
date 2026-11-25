@@ -35,12 +35,11 @@
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@overworld/trimet-client": "0.0.0",
-    "@overworld/ui-staging": "0.0.0",
     "lodash": "4.18.1",
     "react-fontawesome": "^1.7.1"
   },
   "peerDependencies": {
-    "@wintermuted/ui-react": "^1.0.0",
+    "@wintermuted/ui-react": "^1.2.0",
     "react": "^18.3.1 || ^19.0.0",
     "react-select": "^5.10.2"
   },

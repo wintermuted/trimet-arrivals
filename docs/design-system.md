@@ -30,20 +30,28 @@ public API for `TimeDisplayProvider`, `useTimeDisplay`, and `TimeDisplaySettings
 Navigation wrappers stay in the app; `@wintermuted/ui-theme` remains the source
 for shared design tokens and styles, while `@wintermuted/ui-react` supplies controls.
 
-## Generic component staging
+## Loading and action disclosure
 
-The private `@overworld/ui-staging` workspace at `packages/components` stages
-`LoadStatus`, `RefreshAction`, and `ActionDisclosure` for a later transfer to
-`wintermuted/wintermuted-ui`. It owns context-free React interactions and scoped
-styles using Wintermuted primitives/tokens. Hosts provide all messages, callbacks,
-and state; source policy, navigation, persistence, and map-aware help remain in
-Go By Transit or `@overworld/ui` adapters.
+Import `LoadStatus`, `RefreshAction`, and `ActionDisclosure`, and their public
+interfaces, from `@wintermuted/ui-react`. Generic interactions and styles belong
+to Wintermuted UI; no private component workspace is required.
 
-Existing `PlacesLoadStatus` and `PlannerDisclosure` APIs wrap the staged
-components to preserve their consumers. Transit presentation remains in
-`@overworld/ui`; canonical Wintermuted Accordion and Tooltip remain unchanged.
-The staging package is private, and no destination publication or automatic
-transfer is implied. See its [contracts and transfer gates](../packages/components/README.md).
+`PlacesLoadStatus` retains its existing public API and extends the shared
+`LoadIssue` type with the app's source label. Source/snapshot fetching policy,
+transit copy, icons, retries, and map-positioned `PlacesHelp` remain app-owned.
+Alert cards consume `RefreshAction` without changing their last-received data
+policy. `PlannerDisclosure` adapts `ActionDisclosure` while retaining its public
+journey API, heading IDs, icons, edit refs, collapse cleanup, and post-render focus.
+Routing and time-display persistence remain outside the generic controls.
+
+The app's existing full-theme import supplies `.wm-load-status*` and
+`.wm-action-disclosure*` styles and the light/dark `--wm-color-warning-text` token.
+React imports do not load CSS. Hosts using selective styles must explicitly load
+`@wintermuted/ui-theme/styles/components/load-status.css` and
+`@wintermuted/ui-theme/styles/components/action-disclosure.css`; the former also
+imports spinner styles for screen-reader-only announcements.
+Keep app-specific `transit-*` hooks on adapters rather than duplicating generic
+styles or depending on private package internals.
 
 ## Layout and theme tokens
 
@@ -53,9 +61,11 @@ surfaces and status colors. Transit route colors remain in
 `packages/applications/go-by-transit/src/styles/routes.scss`; map and transit data behavior remain separate from
 presentation changes.
 
-The app pins both `@wintermuted/ui-theme` and `@wintermuted/ui-react`
-to npm version `1.0.0`. The shared `@overworld/ui` library declares
-`@wintermuted/ui-react@^1.0.0` as a peer; the app supplies the styles.
+The app pins `@wintermuted/ui-react` to `1.2.0` and `@wintermuted/ui-theme`
+to `1.0.3`. The shared `@overworld/ui` library declares
+`@wintermuted/ui-react@^1.2.0` as a peer, the first release with these controls;
+the app supplies the styles. The UI React package's `^1.0.3` theme dependency
+shares that pin.
 Keep every CSS import on `ui-theme`; its legacy React/theme/select exports
 have been removed. React and `react-select` versions and component APIs stay unchanged.
 
@@ -64,6 +74,13 @@ assets in `wintermuted/wintermuted-ui`. The single root `package-lock.json`
 retains npm URLs and SHA-512 integrity hashes so regular users can run `npm ci`
 without special setup. The React package's theme dependency shares the app's
 locked theme installation.
+
+The adopted [React release](https://github.com/wintermuted/wintermuted-ui/releases/tag/ui-react%401.2.0)
+and [theme release](https://github.com/wintermuted/wintermuted-ui/releases/tag/ui-theme%401.0.3)
+reference recovered producer commit `997722d86e3eadfaed00077484b3127dd1844840`.
+Their tarballs were checked against authoritative registry SHA-512 metadata
+before inspecting compiled exports, declarations, and CSS. Later producer
+changes are not necessarily part of these artifacts.
 
 Where GitHub Release dependencies are approved and the registry cannot serve
 the locked UI packages, run `npm run install:tarballs` before `npm ci`. The bootstrap
