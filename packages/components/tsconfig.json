@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "noImplicitAny": true,
+    "allowArbitraryExtensions": true,
     "allowJs": false
   },
   "include": ["src", "test"],

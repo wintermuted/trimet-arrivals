@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -10,6 +10,26 @@ const files = readdirSync(sourceRoot).filter((name) =>
 const permitted = new Set(["react", "@wintermuted/ui-react"]);
 
 describe("context-free transfer boundary", () => {
+  it("resolves stylesheet imports through real CSS and package-owned declarations", () => {
+    for (const name of files.filter((file) => file.endsWith(".tsx"))) {
+      const source = readFileSync(join(sourceRoot, name), "utf8");
+      for (const [, specifier] of source.matchAll(
+        /import\s+["'](\.\/[^"']+\.css)["']/g,
+      )) {
+        expect(
+          existsSync(join(sourceRoot, specifier)),
+          `${name} imports missing ${specifier}`,
+        ).toBe(true);
+        expect(
+          existsSync(
+            join(sourceRoot, specifier.replace(/\.css$/, ".d.css.ts")),
+          ),
+          `${name} has no declaration for ${specifier}`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it.each(files)(
     "keeps %s independent of application and domain code",
     (name) => {
