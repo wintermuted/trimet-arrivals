@@ -7,7 +7,6 @@ import { ActionDisclosure, type ActionDisclosureProps } from "../src/index.js";
 describe("ActionDisclosure", () => {
   it("toggles with the keyboard, retains child state, and calls collapse before hiding", async () => {
     const user = userEvent.setup();
-    let panel: HTMLElement;
     const onCollapse = vi.fn(() => expect(panel.hidden).toBe(false));
     render(
       <ActionDisclosure title="Record options" onCollapse={onCollapse}>
@@ -15,7 +14,7 @@ describe("ActionDisclosure", () => {
       </ActionDisclosure>,
     );
     const trigger = screen.getByRole("button", { name: "Record options" });
-    panel = document.getElementById(trigger.getAttribute("aria-controls")!)!;
+    const panel = document.getElementById(trigger.getAttribute("aria-controls")!)!;
     await user.type(screen.getByRole("textbox"), " draft");
     trigger.focus();
     await user.keyboard("{Enter}");
