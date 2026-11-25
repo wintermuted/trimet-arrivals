@@ -78,7 +78,7 @@ export default function PlacesHelp({ label, text, icon = "info-circle", triggerL
   }, [visible]);
 
   return <>
-    <Button ref={button} size="sm" variant="ghost" aria-label={triggerLabel || `About ${label}`}
+    <Button ref={button} size="sm" variant="ghost" className="transit-places-help-trigger" aria-label={triggerLabel || `About ${label}`}
       aria-describedby={visible ? id : undefined}
       onMouseEnter={enter} onMouseLeave={leave}
       onFocus={() => { setFocused(true); setDismissed(false); }}

@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import { createRef } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { TripPlannerItinerary } from "@overworld/trimet-client";
-import { ItineraryDetails, JourneyDirections, TripOptionSummary } from "../journeys";
+import { ItineraryDetails, JourneyDirections, PlannerDisclosure, TripOptionSummary } from "../journeys";
 
 const itinerary: TripPlannerItinerary = {
   partial: true, startTime: "10:00 am", endTime: "10:30 am", duration: 30, numberOfTransfers: 0,
@@ -14,6 +14,29 @@ const itinerary: TripPlannerItinerary = {
 };
 
 describe("router-free journey presentation", () => {
+  it("adapts the published disclosure without losing edit refs, mounted fields, or cleanup timing", () => {
+    const editRef = createRef<HTMLButtonElement>();
+    const edit = vi.fn();
+    const collapse = vi.fn(() => expect(panel).not.toHaveAttribute("hidden"));
+    render(<PlannerDisclosure title="Plan a trip" headingId="planner-heading"
+      onCollapse={collapse} edit={{ label: "Edit stops", buttonRef: editRef, onClick: edit }}>
+      <input aria-label="From" defaultValue="Central" />
+    </PlannerDisclosure>);
+    const trigger = screen.getByRole("button", { name: "Plan a trip" });
+    const panel = document.getElementById(trigger.getAttribute("aria-controls"));
+    expect(trigger).toHaveClass("wm-action-disclosure-trigger");
+    expect(screen.getByRole("heading", { level: 2 })).toHaveAttribute("id", "planner-heading");
+    expect(editRef.current).toBe(screen.getByRole("button", { name: "Edit stops" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "From" }), { target: { value: "Home" } });
+    fireEvent.click(trigger);
+    expect(collapse).toHaveBeenCalledTimes(1);
+    expect(panel).toHaveAttribute("hidden");
+    fireEvent.click(editRef.current);
+    expect(edit).toHaveBeenCalledTimes(1);
+    expect(panel).not.toHaveAttribute("hidden");
+    expect(screen.getByRole("textbox", { name: "From" })).toHaveValue("Home");
+  });
+
   it("renders planned directions with supplied transit colors, stop semantics, and focusable headings", () => {
     const heading = createRef<HTMLHeadingElement>();
     const { container } = render(<JourneyDirections itinerary={itinerary} headingRef={heading} transitColor={() => "#123456"} />);
