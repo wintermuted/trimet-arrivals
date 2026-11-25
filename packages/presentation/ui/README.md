@@ -1,5 +1,12 @@
 # @overworld/ui
 
+Generic interactions are staged separately in
+[`@overworld/ui-staging`](../../components/README.md) at `packages/components`.
+Alert refresh controls consume its `RefreshAction`; `PlannerDisclosure` adapts
+its `ActionDisclosure` while retaining the existing journey API and icons.
+Transit types, copy, last-received alert policy, and preview cleanup remain here.
+Staging is private and does not change the published Wintermuted dependencies.
+
 Shared React time display settings, arrival indicators, and time presentation.
 The package exports `TimeDisplayProvider`, `useTimeDisplay`, and
 `TimeDisplaySettings`, plus `EarlyIndicator`, `LateIndicator`, `OnTimeIndicator`,

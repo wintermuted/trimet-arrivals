@@ -1,13 +1,13 @@
 import {
   Badge,
-  Button,
   Card,
   CardBody,
   CardFooter,
   CardHeader,
   CardText,
-  CardTitle
+  CardTitle,
 } from "@wintermuted/ui-react";
+import { RefreshAction } from "@overworld/ui-staging";
 import React from "react";
 import type { Alert } from "@overworld/trimet-client";
 import { useTimeDisplay } from "../TimeDisplay";
@@ -40,10 +40,7 @@ function getHeader(alert: Alert) {
   );
 }
 
-function getDates(
-  alert: Alert,
-  formatDate: (timestamp: number) => string
-) {
+function getDates(alert: Alert, formatDate: (timestamp: number) => string) {
   const startDate = formatDate(alert.begin);
   const endDate = alert.end ? formatDate(alert.end) : undefined;
 
@@ -64,8 +61,15 @@ export interface StopAlertsCardProps extends AlertFeedState {
 }
 
 function getAlertsContent(
-  { alertsData, loading, error, onRefresh, loadingContent, renderRouteIndicator }: StopAlertsCardProps,
-  formatDate: (timestamp: number) => string
+  {
+    alertsData,
+    loading,
+    error,
+    onRefresh,
+    loadingContent,
+    renderRouteIndicator,
+  }: StopAlertsCardProps,
+  formatDate: (timestamp: number) => string,
 ) {
   const scopedAlerts = alertsData || [];
   if (loading && !alertsData) {
@@ -81,46 +85,60 @@ function getAlertsContent(
             : "Could not load alerts for this stop. Try again."}
         </p>
       )}
-      {scopedAlerts.length ? scopedAlerts.map((alert: Alert) => (
-        <Card
-          key={alert.id}
-          style={{
-            background: "var(--wm-color-warning-soft)",
-            marginBottom: ".25rem"
-          }}
-        >
-          <CardHeader>{getHeader(alert)}</CardHeader>
-          <CardBody>
-            <CardText>{alert.desc}</CardText>
-            {getLink(alert)}
-          </CardBody>
-          {alert.route && (
+      {scopedAlerts.length ? (
+        scopedAlerts.map((alert: Alert) => (
+          <Card
+            key={alert.id}
+            style={{
+              background: "var(--wm-color-warning-soft)",
+              marginBottom: ".25rem",
+            }}
+          >
+            <CardHeader>{getHeader(alert)}</CardHeader>
             <CardBody>
-              <CardTitle>Impacted Routes</CardTitle>
-              {alert.route.map(route => (
-                <React.Fragment key={route.route}>{renderRouteIndicator(route.route)}</React.Fragment>
-              ))}
+              <CardText>{alert.desc}</CardText>
+              {getLink(alert)}
             </CardBody>
-          )}
-          {alert.location && (
-            <CardBody>
-              <CardTitle>Impacted Stops</CardTitle>
-              {alert.location.map(location => (
-                <span key={location.id}>
-                  <Badge tone="info">{location.id}</Badge>
-                  {location.desc} - {location.dir}
-                </span>
-              ))}
-            </CardBody>
-          )}
-          <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
-            {getDates(alert, formatDate)}
-          </CardFooter>
-        </Card>
-      )) : !error ? <p role="status">No active alerts for this stop.</p> : null}
-      <Button type="button" size="sm" onClick={onRefresh} disabled={loading}>
-        {loading ? "Refreshing..." : error ? "Try again" : "Refresh"}
-      </Button>
+            {alert.route && (
+              <CardBody>
+                <CardTitle>Impacted Routes</CardTitle>
+                {alert.route.map((route) => (
+                  <React.Fragment key={route.route}>
+                    {renderRouteIndicator(route.route)}
+                  </React.Fragment>
+                ))}
+              </CardBody>
+            )}
+            {alert.location && (
+              <CardBody>
+                <CardTitle>Impacted Stops</CardTitle>
+                {alert.location.map((location) => (
+                  <span key={location.id}>
+                    <Badge tone="info">{location.id}</Badge>
+                    {location.desc} - {location.dir}
+                  </span>
+                ))}
+              </CardBody>
+            )}
+            <CardFooter style={{ color: "var(--wm-color-text-muted)" }}>
+              {getDates(alert, formatDate)}
+            </CardFooter>
+          </Card>
+        ))
+      ) : !error ? (
+        <p role="status">No active alerts for this stop.</p>
+      ) : null}
+      <RefreshAction
+        size="sm"
+        onRefresh={onRefresh}
+        loading={loading}
+        error={error}
+        labels={{
+          idle: "Refresh",
+          loading: "Refreshing...",
+          retry: "Try again",
+        }}
+      />
     </>
   );
 }

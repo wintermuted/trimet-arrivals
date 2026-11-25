@@ -1,0 +1,75 @@
+.ui-staging-disclosure-header {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-2);
+}
+
+.ui-staging-disclosure-heading {
+  flex: 1;
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.ui-staging-disclosure-heading button {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-2);
+  min-height: var(--wm-control-height);
+  cursor: pointer;
+  font: inherit;
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: start;
+}
+
+.ui-staging-disclosure-heading button:hover {
+  background: var(--wm-color-surface-muted);
+}
+
+.ui-staging-disclosure-indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.ui-staging-disclosure-heading button[aria-expanded="true"] > .ui-staging-disclosure-indicator {
+  transform: rotate(90deg);
+}
+
+.ui-staging-disclosure-action {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  min-inline-size: max(44px, var(--wm-control-height));
+  min-block-size: max(44px, var(--wm-control-height));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--wm-color-text-muted);
+  cursor: pointer;
+}
+
+.ui-staging-disclosure-action-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: var(--wm-radius-xs);
+  font-size: 0.75rem;
+}
+
+.ui-staging-disclosure-action:hover > .ui-staging-disclosure-action-icon {
+  background: var(--wm-color-surface-muted);
+  color: var(--wm-color-text);
+}
+
+.ui-staging-disclosure-heading button:focus-visible,
+.ui-staging-disclosure-action:focus-visible {
+  outline: 2px solid var(--wm-color-accent);
+  outline-offset: -2px;
+}
