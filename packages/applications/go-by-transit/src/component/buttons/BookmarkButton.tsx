@@ -1,24 +1,11 @@
-import { Button } from "@wintermuted/ui-react";
+import { BookmarkToggle } from "@overworld/ui";
 import React from "react";
-import FontAwesome from "react-fontawesome";
 import { StopLocation } from "../../api/trimet/interfaces/types";
-import "./BookmarkButton.css";
-
-interface BookmarkIconParams {
-  stopIsBookmarked: boolean;
-}
-
-function BookmarkIcon({ stopIsBookmarked }: BookmarkIconParams) {
-  if (stopIsBookmarked) {
-    return <FontAwesome name="bookmark" className="bookmarked" />;
-  }
-
-  return <FontAwesome name="bookmark" className="not-bookmarked" />;
-}
 
 export type BookmarkClick = (
   stopLocation: StopLocation,
-  stopIsBookmarked: boolean
+  stopIsBookmarked: boolean,
+  event?: React.MouseEvent<HTMLButtonElement>,
 ) => void;
 
 interface Props {
@@ -32,22 +19,18 @@ export default function BookmarkButton({
   onBookmarkClick,
   stopLocation,
   stopIsBookmarked = false,
-  showLabel = false
+  showLabel = false,
 }: Props) {
-  const label = stopIsBookmarked ? "Remove stop bookmark" : "Bookmark this stop";
-  const onClick =
-    onBookmarkClick &&
-    onBookmarkClick.bind(this, stopLocation, stopIsBookmarked);
   return (
-    <Button
-      onClick={onClick}
-      className="bookmark-button"
+    <BookmarkToggle
+      onClick={(event) =>
+        onBookmarkClick(stopLocation, stopIsBookmarked, event)
+      }
+      isBookmarked={stopIsBookmarked}
+      bookmarkLabel="Bookmark this stop"
+      removeLabel="Remove stop bookmark"
+      showLabel={showLabel}
       variant="secondary"
-      aria-pressed={stopIsBookmarked}
-      aria-label={label}
-    >
-      <BookmarkIcon stopIsBookmarked={stopIsBookmarked} />
-      {showLabel && <span>{label}</span>}
-    </Button>
+    />
   );
 }

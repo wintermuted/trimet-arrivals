@@ -1,6 +1,13 @@
+import { WalkingDistance as SharedWalkingDistance } from "@overworld/ui";
 import React from "react";
-import { WalkingEstimate } from "../../../../api/mapbox/walking";
-import "./WalkingDistance.scss";
+import type { WalkingEstimate } from "../../../../api/mapbox/walking";
+
+function formatWalkingDistance(meters: number) {
+  const feet = meters * 3.28084;
+  return feet < 5280
+    ? `${Math.round(feet)} ft`
+    : `${(feet / 5280).toFixed(1)} mi`;
+}
 
 export function WalkingDistance({
   enabled,
@@ -13,33 +20,13 @@ export function WalkingDistance({
   estimate?: WalkingEstimate;
   straightLine: string;
 }) {
-  if (enabled && estimate?.status === "ready") {
-    const feet = estimate.meters * 3.28084;
-    const distance =
-      feet < 5280 ? `${Math.round(feet)} ft` : `${(feet / 5280).toFixed(1)} mi`;
-    return (
-      <span className="transit-simple-route-distance">
-        <span>{distance} walk</span>
-        <small>
-          {estimate.seconds < 60
-            ? "Under 1 min"
-            : `About ${Math.ceil(estimate.seconds / 60)} min`}
-        </small>
-      </span>
-    );
-  }
   return (
-    <span className="transit-simple-route-distance">
-      {enabled && (
-        <span>
-          {loading
-            ? "Calculating walk..."
-            : estimate?.status === "unreachable"
-              ? "No walking route found"
-              : "Walking distance unavailable"}
-        </span>
-      )}
-      <small>{straightLine} (straight-line)</small>
-    </span>
+    <SharedWalkingDistance
+      enabled={enabled}
+      loading={loading}
+      estimate={estimate}
+      straightLine={straightLine}
+      formatDistance={formatWalkingDistance}
+    />
   );
 }
