@@ -41,16 +41,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95.65% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>22/23</span>
+                <span class='fraction'>17/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
@@ -127,7 +127,9 @@
 <a name='L51'></a><a href='#L51'>51</a>
 <a name='L52'></a><a href='#L52'>52</a>
 <a name='L53'></a><a href='#L53'>53</a>
-<a name='L54'></a><a href='#L54'>54</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,19 +152,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">888x</span>
-<span class="cline-any cline-yes">888x</span>
-<span class="cline-any cline-yes">888x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">53x</span>
-<span class="cline-any cline-yes">53x</span>
+<span class="cline-any cline-yes">890x</span>
+<span class="cline-any cline-yes">890x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -173,6 +164,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">851x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">55x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -180,9 +176,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from "react";
+<span class="cline-any cline-yes">54x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { DetailHeader } from "@overworld/ui";
+import React from "react";
 import { Link } from "react-router-dom";
-import FontAwesome from "react-fontawesome";
 &nbsp;
 interface TopNavBarParams {
   id: string;
@@ -201,36 +205,38 @@ export function TopNavBar({
   truncateTitle = false,
   action,
   onBack,
-  backTo
+  backTo,
 }: TopNavBarParams) {
   const title = shortSign ? `${id} to ${shortSign}` : id;
-  const backIcon = &lt;FontAwesome name="caret-left" aria-hidden="true" /&gt;;
   return (
-    &lt;header className="transit-detail-header"&gt;
-      {onBack &amp;&amp; !backTo ? (
-        &lt;button type="button" className="transit-detail-back" aria-label="Back" onClick={onBack}&gt;
-          {backIcon}
-        &lt;/button&gt;
-      ) : (
-        &lt;Link to={backTo ?? "/nearby/simple-routes"} className="transit-detail-back" aria-label="Back"
-          onClick={event =&gt; {
-            <span class="missing-if-branch" title="else path not taken" >E</span>if (!event.defaultPrevented &amp;&amp; event.button === 0 &amp;&amp;
-                !event.metaKey &amp;&amp; !event.altKey &amp;&amp; !event.ctrlKey &amp;&amp; !event.shiftKey) onBack?.();
-          }}&gt;
-          {backIcon}
-        &lt;/Link&gt;
-      )}
-      &lt;div className="transit-detail-heading"&gt;
-        &lt;h3
-          className={truncateTitle ? "transit-detail-title-truncated" : undefined}
-          title={truncateTitle ? title : undefined}
-        &gt;
-          {title}
-        &lt;/h3&gt;
-        {subtitle &amp;&amp; &lt;p className="transit-detail-subtitle"&gt;{subtitle}&lt;/p&gt;}
-      &lt;/div&gt;
-      {action}
-    &lt;/header&gt;
+    &lt;DetailHeader
+      title={title}
+      subtitle={subtitle}
+      truncateTitle={truncateTitle}
+      action={action}
+      onBack={onBack}
+      renderBack={
+        onBack &amp;&amp; !backTo
+          ? undefined
+          : (props) =&gt; (
+              &lt;Link
+                {...props}
+                to={backTo ?? "/nearby/simple-routes"}
+                onClick={(event) =&gt; {
+                  if (
+                    !event.defaultPrevented &amp;&amp;
+                    event.button === 0 &amp;&amp;
+                    !event.metaKey &amp;&amp;
+                    !event.altKey &amp;&amp;
+                    !event.ctrlKey &amp;&amp;
+                    !event.shiftKey
+                  )
+                    onBack?.();
+                }}
+              /&gt;
+            )
+      }
+    /&gt;
   );
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -240,7 +246,7 @@ export function TopNavBar({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-26T17:52:22.965Z
+                at 2026-11-26T22:48:16.690Z
             </div>
         <script src="../../../../../../../prettify.js"></script>
         <script>

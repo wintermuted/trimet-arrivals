@@ -36,28 +36,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.33% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>14/15</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
@@ -106,20 +106,13 @@
 <a name='L30'></a><a href='#L30'>30</a>
 <a name='L31'></a><a href='#L31'>31</a>
 <a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a>
-<a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a>
-<a name='L36'></a><a href='#L36'>36</a>
-<a name='L37'></a><a href='#L37'>37</a>
-<a name='L38'></a><a href='#L38'>38</a>
-<a name='L39'></a><a href='#L39'>39</a>
-<a name='L40'></a><a href='#L40'>40</a>
-<a name='L41'></a><a href='#L41'>41</a>
-<a name='L42'></a><a href='#L42'>42</a>
-<a name='L43'></a><a href='#L43'>43</a>
-<a name='L44'></a><a href='#L44'>44</a>
-<a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -134,11 +127,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">247x</span>
-<span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">249x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -148,25 +138,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">226x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from "react";
-import { WalkingEstimate } from "../../../../api/mapbox/walking";
-import "./WalkingDistance.scss";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { WalkingDistance as SharedWalkingDistance } from "@overworld/ui";
+import React from "react";
+import type { WalkingEstimate } from "../../../../api/mapbox/walking";
+&nbsp;
+function formatWalkingDistance(meters: number) {
+  const feet = meters * 3.28084;
+  return feet &lt; 5280
+    ? `${Math.round(feet)} ft`
+    : `${(feet / 5280).toFixed(1)} mi`;
+}
 &nbsp;
 export function WalkingDistance({
   enabled,
@@ -179,34 +160,14 @@ export function WalkingDistance({
   estimate?: WalkingEstimate;
   straightLine: string;
 }) {
-  if (enabled &amp;&amp; estimate?.status === "ready") {
-    const feet = estimate.meters * 3.28084;
-    const distance =
-      feet &lt; 5280 ? `${Math.round(feet)} ft` : <span class="branch-1 cbranch-no" title="branch not covered" >`${(feet / 5280).toFixed(1)} mi`;</span>
-    return (
-      &lt;span className="transit-simple-route-distance"&gt;
-        &lt;span&gt;{distance} walk&lt;/span&gt;
-        &lt;small&gt;
-          {estimate.seconds &lt; 60
-            ? "Under 1 min"
-            : `About ${Math.ceil(estimate.seconds / 60)} min`}
-        &lt;/small&gt;
-      &lt;/span&gt;
-    );
-  }
   return (
-    &lt;span className="transit-simple-route-distance"&gt;
-      {enabled &amp;&amp; (
-        &lt;span&gt;
-          {loading
-            ? "Calculating walk..."
-            : estimate?.status === "unreachable"
-              ? "No walking route found"
-              : "Walking distance unavailable"}
-        &lt;/span&gt;
-      )}
-      &lt;small&gt;{straightLine} (straight-line)&lt;/small&gt;
-    &lt;/span&gt;
+    &lt;SharedWalkingDistance
+      enabled={enabled}
+      loading={loading}
+      estimate={estimate}
+      straightLine={straightLine}
+      formatDistance={formatWalkingDistance}
+    /&gt;
   );
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -216,7 +177,7 @@ export function WalkingDistance({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-11-26T17:52:22.965Z
+                at 2026-11-26T22:48:16.690Z
             </div>
         <script src="../../../../../../../prettify.js"></script>
         <script>
