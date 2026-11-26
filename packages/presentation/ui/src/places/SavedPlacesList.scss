@@ -1,0 +1,11 @@
+.bookmark-places-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--wm-space-3);
+}
+.bookmark-places-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  li + li { border-top: 1px solid var(--wm-color-border); }
+}

@@ -1,0 +1,36 @@
+.ow-stop-prediction-list {
+  background: var(--wm-color-surface);
+  overflow-wrap: anywhere;
+  > summary {
+    min-height: var(--wm-control-height);
+    .fa { width: 1.25em; margin-inline-end: var(--wm-space-1); text-align: center; }
+  }
+  > .wm-accordion-body { padding: 0; }
+  .transit-trip-note {
+    min-width: 0;
+    color: var(--wm-color-text-muted);
+    font-size: 0.875rem;
+  }
+}
+.transit-stop-prediction-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wm-space-2);
+  padding: var(--wm-space-3) var(--wm-space-4);
+  > .wm-btn { flex-shrink: 0; }
+}
+.transit-stop-prediction-message {
+  margin: 0;
+  padding: var(--wm-space-2) var(--wm-space-4);
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+}
+.transit-stop-prediction,
+.ow-stop-prediction-id {
+  color: var(--wm-color-text-muted);
+}
+.transit-stop-prediction {
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,17 @@
+.transit-place-detail {
+  overflow-wrap: anywhere;
+  h2 { margin: var(--wm-space-4) 0 0; font-size: 1.25rem; }
+  p { margin-block: var(--wm-space-3); }
+  a:focus-visible { outline: 2px solid var(--wm-color-accent); outline-offset: -2px; }
+  .wm-btn-primary { display: inline-flex; min-height: 44px; align-items: center; text-decoration: none; }
+}
+.transit-place-detail-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: var(--wm-space-2);
+}
+.transit-place-source {
+  color: var(--wm-color-text-muted);
+  font-size: 0.875rem;
+}

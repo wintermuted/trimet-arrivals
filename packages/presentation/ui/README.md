@@ -30,8 +30,76 @@ The [Storybook catalog](../storybook/README.md) imports these public APIs and
 documents their states and interactions. Run `npm run storybook` from the root;
 maintain examples in `packages/presentation/storybook/stories` alongside changes
 to the shared component contracts.
+
+The root entry also exports `DetailHeader`, `WalkingDistance`, and
+`BookmarkToggle`, together with their prop types. These components include their
+product styles and use the host's Wintermuted theme tokens.
+
+- `DetailHeader` takes a title, optional subtitle/action, and optional truncation.
+  Supply `onBack` for a native button or `renderBack` for a navigation element.
+  The renderer receives the back icon, class, and accessible label; spread those
+  props onto the host's link. With neither callback, no back control is rendered.
+  App adapters retain default destinations and modified-click behavior.
+- `WalkingDistance` takes a provider-neutral `WalkingDistanceEstimate`, loading
+  and enabled flags, a formatted straight-line fallback, and
+  `formatDistance(meters)`. It retains ready data while refreshing and shows
+  unavailable/unreachable copy otherwise. Fetching, map features, and unit
+  policy stay outside the package.
+- `BookmarkToggle` takes controlled `isBookmarked`, bookmark/remove labels, and
+  an `onClick` handler. Icon-only, labeled, text-only, and disabled states share
+  accessible pressed-state presentation. Entity IDs, persistence, and error
+  messaging stay with the host; hiding the icon should normally show the label.
+
+```tsx
+import { BookmarkToggle, DetailHeader, WalkingDistance } from "@overworld/ui";
+
+<DetailHeader title="Example stop" renderBack={props => <a {...props} href="/stops" />} />;
+<WalkingDistance enabled estimate={{ status: "ready", meters: 250, seconds: 180 }}
+  straightLine="200 m" formatDistance={meters => `${Math.round(meters)} m`} />;
+<BookmarkToggle isBookmarked={saved} bookmarkLabel="Bookmark this stop"
+  removeLabel="Remove stop bookmark" onClick={toggleBookmark} showLabel />;
+```
 Indicator components include their own styles; on-time and early states use the
 theme success color without requiring arrivals-table styles.
+
+The root entry exports four place-presentation components and their prop/model
+types. Each includes its layout styles, without importing the place catalog,
+map APIs, storage, or an application router:
+
+- `PlaceResultRow` renders a list item in `nearby`, `search`, or `saved` layout.
+  Hosts provide `renderLink`, icons, name/secondary content, optional trailing
+  content, and a separate action. Spread the renderer's props onto the link so
+  layout and children are retained. Put rows directly inside a host-owned
+  `ul` or `ol`, with layout wrappers outside the list; sorting,
+  highlighting, distances, navigation hooks, and save/remove behavior stay outside.
+- `GroupedPlaceCategoryFilters` takes groups with category IDs, controlled
+  selection, controlled expanded-group IDs, and optional status/icon slots.
+  `onSelectionChange` returns a patch of changed category values only; merge it
+  with host filters without losing search or unrelated selections. Bulk selection
+  derives mixed state from children. Empty groups are disabled and disclosure
+  targets are unique across instances.
+- `MapReferenceLayerControls` takes controlled layer definitions, callbacks,
+  line/point swatches, and optional icon/help/status/child slots. Help and retry
+  controls sit outside checkbox labels. Dependent controls are shown only when
+  the layer is selected. Hosts own colors, source warnings, map operations, and
+  help behavior, including any map-aware positioning.
+- `SourceProvenancePanel` renders normalized source/license records with
+  host-formatted retrieval/update dates and coverage content. Supply description
+  and notice slots for regional caveats; `noticeAfter` places the notice after
+  that many records, clamped to the available range. Source data, URLs, locale
+  policy, and record ordering remain host-owned.
+
+```tsx
+import { PlaceResultRow, GroupedPlaceCategoryFilters } from "@overworld/ui";
+
+<ul>
+  <PlaceResultRow name="Example Park" secondary="Park"
+    renderLink={props => <a {...props} href="/places/example" />} />
+</ul>;
+<GroupedPlaceCategoryFilters groups={groups} selected={selected}
+  onSelectionChange={changes => setSelected(previous => ({ ...previous, ...changes }))}
+  expandedGroups={expandedGroups} onExpandedGroupsChange={setExpandedGroups} />;
+```
 
 `ui/transit` also exports `ArrivalRow`, `ArrivalRows`, `ArrivalsTable`, and
 `ArrivalsTableLoadMore`, including their prop types and styles. Callers supply
@@ -39,6 +107,53 @@ theme success color without requiring arrivals-table styles.
 owns estimated-time sorting, the initial five-row limit, expand/collapse
 controls, and time-display preferences. Links and distance-formatting policy
 (including existing legacy behavior) remain in the app adapters.
+
+The root entry also exports `GlobalPlaceSearch`, `SavedPlacesList`,
+`PlaceDetailsPanel`, and `DeparturePicker`, with their public prop/model types
+and colocated product styles:
+
+- `GlobalPlaceSearch` is controlled through `query`, `onQueryChange`, `open`,
+  and `onOpenChange`. It owns field associations, outside-pointer/blur dismissal,
+  Arrow key traversal of links in `.transit-global-search-results`, and Escape
+  focus restoration. Supply scope/hint/status content, a load-status slot,
+  result-list children, and an optional pagination action. The host owns catalog
+  activation, matching/highlighting, counts, geography, and closing on navigation.
+  Its popover has standalone gutter defaults; app header ordering stays outside.
+- `SavedPlacesList` takes ordered `SavedPlaceItem` records, link renderers,
+  `onRemove(id)`, and optional status/empty content. It never sorts, fetches, or
+  writes storage. Keep previously loaded records and error/retry policy in the
+  host. Removal remains a sibling of the navigation link.
+- `PlaceDetailsPanel` takes a name/category, optional address, heading ID/ref,
+  status/bookmark slots, category-specific children, an arrival notice, and a
+  trip action. Optional source/website URLs and a host-formatted source date
+  render safe external links. The host owns regional caveats, save state,
+  planner URLs, and focus restoration; omitted heading IDs are instance-unique.
+- `DeparturePicker` takes records with a string ID and epoch-millisecond
+  `estimated`/`scheduled` times, controlled `selectedId`, and `onSelect(record)`.
+  The generic callback preserves additional host fields. Selection survives
+  replacement records with the same ID; shared time preferences and badges
+  retain estimate/schedule presentation. Supply refresh/error status and
+  `disabled` as needed. The default empty message can be replaced, including
+  with `null` for hosts that already render their own empty-state messaging.
+  Fetching, route filtering, and selected-trip integration remain outside.
+
+The root entry exports the remaining stop/trip selection surfaces:
+
+- `StopPredictionList` takes ordered `StopPredictionItem` occurrences with
+  instance-unique IDs (including sequence for repeated stops), stop names/IDs,
+  validated epoch-millisecond predictions, explicit missing-time labels, stale
+  flags, and optional route slots. It formats estimated/scheduled and next-day
+  times through shared time preferences. Supply update notes, refresh callbacks,
+  loading/error content, notices, and optional empty content. Hosts retain
+  polling/batching, selected-trip matching, repeated-stop ambiguity, stale-data
+  policy, route metadata fetching, and retry behavior.
+- `TripOptionPicker` is also exported from `@overworld/ui/journeys`. Supply
+  itineraries, `selectedIndex` (`-1` for no selection), controlled `editing`,
+  selection/edit/cancel callbacks, optional focus refs, and optional hover/focus
+  preview callbacks. It reuses `TripOptionSummary` and `PlannerDisclosure` for
+  comparison, confirmed summaries, current-trip labels, and collapse actions.
+  Touch does not trigger hover previews. The host handles preview cleanup on
+  selection/cancel/collapse, map and URL integration, and itinerary fetching.
 
 The `@overworld/ui/transit` entry exports router-free `RouteIndicator`,
 `RouteDescription`, `FrequentServiceIndicator`, `StopLocationIndicator`, and

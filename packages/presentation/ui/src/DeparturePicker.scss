@@ -1,0 +1,35 @@
+.ow-departure-picker {
+  background: var(--wm-color-surface);
+  > summary {
+    min-height: var(--wm-control-height);
+    .fa { width: 1.25em; margin-inline-end: var(--wm-space-1); text-align: center; }
+  }
+  > .wm-accordion-body { padding: 0; }
+}
+.transit-departure-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--wm-space-2);
+  width: 100%;
+  min-height: var(--wm-control-height);
+  padding: var(--wm-space-3) var(--wm-space-4);
+  border: 0;
+  background: transparent;
+  color: var(--wm-color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  &:hover { background: var(--wm-color-surface-muted); }
+  &[aria-pressed="true"] { background: var(--wm-color-accent-soft); }
+  &:focus-visible { outline: 2px solid var(--wm-color-accent); outline-offset: -2px; }
+  &:disabled { cursor: default; opacity: 0.6; }
+}
+.transit-departure-label {
+  display: grid;
+  grid-template-columns: 0.75rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--wm-space-2);
+  min-width: 0;
+}
+.transit-departure-caret { text-align: center; }

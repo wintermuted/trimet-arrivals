@@ -73,41 +73,10 @@
   margin-block-end: var(--wm-space-3);
 }
 
-.transit-planner-options {
-  display: grid;
-  gap: var(--wm-space-2);
-  margin: var(--wm-space-2) 0 0;
-  padding: 0;
-  list-style: none;
-
-  > li {
-    min-inline-size: 0;
-  }
-
-  + .wm-btn {
-    margin-block-start: var(--wm-space-2);
-  }
-}
-
 .transit-planner-results {
   display: grid;
   gap: var(--wm-space-4);
   max-width: 48rem;
-}
-
-.transit-planner-summary {
-  margin-block-start: var(--wm-space-2);
-
-  h4,
-  p {
-    margin: 0;
-  }
-
-  p {
-    margin-block-start: var(--wm-space-1);
-    color: var(--wm-color-text-muted);
-    font-variant-numeric: tabular-nums;
-  }
 }
 
 .transit-planner-search-fields {

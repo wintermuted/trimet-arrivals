@@ -13,8 +13,18 @@ npm run storybook
 Open `http://localhost:6006`. Use the theme toolbar to review Light and Dark,
 Controls to edit props, Docs for component APIs, and Accessibility for findings.
 Stories cover transit badges, time indicators/preferences, system alerts, and
-stop search, including loading, empty, partial, failed, and stale-data states.
-Play functions exercise search, retry, and time preference interactions.
+stop search, plus detail headers, walking distances, and bookmark toggles.
+Place examples cover shared nearby/search/saved rows, grouped category filters,
+reference-layer controls, source attribution, global search popovers, saved-place
+lists, and destination details. Transit examples also include departure picking.
+Stop prediction examples include missing, repeated, scheduled, next-day, loading,
+and last-received times. Trip picker examples cover comparison, confirmation,
+editing/cancel, incomplete details, and long route names.
+Examples include loading, empty, partial, failed, stale-data, truncated, and
+disabled states. Play functions exercise search, retry, time preferences,
+back actions, controlled bookmarking, mixed category selection, layer toggles,
+independent help/retry actions, attribution disclosures, search keyboard/focus
+behavior, saved-place removal, and stable departure selection.
 
 ```powershell
 npm run build:storybook

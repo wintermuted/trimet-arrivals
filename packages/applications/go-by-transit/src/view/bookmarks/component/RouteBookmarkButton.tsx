@@ -1,4 +1,4 @@
-import { Button } from "@wintermuted/ui-react";
+import { BookmarkToggle } from "@overworld/ui";
 import React from "react";
 import { TrimetRoute } from "../../../api/trimet/interfaces/routes";
 
@@ -15,20 +15,20 @@ export default function RouteBookmarkButton({
   isBookmarked,
   error,
   onBookmark,
-  onRemove
+  onRemove,
 }: Props) {
   return (
     <div>
-      <Button
+      <BookmarkToggle
         onClick={() =>
           isBookmarked ? onRemove(route.route) : onBookmark(route)
         }
-        aria-pressed={isBookmarked}
-      >
-        {isBookmarked
-          ? `Remove Route ${route.route} bookmark`
-          : `Bookmark Route ${route.route}`}
-      </Button>
+        isBookmarked={isBookmarked}
+        bookmarkLabel={`Bookmark Route ${route.route}`}
+        removeLabel={`Remove Route ${route.route} bookmark`}
+        showLabel
+        showIcon={false}
+      />
       {error && <p role="alert">{error}</p>}
     </div>
   );

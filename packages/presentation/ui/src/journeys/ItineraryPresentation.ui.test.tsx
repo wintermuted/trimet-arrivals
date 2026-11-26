@@ -1,33 +1,152 @@
 import { vi } from "vitest";
-import { createRef } from "react";
+import { createRef, useState } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { TripPlannerItinerary } from "@overworld/trimet-client";
-import { ItineraryDetails, JourneyDirections, PlannerDisclosure, TripOptionSummary } from "../journeys";
+import {
+  ItineraryDetails,
+  JourneyDirections,
+  PlannerDisclosure,
+  TripOptionSummary,
+  TripOptionPicker,
+} from "../journeys";
 
 const itinerary: TripPlannerItinerary = {
-  partial: true, startTime: "10:00 am", endTime: "10:30 am", duration: 30, numberOfTransfers: 0,
+  partial: true,
+  startTime: "10:00 am",
+  endTime: "10:30 am",
+  duration: 30,
+  numberOfTransfers: 0,
   legs: [
-    { mode: "Walk", from: { description: "Home" }, to: { description: "Station" }, partial: false },
-    { mode: "Bus", route: { number: "15" }, direction: "Downtown", partial: false,
-      from: { stopId: 101, description: "Station" }, to: { stopId: 202, description: "Central" } },
+    {
+      mode: "Walk",
+      from: { description: "Home" },
+      to: { description: "Station" },
+      partial: false,
+    },
+    {
+      mode: "Bus",
+      route: { number: "15" },
+      direction: "Downtown",
+      partial: false,
+      from: { stopId: 101, description: "Station" },
+      to: { stopId: 202, description: "Central" },
+    },
   ],
 };
+
+it("forwards trip preview and selection events, ignores touch hover, and keeps the current-option ref", () => {
+  const hover = vi.fn(),
+    focus = vi.fn(),
+    select = vi.fn(),
+    collapse = vi.fn();
+  const current = createRef<HTMLButtonElement>();
+  render(
+    <TripOptionPicker
+      itineraries={[itinerary, { ...itinerary, id: "other" }]}
+      selectedIndex={0}
+      editing
+      onSelect={select}
+      onHover={hover}
+      onFocus={focus}
+      onCollapse={collapse}
+      currentOptionRef={current}
+    />,
+  );
+  const options = within(
+    screen.getByRole("list", { name: "Available trips" }),
+  ).getAllByRole("button");
+  expect(current.current).toBe(options[0]);
+  expect(options[0]).toHaveAttribute("aria-current", "true");
+  const touch = new Event("pointerover", { bubbles: true });
+  Object.defineProperty(touch, "pointerType", { value: "touch" });
+  fireEvent(options[1], touch);
+  expect(hover).not.toHaveBeenCalled();
+  const mouse = new Event("pointerover", { bubbles: true });
+  Object.defineProperty(mouse, "pointerType", { value: "mouse" });
+  fireEvent(options[1], mouse);
+  expect(hover).toHaveBeenCalledWith(1);
+  fireEvent.focus(options[1]);
+  expect(focus).toHaveBeenCalledWith(1);
+  fireEvent.blur(options[1]);
+  expect(focus).toHaveBeenLastCalledWith(undefined);
+  fireEvent.click(options[1]);
+  expect(select).toHaveBeenCalledWith(1);
+  fireEvent.click(screen.getByRole("button", { name: "Choose a trip" }));
+  expect(collapse).toHaveBeenCalledOnce();
+});
+
+it("supports controlled confirmed/edit/cancel states and supplied summary metrics without changing selection", () => {
+  const editRef = createRef<HTMLButtonElement>(),
+    select = vi.fn();
+  function Harness() {
+    const [editing, setEditing] = useState(false);
+    return (
+      <TripOptionPicker
+        itineraries={[{ ...itinerary, distance: 1.25, fare: 2.8 }]}
+        selectedIndex={0}
+        editing={editing}
+        onEdit={() => setEditing(true)}
+        onCancel={() => setEditing(false)}
+        editButtonRef={editRef}
+        onSelect={select}
+      />
+    );
+  }
+  const { rerender } = render(<Harness />);
+  expect(
+    screen.getByText(/30 min · 0 transfers · 1.25 mi · \$2.80 regular fare/),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("list", { name: "Available trips" }),
+  ).not.toBeInTheDocument();
+  expect(editRef.current).toBe(
+    screen.getByRole("button", { name: "Edit trip" }),
+  );
+  fireEvent.click(editRef.current);
+  expect(
+    screen.getByRole("list", { name: "Available trips" }),
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(
+    screen.queryByRole("list", { name: "Available trips" }),
+  ).not.toBeInTheDocument();
+  expect(select).not.toHaveBeenCalled();
+  rerender(
+    <TripOptionPicker itineraries={[]} selectedIndex={-1} onSelect={select} />,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("No trips available.");
+});
 
 describe("router-free journey presentation", () => {
   it("adapts the published disclosure without losing edit refs, mounted fields, or cleanup timing", () => {
     const editRef = createRef<HTMLButtonElement>();
     const edit = vi.fn();
     const collapse = vi.fn(() => expect(panel).not.toHaveAttribute("hidden"));
-    render(<PlannerDisclosure title="Plan a trip" headingId="planner-heading"
-      onCollapse={collapse} edit={{ label: "Edit stops", buttonRef: editRef, onClick: edit }}>
-      <input aria-label="From" defaultValue="Central" />
-    </PlannerDisclosure>);
+    render(
+      <PlannerDisclosure
+        title="Plan a trip"
+        headingId="planner-heading"
+        onCollapse={collapse}
+        edit={{ label: "Edit stops", buttonRef: editRef, onClick: edit }}
+      >
+        <input aria-label="From" defaultValue="Central" />
+      </PlannerDisclosure>,
+    );
     const trigger = screen.getByRole("button", { name: "Plan a trip" });
-    const panel = document.getElementById(trigger.getAttribute("aria-controls"));
+    const panel = document.getElementById(
+      trigger.getAttribute("aria-controls"),
+    );
     expect(trigger).toHaveClass("wm-action-disclosure-trigger");
-    expect(screen.getByRole("heading", { level: 2 })).toHaveAttribute("id", "planner-heading");
-    expect(editRef.current).toBe(screen.getByRole("button", { name: "Edit stops" }));
-    fireEvent.change(screen.getByRole("textbox", { name: "From" }), { target: { value: "Home" } });
+    expect(screen.getByRole("heading", { level: 2 })).toHaveAttribute(
+      "id",
+      "planner-heading",
+    );
+    expect(editRef.current).toBe(
+      screen.getByRole("button", { name: "Edit stops" }),
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "From" }), {
+      target: { value: "Home" },
+    });
     fireEvent.click(trigger);
     expect(collapse).toHaveBeenCalledTimes(1);
     expect(panel).toHaveAttribute("hidden");
@@ -39,20 +158,42 @@ describe("router-free journey presentation", () => {
 
   it("renders planned directions with supplied transit colors, stop semantics, and focusable headings", () => {
     const heading = createRef<HTMLHeadingElement>();
-    const { container } = render(<JourneyDirections itinerary={itinerary} headingRef={heading} transitColor={() => "#123456"} />);
-    expect(screen.getByText("Planned times from TriMet, not live updates.")).toBeInTheDocument();
-    expect(within(screen.getByRole("list", { name: "Journey steps" })).getByText("Board at")).toBeInTheDocument();
+    const { container } = render(
+      <JourneyDirections
+        itinerary={itinerary}
+        headingRef={heading}
+        transitColor={() => "#123456"}
+      />,
+    );
+    expect(
+      screen.getByText("Planned times from TriMet, not live updates."),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("list", { name: "Journey steps" })).getByText(
+        "Board at",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByText("Central (202)")).toBeInTheDocument();
-    expect(container.querySelector('[data-icon="bus"]')).toHaveStyle({ color: "#123456" });
+    expect(container.querySelector('[data-icon="bus"]')).toHaveStyle({
+      color: "#123456",
+    });
     expect(heading.current).toHaveAttribute("tabindex", "-1");
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("forwards keyboard highlights and clears them when collapsing without forwarding touch hover", () => {
-    const hover = vi.fn(), focus = vi.fn();
-    const { container } = render(<ItineraryDetails itinerary={itinerary} index={0}
-      highlight={{ leg: 1, onHover: hover, onFocus: focus }} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Some details were missing");
+    const hover = vi.fn(),
+      focus = vi.fn();
+    const { container } = render(
+      <ItineraryDetails
+        itinerary={itinerary}
+        index={0}
+        highlight={{ leg: 1, onHover: hover, onFocus: focus }}
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Some details were missing",
+    );
     const leg = container.querySelector(".transit-planner-leg--highlighted");
     fireEvent.focus(leg);
     expect(focus).toHaveBeenCalledWith(1);
@@ -63,14 +204,36 @@ describe("router-free journey presentation", () => {
     fireEvent.click(screen.getByRole("button", { name: "Directions" }));
     expect(hover).toHaveBeenCalledWith();
     expect(focus).toHaveBeenLastCalledWith();
-    expect(screen.getByRole("button", { name: "Directions" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Directions" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
   });
 
   it("retains leg order and explicit incomplete-data text in option summaries", () => {
-    const { container, rerender } = render(<TripOptionSummary itinerary={itinerary} index={1} current transitColor={() => "#123456"} />);
-    expect([...container.querySelectorAll(".transit-planner-option-leg > span")].map(node => node.textContent)).toEqual(["Walk", "Bus 15"]);
-    expect(screen.getByText(/Option 2/)).toHaveTextContent("0 transfers · Current trip");
-    rerender(<TripOptionSummary itinerary={{ partial: true, legs: [] }} index={0} current={false} />);
+    const { container, rerender } = render(
+      <TripOptionSummary
+        itinerary={itinerary}
+        index={1}
+        current
+        transitColor={() => "#123456"}
+      />,
+    );
+    expect(
+      [...container.querySelectorAll(".transit-planner-option-leg > span")].map(
+        (node) => node.textContent,
+      ),
+    ).toEqual(["Walk", "Bus 15"]);
+    expect(screen.getByText(/Option 2/)).toHaveTextContent(
+      "0 transfers · Current trip",
+    );
+    rerender(
+      <TripOptionSummary
+        itinerary={{ partial: true, legs: [] }}
+        index={0}
+        current={false}
+      />,
+    );
     expect(screen.getByText("Times unavailable")).toBeInTheDocument();
     expect(screen.getByText("Route details unavailable")).toBeInTheDocument();
   });

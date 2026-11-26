@@ -1,47 +1,6 @@
 @use "../../../styles/disclosure";
 @use "../../../styles/routes" as *;
 
-.transit-departure-option {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--wm-space-2);
-  width: 100%;
-  min-height: var(--wm-control-height);
-  padding: var(--wm-space-3) var(--wm-space-4);
-  border: 0;
-  background: transparent;
-  color: var(--wm-color-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-
-  &:hover {
-    background: var(--wm-color-surface-muted);
-  }
-
-  &[aria-pressed="true"] {
-    background: var(--wm-color-accent-soft);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--wm-color-accent);
-    outline-offset: -2px;
-  }
-}
-
-.transit-departure-label {
-  display: grid;
-  grid-template-columns: 0.75rem minmax(0, 1fr);
-  align-items: center;
-  gap: var(--wm-space-2);
-  min-width: 0;
-}
-
-.transit-departure-caret {
-  text-align: center;
-}
-
 .transit-stop-panel {
   background: var(--wm-color-surface);
 
@@ -58,27 +17,6 @@
   > .wm-accordion-body {
     padding: 0;
   }
-}
-
-.transit-stop-prediction-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--wm-space-2);
-  padding: var(--wm-space-3) var(--wm-space-4);
-}
-
-.transit-stop-prediction-message {
-  margin: 0;
-  padding: var(--wm-space-2) var(--wm-space-4);
-  color: var(--wm-color-text-muted);
-  font-size: 0.875rem;
-}
-
-.transit-stop-prediction {
-  color: var(--wm-color-text-muted);
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
 }
 
 .transit-directions {

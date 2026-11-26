@@ -62,7 +62,33 @@ inspection. Run `npm run storybook` from the repository root and open
 `http://localhost:6006`. Keep new reusable components in `@overworld/ui` and add
 stories in `packages/presentation/storybook/stories`; do not fork shared
 Wintermuted controls into the catalog. Examples use injected sample data rather
-than live services. CI retains a static catalog artifact and publishes each
+than live services. `DetailHeader`, `WalkingDistance`, and `BookmarkToggle` are
+available from the root `@overworld/ui` entry with examples for navigation,
+truncated headings, walking result/fallback states, and controlled bookmarking.
+Their app adapters retain routing, distance units, and persistence; product
+styles travel with the shared components, while tokens remain Wintermuted-owned.
+The same entry exports `PlaceResultRow`, `GroupedPlaceCategoryFilters`,
+`MapReferenceLayerControls`, and `SourceProvenancePanel`. Their stories cover
+result layouts, mixed category selection, layer help/retry and dependent controls,
+and attribution disclosures. Keep category catalogs/palettes, filtering,
+map-aware help, source fetching, locale formatting, routing, and saved-place
+persistence in app adapters. Reuse the existing Wintermuted controls through
+the product components rather than recreating generic interactions.
+`GlobalPlaceSearch`, `SavedPlacesList`, `PlaceDetailsPanel`, and `DeparturePicker`
+also use the root entry. They include standalone layout styles and catalog
+examples for results/empty/error states, search keyboard focus, removal, detail
+caveats, and refreshed departure selection. Keep search matching/pagination,
+storage/sorting, regional access warnings, planner URLs, and departure fetching
+in app adapters. Pass controlled search/selection state and host-authored status
+content; reuse `PlaceResultRow` inside search and saved lists.
+`StopPredictionList` and `TripOptionPicker` complete the stop/trip selection
+surfaces at the root entry; the trip picker is also available from
+`@overworld/ui/journeys`. Their styles and catalog examples cover feed
+loading/failure/last-received states, missing/repeated stop times, next-day
+schedules, trip comparison, confirmation, and edit/cancel interactions. Hosts
+retain polling/batching, matching predictions to selected trips, route metadata,
+map previews and cleanup, focus policy, navigation, and itinerary fetching.
+CI retains a static catalog artifact and publishes each
 PR's catalog alongside its Pages test app at `pr-<number>/storybook/`, linked
 from the preview comment. Both are removed when the PR closes. Production Pages
 deployments publish the current catalog permanently at
