@@ -64,7 +64,10 @@ npm run storybook
 Open `http://localhost:6006`. The separate Storybook workflow runs
 `npm run typecheck:storybook` and `npm run build:storybook` and retains its static
 output as an artifact; local build/type validation stays in CI. See the
-[catalog contributor guide](../packages/presentation/storybook/README.md)
+PR preview comment for the published component library at
+`https://wintermuted.github.io/overworld/pr-<number>/storybook/`; it is built and
+deployed with the test app, and removed by the same PR cleanup workflow.
+See the [catalog contributor guide](../packages/presentation/storybook/README.md)
 for story conventions, provider setup, sample data, and interaction examples.
 
 Run the React component and DOM integration suite for navigation, bookmarks,

@@ -62,8 +62,10 @@ inspection. Run `npm run storybook` from the repository root and open
 `http://localhost:6006`. Keep new reusable components in `@overworld/ui` and add
 stories in `packages/presentation/storybook/stories`; do not fork shared
 Wintermuted controls into the catalog. Examples use injected sample data rather
-than live services. CI retains a static catalog artifact without changing the
-app's Pages deployment.
+than live services. CI retains a static catalog artifact and publishes each
+PR's catalog alongside its Pages test app at `pr-<number>/storybook/`, linked
+from the preview comment. Both are removed when the PR closes. The live app's
+Pages deployment stays unchanged.
 
 ## Layout and theme tokens
 
