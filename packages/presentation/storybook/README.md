@@ -51,3 +51,8 @@ Local build/type validation remains CI-owned.
 Keep all Storybook packages on the same stable version. Dependencies use normal
 npm specs and the single root lockfile. The catalog is an npm/Nx workspace;
 its distinct `build:storybook` target stays outside the app's `build` target.
+Storybook requires its own `jest-dom` 6.x installation alongside the app's 7.x
+version. Preserve both lockfile entries rather than overriding either version.
+CI checks the installed assertion dependency tree with
+`npm ls @testing-library/jest-dom --all`, since an invalid merged lockfile can
+survive `npm ci` with some npm versions.
