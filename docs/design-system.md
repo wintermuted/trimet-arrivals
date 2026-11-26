@@ -53,6 +53,18 @@ imports spinner styles for screen-reader-only announcements.
 Keep app-specific `transit-*` hooks on adapters rather than duplicating generic
 styles or depending on private package internals.
 
+## Product component catalog
+
+[`@overworld/storybook`](../packages/presentation/storybook/README.md) catalogs
+the shared product components using their public exports, with typed examples,
+Light/Dark preview, editable controls, generated API docs, and accessibility
+inspection. Run `npm run storybook` from the repository root and open
+`http://localhost:6006`. Keep new reusable components in `@overworld/ui` and add
+stories in `packages/presentation/storybook/stories`; do not fork shared
+Wintermuted controls into the catalog. Examples use injected sample data rather
+than live services. CI retains a static catalog artifact without changing the
+app's Pages deployment.
+
 ## Layout and theme tokens
 
 Responsive page layouts use app-owned `.transit-container`, `.transit-columns`,

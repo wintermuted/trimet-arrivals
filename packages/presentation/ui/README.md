@@ -26,6 +26,10 @@ load `@wintermuted/ui-theme@^1.0.3`'s `index.css` for shared styles, including
 `.wm-action-disclosure*` and `.wm-load-status*`.
 See the [design system guide](../../../docs/design-system.md)
 for shared UI conventions.
+The [Storybook catalog](../storybook/README.md) imports these public APIs and
+documents their states and interactions. Run `npm run storybook` from the root;
+maintain examples in `packages/presentation/storybook/stories` alongside changes
+to the shared component contracts.
 Indicator components include their own styles; on-time and early states use the
 theme success color without requiring arrivals-table styles.
 
