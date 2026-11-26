@@ -22,7 +22,11 @@ npm run build:storybook
 
 Static output goes to `packages/presentation/storybook/storybook-static`.
 The Storybook CI workflow checks types, builds the catalog, and retains this
-directory as an artifact. It does not deploy to or overwrite the live app.
+directory as an artifact. The PR preview workflow also checks and builds the
+catalog, then publishes it alongside the test app at
+`https://wintermuted.github.io/overworld/pr-<number>/storybook/`.
+The deployment comment links to it. Closing the PR removes the entire preview,
+including Storybook. The live app deployment stays unchanged.
 Local build/type validation remains CI-owned.
 
 ## Maintaining the library
