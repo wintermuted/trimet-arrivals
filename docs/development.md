@@ -55,6 +55,18 @@ by the VS Code setup task does not serve `3.2.1`.
 
 ## Focused UI tests and CI
 
+The product component catalog is a separate npm/Nx workspace. Start it with:
+
+```powershell
+npm run storybook
+```
+
+Open `http://localhost:6006`. The separate Storybook workflow runs
+`npm run typecheck:storybook` and `npm run build:storybook` and retains its static
+output as an artifact; local build/type validation stays in CI. See the
+[catalog contributor guide](../packages/presentation/storybook/README.md)
+for story conventions, provider setup, sample data, and interaction examples.
+
 Run the React component and DOM integration suite for navigation, bookmarks,
 dialogs, and theme preferences:
 

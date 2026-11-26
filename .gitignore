@@ -12,6 +12,7 @@
 
 # production
 /build
+/packages/presentation/storybook/storybook-static
 
 # misc
 .DS_Store

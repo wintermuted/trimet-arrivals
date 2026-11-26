@@ -1,0 +1,39 @@
+name: Storybook
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  component-catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck catalog and imported components
+        run: npm run typecheck:storybook
+
+      - name: Build component catalog
+        run: npm run build:storybook
+
+      - name: Retain static Storybook
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook
+          path: packages/presentation/storybook/storybook-static/
+          if-no-files-found: error
