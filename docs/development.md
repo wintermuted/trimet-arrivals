@@ -67,6 +67,9 @@ output as an artifact; local build/type validation stays in CI. See the
 PR preview comment for the published component library at
 `https://wintermuted.github.io/overworld/pr-<number>/storybook/`; it is built and
 deployed with the test app, and removed by the same PR cleanup workflow.
+Production deployments also validate/build the catalog and publish it at
+[overworld/storybook/](https://wintermuted.github.io/overworld/storybook/).
+Manual validation-only runs include its staged files without publishing.
 See the [catalog contributor guide](../packages/presentation/storybook/README.md)
 for story conventions, provider setup, sample data, and interaction examples.
 

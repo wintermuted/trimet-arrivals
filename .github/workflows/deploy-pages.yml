@@ -94,6 +94,21 @@ jobs:
       - name: Include coverage in production artifact
         run: mkdir -p build/coverage && cp -R coverage/. build/coverage/
 
+      - name: Validate Storybook assertion dependency tree
+        run: npm ls @testing-library/jest-dom --all
+
+      - name: Typecheck Storybook
+        run: npm run typecheck:storybook
+
+      - name: Build Storybook for production
+        run: npm run build:storybook
+
+      - name: Include Storybook in production artifact
+        run: mkdir -p build/storybook && cp -R packages/presentation/storybook/storybook-static/. build/storybook/
+
+      - name: Verify Storybook production files
+        run: test -s build/storybook/index.html && test -s build/storybook/iframe.html && test -s build/storybook/index.json
+
       - name: Deploy to gh-pages
         if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event_name == 'push' || inputs.publish) }}
         uses: peaceiris/actions-gh-pages@v3

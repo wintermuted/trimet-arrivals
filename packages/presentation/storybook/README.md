@@ -26,7 +26,11 @@ directory as an artifact. The PR preview workflow also checks and builds the
 catalog, then publishes it alongside the test app at
 `https://wintermuted.github.io/overworld/pr-<number>/storybook/`.
 The deployment comment links to it. Closing the PR removes the entire preview,
-including Storybook. The live app deployment stays unchanged.
+including Storybook. Production Pages deployments also check and build the
+catalog and publish it permanently alongside the app at
+[overworld/storybook/](https://wintermuted.github.io/overworld/storybook/).
+Manual production validation builds include the catalog without publishing
+unless the existing live-site publication option is enabled on main or master.
 Local build/type validation remains CI-owned.
 
 ## Maintaining the library

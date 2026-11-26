@@ -64,8 +64,10 @@ stories in `packages/presentation/storybook/stories`; do not fork shared
 Wintermuted controls into the catalog. Examples use injected sample data rather
 than live services. CI retains a static catalog artifact and publishes each
 PR's catalog alongside its Pages test app at `pr-<number>/storybook/`, linked
-from the preview comment. Both are removed when the PR closes. The live app's
-Pages deployment stays unchanged.
+from the preview comment. Both are removed when the PR closes. Production Pages
+deployments publish the current catalog permanently at
+[overworld/storybook/](https://wintermuted.github.io/overworld/storybook/)
+alongside the live app; PR cleanup does not remove this production catalog.
 
 ## Layout and theme tokens
 
