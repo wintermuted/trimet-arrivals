@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate assertion dependency tree
+        run: npm ls @testing-library/jest-dom --all
+
       - name: Typecheck catalog and imported components
         run: npm run typecheck:storybook
 
