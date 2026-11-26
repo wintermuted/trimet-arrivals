@@ -42,6 +42,8 @@ Local build/type validation remains CI-owned.
 - Storybook uses its own Vite configuration, not the app's environment files,
   deployment base path, assets, or entry point. Add decorators only for the
   context a component actually requires; do not mount the whole application.
+  Its own `vite-env.d.ts` supplies Vite's CSS/Sass module declarations to the
+  catalog typecheck without importing the application's ambient types.
 - Accessibility findings are visible but not a CI certification. The static
   build/type checks do not execute play functions in a browser; review them in
   Storybook. Existing Vitest component suites remain the behavioral CI gate.
