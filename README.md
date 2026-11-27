@@ -55,6 +55,21 @@ These commands currently start Go By Transit. Open the local URL printed by Vite
 See [development](docs/development.md) for CI, test commands, geometry exports,
 and GitHub Copilot app setup.
 
+## Storybook
+
+Browse the **[product component library](https://wintermuted.github.io/overworld/storybook/)**
+for interactive examples, component APIs, and Light/Dark previews of shared
+Overworld UI components.
+
+After installing the root dependencies, start the catalog locally:
+
+```powershell
+npm run storybook
+```
+
+See the [Storybook guide](packages/presentation/storybook/README.md) for authoring
+examples and the [design system](docs/design-system.md) for component ownership.
+
 ## Documentation
 
 - [Documentation index](docs/README.md): workspace guidance and tenant-specific guides.
